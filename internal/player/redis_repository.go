@@ -2,12 +2,15 @@ package player
 
 import (
 	"context"
+	"learning/internal/redisdb"
 	"strconv"
 
 	"github.com/redis/go-redis/v9"
 )
 
 const nextIDKey = "game:next_player_id"
+
+const maxTxRetries = 8
 
 // RedisRepository stores players in Redis.
 type RedisRepository struct {
@@ -67,12 +70,60 @@ func (r *RedisRepository) Exists(ctx context.Context, id int64) (bool, error) {
 	return exists > 0, nil
 }
 
-// UpdateProfile stores the latest player profile fields in Redis.
-func (r *RedisRepository) UpdateProfile(ctx context.Context, p *Player) error {
-	return r.client.HSet(ctx, Key(p.ID), map[string]any{
-		"name":   p.Name,
-		"avatar": p.Avatar,
-		"email":  p.Email,
-		"phone":  p.Phone,
-	}).Err()
+// UpdateProfile applies profile field changes using a Redis WATCH transaction.
+func (r *RedisRepository) UpdateProfile(ctx context.Context, id int64, input UpdateProfileInput) (*Player, error) {
+	key := Key(id)
+	var updated *Player
+	err := redisdb.WithTxRetry(ctx, maxTxRetries, func() error {
+		return r.client.Watch(ctx, func(tx *redis.Tx) error {
+			value, err := tx.HGetAll(ctx, key).Result()
+			if err != nil {
+				return err
+			}
+			if len(value) == 0 {
+				return ErrNotFound
+			}
+			p := &Player{
+				ID:     id,
+				Name:   value["name"],
+				Avatar: value["avatar"],
+				Email:  value["email"],
+				Phone:  value["phone"],
+			}
+			changes := make(map[string]any)
+			if input.Name != nil {
+				p.Name = *input.Name
+				changes["name"] = *input.Name
+			}
+			if input.Avatar != nil {
+				p.Avatar = *input.Avatar
+				changes["avatar"] = *input.Avatar
+			}
+			if input.Email != nil {
+				p.Email = *input.Email
+				changes["email"] = *input.Email
+			}
+			if input.Phone != nil {
+				p.Phone = *input.Phone
+				changes["phone"] = *input.Phone
+			}
+			if len(changes) == 0 {
+				updated = p
+				return nil
+			}
+			_, err = tx.TxPipelined(ctx, func(pipe redis.Pipeliner) error {
+				pipe.HSet(ctx, key, changes)
+				return nil
+			})
+			if err != nil {
+				return err
+			}
+			updated = p
+			return nil
+		}, key)
+	})
+	if err != nil {
+		return nil, err
+	}
+	return updated, nil
 }

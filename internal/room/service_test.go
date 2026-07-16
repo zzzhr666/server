@@ -445,15 +445,27 @@ func (r *testPlayerRepo) Exists(ctx context.Context, id int64) (bool, error) {
 	return ok, nil
 }
 
-func (r *testPlayerRepo) UpdateProfile(ctx context.Context, p *player.Player) error {
+func (r *testPlayerRepo) UpdateProfile(ctx context.Context, id int64, input player.UpdateProfileInput) (*player.Player, error) {
 	if err := ctx.Err(); err != nil {
-		return err
+		return nil, err
 	}
-	if _, ok := r.players[p.ID]; !ok {
-		return player.ErrNotFound
+	p, ok := r.players[id]
+	if !ok {
+		return nil, player.ErrNotFound
 	}
-	r.players[p.ID] = cloneTestPlayer(p)
-	return nil
+	if input.Name != nil {
+		p.Name = *input.Name
+	}
+	if input.Avatar != nil {
+		p.Avatar = *input.Avatar
+	}
+	if input.Email != nil {
+		p.Email = *input.Email
+	}
+	if input.Phone != nil {
+		p.Phone = *input.Phone
+	}
+	return cloneTestPlayer(p), nil
 }
 
 func cloneTestPlayer(p *player.Player) *player.Player {
@@ -480,6 +492,18 @@ func (r *testRoomRepo) Create(ctx context.Context, room *Room) error {
 		return err
 	}
 	r.rooms[room.ID] = cloneTestRoom(room)
+	return nil
+}
+
+func (r *testRoomRepo) CreateWithOwner(ctx context.Context, room *Room) error {
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+	if _, ok := r.playerRooms[room.OwnerID]; ok {
+		return ErrPlayerAlreadyInAnotherRoom
+	}
+	r.rooms[room.ID] = cloneTestRoom(room)
+	r.playerRooms[room.OwnerID] = room.ID
 	return nil
 }
 
@@ -528,6 +552,34 @@ func (r *testRoomRepo) AddPlayer(ctx context.Context, roomID, playerID int64) er
 	return nil
 }
 
+func (r *testRoomRepo) JoinRoom(ctx context.Context, playerID, roomID int64) error {
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+	if currentRoomID, ok := r.playerRooms[playerID]; ok {
+		if currentRoomID == roomID {
+			return ErrPlayerAlreadyInThisRoom
+		}
+		return ErrPlayerAlreadyInAnotherRoom
+	}
+	room, ok := r.rooms[roomID]
+	if !ok {
+		return ErrNotFound
+	}
+	if room.Status != StatusWaiting {
+		return ErrRoomNotWaiting
+	}
+	if _, ok := room.Players[playerID]; ok {
+		return ErrPlayerAlreadyInThisRoom
+	}
+	if len(room.Players) >= room.MaxPlayers {
+		return ErrRoomFull
+	}
+	room.Players[playerID] = struct{}{}
+	r.playerRooms[playerID] = roomID
+	return nil
+}
+
 func (r *testRoomRepo) RemovePlayer(ctx context.Context, roomID, playerID int64) error {
 	if err := ctx.Err(); err != nil {
 		return err
@@ -540,6 +592,33 @@ func (r *testRoomRepo) RemovePlayer(ctx context.Context, roomID, playerID int64)
 		return ErrPlayerNotIn
 	}
 	delete(room.Players, playerID)
+	return nil
+}
+
+func (r *testRoomRepo) LeaveRoom(ctx context.Context, playerID, roomID int64) error {
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+	room, ok := r.rooms[roomID]
+	if !ok {
+		return ErrNotFound
+	}
+	if _, ok := room.Players[playerID]; !ok {
+		return ErrPlayerNotIn
+	}
+	delete(room.Players, playerID)
+	delete(room.ReadyPlayers, playerID)
+	delete(r.playerRooms, playerID)
+
+	if len(room.Players) == 0 {
+		delete(r.rooms, roomID)
+		return nil
+	}
+	if playerID == room.OwnerID {
+		newOwnerID := minTestPlayerID(room.Players)
+		room.OwnerID = newOwnerID
+		delete(room.ReadyPlayers, newOwnerID)
+	}
 	return nil
 }
 
@@ -564,6 +643,31 @@ func (r *testRoomRepo) AddReadyPlayer(ctx context.Context, roomID, playerID int6
 		return ErrNotFound
 	}
 	room.ReadyPlayers[playerID] = struct{}{}
+	return nil
+}
+
+func (r *testRoomRepo) SetReady(ctx context.Context, playerID, roomID int64, ready bool) error {
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+	room, ok := r.rooms[roomID]
+	if !ok {
+		return ErrNotFound
+	}
+	if room.Status != StatusWaiting {
+		return ErrRoomNotWaiting
+	}
+	if _, ok := room.Players[playerID]; !ok {
+		return ErrPlayerNotIn
+	}
+	if playerID == room.OwnerID {
+		return ErrOwnerCannotReadyOrUnready
+	}
+	if ready {
+		room.ReadyPlayers[playerID] = struct{}{}
+	} else {
+		delete(room.ReadyPlayers, playerID)
+	}
 	return nil
 }
 
@@ -596,6 +700,32 @@ func (r *testRoomRepo) UpdateStatus(ctx context.Context, roomID int64, status St
 		return ErrNotFound
 	}
 	room.Status = status
+	return nil
+}
+
+func (r *testRoomRepo) StartRoom(ctx context.Context, playerID, roomID int64) error {
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+	room, ok := r.rooms[roomID]
+	if !ok {
+		return ErrNotFound
+	}
+	if room.Status != StatusWaiting {
+		return ErrRoomNotWaiting
+	}
+	if playerID != room.OwnerID {
+		return ErrOnlyOwnerCanStart
+	}
+	for playerInRoomID := range room.Players {
+		if playerInRoomID == playerID {
+			continue
+		}
+		if _, ready := room.ReadyPlayers[playerInRoomID]; !ready {
+			return ErrPlayersNotReady
+		}
+	}
+	room.Status = StatusPlaying
 	return nil
 }
 
@@ -632,4 +762,16 @@ func cloneTestRoom(room *Room) *Room {
 		Players:      maps.Clone(room.Players),
 		ReadyPlayers: maps.Clone(room.ReadyPlayers),
 	}
+}
+
+func minTestPlayerID(players map[int64]struct{}) int64 {
+	var minID int64
+	first := true
+	for playerID := range players {
+		if first || playerID < minID {
+			minID = playerID
+			first = false
+		}
+	}
+	return minID
 }

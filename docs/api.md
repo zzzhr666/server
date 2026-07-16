@@ -15,7 +15,7 @@ HTTP API
   -> Redis
 ```
 
-接口路径保持稳定，后续可以把内部 repository 替换为 RPC/gRPC client，而不改变客户端请求格式。
+接口路径保持稳定，后续可以把内部 repository 替换为 RPC/gRPC client，而不改变客户端请求格式。`auth.Service` 已实现注册、登录、登出和 session 查询的服务层与 Redis repository，但本版本尚未对外暴露 auth HTTP 路由。
 
 ## 通用约定
 
@@ -65,6 +65,8 @@ Content-Type: application/json
 | 房间准备玩家 | `game:room:{id}:ready_players` set |
 | 房间列表 | `game:rooms` set |
 | 玩家当前房间索引 | `game:player:{id}:room` string |
+| 登录账号 | `game:account:{username}` hash |
+| 登录会话 | `game:session:{token}` hash，带 Redis TTL |
 
 如果手动验证接口，建议在本地开发 Redis 中清理 `game:*` 测试数据，避免自增 ID 影响示例结果。
 
@@ -612,11 +614,46 @@ curl http://localhost:8080/rooms/1
 
 ## 后续接口规划
 
-### 登录模块
+### Auth 模块
 
-- `POST /auth/login`: 游客登录或账号登录
-- `POST /auth/logout`: 登出
-- `GET /me`: 查询当前登录玩家
+服务层已实现，HTTP 层下一阶段接入。
+
+- `POST /auth/register`: 注册账号，同时创建绑定玩家并返回 session token
+- `POST /auth/login`: 使用用户名和密码登录并返回 session token
+- `POST /auth/logout`: 通过 `Authorization: Bearer <token>` 登出
+- `GET /me`: 通过 session token 查询当前登录玩家
+
+建议请求/响应草案:
+
+```json
+{
+  "username": "alice",
+  "password": "password123",
+  "name": "alice",
+  "avatar": "alice.png",
+  "email": "alice@example.com",
+  "phone": "13800000000"
+}
+```
+
+```json
+{
+  "token": "opaque-session-token",
+  "player": {
+    "id": 1,
+    "name": "alice",
+    "avatar": "alice.png",
+    "email": "alice@example.com",
+    "phone": "13800000000"
+  }
+}
+```
+
+注意:
+
+- 密码只在 HTTPS 传输中出现明文，请求到达服务端后使用 bcrypt 哈希存储。
+- 生产环境必须通过 Nginx 配置 HTTPS，不能用纯 HTTP 承载真实密码。
+- token 是服务端生成的随机会话凭证，客户端后续通过 `Authorization: Bearer <token>` 携带。
 
 ### 好友模块
 

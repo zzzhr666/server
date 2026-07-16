@@ -7,8 +7,9 @@
 - 语言: Go
 - 协议: HTTP + JSON
 - 存储: Redis
-- 当前模块: `config`、`httpapi`、`player`、`room`、`redisdb`
+- 当前模块: `config`、`httpapi`、`auth`、`player`、`room`、`redisdb`
 - 当前功能: 玩家创建/查询/更新、房间创建/查询/列表、加入/离开房间、准备/取消准备、开始游戏、健康检查
+- 已完成但未接入 HTTP: `auth.Service` 注册、登录、登出、session 查询、bcrypt 密码哈希、Redis session TTL
 
 ## 模块架构
 
@@ -19,6 +20,12 @@ Client
   |
   v
 internal/httpapi
+  |
+  +--> auth.Service    (下一阶段接入 HTTP)
+  |      |
+  |      +--> auth.Repository
+  |      |
+  |      +--> player.Service
   |
   +--> player.Service
   |      |
@@ -35,6 +42,7 @@ internal/httpapi
 底层存储:
 
 ```text
+auth.RedisRepository
 player.RedisRepository
 room.RedisRepository
   |
@@ -43,6 +51,21 @@ redis.Client
 ```
 
 `room.Service` 依赖 `player.Repository` 来判断玩家是否存在，但不会直接调用玩家 HTTP 或玩家 service。这样房间模块只依赖玩家数据能力，不和玩家业务流程耦合。
+
+`auth.Service` 依赖 `player.Service`，因为注册账号时需要创建绑定玩家，这属于玩家业务行为而不是单纯的数据读写。auth repository 只负责账号和 session 存储，不直接操作玩家 Redis key。
+
+HTTP 层已按模块拆分:
+
+```text
+internal/httpapi/
+├── handler.go          # Handler 结构和依赖注入
+├── router.go           # 路由注册
+├── health_handler.go   # 健康检查
+├── player_handler.go   # 玩家 HTTP 适配
+├── room_handler.go     # 房间 HTTP 适配
+├── protocol.go         # HTTP 请求/响应结构
+└── response.go         # JSON 响应和通用转换 helper
+```
 
 ## 配置
 
@@ -104,13 +127,16 @@ game:room:{room_id}:players      set, 房间成员玩家 ID
 game:room:{room_id}:ready_players  set, 已准备玩家 ID
 game:rooms                       set, 所有房间 ID
 game:player:{player_id}:room     string, 玩家当前所在房间 ID
+
+game:account:{username}          hash, 账号、密码哈希、绑定玩家 ID
+game:session:{token}             hash, 会话 token、玩家 ID、过期时间，带 Redis TTL
 ```
 
 当前使用的数据类型:
 
 - `String`: 自增 ID 计数器。
 - `Hash`: 保存玩家、房间对象字段。
-- `Set`: 保存房间成员和房间 ID 集合。
+- `Set`: 保存房间成员、准备玩家和房间 ID 集合。
 
 后续可扩展:
 
@@ -120,6 +146,38 @@ game:player:{player_id}:friends
 game:match:queue:{mode}
 game:leaderboard:{mode}
 ```
+
+## Redis 原子性策略
+
+当前版本已经去掉房间 service 中的进程内 `sync.RWMutex`，将关键多步写操作下沉到 Redis repository，并用 `WATCH` + `TxPipelined` + retry 保证多实例下的乐观并发控制。
+
+公共重试 helper 位于 `internal/redisdb/tx.go`:
+
+```text
+redisdb.WithTxRetry(ctx, maxRetries, fn)
+```
+
+使用方式:
+
+1. repository 通过 `WATCH` 监听参与判断的 key。
+2. 在事务回调里读取当前 Redis 状态并执行业务检查。
+3. 通过 `TxPipelined` 提交写入命令。
+4. 如果提交前被监听 key 发生变化，go-redis 返回 `redis.TxFailedErr`。
+5. `WithTxRetry` 捕获冲突并重试整个读-检查-写流程。
+
+已使用 WATCH 保护的操作:
+
+- `player.RedisRepository.UpdateProfile`: 读取玩家资料并只写入本次出现的字段，避免覆盖并发更新。
+- `room.RedisRepository.CreateWithOwner`: 创建房间并写入房主当前房间索引。
+- `room.RedisRepository.JoinRoom`: 检查玩家当前房间、房间状态和容量后加入房间。
+- `room.RedisRepository.LeaveRoom`: 离开房间、清理准备状态、转移房主或删除空房间。
+- `room.RedisRepository.SetReady`: 检查房间状态、成员身份和房主限制后更新准备状态。
+- `room.RedisRepository.StartRoom`: 检查房主和准备状态后切换为 playing。
+- `auth.RedisRepository.CreateAccount`: 检查用户名不存在后创建账号。
+
+普通 `TxPipelined` 适合把多个写命令作为一个 Redis 事务发送，但它不会重新检查读取条件。只写入 session hash 并设置 TTL 的 `CreateSession` 使用 `TxPipelined` 就足够，因为 token 由 32 字节随机数生成，重复概率极低，且没有依赖 Redis 中旧值进行业务判断。
+
+后续如果出现更复杂的跨 key 不变量，优先继续在 repository 内新增粗粒度原子方法。只有当 WATCH 重试逻辑变得难维护，或者需要把判断和写入完全固定在 Redis 单条脚本中时，再升级为 Lua。
 
 ## 目标架构
 
@@ -180,11 +238,13 @@ Client
 
 - 已具备 `player` 模块: 创建、查询、更新玩家资料。
 - 已具备 `room` 模块: 创建、列表、详情、加入、离开、准备、取消准备、开始游戏。
+- 已具备 `auth` 服务层: 注册、登录、登出、session 查询、密码哈希和 Redis session TTL。
+- HTTP 层已经按 handler 模块拆分，便于下一阶段接入 auth 路由。
 - 房间详情已经能返回房间内玩家状态: `id`、`name`、`avatar`、`ready`、`owner`。
-- `RoomService` 使用 `sync.RWMutex` 保护单进程内的多步房间操作。
-- Redis 已经保存玩家、房间、房间成员、准备状态和玩家当前房间索引。
+- 房间和玩家更新的关键写操作已经使用 Redis `WATCH` 事务替代进程内锁。
+- Redis 已经保存玩家、房间、房间成员、准备状态、玩家当前房间索引、账号和登录 session。
 
-这个状态足够作为继续扩展的基线。下一步不建议直接引入 `rcenterserver` 或 `roomserver`，因为登录、会话、在线状态和匹配入口还没有稳定。
+这个状态足够作为继续扩展的基线。下一步建议先把 `auth.Service` 接入 HTTP，再继续做在线状态和匹配入口；不建议直接引入 `rcenterserver` 或 `roomserver`。
 
 ## 迭代计划
 
@@ -202,7 +262,7 @@ internal/friend
 
 建议顺序:
 
-1. `auth`: 登录、登出、查询当前玩家。
+1. `auth`: 接入 HTTP 注册、登录、登出、查询当前玩家。
 2. `presence`: 心跳、在线状态、玩家状态查询。
 3. `GET /players`: 当前玩家列表，可返回基础资料和在线状态。
 4. `friend`: 好友申请、好友列表、删除好友。
@@ -238,7 +298,7 @@ game:player:{player_id}:friend_requests  set, 玩家收到的申请 ID
 
 - `auth.Service` 只负责认证和 session，不直接处理好友或房间。
 - HTTP 层通过 `Authorization: Bearer <token>` 找到当前玩家。
-- 第一版可以先做简单密码校验或游客登录，后续再升级密码哈希和账号表。
+- 密码存储已经使用 bcrypt，生产传输层必须使用 HTTPS。
 - 在线状态第一版可以用心跳时间判断，例如最近 30 秒有心跳就是在线。
 - `player.Service` 可以新增 `List`，但玩家在线状态建议由 `presence.Service` 组合，而不是塞进玩家基础模型。
 
@@ -277,21 +337,18 @@ Nginx
 - `/health` 保持轻量探活。
 - 所有 session、presence、房间、匹配状态必须在 Redis 中共享，不能依赖进程内内存。
 
-原子性升级点:
+原子性状态:
 
-- 当前 `sync.RWMutex` 只保证单个进程内的房间操作不交错。
-- 多 `logicserver` 之后，不同进程有不同的锁，`sync.RWMutex` 无法保证跨进程原子性。
-- 进入多实例前，房间关键操作应迁移为 Redis Lua 或 Redis transaction，例如创建房间、加入房间、离开房间、准备、开始游戏。
+- 当前房间关键操作已经迁移到 repository 的 Redis `WATCH` 事务方法中。
+- 多 `logicserver` 共享同一个 Redis 时，不再依赖单进程锁保证房间操作一致性。
+- Nginx 双实例阶段仍需要重点压测并发加入、离开、准备、开始游戏。
 
-建议迁移方式:
+后续迁移方式:
 
 1. 保留 `room.Service` 对外方法不变。
-2. 在 `room.Repository` 内新增更粗粒度的原子方法，例如 `CreateRoomWithOwner`、`JoinRoomIfAllowed`。
-3. 先让 service 调用新 repository 方法。
-4. repository 内部用 Lua 完成检查和写入。
-5. HTTP 和 service 接口不变，调用方无感知。
-
-这样升级 Redis 原子性不会引发大规模重构。
+2. 如果 WATCH 重试足够稳定，继续沿用当前实现。
+3. 如果高并发下冲突过多或逻辑过复杂，再把单个 repository 原子方法内部替换为 Lua。
+4. HTTP 和 service 接口不变，调用方无感知。
 
 ### Phase 3: 在单体内先加入 match 抽象
 
@@ -475,7 +532,7 @@ game:player:{player_id}:recent_games list, 最近对局
 4. `friend`: 好友申请和好友列表。
 5. `match`: 单体内本地匹配队列。
 6. Nginx 双实例部署验证。
-7. Redis Lua 原子化房间和匹配关键操作。
+7. Nginx 双实例下压测 Redis WATCH 原子性，必要时将热点操作升级为 Lua。
 8. `rcenterserver` 抽离匹配。
 9. `roomserver` TCP 入房和 gRPC 负载上报。
 
@@ -486,5 +543,5 @@ game:player:{player_id}:recent_games list, 最近对局
 - 不建议现在把 `player`、`room` 直接拆成多个仓库或多个进程。
 - 不建议现在把所有 HTTP 请求改成 Protobuf。
 - 不建议在没有 `auth` 和 `presence` 的情况下直接做复杂匹配。
-- 不建议在单实例阶段过早引入分布式锁；房间并发先用当前 `sync.RWMutex`，多实例前再迁移 Lua。
+- 不建议引入分布式锁；当前优先使用 Redis WATCH 事务，只有热点复杂操作再考虑 Lua。
 - 不建议把在线状态写进 `player.Player` 基础模型，在线状态是运行态数据，应由 `presence` 管理。

@@ -22,8 +22,8 @@ type Repository interface {
 	Get(ctx context.Context, id int64) (*Player, error)
 	// Exists reports whether a player exists.
 	Exists(ctx context.Context, id int64) (bool, error)
-	// UpdateProfile persists profile changes for an existing player.
-	UpdateProfile(ctx context.Context, p *Player) error
+	// UpdateProfile applies profile field changes and returns the updated player.
+	UpdateProfile(ctx context.Context, id int64, input UpdateProfileInput) (*Player, error)
 }
 
 // GamePlayerService implements player business rules.
@@ -90,27 +90,10 @@ func (s *GamePlayerService) UpdateProfile(ctx context.Context, id int64, input U
 	if err := ctx.Err(); err != nil {
 		return nil, err
 	}
-	p, err := s.playersRepo.Get(ctx, id)
-	if err != nil {
-		return nil, err
-	}
 	if input.Name != nil {
 		if *input.Name == "" {
 			return nil, ErrInvalidName
 		}
-		p.Name = *input.Name
 	}
-	if input.Avatar != nil {
-		p.Avatar = *input.Avatar
-	}
-	if input.Email != nil {
-		p.Email = *input.Email
-	}
-	if input.Phone != nil {
-		p.Phone = *input.Phone
-	}
-	if err := s.playersRepo.UpdateProfile(ctx, p); err != nil {
-		return nil, err
-	}
-	return p, nil
+	return s.playersRepo.UpdateProfile(ctx, id, input)
 }
