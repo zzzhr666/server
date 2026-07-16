@@ -1,6 +1,6 @@
 # Game Server Demo
 
-Go 编写的游戏服务器 demo，当前版本聚焦游戏外逻辑: 玩家、房间、加入/离开房间和健康检查。服务使用 HTTP + JSON 对外提供接口，使用 Redis 存储玩家和房间数据。
+Go 编写的游戏服务器 demo，当前版本聚焦游戏外逻辑: 玩家资料、房间、加入/离开房间、准备状态、开始游戏和健康检查。服务使用 HTTP + JSON 对外提供接口，使用 Redis 存储玩家和房间数据。
 
 ## 架构
 
@@ -44,7 +44,7 @@ Redis
 启动 Redis:
 
 ```bash
-redis-server
+redis-logicserver
 ```
 
 或使用 Docker:
@@ -56,7 +56,7 @@ docker run --rm -p 6379:6379 redis:latest
 启动服务:
 
 ```bash
-go run ./cmd/game-server
+go run ./cmd/game-logicserver
 ```
 
 服务默认监听:
@@ -77,12 +77,18 @@ Redis 默认连接:
 curl http://localhost:8080/health
 ```
 
+清理本项目 Redis 数据:
+
+```bash
+bash scripts/reset_redis.sh
+```
+
 创建玩家:
 
 ```bash
 curl -X POST http://localhost:8080/players \
   -H 'Content-Type: application/json' \
-  -d '{"name":"alice"}'
+  -d '{"name":"alice","avatar":"alice.png"}'
 ```
 
 创建房间:
@@ -91,6 +97,12 @@ curl -X POST http://localhost:8080/players \
 curl -X POST http://localhost:8080/rooms \
   -H 'Content-Type: application/json' \
   -d '{"owner_id":1}'
+```
+
+查询房间详情:
+
+```bash
+curl http://localhost:8080/rooms/1
 ```
 
 ## 测试
@@ -102,4 +114,4 @@ go test ./...
 ## 文档
 
 - [HTTP API](docs/api.md)
-- [Architecture](docs/architecture.md)
+- [Architecture](docs/architecture.md): 当前模块边界、Redis 结构和后续多服务升级路线

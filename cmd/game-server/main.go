@@ -31,7 +31,7 @@ func main() {
 	playerRepo := player.NewRedisRepository(redisClient)
 	roomRepo := room.NewRedisRepository(redisClient)
 	playerService := player.NewService(playerRepo)
-	roomService := room.NewService(playerRepo, roomRepo)
+	roomService := room.NewService(playerRepo, roomRepo, room.DefaultConfig())
 
 	handler := httpapi.NewHandler(playerService, roomService)
 

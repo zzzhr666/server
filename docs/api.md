@@ -62,7 +62,9 @@ Content-Type: application/json
 | 房间 ID 自增 | `game:next_room_id` |
 | 房间信息 | `game:room:{id}` hash |
 | 房间成员 | `game:room:{id}:players` set |
+| 房间准备玩家 | `game:room:{id}:ready_players` set |
 | 房间列表 | `game:rooms` set |
+| 玩家当前房间索引 | `game:player:{id}:room` string |
 
 如果手动验证接口，建议在本地开发 Redis 中清理 `game:*` 测试数据，避免自增 ID 影响示例结果。
 
@@ -94,7 +96,10 @@ ok
 
 ```json
 {
-  "name": "alice"
+  "name": "alice",
+  "avatar": "alice.png",
+  "email": "alice@example.com",
+  "phone": "13800000000"
 }
 ```
 
@@ -103,6 +108,9 @@ ok
 | 字段 | 类型 | 必填 | 说明 |
 | --- | --- | --- | --- |
 | name | string | 是 | 玩家名称，不能为空 |
+| avatar | string | 否 | 玩家头像地址 |
+| email | string | 否 | 玩家邮箱 |
+| phone | string | 否 | 玩家手机号 |
 
 #### 成功响应
 
@@ -111,7 +119,10 @@ ok
 ```json
 {
   "id": 1,
-  "name": "alice"
+  "name": "alice",
+  "avatar": "alice.png",
+  "email": "alice@example.com",
+  "phone": "13800000000"
 }
 ```
 
@@ -127,7 +138,7 @@ ok
 ```bash
 curl -X POST http://localhost:8080/players \
   -H 'Content-Type: application/json' \
-  -d '{"name":"alice"}'
+  -d '{"name":"alice","avatar":"alice.png","email":"alice@example.com","phone":"13800000000"}'
 ```
 
 ### GET /players/{id}
@@ -147,7 +158,10 @@ curl -X POST http://localhost:8080/players \
 ```json
 {
   "id": 1,
-  "name": "alice"
+  "name": "alice",
+  "avatar": "alice.png",
+  "email": "alice@example.com",
+  "phone": "13800000000"
 }
 ```
 
@@ -165,6 +179,66 @@ curl -X POST http://localhost:8080/players \
 curl http://localhost:8080/players/1
 ```
 
+### PATCH /players/{id}
+
+部分更新玩家资料。请求体中出现的字段会被更新，未出现的字段保持不变；字段值可以更新为空字符串。
+
+#### 路径参数
+
+| 参数 | 类型 | 说明 |
+| --- | --- | --- |
+| id | int64 | 玩家 ID |
+
+#### 请求体
+
+```json
+{
+  "name": "alice2",
+  "avatar": "alice2.png",
+  "email": "alice2@example.com",
+  "phone": ""
+}
+```
+
+#### 字段说明
+
+| 字段 | 类型 | 必填 | 说明 |
+| --- | --- | --- | --- |
+| name | string | 否 | 玩家名称，出现时不能为空 |
+| avatar | string | 否 | 玩家头像地址 |
+| email | string | 否 | 玩家邮箱 |
+| phone | string | 否 | 玩家手机号 |
+
+#### 成功响应
+
+状态码: `200 OK`
+
+```json
+{
+  "id": 1,
+  "name": "alice2",
+  "avatar": "alice2.png",
+  "email": "alice2@example.com",
+  "phone": ""
+}
+```
+
+#### 错误响应
+
+| 状态码 | 场景 |
+| --- | --- |
+| 400 | 玩家 ID 不是合法数字、JSON 格式错误或玩家名为空 |
+| 404 | 玩家不存在 |
+| 500 | 服务内部错误 |
+
+#### curl 示例
+
+```bash
+curl -X PATCH http://localhost:8080/players/1 \
+  -H 'Content-Type: application/json' \
+  -d '{"name":"alice2","avatar":"alice2.png"}'
+```
+
 ## 房间接口
 
 ### POST /rooms
@@ -175,7 +249,8 @@ curl http://localhost:8080/players/1
 
 ```json
 {
-  "owner_id": 1
+  "owner_id": 1,
+  "max_players": 5
 }
 ```
 
@@ -184,6 +259,7 @@ curl http://localhost:8080/players/1
 | 字段 | 类型 | 必填 | 说明 |
 | --- | --- | --- | --- |
 | owner_id | int64 | 是 | 房主玩家 ID |
+| max_players | int | 否 | 房间最大人数，省略或为 0 时使用默认值 10，当前最大值为 10 |
 
 #### 成功响应
 
@@ -193,7 +269,10 @@ curl http://localhost:8080/players/1
 {
   "id": 1,
   "owner_id": 1,
-  "players": [1]
+  "status": "waiting",
+  "max_players": 5,
+  "players": [1],
+  "ready_players": []
 }
 ```
 
@@ -203,6 +282,7 @@ curl http://localhost:8080/players/1
 | --- | --- |
 | 400 | JSON 格式错误 |
 | 404 | 房主玩家不存在 |
+| 409 | 房主已经在其他房间中 |
 | 500 | 服务内部错误 |
 
 #### curl 示例
@@ -210,12 +290,12 @@ curl http://localhost:8080/players/1
 ```bash
 curl -X POST http://localhost:8080/rooms \
   -H 'Content-Type: application/json' \
-  -d '{"owner_id":1}'
+  -d '{"owner_id":1,"max_players":5}'
 ```
 
 ### GET /rooms/{id}
 
-查询单个房间。
+查询单个房间详情。详情响应会包含房间内玩家资料、准备状态和房主标记。
 
 #### 路径参数
 
@@ -231,7 +311,24 @@ curl -X POST http://localhost:8080/rooms \
 {
   "id": 1,
   "owner_id": 1,
-  "players": [1, 2]
+  "status": "waiting",
+  "max_players": 10,
+  "players": [
+    {
+      "id": 1,
+      "name": "alice",
+      "avatar": "alice.png",
+      "ready": false,
+      "owner": true
+    },
+    {
+      "id": 2,
+      "name": "bob",
+      "avatar": "bob.png",
+      "ready": true,
+      "owner": false
+    }
+  ]
 }
 ```
 
@@ -263,7 +360,10 @@ curl http://localhost:8080/rooms/1
     {
       "id": 1,
       "owner_id": 1,
-      "players": [1, 2]
+      "status": "waiting",
+      "max_players": 10,
+      "players": [1, 2],
+      "ready_players": [2]
     }
   ]
 }
@@ -309,7 +409,7 @@ curl http://localhost:8080/rooms
 | --- | --- |
 | 400 | 房间 ID 非法或 JSON 格式错误 |
 | 404 | 玩家或房间不存在 |
-| 409 | 玩家已经在房间中 |
+| 409 | 玩家已经在当前房间、其他房间、房间非等待状态或房间已满 |
 | 500 | 服务内部错误 |
 
 #### curl 示例
@@ -323,6 +423,8 @@ curl -X POST http://localhost:8080/rooms/1/join \
 ### POST /rooms/{id}/leave
 
 玩家离开房间。
+
+房主离开时，房主会转移给当前房间内 ID 最小的玩家；最后一个玩家离开时，房间会被删除。
 
 #### 路径参数
 
@@ -359,18 +461,135 @@ curl -X POST http://localhost:8080/rooms/1/leave \
   -d '{"player_id":2}'
 ```
 
+### POST /rooms/{id}/ready
+
+玩家准备。房主不能准备或取消准备，只有非房主房间成员可以准备。
+
+#### 路径参数
+
+| 参数 | 类型 | 说明 |
+| --- | --- | --- |
+| id | int64 | 房间 ID |
+
+#### 请求体
+
+```json
+{
+  "player_id": 2
+}
+```
+
+#### 成功响应
+
+状态码: `204 No Content`
+
+#### 错误响应
+
+| 状态码 | 场景 |
+| --- | --- |
+| 400 | 房间 ID 非法或 JSON 格式错误 |
+| 404 | 玩家或房间不存在 |
+| 409 | 房间非等待状态、玩家不在房间中或房主尝试准备 |
+| 500 | 服务内部错误 |
+
+#### curl 示例
+
+```bash
+curl -X POST http://localhost:8080/rooms/1/ready \
+  -H 'Content-Type: application/json' \
+  -d '{"player_id":2}'
+```
+
+### POST /rooms/{id}/unready
+
+玩家取消准备。
+
+#### 路径参数
+
+| 参数 | 类型 | 说明 |
+| --- | --- | --- |
+| id | int64 | 房间 ID |
+
+#### 请求体
+
+```json
+{
+  "player_id": 2
+}
+```
+
+#### 成功响应
+
+状态码: `204 No Content`
+
+#### 错误响应
+
+| 状态码 | 场景 |
+| --- | --- |
+| 400 | 房间 ID 非法或 JSON 格式错误 |
+| 404 | 玩家或房间不存在 |
+| 409 | 房间非等待状态、玩家不在房间中或房主尝试取消准备 |
+| 500 | 服务内部错误 |
+
+#### curl 示例
+
+```bash
+curl -X POST http://localhost:8080/rooms/1/unready \
+  -H 'Content-Type: application/json' \
+  -d '{"player_id":2}'
+```
+
+### POST /rooms/{id}/start
+
+房主开始游戏。只有房主可以开始，且所有非房主玩家都必须已准备。
+
+#### 路径参数
+
+| 参数 | 类型 | 说明 |
+| --- | --- | --- |
+| id | int64 | 房间 ID |
+
+#### 请求体
+
+```json
+{
+  "player_id": 1
+}
+```
+
+#### 成功响应
+
+状态码: `204 No Content`
+
+#### 错误响应
+
+| 状态码 | 场景 |
+| --- | --- |
+| 400 | 房间 ID 非法或 JSON 格式错误 |
+| 404 | 玩家或房间不存在 |
+| 409 | 房间非等待状态、非房主开始游戏或仍有玩家未准备 |
+| 500 | 服务内部错误 |
+
+#### curl 示例
+
+```bash
+curl -X POST http://localhost:8080/rooms/1/start \
+  -H 'Content-Type: application/json' \
+  -d '{"player_id":1}'
+```
+
 ## 完整调用流程示例
 
 ```bash
 # 1. 创建房主
 curl -X POST http://localhost:8080/players \
   -H 'Content-Type: application/json' \
-  -d '{"name":"alice"}'
+  -d '{"name":"alice","avatar":"alice.png"}'
 
 # 2. 创建另一个玩家
 curl -X POST http://localhost:8080/players \
   -H 'Content-Type: application/json' \
-  -d '{"name":"bob"}'
+  -d '{"name":"bob","avatar":"bob.png"}'
 
 # 3. alice 创建房间
 curl -X POST http://localhost:8080/rooms \
@@ -382,7 +601,12 @@ curl -X POST http://localhost:8080/rooms/1/join \
   -H 'Content-Type: application/json' \
   -d '{"player_id":2}'
 
-# 5. 查询房间
+# 5. bob 准备
+curl -X POST http://localhost:8080/rooms/1/ready \
+  -H 'Content-Type: application/json' \
+  -d '{"player_id":2}'
+
+# 6. 查询房间详情
 curl http://localhost:8080/rooms/1
 ```
 
@@ -407,16 +631,12 @@ curl http://localhost:8080/rooms/1
 - `PATCH /rooms/{id}`: 修改房间配置
 - `POST /rooms/{id}/kick`: 踢出玩家
 - `POST /rooms/{id}/transfer-owner`: 转让房主
-- `POST /rooms/{id}/ready`: 玩家准备
-- `POST /rooms/{id}/start`: 开始游戏
 
 计划新增字段:
 
-| 字段 | 说明 |
-| --- | --- |
-| status | 房间状态，例如 `waiting`、`playing`、`closed` |
-| max_players | 房间最大人数 |
-| mode | 游戏模式 |
+| 字段         | 说明   |
+|------------|------|
+| mode       | 游戏模式 |
 | created_at | 创建时间 |
 
 ### 匹配模块
