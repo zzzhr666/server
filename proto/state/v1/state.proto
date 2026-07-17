@@ -1,0 +1,112 @@
+syntax = "proto3";
+
+package state.v1;
+
+option go_package = "server/internal/contract/statepb;statepb";
+
+import "google/protobuf/timestamp.proto";
+
+service StateService {
+  rpc CreateAccount(CreateAccountRequest) returns (CreateAccountResponse);
+  rpc GetAccount(GetAccountRequest) returns (GetAccountResponse);
+  rpc RegisterAccount(RegisterAccountRequest) returns (RegisterAccountResponse);
+
+  rpc CreateSession(CreateSessionRequest) returns (CreateSessionResponse);
+  rpc GetSession(GetSessionRequest) returns (GetSessionResponse);
+  rpc DeleteSession(DeleteSessionRequest) returns (DeleteSessionResponse);
+
+  rpc CreatePlayer(CreatePlayerRequest) returns (CreatePlayerResponse);
+  rpc GetPlayer(GetPlayerRequest) returns (GetPlayerResponse);
+  rpc NextPlayerID(NextPlayerIDRequest) returns (NextPlayerIDResponse);
+}
+
+message Account {
+  string username = 1;
+  string password_hash = 2;
+  int64 player_id = 3;
+}
+
+message Session {
+  string token = 1;
+  int64 player_id = 2;
+  google.protobuf.Timestamp expires_at = 3;
+}
+
+message Player {
+  int64 id = 1;
+  string nickname = 2;
+  string avatar = 3;
+  string email = 4;
+  string phone = 5;
+}
+
+message CreateAccountRequest {
+  Account account = 1;
+}
+
+message CreateAccountResponse {}
+
+message GetAccountRequest {
+  string username = 1;
+}
+
+message GetAccountResponse {
+  Account account = 1;
+}
+
+message RegisterAccountRequest {
+  string username = 1;
+  string password_hash = 2;
+  string nickname = 3;
+  string avatar = 4;
+  string email = 5;
+  string phone = 6;
+  string session_token = 7;
+  google.protobuf.Timestamp session_expires_at = 8;
+}
+
+message RegisterAccountResponse {
+  Account account = 1;
+  Player player = 2;
+  Session session = 3;
+}
+
+message CreateSessionRequest {
+  Session session = 1;
+}
+
+message CreateSessionResponse {}
+
+message GetSessionRequest {
+  string token = 1;
+}
+
+message GetSessionResponse {
+  Session session = 1;
+}
+
+message DeleteSessionRequest {
+  string token = 1;
+}
+
+message DeleteSessionResponse {}
+
+message CreatePlayerRequest {
+  Player player = 1;
+}
+
+message CreatePlayerResponse {}
+
+message GetPlayerRequest {
+  int64 id = 1;
+}
+
+message GetPlayerResponse {
+  Player player = 1;
+}
+
+message NextPlayerIDRequest {}
+
+message NextPlayerIDResponse {
+  int64 id = 1;
+}
