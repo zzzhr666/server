@@ -1,547 +1,382 @@
-# 架构说明
+# Architecture
 
-本文档记录当前项目的模块边界、Redis 数据结构和后续扩展方向。README 只保留项目入口信息，详细设计放在这里维护。
+项目正在从单进程 HTTP + Redis demo 迁移成多进程游戏服务器 demo。当前已经完成的核心变化是：`logic-server` 不再直接访问 Redis，而是通过 RPC 调用独立的 `state-server`，由 `state-server` 统一操作 Redis。
 
-## 当前状态
+## Runtime View
 
-- 语言: Go
-- 协议: HTTP + JSON
-- 存储: Redis
-- 当前模块: `config`、`httpapi`、`auth`、`player`、`room`、`redisdb`
-- 当前功能: 玩家创建/查询/更新、房间创建/查询/列表、加入/离开房间、准备/取消准备、开始游戏、健康检查
-- 已完成但未接入 HTTP: `auth.Service` 注册、登录、登出、session 查询、bcrypt 密码哈希、Redis session TTL
-
-## 模块架构
-
-当前依赖关系:
+当前可运行链路：
 
 ```text
 Client
   |
+  | HTTP JSON
   v
-internal/httpapi
+logic-server (:8080)
   |
-  +--> auth.Service    (下一阶段接入 HTTP)
-  |      |
-  |      +--> auth.Repository
-  |      |
-  |      +--> player.Service
+  | auth/player service
+  v
+logic state repository adapter
   |
-  +--> player.Service
-  |      |
-  |      v
-  |   player.Repository
+  | statecontract.Client
+  v
+state rpcclient
   |
-  +--> room.Service
-         |
-         +--> room.Repository
-         |
-         +--> player.Repository
-```
-
-底层存储:
-
-```text
-auth.RedisRepository
-player.RedisRepository
-room.RedisRepository
+  | Go net/rpc, StateService.*
+  v
+state-server (127.0.0.1:9001)
+  |
+  | rpcserver adapter
+  v
+state service
+  |
+  | accountStore / playerStore / sessionStore
+  v
+redisstore
   |
   v
-redis.Client
+Redis (127.0.0.1:6379)
 ```
 
-`room.Service` 依赖 `player.Repository` 来判断玩家是否存在，但不会直接调用玩家 HTTP 或玩家 service。这样房间模块只依赖玩家数据能力，不和玩家业务流程耦合。
+这条链路的意义是把“业务入口”和“数据状态操作”拆开：
 
-`auth.Service` 依赖 `player.Service`，因为注册账号时需要创建绑定玩家，这属于玩家业务行为而不是单纯的数据读写。auth repository 只负责账号和 session 存储，不直接操作玩家 Redis key。
+- `logic-server` 负责 HTTP、登录业务、玩家资料业务。
+- `state-server` 负责状态数据读写和跨数据组合操作。
+- Redis 只被 `state-server` 直接访问。
 
-HTTP 层已按模块拆分:
+## Process Responsibilities
+
+### logic-server
+
+入口：`cmd/logic-server/main.go`
+
+职责：
+
+- 启动 HTTP 服务。
+- 注册 `/health` 和 `/auth/*` 路由。
+- 创建 `auth.Service` 和 `player.Service`。
+- 通过 `rpc.Dial` 连接 `state-server`。
+- 使用 `internal/state/rpcclient.Client` 作为 state client。
+
+它依赖 state 契约，但不关心 state 的真实存储是 Redis、MySQL，还是别的服务。
+
+### state-server
+
+入口：`cmd/state-server/main.go`
+
+职责：
+
+- 连接 Redis。
+- 创建 Redis store。
+- 创建 state service。
+- 把 state service 注册成 `net/rpc` 服务。
+- 监听 `127.0.0.1:9001`。
+
+所有跨账号、玩家、会话的组合写操作，都应该尽量放在 `state-server` 内部做成一个粗粒度方法，而不是让 `logic-server` 连续调用多个细粒度 RPC。
+
+例如注册账号现在使用：
 
 ```text
-internal/httpapi/
-├── handler.go          # Handler 结构和依赖注入
-├── router.go           # 路由注册
-├── health_handler.go   # 健康检查
-├── player_handler.go   # 玩家 HTTP 适配
-├── room_handler.go     # 房间 HTTP 适配
-├── protocol.go         # HTTP 请求/响应结构
-└── response.go         # JSON 响应和通用转换 helper
+logic auth service
+  -> state.RegisterAccount(...)
+  -> state service 内部创建 player、account、session
 ```
 
-## 配置
-
-项目级默认配置位于 `internal/config`:
+这样比下面这种方式更容易控制并发和一致性：
 
 ```text
-HTTPAddr: :8080
-Redis:
-  Addr: 127.0.0.1:6379
-  Password: ""
-  DB: 0
+logic-server
+  -> NextPlayerID
+  -> CreatePlayer
+  -> CreateAccount
+  -> CreateSession
 ```
 
-`cmd/game-server/main.go` 只负责读取配置、创建 Redis client、组装 service 和启动 HTTP server。后续可以在 `internal/config` 中增加环境变量或配置文件加载逻辑。
+### rcenter-server
 
-## 模块约定
+入口：`cmd/rcenter-server/main.go`
 
-新增业务模块时优先沿用当前结构:
+当前状态：骨架。
+
+后续职责方向：
+
+- 管理 room-server 注册和负载。
+- 承担匹配服务或资源调度中心职责。
+- 为自定义 lobby 或匹配请求分配合适的 room-server。
+- 生成或校验进入游戏服务所需的调度信息。
+
+### room-server
+
+入口：`cmd/room-server/main.go`
+
+当前状态：骨架。
+
+后续职责方向：
+
+- 承载游戏内会话。
+- 处理实时消息。
+- 和 `state-server` 交互读取玩家状态、写入结算结果。
+- 和 `rcenter-server` 交互汇报负载、创建或销毁游戏会话。
+
+## Package Layout
 
 ```text
-internal/{module}/
-├── model.go
-├── errors.go
-├── service.go
-└── redis_repository.go
+cmd/
+├── logic-server/
+├── state-server/
+├── rcenter-server/
+└── room-server/
+
+internal/
+├── contract/
+│   ├── rpc/
+│   └── state/
+├── logic/
+│   ├── auth/
+│   ├── player/
+│   └── httpapi/
+├── platform/
+│   ├── config/
+│   └── redisdb/
+└── state/
+    ├── redisstore/
+    ├── rpcclient/
+    ├── rpcserver/
+    └── service/
 ```
 
-职责划分:
+### internal/contract/state
 
-- `model.go`: 定义领域对象。
-- `errors.go`: 定义业务错误。
-- `service.go`: 定义 service 接口和业务规则。
-- `redis_repository.go`: 封装 Redis key、Redis 命令和数据转换。
+这是 state-server 对外暴露的共享契约。
 
-依赖方向:
+主要内容：
+
+- `Account`
+- `Player`
+- `Session`
+- `RegisterAccountInput`
+- `RegisterAccountResult`
+- `Client` 接口
+- state 级错误，例如 `ErrAccountExists`、`ErrSessionNotFound`
+
+`logic-server` 依赖这个接口，不依赖 state-server 的具体实现。
+
+### internal/logic/auth
+
+登录业务层。
+
+主要职责：
+
+- 校验注册和登录输入。
+- 生成 bcrypt 密码哈希。
+- 校验密码。
+- 生成 session token。
+- 调用 state repository 创建账号、会话，或读取账号、会话。
+- 把 state 错误转换成 auth 业务错误。
+
+`state_repository.go` 是适配层：它把 auth service 需要的仓储操作转成 `statecontract.Client` 调用。
+
+### internal/logic/player
+
+玩家资料业务层。
+
+当前主要负责：
+
+- 根据玩家 ID 查询玩家资料。
+- 把 state player 模型转换成 logic player 模型。
+
+`state_repository.go` 是适配层：它把 player service 需要的仓储操作转成 `statecontract.Client` 调用。
+
+### internal/logic/httpapi
+
+HTTP 适配层。
+
+主要职责：
+
+- 定义 HTTP 路由。
+- 解析 JSON 请求。
+- 读取 `Authorization: Bearer <token>`。
+- 调用 logic service。
+- 把业务错误映射为 HTTP 状态码。
+- 输出 JSON 响应。
+
+HTTP 层不直接访问 Redis，也不直接调用 state RPC。
+
+### internal/state/service
+
+state 业务层。
+
+主要职责：
+
+- 对 account、player、session 操作加锁。
+- 实现跨资源组合操作。
+- 调用 store 接口完成实际读写。
+
+当前 store 接口有三类：
+
+- `accountStore`
+- `playerStore`
+- `sessionStore`
+
+组合操作示例：`RegisterAccount` 会在 state-server 内部完成账号是否存在检查、玩家 ID 生成、玩家创建、账号创建、session 创建。
+
+### internal/state/redisstore
+
+Redis 存储实现。
+
+主要职责：
+
+- 把 state 模型存入 Redis。
+- 从 Redis 读取 state 模型。
+- 维护 player ID 自增键。
+
+当前 key 大致包括：
 
 ```text
-httpapi -> service -> repository -> redisdb/go-redis
+game:account:<username>
+game:player:<id>
+game:session:<token>
+game:next_player_id
 ```
 
-约束:
+这个包不处理 HTTP，不处理 RPC，也不决定业务流程。
 
-- HTTP 层只做协议适配，不直接写业务规则。
-- Service 层承载业务规则，不直接暴露 Redis 命令。
-- Repository 层封装存储细节，不引用 HTTP request/response。
-- 新模块独立建包，例如 `auth`、`friend`、`match`、`battle`。
+如果以后从 Redis 换成 MySQL，优先新增一个 MySQL store，让它实现 `state/service` 需要的 store 接口。理论上 `logic` 层不应该被影响。
 
-## Redis 数据结构
+### internal/state/rpcserver
 
-当前 key 设计:
+state-server 使用的 RPC 适配层。
+
+主要职责：
+
+- 定义 `net/rpc` 的 args/reply 类型。
+- 把 `StateService.Method` 调用转发给 `statecontract.Client`。
+- 对外暴露 RPC 服务名 `StateService`。
+
+Go `net/rpc` 要求方法形态接近：
+
+```go
+func (s *Server) Method(args Args, reply *Reply) error
+```
+
+所以这里会有一些 args/reply 包装类型。
+
+### internal/state/rpcclient
+
+logic-server 使用的 RPC 客户端适配层。
+
+主要职责：
+
+- 持有 `*rpc.Client`。
+- 实现 `statecontract.Client` 接口。
+- 调用 `StateService.Method`。
+- 把 RPC 返回的错误字符串映射回 state sentinel error。
+
+错误映射很重要，因为 Go `net/rpc` 跨进程返回错误时，只能稳定拿到错误文本。客户端需要把这些错误文本重新映射成 `statecontract.ErrAccountExists` 这类哨兵错误，logic 层的 `errors.Is` 才能继续工作。
+
+## Dependency Direction
+
+依赖方向应该保持为：
 
 ```text
-game:next_player_id              string, INCR 生成玩家 ID
-game:player:{player_id}          hash, 玩家基础信息
+cmd/logic-server
+  -> internal/logic/*
+  -> internal/contract/state
+  -> internal/state/rpcclient
 
-game:next_room_id                string, INCR 生成房间 ID
-game:room:{room_id}              hash, 房间基础信息
-game:room:{room_id}:players      set, 房间成员玩家 ID
-game:room:{room_id}:ready_players  set, 已准备玩家 ID
-game:rooms                       set, 所有房间 ID
-game:player:{player_id}:room     string, 玩家当前所在房间 ID
-
-game:account:{username}          hash, 账号、密码哈希、绑定玩家 ID
-game:session:{token}             hash, 会话 token、玩家 ID、过期时间，带 Redis TTL
+cmd/state-server
+  -> internal/state/rpcserver
+  -> internal/state/service
+  -> internal/state/redisstore
+  -> internal/platform/redisdb
 ```
 
-当前使用的数据类型:
-
-- `String`: 自增 ID 计数器。
-- `Hash`: 保存玩家、房间对象字段。
-- `Set`: 保存房间成员、准备玩家和房间 ID 集合。
-
-后续可扩展:
+不建议出现：
 
 ```text
-game:session:{token}
-game:player:{player_id}:friends
-game:match:queue:{mode}
-game:leaderboard:{mode}
+internal/logic/* -> internal/state/redisstore
+internal/logic/* -> internal/platform/redisdb
+internal/logic/httpapi -> internal/state/rpcclient
 ```
 
-## Redis 原子性策略
+原因是 logic 的业务代码应该通过接口表达“我要什么状态能力”，而不是知道 Redis 或 RPC 的细节。
 
-当前版本已经去掉房间 service 中的进程内 `sync.RWMutex`，将关键多步写操作下沉到 Redis repository，并用 `WATCH` + `TxPipelined` + retry 保证多实例下的乐观并发控制。
+## Locking And Atomicity
 
-公共重试 helper 位于 `internal/redisdb/tx.go`:
+当前 demo 的并发控制放在 `internal/state/service`。
+
+原则：
+
+- store 只做存储读写，不加业务锁。
+- service 对外暴露操作时加锁。
+- 跨多个资源的组合操作，在 service 里一次性完成。
+- 如果一个组合操作需要多把锁，按固定顺序拿锁。
+
+当前 `RegisterAccount` 的锁顺序是：
 
 ```text
-redisdb.WithTxRetry(ctx, maxRetries, fn)
+accountMu -> playerMu -> sessionMu
 ```
 
-使用方式:
+后续新增组合操作时，应该复用固定顺序，避免死锁。
 
-1. repository 通过 `WATCH` 监听参与判断的 key。
-2. 在事务回调里读取当前 Redis 状态并执行业务检查。
-3. 通过 `TxPipelined` 提交写入命令。
-4. 如果提交前被监听 key 发生变化，go-redis 返回 `redis.TxFailedErr`。
-5. `WithTxRetry` 捕获冲突并重试整个读-检查-写流程。
+注意：这只是当前 demo 的进程内并发控制方式。它能约束进入同一个 `state-server` 进程的操作。如果未来 state-server 做多实例部署，需要再引入更完整的分布式锁、数据库事务或单主写入模型。
 
-已使用 WATCH 保护的操作:
+## Error Flow
 
-- `player.RedisRepository.UpdateProfile`: 读取玩家资料并只写入本次出现的字段，避免覆盖并发更新。
-- `room.RedisRepository.CreateWithOwner`: 创建房间并写入房主当前房间索引。
-- `room.RedisRepository.JoinRoom`: 检查玩家当前房间、房间状态和容量后加入房间。
-- `room.RedisRepository.LeaveRoom`: 离开房间、清理准备状态、转移房主或删除空房间。
-- `room.RedisRepository.SetReady`: 检查房间状态、成员身份和房主限制后更新准备状态。
-- `room.RedisRepository.StartRoom`: 检查房主和准备状态后切换为 playing。
-- `auth.RedisRepository.CreateAccount`: 检查用户名不存在后创建账号。
-
-普通 `TxPipelined` 适合把多个写命令作为一个 Redis 事务发送，但它不会重新检查读取条件。只写入 session hash 并设置 TTL 的 `CreateSession` 使用 `TxPipelined` 就足够，因为 token 由 32 字节随机数生成，重复概率极低，且没有依赖 Redis 中旧值进行业务判断。
-
-后续如果出现更复杂的跨 key 不变量，优先继续在 repository 内新增粗粒度原子方法。只有当 WATCH 重试逻辑变得难维护，或者需要把判断和写入完全固定在 Redis 单条脚本中时，再升级为 Lua。
-
-## 目标架构
-
-培训路线中的最终形态可以拆成四类服务:
+以重复注册为例：
 
 ```text
-Client
-  |
-  | HTTP 登录、主界面、开始匹配
-  v
-Nginx
-  |
-  v
-logicserver
-  |
-  | RPC: 开始匹配、取消匹配、查询匹配
-  v
-rcenterserver
-  |
-  | gRPC + Protobuf: 房间分配、负载上报、房间生命周期
-  v
-roomserver / gameserver
-  ^
-  |
-  | TCP: token 验证后进入游戏
-  |
-Client
+redisstore
+  -> statecontract.ErrAccountExists
+state service
+  -> statecontract.ErrAccountExists
+rpcserver
+  -> error text over net/rpc
+rpcclient
+  -> map back to statecontract.ErrAccountExists
+logic auth state repository
+  -> auth.ErrAccountExists
+httpapi
+  -> HTTP 409 {"error":"account already exists"}
 ```
 
-核心流程:
+这样做的好处是每一层只暴露自己这一层的错误语义：
 
-1. 玩家通过 Nginx 对外地址访问 `logicserver`，使用用户名、密码或游客信息登录。
-2. `logicserver` 完成账号验证，返回会话 token，主界面继续走 HTTP API。
-3. 玩家点击开始游戏后，`logicserver` 将玩家信息和匹配参数通过 RPC 发送给 `rcenterserver`。
-4. `rcenterserver` 维护匹配队列并运行匹配算法。
-5. 匹配成功后，`rcenterserver` 根据负载选择一个 `roomserver`，生成 `room_id` 和一次性入房 `game_token`。
-6. `rcenterserver` 将 `game_token`、`room_id`、玩家列表、过期时间等写入 Redis，并把 `roomserver` 地址和 token 返回给 `logicserver`。
-7. `logicserver` 把连接信息返回客户端。
-8. 客户端使用 TCP 直连 `roomserver`，首次消息携带 `game_token`。
-9. `roomserver` 读取 Redis 校验 token，拿到 `room_id` 和玩家信息后加入对应房间并开始游戏。
-10. `roomserver` 通过 gRPC 向 `rcenterserver` 周期上报负载，例如在线玩家数、房间数、CPU 估算负载。
-11. 游戏结束后，`roomserver` 返回结算结果，断开游戏连接，玩家回到主界面。
+- state 层知道 state 错误。
+- auth 层知道 auth 错误。
+- HTTP 层知道状态码和 JSON 错误响应。
 
-## 平滑迁移原则
+## HTTP And RPC Boundary
 
-当前代码已经是一个适合演进的模块化单体。升级时优先遵守以下原则:
+当前约定：
 
-- 当前项目先定位为 `logicserver` 的第一版，不急着拆多个进程。
-- 先新增模块和接口，再替换实现；不要先搬代码到新服务。
-- HTTP 对外接口尽量稳定，客户端不应该感知内部从本地实现换成 RPC/gRPC。
-- Redis key 的所有权要逐步明确，多实例前必须把跨请求状态放到 Redis。
-- 每次只移动一个边界，例如先把 `match.Service` 抽象出来，再把它的实现换成 `rcenterserver` RPC client。
-- 不做一次性大拆包。新增包仍沿用 `internal/{module}/model.go`、`errors.go`、`service.go`、`redis_repository.go`。
+- 登录相关入口走 HTTP。
+- state 数据操作走 RPC。
+- 后续匹配、调度、游戏服务之间的通信也倾向走 RPC 或 gRPC。
+- 游戏内实时通信协议暂不在当前阶段确定。
 
-## 当前项目定位
+HTTP 不应该继续膨胀成所有功能入口。新增好友、在线状态等 logic 功能时，可以先在 logic-server 暴露必要 HTTP 接口，但它们的数据读写仍然应该通过 state client 进入 state-server。
 
-当前代码可以视为 `logicserver v0.2`:
+## gRPC Migration Path
 
-- 已具备 `player` 模块: 创建、查询、更新玩家资料。
-- 已具备 `room` 模块: 创建、列表、详情、加入、离开、准备、取消准备、开始游戏。
-- 已具备 `auth` 服务层: 注册、登录、登出、session 查询、密码哈希和 Redis session TTL。
-- HTTP 层已经按 handler 模块拆分，便于下一阶段接入 auth 路由。
-- 房间详情已经能返回房间内玩家状态: `id`、`name`、`avatar`、`ready`、`owner`。
-- 房间和玩家更新的关键写操作已经使用 Redis `WATCH` 事务替代进程内锁。
-- Redis 已经保存玩家、房间、房间成员、准备状态、玩家当前房间索引、账号和登录 session。
+当前使用 Go `net/rpc` 是为了先把多进程边界跑通。后续迁移到 protobuf/gRPC 时，主要改动应该集中在：
 
-这个状态足够作为继续扩展的基线。下一步建议先把 `auth.Service` 接入 HTTP，再继续做在线状态和匹配入口；不建议直接引入 `rcenterserver` 或 `roomserver`。
+- 新增 `.proto` 文件，定义 state service 的消息和 RPC 方法。
+- 用生成代码替代 `internal/state/rpcserver` 的 net/rpc args/reply。
+- 用 gRPC client 替代 `internal/state/rpcclient`。
+- 保留或小改 `internal/contract/state` 的业务模型和接口。
+- 尽量不改 `internal/logic/auth`、`internal/logic/player`、`internal/state/service`、`internal/state/redisstore` 的核心业务逻辑。
 
-## 迭代计划
+也就是说，当前 `statecontract.Client` 的价值就是隔离传输协议。只要 logic 层依赖接口，不直接依赖 `net/rpc`，后续替换传输层的范围就可控。
 
-### Phase 1: 补齐 logicserver 基础能力
+## Removed Old Design
 
-目标: 让当前服务成为一个比较完整的游戏外逻辑服务。
+这次重构删除了旧的单进程结构：
 
-新增模块:
+- `cmd/game-server`
+- 旧 `internal/httpapi`
+- 旧 logic 层 Redis repository
+- 旧 `room` HTTP/domain 模块
+- 旧 Redis transaction helper
 
-```text
-internal/auth
-internal/presence
-internal/friend
-```
-
-建议顺序:
-
-1. `auth`: 接入 HTTP 注册、登录、登出、查询当前玩家。
-2. `presence`: 心跳、在线状态、玩家状态查询。
-3. `GET /players`: 当前玩家列表，可返回基础资料和在线状态。
-4. `friend`: 好友申请、好友列表、删除好友。
-
-建议接口:
-
-```text
-POST /auth/login
-POST /auth/logout
-GET  /me
-POST /presence/heartbeat
-GET  /players
-POST /friends/requests
-GET  /friends/requests
-POST /friends/requests/{id}/accept
-DELETE /friends/{id}
-GET  /friends
-```
-
-Redis key 建议:
-
-```text
-game:account:{username}              hash, 登录账号
-game:session:{token}                 hash, token -> player_id / expire_at
-game:player:{player_id}:sessions     set, 玩家当前 session
-game:presence:{player_id}            string, 在线状态或最后心跳时间
-game:player:{player_id}:friends      set, 好友玩家 ID
-game:friend_request:{request_id}     hash, 好友申请
-game:player:{player_id}:friend_requests  set, 玩家收到的申请 ID
-```
-
-实现要点:
-
-- `auth.Service` 只负责认证和 session，不直接处理好友或房间。
-- HTTP 层通过 `Authorization: Bearer <token>` 找到当前玩家。
-- 密码存储已经使用 bcrypt，生产传输层必须使用 HTTPS。
-- 在线状态第一版可以用心跳时间判断，例如最近 30 秒有心跳就是在线。
-- `player.Service` 可以新增 `List`，但玩家在线状态建议由 `presence.Service` 组合，而不是塞进玩家基础模型。
-
-保留不变:
-
-- 现有玩家和房间 HTTP 接口先不删除。
-- `room.Service` 当前业务规则继续可用。
-- `cmd/game-server/main.go` 仍然只做依赖组装。
-
-### Phase 2: 为 Nginx 和多 logicserver 做准备
-
-目标: 同一份 `logicserver` 可以启动多个实例，并通过 Nginx 反向代理。
-
-新增内容:
-
-```text
-deploy/nginx.conf
-docs/deploy.md
-internal/config 环境变量读取
-```
-
-部署形态:
-
-```text
-Nginx
-  |
-  +--> logicserver :8081
-  +--> logicserver :8082
-  |
- Redis
-```
-
-需要调整:
-
-- `HTTPAddr` 从环境变量读取，例如 `GAME_HTTP_ADDR=:8081`。
-- `/health` 保持轻量探活。
-- 所有 session、presence、房间、匹配状态必须在 Redis 中共享，不能依赖进程内内存。
-
-原子性状态:
-
-- 当前房间关键操作已经迁移到 repository 的 Redis `WATCH` 事务方法中。
-- 多 `logicserver` 共享同一个 Redis 时，不再依赖单进程锁保证房间操作一致性。
-- Nginx 双实例阶段仍需要重点压测并发加入、离开、准备、开始游戏。
-
-后续迁移方式:
-
-1. 保留 `room.Service` 对外方法不变。
-2. 如果 WATCH 重试足够稳定，继续沿用当前实现。
-3. 如果高并发下冲突过多或逻辑过复杂，再把单个 repository 原子方法内部替换为 Lua。
-4. HTTP 和 service 接口不变，调用方无感知。
-
-### Phase 3: 在单体内先加入 match 抽象
-
-目标: 在引入 `rcenterserver` 前，先把匹配入口和匹配状态稳定下来。
-
-新增模块:
-
-```text
-internal/match
-```
-
-建议接口:
-
-```text
-POST   /match/queue
-DELETE /match/queue
-GET    /match/status
-```
-
-本阶段先让 `logicserver` 内部实现 `match.Service`:
-
-```text
-httpapi -> match.Service -> match.Repository -> Redis
-```
-
-Redis key 建议:
-
-```text
-game:match:queue:{mode}              zset/list, 匹配队列
-game:match:player:{player_id}        hash, 玩家当前匹配状态
-game:match:result:{match_id}         hash, 匹配结果
-```
-
-第一版匹配算法:
-
-- 按模式分队列。
-- 固定人数凑齐就匹配成功。
-- 超时后允许取消或返回等待中。
-- 匹配成功后先复用当前 `room.Service.Create/Join` 创建逻辑房间。
-
-为什么先这样做:
-
-- 客户端可以先接入完整的开始游戏流程。
-- 匹配状态、错误码、请求/响应结构会先稳定。
-- 后续把本地 `match.Service` 换成 RPC client 时，HTTP 层不需要改。
-
-### Phase 4: 引入 rcenterserver
-
-目标: 把匹配队列、匹配算法、roomserver 选择从 `logicserver` 中移出。
-
-新增进程:
-
-```text
-cmd/rcenter-server/main.go
-internal/rcenter
-internal/rcenterclient
-```
-
-迁移方式:
-
-1. 在 `logicserver` 中保留 `match.Service` 接口。
-2. 新增 `internal/rcenterclient.Client`，实现 `match.Service` 需要的能力。
-3. 先用 HTTP 或 Go RPC 跑通内部调用，协议稳定后再考虑 Protobuf。
-4. `rcenterserver` 接管 Redis 中的匹配队列和匹配结果。
-5. `logicserver` 只负责鉴权、参数校验、调用 rcenter、把结果返回客户端。
-
-服务关系:
-
-```text
-Client -> Nginx -> logicserver -> rcenterserver -> Redis
-```
-
-`rcenterserver` 职责:
-
-- 加入匹配队列。
-- 取消匹配。
-- 查询匹配状态。
-- 执行匹配算法。
-- 管理可用 roomserver 列表和负载。
-- 生成 `room_id` 和 `game_token`。
-- 写入 token 相关 Redis 数据。
-
-roomserver 选择策略:
-
-第一版使用简单负载分:
-
-```text
-score = online_players * 1.0 + running_rooms * 5.0
-```
-
-选择 score 最低且最近有心跳的 `roomserver`。后续可以把 CPU、内存、地区、游戏模式权重加入 score，但不要一开始做复杂调度。
-
-Redis key 建议:
-
-```text
-game:rcenter:roomservers                  set, roomserver_id 集合
-game:roomserver:{server_id}:load          hash, 地址、玩家数、房间数、最后心跳
-game:game_token:{token}                   hash, room_id / player_id / match_id / roomserver_id / expire_at
-game:game_room:{room_id}                  hash, match_id / roomserver_id / status
-game:game_room:{room_id}:players          set, 本局玩家 ID
-```
-
-### Phase 5: 引入 roomserver / gameserver
-
-目标: 游戏内连接和一局游戏生命周期从 `logicserver` / `rcenterserver` 中独立出来。
-
-新增进程:
-
-```text
-cmd/room-server/main.go
-internal/roomserver
-proto/roomserver.proto
-proto/rcenter.proto
-```
-
-连接方式:
-
-```text
-Client --TCP--> roomserver
-roomserver --gRPC--> rcenterserver
-roomserver --Redis--> token / room data
-```
-
-roomserver 职责:
-
-- 启动后向 `rcenterserver` 注册自己的 `server_id` 和对外 TCP 地址。
-- 周期性上报负载。
-- 接收客户端 TCP 连接。
-- 校验客户端发送的 `game_token`。
-- 根据 Redis 中的 `room_id` 把玩家放入对应房间。
-- 运行游戏逻辑。
-- 游戏结束后返回结算结果并断开连接。
-
-`rcenterserver` 和 `roomserver` 的 gRPC 建议接口:
-
-```text
-RegisterRoomServer(server_id, public_addr)
-ReportLoad(server_id, running_rooms, online_players)
-CreateGameRoom(room_id, players, game_mode)
-CloseGameRoom(room_id, result)
-```
-
-第一版 `roomserver` 可以很薄:
-
-- 不实现复杂游戏逻辑。
-- 只完成 TCP 建连、token 校验、进入房间、广播一条开始消息、返回模拟结算。
-- 先把链路跑通，再增加真实玩法。
-
-### Phase 6: 结算与回主界面
-
-目标: 游戏结束后，服务端能记录结果，客户端能自然回到主界面。
-
-新增模块:
-
-```text
-internal/settlement
-```
-
-Redis key 建议:
-
-```text
-game:result:{game_id}                hash, 一局游戏结果
-game:player:{player_id}:recent_games list, 最近对局
-```
-
-流程:
-
-1. `roomserver` 计算结果。
-2. `roomserver` 写入 Redis 或通过 gRPC 通知 `rcenterserver`。
-3. `rcenterserver` 标记房间结束，并释放 roomserver 负载。
-4. 客户端收到结算结果，关闭 TCP 连接。
-5. 客户端回主界面后继续通过 `logicserver` 查询玩家、好友、在线状态。
-
-## 推荐近期任务
-
-当前最适合继续做的顺序:
-
-1. `auth`: 登录、登出、`GET /me`。
-2. `presence`: 心跳和在线状态。
-3. `GET /players`: 玩家列表加在线状态。
-4. `friend`: 好友申请和好友列表。
-5. `match`: 单体内本地匹配队列。
-6. Nginx 双实例部署验证。
-7. Nginx 双实例下压测 Redis WATCH 原子性，必要时将热点操作升级为 Lua。
-8. `rcenterserver` 抽离匹配。
-9. `roomserver` TCP 入房和 gRPC 负载上报。
-
-每一步都应该保持“先本地接口、再远程实现”的节奏。这样当前代码会自然从单体 `logicserver` 长成多服务架构，而不是中途重写。
-
-## 不建议现在做的事
-
-- 不建议现在把 `player`、`room` 直接拆成多个仓库或多个进程。
-- 不建议现在把所有 HTTP 请求改成 Protobuf。
-- 不建议在没有 `auth` 和 `presence` 的情况下直接做复杂匹配。
-- 不建议引入分布式锁；当前优先使用 Redis WATCH 事务，只有热点复杂操作再考虑 Lua。
-- 不建议把在线状态写进 `player.Player` 基础模型，在线状态是运行态数据，应由 `presence` 管理。
+`room` 这个命名之前容易和游戏内房间混淆。后续游戏外玩家自定义开局入口更适合叫 `lobby`；真正游戏内承载可以再根据设计命名为 `game session`、`world` 或 `battle`。当前代码先不提前确定这些模块。
