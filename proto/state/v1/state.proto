@@ -5,6 +5,7 @@ package state.v1;
 option go_package = "server/internal/contract/statepb;statepb";
 
 import "google/protobuf/timestamp.proto";
+import "google/protobuf/duration.proto";
 
 service StateService {
   rpc CreateAccount(CreateAccountRequest) returns (CreateAccountResponse);
@@ -18,6 +19,10 @@ service StateService {
   rpc CreatePlayer(CreatePlayerRequest) returns (CreatePlayerResponse);
   rpc GetPlayer(GetPlayerRequest) returns (GetPlayerResponse);
   rpc NextPlayerID(NextPlayerIDRequest) returns (NextPlayerIDResponse);
+
+  rpc SetPresence(SetPresenceRequest) returns (SetPresenceResponse);
+  rpc GetPresence(GetPresenceRequest) returns (GetPresenceResponse);
+  rpc ClearPresence(ClearPresenceRequest) returns (ClearPresenceResponse);
 }
 
 message Account {
@@ -110,3 +115,32 @@ message NextPlayerIDRequest {}
 message NextPlayerIDResponse {
   int64 id = 1;
 }
+
+message Presence {
+  int64 player_id = 1;
+  string server_name = 2;
+  string status = 3;
+  google.protobuf.Timestamp updated_at = 4;
+}
+
+message SetPresenceRequest {
+  Presence presence = 1;
+  google.protobuf.Duration ttl = 2;
+}
+
+message SetPresenceResponse {}
+
+message GetPresenceRequest {
+  int64 player_id = 1;
+}
+
+message GetPresenceResponse {
+  Presence presence = 1;
+}
+
+message ClearPresenceRequest {
+  int64 player_id = 1;
+  string server_name = 2;
+}
+
+message ClearPresenceResponse {}

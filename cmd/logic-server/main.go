@@ -1,40 +1,76 @@
 package main
 
 import (
+	"flag"
 	"log"
 	"net/http"
-	"net/rpc"
+	"server/internal/contract/statepb"
 	"server/internal/logic/auth"
 	"server/internal/logic/httpapi"
 	"server/internal/logic/player"
+	"server/internal/logic/presence"
 	"server/internal/platform/config"
-	"server/internal/state/rpcclient"
+	"server/internal/state/grpcclient"
+	"strings"
 	"time"
+
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
+
+func listenAddrFromPort(port string) string {
+	if port == "" {
+		return ""
+	}
+	if strings.HasPrefix(port, ":") {
+		return port
+	}
+	return ":" + port
+}
 
 func main() {
 
 	cfg := config.Default()
 
-	rpcClient, err := rpc.Dial("tcp", cfg.StateRPCAddr)
-	if err != nil {
-		log.Fatalf("state rpc dial %s failed: %v", cfg.StateRPCAddr, err)
-	}
-	defer func(rpcConn *rpc.Client) {
-		if err := rpcConn.Close(); err != nil {
-			log.Fatalf("state rpc close failed: %v", err)
-		}
-	}(rpcClient)
+	port := flag.String("port", "", "HTTP listen port")
+	shortPort := flag.String("p", "", "HTTP listen port")
+	serverName := "logic-default"
+	flag.StringVar(&serverName, "name", "logic-default", "logic server instance name")
+	flag.Parse()
 
-	stateService := rpcclient.NewClient(rpcClient)
+	if addr := listenAddrFromPort(*port); addr != "" {
+		cfg.HTTPAddr = addr
+	}
+	if addr := listenAddrFromPort(*shortPort); addr != "" {
+		cfg.HTTPAddr = addr
+	}
+
+	conn, err := grpc.NewClient(cfg.StateGRPCAddr, grpc.WithTransportCredentials(insecure.NewCredentials())) // 本地开发环境不启用 TLS.
+	if err != nil {
+		log.Fatalf("grpc.NewClient failed: %v", err)
+	}
+	defer func() {
+		if err := conn.Close(); err != nil {
+			log.Fatalf("close client connection: %v", err)
+		}
+	}()
+
+	statePBClient := statepb.NewStateServiceClient(conn)
+	stateService := grpcclient.NewClient(statePBClient)
+
 	playerRepo := player.NewStateRepository(stateService)
 	playerService := player.NewService(playerRepo)
 
 	authRepo := auth.NewStateRepository(stateService)
-	authService := auth.NewService(authRepo, playerService, time.Minute)
+	authService := auth.NewService(authRepo, playerService, time.Minute*10)
+
+	presenceRepo := presence.NewStateRepository(stateService)
+	presenceService := presence.NewService(presenceRepo)
 
 	handler := httpapi.NewHandler(httpapi.HandlerConfig{
-		AuthService: authService,
+		AuthService:     authService,
+		ServerName:      serverName,
+		PresenceService: presenceService,
 	})
 
 	log.Printf("logic-server listening on %s", cfg.HTTPAddr)

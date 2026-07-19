@@ -3,7 +3,7 @@ module server
 go 1.25.0
 
 require (
-	github.com/golang/protobuf v1.5.4
+	github.com/coder/websocket v1.8.15
 	github.com/redis/go-redis/v9 v9.21.0
 	golang.org/x/crypto v0.54.0
 	google.golang.org/grpc v1.82.1

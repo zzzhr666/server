@@ -1,0 +1,17 @@
+package presence
+
+import "time"
+
+// StatusOnline is the persisted presence status for connected players.
+const StatusOnline = "online"
+
+// DefaultTTL bounds stale online records when a connection is lost.
+const DefaultTTL = 2 * time.Minute
+
+// Presence describes a player's current logic-server connection.
+type Presence struct {
+	PlayerID   int64
+	ServerName string
+	Status     string
+	UpdatedAt  time.Time
+}

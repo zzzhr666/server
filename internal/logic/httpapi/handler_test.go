@@ -7,9 +7,12 @@ import (
 	"net/http/httptest"
 	"server/internal/logic/auth"
 	playerpkg "server/internal/logic/player"
+	"server/internal/logic/presence"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/coder/websocket"
 )
 
 func TestHealth(t *testing.T) {
@@ -22,8 +25,9 @@ func TestHealth(t *testing.T) {
 	if rec.Code != http.StatusOK {
 		t.Fatalf("status = %d, want %d", rec.Code, http.StatusOK)
 	}
-	if rec.Body.String() != "ok" {
-		t.Fatalf("body = %q, want %q", rec.Body.String(), "ok")
+	wantBody := "ok server_name = logic-test"
+	if rec.Body.String() != wantBody {
+		t.Fatalf("body = %q, want %q", rec.Body.String(), wantBody)
 	}
 }
 
@@ -165,12 +169,87 @@ func TestMeAuthHTTPInvalidToken(t *testing.T) {
 	}
 }
 
+func TestWebSocketMissingToken(t *testing.T) {
+	handler := newTestHandler().Routes()
+	req := httptest.NewRequest(http.MethodGet, "/ws", nil)
+	rec := httptest.NewRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusUnauthorized {
+		t.Fatalf("status = %d, want %d; body = %s", rec.Code, http.StatusUnauthorized, rec.Body.String())
+	}
+}
+
+func TestWebSocketInvalidToken(t *testing.T) {
+	handler := newTestHandler().Routes()
+	req := httptest.NewRequest(http.MethodGet, "/ws", nil)
+	req.Header.Set("token", "missing")
+	rec := httptest.NewRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusUnauthorized {
+		t.Fatalf("status = %d, want %d; body = %s", rec.Code, http.StatusUnauthorized, rec.Body.String())
+	}
+}
+
+func TestWebSocketMarksOnlineAndOffline(t *testing.T) {
+	auths := newFakeAuthService()
+	session := auths.newSession(7)
+	presences := newFakePresenceService()
+	handler := newTestHandlerWithServices(auths, presences).Routes()
+	server := httptest.NewServer(handler)
+	defer server.Close()
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+
+	conn, _, err := websocket.Dial(ctx, "ws"+strings.TrimPrefix(server.URL, "http")+"/ws", &websocket.DialOptions{
+		HTTPHeader: http.Header{"token": []string{session.Token}},
+	})
+	if err != nil {
+		t.Fatalf("websocket dial: %v", err)
+	}
+	defer func() {
+		_ = conn.CloseNow()
+	}()
+
+	onlineCall := waitPresenceCall(t, presences.onlineCalls)
+	if onlineCall.PlayerID != 7 {
+		t.Fatalf("online player id = %d, want 7", onlineCall.PlayerID)
+	}
+	if onlineCall.ServerName != "logic-test" {
+		t.Fatalf("online server name = %q, want %q", onlineCall.ServerName, "logic-test")
+	}
+
+	if err := conn.Close(websocket.StatusNormalClosure, "test done"); err != nil {
+		t.Fatalf("close websocket: %v", err)
+	}
+
+	offlineCall := waitPresenceCall(t, presences.offlineCalls)
+	if offlineCall.PlayerID != 7 {
+		t.Fatalf("offline player id = %d, want 7", offlineCall.PlayerID)
+	}
+	if offlineCall.ServerName != "logic-test" {
+		t.Fatalf("offline server name = %q, want %q", offlineCall.ServerName, "logic-test")
+	}
+}
+
 func newTestHandler() *Handler {
 	return newTestHandlerWithAuth(newFakeAuthService())
 }
 
 func newTestHandlerWithAuth(auths *fakeAuthService) *Handler {
-	return NewHandler(HandlerConfig{AuthService: auths})
+	return newTestHandlerWithServices(auths, newFakePresenceService())
+}
+
+func newTestHandlerWithServices(auths *fakeAuthService, presences presence.Service) *Handler {
+	return NewHandler(HandlerConfig{
+		AuthService:     auths,
+		PresenceService: presences,
+		ServerName:      "logic-test",
+	})
 }
 
 type fakeAuthService struct {
@@ -295,3 +374,66 @@ func clonePlayer(player *playerpkg.Player) *playerpkg.Player {
 }
 
 var _ auth.Service = (*fakeAuthService)(nil)
+
+type presenceCall struct {
+	PlayerID   int64
+	ServerName string
+}
+
+type fakePresenceService struct {
+	markOnlineErr  error
+	markOfflineErr error
+	onlineCalls    chan presenceCall
+	offlineCalls   chan presenceCall
+}
+
+func newFakePresenceService() *fakePresenceService {
+	return &fakePresenceService{
+		onlineCalls:  make(chan presenceCall, 1),
+		offlineCalls: make(chan presenceCall, 1),
+	}
+}
+
+func waitPresenceCall(t *testing.T, calls <-chan presenceCall) presenceCall {
+	t.Helper()
+
+	select {
+	case call := <-calls:
+		return call
+	case <-time.After(time.Second):
+		t.Fatalf("timed out waiting for presence call")
+		return presenceCall{}
+	}
+}
+
+func (f *fakePresenceService) MarkOnline(ctx context.Context, playerID int64, serverName string) error {
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+	f.recordCall(f.onlineCalls, playerID, serverName)
+	return f.markOnlineErr
+}
+
+func (f *fakePresenceService) Get(_ context.Context, _ int64) (*presence.Presence, error) {
+	return nil, presence.ErrNotFound
+}
+
+func (f *fakePresenceService) MarkOffline(ctx context.Context, playerID int64, serverName string) error {
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+	f.recordCall(f.offlineCalls, playerID, serverName)
+	return f.markOfflineErr
+}
+
+func (f *fakePresenceService) recordCall(calls chan presenceCall, playerID int64, serverName string) {
+	if calls == nil {
+		return
+	}
+	select {
+	case calls <- presenceCall{PlayerID: playerID, ServerName: serverName}:
+	default:
+	}
+}
+
+var _ presence.Service = (*fakePresenceService)(nil)

@@ -2,9 +2,8 @@ package service
 
 import (
 	"context"
-	"errors"
 	statecontract "server/internal/contract/state"
-	"sync"
+	"time"
 )
 
 type accountStore interface {
@@ -24,125 +23,101 @@ type playerStore interface {
 	NextPlayerID(ctx context.Context) (int64, error)
 }
 
-type Service struct {
-	accounts accountStore
-	sessions sessionStore
-	players  playerStore
-
-	accountMu sync.RWMutex
-	sessionMu sync.RWMutex
-	playerMu  sync.RWMutex
+type presenceStore interface {
+	SetPresence(ctx context.Context, presence *statecontract.Presence, ttl time.Duration) error
+	GetPresence(ctx context.Context, playerID int64) (*statecontract.Presence, error)
+	ClearPresence(ctx context.Context, playerID int64, serverName string) error
 }
 
+type registrationStore interface {
+	RegisterAccount(ctx context.Context, input statecontract.RegisterAccountInput) (*statecontract.RegisterAccountResult, error)
+}
+
+// Service coordinates state operations across the configured stores.
+type Service struct {
+	registrations registrationStore
+	accounts      accountStore
+	sessions      sessionStore
+	players       playerStore
+	presences     presenceStore
+}
+
+// SetPresence records a player's online state.
+func (s *Service) SetPresence(ctx context.Context, presence *statecontract.Presence, ttl time.Duration) error {
+	return s.presences.SetPresence(ctx, presence, ttl)
+}
+
+// GetPresence loads a player's online state.
+func (s *Service) GetPresence(ctx context.Context, playerID int64) (*statecontract.Presence, error) {
+	return s.presences.GetPresence(ctx, playerID)
+}
+
+// ClearPresence removes online state still owned by serverName.
+func (s *Service) ClearPresence(ctx context.Context, playerID int64, serverName string) error {
+	return s.presences.ClearPresence(ctx, playerID, serverName)
+}
+
+// CreatePlayer stores a player profile.
 func (s *Service) CreatePlayer(ctx context.Context, player *statecontract.Player) error {
-	s.playerMu.Lock()
-	defer s.playerMu.Unlock()
 	return s.players.CreatePlayer(ctx, player)
 }
 
+// GetPlayer loads a player profile by ID.
 func (s *Service) GetPlayer(ctx context.Context, id int64) (*statecontract.Player, error) {
-	s.playerMu.RLock()
-	defer s.playerMu.RUnlock()
 	return s.players.GetPlayer(ctx, id)
 }
 
+// NextPlayerID allocates the next player ID.
 func (s *Service) NextPlayerID(ctx context.Context) (int64, error) {
-	s.playerMu.Lock()
-	defer s.playerMu.Unlock()
 	return s.players.NextPlayerID(ctx)
 }
 
+// CreateSession stores a login session.
 func (s *Service) CreateSession(ctx context.Context, session *statecontract.Session) error {
-	s.sessionMu.Lock()
-	defer s.sessionMu.Unlock()
 	return s.sessions.CreateSession(ctx, session)
 }
 
+// GetSession loads a login session by token.
 func (s *Service) GetSession(ctx context.Context, token string) (*statecontract.Session, error) {
-	s.sessionMu.RLock()
-	defer s.sessionMu.RUnlock()
 	return s.sessions.GetSession(ctx, token)
 }
 
+// DeleteSession removes a login session.
 func (s *Service) DeleteSession(ctx context.Context, token string) error {
-	s.sessionMu.Lock()
-	defer s.sessionMu.Unlock()
 	return s.sessions.DeleteSession(ctx, token)
 }
 
+// CreateAccount stores account credentials.
 func (s *Service) CreateAccount(ctx context.Context, account *statecontract.Account) error {
-	s.accountMu.Lock()
-	defer s.accountMu.Unlock()
 	return s.accounts.CreateAccount(ctx, account)
 }
 
+// GetAccount loads account credentials by username.
 func (s *Service) GetAccount(ctx context.Context, username string) (*statecontract.Account, error) {
-	s.accountMu.RLock()
-	defer s.accountMu.RUnlock()
 	return s.accounts.GetAccount(ctx, username)
 }
 
+// RegisterAccount creates account, player, and session state together.
 func (s *Service) RegisterAccount(ctx context.Context, input statecontract.RegisterAccountInput) (*statecontract.RegisterAccountResult, error) {
-	s.accountMu.Lock()
-	defer s.accountMu.Unlock()
-
-	s.playerMu.Lock()
-	defer s.playerMu.Unlock()
-
-	s.sessionMu.Lock()
-	defer s.sessionMu.Unlock()
-
-	account, err := s.accounts.GetAccount(ctx, input.Username)
-	if err == nil && account != nil {
-		return nil, statecontract.ErrAccountExists
-	} else if err != nil && !errors.Is(err, statecontract.ErrAccountNotFound) {
-		return nil, err
-	}
-
-	playerID, err := s.players.NextPlayerID(ctx)
-	if err != nil {
-		return nil, err
-	}
-	player := &statecontract.Player{
-		ID:       playerID,
-		Nickname: input.Nickname,
-		Avatar:   input.Avatar,
-		Email:    input.Email,
-		Phone:    input.Phone,
-	}
-
-	if err := s.players.CreatePlayer(ctx, player); err != nil {
-		return nil, err
-	}
-
-	account = &statecontract.Account{
-		Username:     input.Username,
-		PasswordHash: input.PasswordHash,
-		PlayerID:     playerID,
-	}
-	if err := s.accounts.CreateAccount(ctx, account); err != nil {
-		return nil, err
-	}
-	session := &statecontract.Session{
-		Token:     input.SessionToken,
-		PlayerID:  playerID,
-		ExpiresAt: input.SessionExpiresAt,
-	}
-	if err := s.sessions.CreateSession(ctx, session); err != nil {
-		return nil, err
-	}
-
-	return &statecontract.RegisterAccountResult{
-		Account: account,
-		Player:  player,
-		Session: session,
-	}, nil
+	return s.registrations.RegisterAccount(ctx, input)
 }
 
-func NewService(accounts accountStore, sessions sessionStore, players playerStore) *Service {
+// StoreConfig groups the stores required by Service.
+type StoreConfig struct {
+	Accounts      accountStore
+	Sessions      sessionStore
+	Players       playerStore
+	Registrations registrationStore
+	Presences     presenceStore
+}
+
+// NewService creates a state service from store implementations.
+func NewService(storeConfig StoreConfig) *Service {
 	return &Service{
-		accounts: accounts,
-		sessions: sessions,
-		players:  players,
+		accounts:      storeConfig.Accounts,
+		sessions:      storeConfig.Sessions,
+		players:       storeConfig.Players,
+		registrations: storeConfig.Registrations,
+		presences:     storeConfig.Presences,
 	}
 }

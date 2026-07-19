@@ -9,7 +9,7 @@ import (
 
 func TestServiceForwardsAccountOperations(t *testing.T) {
 	stores := newFakeStores()
-	svc := NewService(stores, stores, stores)
+	svc := newTestService(stores)
 	account := &statecontract.Account{
 		Username:     "alice",
 		PasswordHash: "hash",
@@ -30,7 +30,7 @@ func TestServiceForwardsAccountOperations(t *testing.T) {
 
 func TestServiceForwardsSessionOperations(t *testing.T) {
 	stores := newFakeStores()
-	svc := NewService(stores, stores, stores)
+	svc := newTestService(stores)
 	session := &statecontract.Session{
 		Token:     "token-1",
 		PlayerID:  7,
@@ -58,7 +58,7 @@ func TestServiceForwardsSessionOperations(t *testing.T) {
 func TestServiceForwardsPlayerOperations(t *testing.T) {
 	stores := newFakeStores()
 	stores.nextPlayerID = 7
-	svc := NewService(stores, stores, stores)
+	svc := newTestService(stores)
 
 	id, err := svc.NextPlayerID(context.Background())
 	if err != nil {
@@ -84,10 +84,38 @@ func TestServiceForwardsPlayerOperations(t *testing.T) {
 	}
 }
 
+func TestServiceForwardsPresenceOperations(t *testing.T) {
+	stores := newFakeStores()
+	svc := newTestService(stores)
+	presence := &statecontract.Presence{
+		PlayerID:   7,
+		ServerName: "logic-1",
+		Status:     "online",
+		UpdatedAt:  time.Unix(100, 0),
+	}
+
+	if err := svc.SetPresence(context.Background(), presence, time.Minute); err != nil {
+		t.Fatalf("SetPresence returned error: %v", err)
+	}
+	got, err := svc.GetPresence(context.Background(), 7)
+	if err != nil {
+		t.Fatalf("GetPresence returned error: %v", err)
+	}
+	if got.ServerName != presence.ServerName {
+		t.Fatalf("server name = %q, want %q", got.ServerName, presence.ServerName)
+	}
+	if err := svc.ClearPresence(context.Background(), 7, "logic-1"); err != nil {
+		t.Fatalf("ClearPresence returned error: %v", err)
+	}
+	if _, err := svc.GetPresence(context.Background(), 7); err == nil {
+		t.Fatalf("GetPresence returned nil error, want missing presence error")
+	}
+}
+
 func TestServiceRegisterAccountCreatesAccountPlayerAndSession(t *testing.T) {
 	stores := newFakeStores()
 	stores.nextPlayerID = 7
-	svc := NewService(stores, stores, stores)
+	svc := newTestService(stores)
 	expiresAt := time.Now().Add(time.Hour)
 
 	result, err := svc.RegisterAccount(context.Background(), statecontract.RegisterAccountInput{
@@ -131,7 +159,7 @@ func TestServiceRegisterAccountExistingAccountDoesNotCreatePlayerOrSession(t *te
 		PasswordHash: "old-hash",
 		PlayerID:     1,
 	}
-	svc := NewService(stores, stores, stores)
+	svc := newTestService(stores)
 
 	_, err := svc.RegisterAccount(context.Background(), statecontract.RegisterAccountInput{
 		Username:         "alice",
@@ -155,15 +183,27 @@ type fakeStores struct {
 	accounts     map[string]*statecontract.Account
 	sessions     map[string]*statecontract.Session
 	players      map[int64]*statecontract.Player
+	presences    map[int64]*statecontract.Presence
 	nextPlayerID int64
 }
 
 func newFakeStores() *fakeStores {
 	return &fakeStores{
-		accounts: make(map[string]*statecontract.Account),
-		sessions: make(map[string]*statecontract.Session),
-		players:  make(map[int64]*statecontract.Player),
+		accounts:  make(map[string]*statecontract.Account),
+		sessions:  make(map[string]*statecontract.Session),
+		players:   make(map[int64]*statecontract.Player),
+		presences: make(map[int64]*statecontract.Presence),
 	}
+}
+
+func newTestService(stores *fakeStores) *Service {
+	return NewService(StoreConfig{
+		Accounts:      stores,
+		Sessions:      stores,
+		Players:       stores,
+		Presences:     stores,
+		Registrations: stores,
+	})
 }
 
 func (f *fakeStores) CreateAccount(_ context.Context, account *statecontract.Account) error {
@@ -220,4 +260,75 @@ func (f *fakeStores) NextPlayerID(_ context.Context) (int64, error) {
 	return f.nextPlayerID, nil
 }
 
+func (f *fakeStores) RegisterAccount(ctx context.Context, input statecontract.RegisterAccountInput) (*statecontract.RegisterAccountResult, error) {
+	if _, err := f.GetAccount(ctx, input.Username); err == nil {
+		return nil, statecontract.ErrAccountExists
+	} else if err != statecontract.ErrAccountNotFound {
+		return nil, err
+	}
+
+	playerID, err := f.NextPlayerID(ctx)
+	if err != nil {
+		return nil, err
+	}
+	player := &statecontract.Player{
+		ID:       playerID,
+		Nickname: input.Nickname,
+		Avatar:   input.Avatar,
+		Email:    input.Email,
+		Phone:    input.Phone,
+	}
+	account := &statecontract.Account{
+		Username:     input.Username,
+		PasswordHash: input.PasswordHash,
+		PlayerID:     playerID,
+	}
+	session := &statecontract.Session{
+		Token:     input.SessionToken,
+		PlayerID:  playerID,
+		ExpiresAt: input.SessionExpiresAt,
+	}
+	if err := f.CreatePlayer(ctx, player); err != nil {
+		return nil, err
+	}
+	if err := f.CreateAccount(ctx, account); err != nil {
+		return nil, err
+	}
+	if err := f.CreateSession(ctx, session); err != nil {
+		return nil, err
+	}
+	return &statecontract.RegisterAccountResult{
+		Account: account,
+		Player:  player,
+		Session: session,
+	}, nil
+}
+
+func (f *fakeStores) SetPresence(_ context.Context, presence *statecontract.Presence, _ time.Duration) error {
+	cp := *presence
+	f.presences[presence.PlayerID] = &cp
+	return nil
+}
+
+func (f *fakeStores) GetPresence(_ context.Context, playerID int64) (*statecontract.Presence, error) {
+	presence, ok := f.presences[playerID]
+	if !ok {
+		return nil, statecontract.ErrPresenceNotFound
+	}
+	cp := *presence
+	return &cp, nil
+}
+
+func (f *fakeStores) ClearPresence(_ context.Context, playerID int64, serverName string) error {
+	presence, ok := f.presences[playerID]
+	if !ok {
+		return nil
+	}
+	if presence.ServerName == serverName {
+		delete(f.presences, playerID)
+	}
+	return nil
+}
+
 var _ statecontract.Client = (*Service)(nil)
+var _ statecontract.PresenceClient = (*Service)(nil)

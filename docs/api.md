@@ -1,6 +1,6 @@
 # HTTP API
 
-当前 HTTP API 属于 `logic-server`。HTTP 只负责登录相关流程和基础健康检查；数据状态读写由 `logic-server` 通过 RPC 交给 `state-server`。
+当前 HTTP API 属于 `logic-server`。HTTP 和 WebSocket 负责客户端入口；账号、玩家、会话和在线状态的数据读写由 `logic-server` 通过 gRPC 交给 `state-server`。
 
 Base URL:
 
@@ -8,13 +8,21 @@ Base URL:
 http://localhost:8080
 ```
 
+`scripts/run.sh` 默认通过 nginx 暴露 `:8080`。如果使用 `START_NGINX=0`，可以直接访问 `http://localhost:8081` 或 `http://localhost:8082`。
+
 认证方式：
 
 ```text
 Authorization: Bearer <token>
 ```
 
-token 不放在 JSON body 里。注册和登录成功后服务端返回 token，之后客户端在需要登录态的请求里通过 `Authorization` header 携带。
+token 不放在 JSON body 里。注册和登录成功后服务端返回 token，之后客户端在需要登录态的 HTTP 请求里通过 `Authorization` header 携带。
+
+WebSocket 入口当前使用单独的 header：
+
+```text
+token: <token>
+```
 
 ## GET /health
 
@@ -34,8 +42,10 @@ Content-Type: text/plain; charset=utf-8
 ```
 
 ```text
-ok
+ok server_name = logic-1
 ```
+
+`server_name` 来自 logic-server 启动参数 `--name`。经过 nginx 访问时，返回值取决于本次请求被转发到哪个 logic-server 实例。
 
 ## POST /auth/register
 
@@ -46,7 +56,7 @@ ok
 ```text
 HTTP register
   -> auth service
-  -> state.RegisterAccount RPC
+  -> state.RegisterAccount gRPC
   -> state-server 创建 account、player、session
 ```
 
@@ -228,6 +238,34 @@ HTTP/1.1 204 No Content
 
 登出后再次调用 `/auth/me` 应该返回 `401 Unauthorized`。
 
+## GET /ws
+
+建立 WebSocket 连接，并用连接生命周期维护玩家在线状态。
+
+握手请求：
+
+```text
+GET ws://localhost:8080/ws
+token: <token>
+```
+
+成功后服务端会：
+
+1. 通过 token 查询 session。
+2. WebSocket upgrade 成功后调用 `presence.MarkOnline`。
+3. 在 Redis 写入 `game:presence:<player_id>`，包含 `player_id`、`server_name`、`status` 和 `updated_at`。
+4. 持续读取客户端消息，直到客户端断开或读取失败。
+5. 连接结束时调用 `presence.MarkOffline`，只清理仍属于当前 `server_name` 的在线状态。
+
+常见错误：
+
+```text
+401 Unauthorized: token header 缺失或 session 无效
+101 Switching Protocols: WebSocket 握手成功
+```
+
+当前 `/ws` 不要求客户端发送业务消息；保持连接即可表示在线。后续游戏内实时协议可以在这个入口上继续扩展，或拆到 room-server。
+
 ## Full Manual Check
 
 建议手动验证顺序：
@@ -239,8 +277,10 @@ HTTP/1.1 204 No Content
 5. 使用相同 username 再注册一次，确认返回 `409 Conflict`。
 6. 调用 `/auth/login`，确认返回新的 token。
 7. 用 token 调用 `/auth/me`，确认返回玩家资料。
-8. 调用 `/auth/logout`，确认返回 `204 No Content`。
-9. 再用同一个 token 调用 `/auth/me`，确认返回 `401 Unauthorized`。
+8. 用 token 连接 `/ws`，确认 Redis 出现 `game:presence:<player_id>`。
+9. 断开 `/ws`，确认对应 presence 被清理。
+10. 调用 `/auth/logout`，确认返回 `204 No Content`。
+11. 再用同一个 token 调用 `/auth/me`，确认返回 `401 Unauthorized`。
 
 可以用下面命令查看 Redis 当前写入的数据：
 

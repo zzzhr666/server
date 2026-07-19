@@ -4,14 +4,15 @@ import (
 	"context"
 	"log"
 	"net"
-	"net/rpc"
+	"server/internal/contract/statepb"
 	"server/internal/platform/config"
 	"server/internal/platform/redisdb"
+	"server/internal/state/grpcserver"
 	"server/internal/state/redisstore"
-	"server/internal/state/rpcserver"
 	"server/internal/state/service"
 
 	"github.com/redis/go-redis/v9"
+	"google.golang.org/grpc"
 )
 
 func main() {
@@ -33,24 +34,25 @@ func main() {
 	store := redisstore.NewStore(redisClient)
 
 	//make service
-	stateService := service.NewService(store, store, store)
-	server := rpc.NewServer()
-	if err := server.RegisterName(rpcserver.ServiceName, rpcserver.NewServer(stateService)); err != nil {
-		log.Fatalf("register state rpc server failed: %v", err)
-	}
+	stateService := service.NewService(service.StoreConfig{
+		Accounts:      store,
+		Sessions:      store,
+		Players:       store,
+		Registrations: store,
+		Presences:     store,
+	})
 
-	listener, err := net.Listen("tcp", cfg.StateRPCAddr)
+	grpcServer := grpc.NewServer()
+	statepb.RegisterStateServiceServer(grpcServer, grpcserver.NewServer(grpcserver.ServerConfig{
+		StateClient:    stateService,
+		PresenceClient: stateService,
+	}))
+	listener, err := net.Listen("tcp", cfg.StateGRPCAddr)
 	if err != nil {
-		log.Fatalf("state rpc listen failed: %v", err)
+		log.Fatalf("failed to listen: %v", err)
 	}
-	defer func(listener net.Listener) {
-		err := listener.Close()
-		if err != nil {
-			log.Fatalf("state rpc listener close failed: %v", err)
-		}
-	}(listener)
-
-	log.Printf("state rpc server listening at %v", listener.Addr())
-	server.Accept(listener)
+	if err := grpcServer.Serve(listener); err != nil {
+		log.Fatalf("grpc serve stopped: %v", err)
+	}
 
 }

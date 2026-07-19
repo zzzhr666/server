@@ -9,6 +9,7 @@ package statepb
 import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	durationpb "google.golang.org/protobuf/types/known/durationpb"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 	reflect "reflect"
 	sync "sync"
@@ -1042,11 +1043,343 @@ func (x *NextPlayerIDResponse) GetId() int64 {
 	return 0
 }
 
+type Presence struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	PlayerId      int64                  `protobuf:"varint,1,opt,name=player_id,json=playerId,proto3" json:"player_id,omitempty"`
+	ServerName    string                 `protobuf:"bytes,2,opt,name=server_name,json=serverName,proto3" json:"server_name,omitempty"`
+	Status        string                 `protobuf:"bytes,3,opt,name=status,proto3" json:"status,omitempty"`
+	UpdatedAt     *timestamppb.Timestamp `protobuf:"bytes,4,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Presence) Reset() {
+	*x = Presence{}
+	mi := &file_proto_state_v1_state_proto_msgTypes[21]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Presence) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Presence) ProtoMessage() {}
+
+func (x *Presence) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_state_v1_state_proto_msgTypes[21]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Presence.ProtoReflect.Descriptor instead.
+func (*Presence) Descriptor() ([]byte, []int) {
+	return file_proto_state_v1_state_proto_rawDescGZIP(), []int{21}
+}
+
+func (x *Presence) GetPlayerId() int64 {
+	if x != nil {
+		return x.PlayerId
+	}
+	return 0
+}
+
+func (x *Presence) GetServerName() string {
+	if x != nil {
+		return x.ServerName
+	}
+	return ""
+}
+
+func (x *Presence) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
+func (x *Presence) GetUpdatedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.UpdatedAt
+	}
+	return nil
+}
+
+type SetPresenceRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Presence      *Presence              `protobuf:"bytes,1,opt,name=presence,proto3" json:"presence,omitempty"`
+	Ttl           *durationpb.Duration   `protobuf:"bytes,2,opt,name=ttl,proto3" json:"ttl,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SetPresenceRequest) Reset() {
+	*x = SetPresenceRequest{}
+	mi := &file_proto_state_v1_state_proto_msgTypes[22]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SetPresenceRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SetPresenceRequest) ProtoMessage() {}
+
+func (x *SetPresenceRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_state_v1_state_proto_msgTypes[22]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SetPresenceRequest.ProtoReflect.Descriptor instead.
+func (*SetPresenceRequest) Descriptor() ([]byte, []int) {
+	return file_proto_state_v1_state_proto_rawDescGZIP(), []int{22}
+}
+
+func (x *SetPresenceRequest) GetPresence() *Presence {
+	if x != nil {
+		return x.Presence
+	}
+	return nil
+}
+
+func (x *SetPresenceRequest) GetTtl() *durationpb.Duration {
+	if x != nil {
+		return x.Ttl
+	}
+	return nil
+}
+
+type SetPresenceResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SetPresenceResponse) Reset() {
+	*x = SetPresenceResponse{}
+	mi := &file_proto_state_v1_state_proto_msgTypes[23]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SetPresenceResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SetPresenceResponse) ProtoMessage() {}
+
+func (x *SetPresenceResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_state_v1_state_proto_msgTypes[23]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SetPresenceResponse.ProtoReflect.Descriptor instead.
+func (*SetPresenceResponse) Descriptor() ([]byte, []int) {
+	return file_proto_state_v1_state_proto_rawDescGZIP(), []int{23}
+}
+
+type GetPresenceRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	PlayerId      int64                  `protobuf:"varint,1,opt,name=player_id,json=playerId,proto3" json:"player_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetPresenceRequest) Reset() {
+	*x = GetPresenceRequest{}
+	mi := &file_proto_state_v1_state_proto_msgTypes[24]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetPresenceRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetPresenceRequest) ProtoMessage() {}
+
+func (x *GetPresenceRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_state_v1_state_proto_msgTypes[24]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetPresenceRequest.ProtoReflect.Descriptor instead.
+func (*GetPresenceRequest) Descriptor() ([]byte, []int) {
+	return file_proto_state_v1_state_proto_rawDescGZIP(), []int{24}
+}
+
+func (x *GetPresenceRequest) GetPlayerId() int64 {
+	if x != nil {
+		return x.PlayerId
+	}
+	return 0
+}
+
+type GetPresenceResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Presence      *Presence              `protobuf:"bytes,1,opt,name=presence,proto3" json:"presence,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetPresenceResponse) Reset() {
+	*x = GetPresenceResponse{}
+	mi := &file_proto_state_v1_state_proto_msgTypes[25]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetPresenceResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetPresenceResponse) ProtoMessage() {}
+
+func (x *GetPresenceResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_state_v1_state_proto_msgTypes[25]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetPresenceResponse.ProtoReflect.Descriptor instead.
+func (*GetPresenceResponse) Descriptor() ([]byte, []int) {
+	return file_proto_state_v1_state_proto_rawDescGZIP(), []int{25}
+}
+
+func (x *GetPresenceResponse) GetPresence() *Presence {
+	if x != nil {
+		return x.Presence
+	}
+	return nil
+}
+
+type ClearPresenceRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	PlayerId      int64                  `protobuf:"varint,1,opt,name=player_id,json=playerId,proto3" json:"player_id,omitempty"`
+	ServerName    string                 `protobuf:"bytes,2,opt,name=server_name,json=serverName,proto3" json:"server_name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ClearPresenceRequest) Reset() {
+	*x = ClearPresenceRequest{}
+	mi := &file_proto_state_v1_state_proto_msgTypes[26]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ClearPresenceRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ClearPresenceRequest) ProtoMessage() {}
+
+func (x *ClearPresenceRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_state_v1_state_proto_msgTypes[26]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ClearPresenceRequest.ProtoReflect.Descriptor instead.
+func (*ClearPresenceRequest) Descriptor() ([]byte, []int) {
+	return file_proto_state_v1_state_proto_rawDescGZIP(), []int{26}
+}
+
+func (x *ClearPresenceRequest) GetPlayerId() int64 {
+	if x != nil {
+		return x.PlayerId
+	}
+	return 0
+}
+
+func (x *ClearPresenceRequest) GetServerName() string {
+	if x != nil {
+		return x.ServerName
+	}
+	return ""
+}
+
+type ClearPresenceResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ClearPresenceResponse) Reset() {
+	*x = ClearPresenceResponse{}
+	mi := &file_proto_state_v1_state_proto_msgTypes[27]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ClearPresenceResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ClearPresenceResponse) ProtoMessage() {}
+
+func (x *ClearPresenceResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_state_v1_state_proto_msgTypes[27]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ClearPresenceResponse.ProtoReflect.Descriptor instead.
+func (*ClearPresenceResponse) Descriptor() ([]byte, []int) {
+	return file_proto_state_v1_state_proto_rawDescGZIP(), []int{27}
+}
+
 var File_proto_state_v1_state_proto protoreflect.FileDescriptor
 
 const file_proto_state_v1_state_proto_rawDesc = "" +
 	"\n" +
-	"\x1aproto/state/v1/state.proto\x12\bstate.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"g\n" +
+	"\x1aproto/state/v1/state.proto\x12\bstate.v1\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1egoogle/protobuf/duration.proto\"g\n" +
 	"\aAccount\x12\x1a\n" +
 	"\busername\x18\x01 \x01(\tR\busername\x12#\n" +
 	"\rpassword_hash\x18\x02 \x01(\tR\fpasswordHash\x12\x1b\n" +
@@ -1101,7 +1434,27 @@ const file_proto_state_v1_state_proto_rawDesc = "" +
 	"\x06player\x18\x01 \x01(\v2\x10.state.v1.PlayerR\x06player\"\x15\n" +
 	"\x13NextPlayerIDRequest\"&\n" +
 	"\x14NextPlayerIDResponse\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\x03R\x02id2\xd2\x05\n" +
+	"\x02id\x18\x01 \x01(\x03R\x02id\"\x9b\x01\n" +
+	"\bPresence\x12\x1b\n" +
+	"\tplayer_id\x18\x01 \x01(\x03R\bplayerId\x12\x1f\n" +
+	"\vserver_name\x18\x02 \x01(\tR\n" +
+	"serverName\x12\x16\n" +
+	"\x06status\x18\x03 \x01(\tR\x06status\x129\n" +
+	"\n" +
+	"updated_at\x18\x04 \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\"q\n" +
+	"\x12SetPresenceRequest\x12.\n" +
+	"\bpresence\x18\x01 \x01(\v2\x12.state.v1.PresenceR\bpresence\x12+\n" +
+	"\x03ttl\x18\x02 \x01(\v2\x19.google.protobuf.DurationR\x03ttl\"\x15\n" +
+	"\x13SetPresenceResponse\"1\n" +
+	"\x12GetPresenceRequest\x12\x1b\n" +
+	"\tplayer_id\x18\x01 \x01(\x03R\bplayerId\"E\n" +
+	"\x13GetPresenceResponse\x12.\n" +
+	"\bpresence\x18\x01 \x01(\v2\x12.state.v1.PresenceR\bpresence\"T\n" +
+	"\x14ClearPresenceRequest\x12\x1b\n" +
+	"\tplayer_id\x18\x01 \x01(\x03R\bplayerId\x12\x1f\n" +
+	"\vserver_name\x18\x02 \x01(\tR\n" +
+	"serverName\"\x17\n" +
+	"\x15ClearPresenceResponse2\xbc\a\n" +
 	"\fStateService\x12P\n" +
 	"\rCreateAccount\x12\x1e.state.v1.CreateAccountRequest\x1a\x1f.state.v1.CreateAccountResponse\x12G\n" +
 	"\n" +
@@ -1113,7 +1466,10 @@ const file_proto_state_v1_state_proto_rawDesc = "" +
 	"\rDeleteSession\x12\x1e.state.v1.DeleteSessionRequest\x1a\x1f.state.v1.DeleteSessionResponse\x12M\n" +
 	"\fCreatePlayer\x12\x1d.state.v1.CreatePlayerRequest\x1a\x1e.state.v1.CreatePlayerResponse\x12D\n" +
 	"\tGetPlayer\x12\x1a.state.v1.GetPlayerRequest\x1a\x1b.state.v1.GetPlayerResponse\x12M\n" +
-	"\fNextPlayerID\x12\x1d.state.v1.NextPlayerIDRequest\x1a\x1e.state.v1.NextPlayerIDResponseB*Z(server/internal/contract/statepb;statepbb\x06proto3"
+	"\fNextPlayerID\x12\x1d.state.v1.NextPlayerIDRequest\x1a\x1e.state.v1.NextPlayerIDResponse\x12J\n" +
+	"\vSetPresence\x12\x1c.state.v1.SetPresenceRequest\x1a\x1d.state.v1.SetPresenceResponse\x12J\n" +
+	"\vGetPresence\x12\x1c.state.v1.GetPresenceRequest\x1a\x1d.state.v1.GetPresenceResponse\x12P\n" +
+	"\rClearPresence\x12\x1e.state.v1.ClearPresenceRequest\x1a\x1f.state.v1.ClearPresenceResponseB*Z(server/internal/contract/statepb;statepbb\x06proto3"
 
 var (
 	file_proto_state_v1_state_proto_rawDescOnce sync.Once
@@ -1127,7 +1483,7 @@ func file_proto_state_v1_state_proto_rawDescGZIP() []byte {
 	return file_proto_state_v1_state_proto_rawDescData
 }
 
-var file_proto_state_v1_state_proto_msgTypes = make([]protoimpl.MessageInfo, 21)
+var file_proto_state_v1_state_proto_msgTypes = make([]protoimpl.MessageInfo, 28)
 var file_proto_state_v1_state_proto_goTypes = []any{
 	(*Account)(nil),                 // 0: state.v1.Account
 	(*Session)(nil),                 // 1: state.v1.Session
@@ -1150,13 +1506,21 @@ var file_proto_state_v1_state_proto_goTypes = []any{
 	(*GetPlayerResponse)(nil),       // 18: state.v1.GetPlayerResponse
 	(*NextPlayerIDRequest)(nil),     // 19: state.v1.NextPlayerIDRequest
 	(*NextPlayerIDResponse)(nil),    // 20: state.v1.NextPlayerIDResponse
-	(*timestamppb.Timestamp)(nil),   // 21: google.protobuf.Timestamp
+	(*Presence)(nil),                // 21: state.v1.Presence
+	(*SetPresenceRequest)(nil),      // 22: state.v1.SetPresenceRequest
+	(*SetPresenceResponse)(nil),     // 23: state.v1.SetPresenceResponse
+	(*GetPresenceRequest)(nil),      // 24: state.v1.GetPresenceRequest
+	(*GetPresenceResponse)(nil),     // 25: state.v1.GetPresenceResponse
+	(*ClearPresenceRequest)(nil),    // 26: state.v1.ClearPresenceRequest
+	(*ClearPresenceResponse)(nil),   // 27: state.v1.ClearPresenceResponse
+	(*timestamppb.Timestamp)(nil),   // 28: google.protobuf.Timestamp
+	(*durationpb.Duration)(nil),     // 29: google.protobuf.Duration
 }
 var file_proto_state_v1_state_proto_depIdxs = []int32{
-	21, // 0: state.v1.Session.expires_at:type_name -> google.protobuf.Timestamp
+	28, // 0: state.v1.Session.expires_at:type_name -> google.protobuf.Timestamp
 	0,  // 1: state.v1.CreateAccountRequest.account:type_name -> state.v1.Account
 	0,  // 2: state.v1.GetAccountResponse.account:type_name -> state.v1.Account
-	21, // 3: state.v1.RegisterAccountRequest.session_expires_at:type_name -> google.protobuf.Timestamp
+	28, // 3: state.v1.RegisterAccountRequest.session_expires_at:type_name -> google.protobuf.Timestamp
 	0,  // 4: state.v1.RegisterAccountResponse.account:type_name -> state.v1.Account
 	2,  // 5: state.v1.RegisterAccountResponse.player:type_name -> state.v1.Player
 	1,  // 6: state.v1.RegisterAccountResponse.session:type_name -> state.v1.Session
@@ -1164,29 +1528,39 @@ var file_proto_state_v1_state_proto_depIdxs = []int32{
 	1,  // 8: state.v1.GetSessionResponse.session:type_name -> state.v1.Session
 	2,  // 9: state.v1.CreatePlayerRequest.player:type_name -> state.v1.Player
 	2,  // 10: state.v1.GetPlayerResponse.player:type_name -> state.v1.Player
-	3,  // 11: state.v1.StateService.CreateAccount:input_type -> state.v1.CreateAccountRequest
-	5,  // 12: state.v1.StateService.GetAccount:input_type -> state.v1.GetAccountRequest
-	7,  // 13: state.v1.StateService.RegisterAccount:input_type -> state.v1.RegisterAccountRequest
-	9,  // 14: state.v1.StateService.CreateSession:input_type -> state.v1.CreateSessionRequest
-	11, // 15: state.v1.StateService.GetSession:input_type -> state.v1.GetSessionRequest
-	13, // 16: state.v1.StateService.DeleteSession:input_type -> state.v1.DeleteSessionRequest
-	15, // 17: state.v1.StateService.CreatePlayer:input_type -> state.v1.CreatePlayerRequest
-	17, // 18: state.v1.StateService.GetPlayer:input_type -> state.v1.GetPlayerRequest
-	19, // 19: state.v1.StateService.NextPlayerID:input_type -> state.v1.NextPlayerIDRequest
-	4,  // 20: state.v1.StateService.CreateAccount:output_type -> state.v1.CreateAccountResponse
-	6,  // 21: state.v1.StateService.GetAccount:output_type -> state.v1.GetAccountResponse
-	8,  // 22: state.v1.StateService.RegisterAccount:output_type -> state.v1.RegisterAccountResponse
-	10, // 23: state.v1.StateService.CreateSession:output_type -> state.v1.CreateSessionResponse
-	12, // 24: state.v1.StateService.GetSession:output_type -> state.v1.GetSessionResponse
-	14, // 25: state.v1.StateService.DeleteSession:output_type -> state.v1.DeleteSessionResponse
-	16, // 26: state.v1.StateService.CreatePlayer:output_type -> state.v1.CreatePlayerResponse
-	18, // 27: state.v1.StateService.GetPlayer:output_type -> state.v1.GetPlayerResponse
-	20, // 28: state.v1.StateService.NextPlayerID:output_type -> state.v1.NextPlayerIDResponse
-	20, // [20:29] is the sub-list for method output_type
-	11, // [11:20] is the sub-list for method input_type
-	11, // [11:11] is the sub-list for extension type_name
-	11, // [11:11] is the sub-list for extension extendee
-	0,  // [0:11] is the sub-list for field type_name
+	28, // 11: state.v1.Presence.updated_at:type_name -> google.protobuf.Timestamp
+	21, // 12: state.v1.SetPresenceRequest.presence:type_name -> state.v1.Presence
+	29, // 13: state.v1.SetPresenceRequest.ttl:type_name -> google.protobuf.Duration
+	21, // 14: state.v1.GetPresenceResponse.presence:type_name -> state.v1.Presence
+	3,  // 15: state.v1.StateService.CreateAccount:input_type -> state.v1.CreateAccountRequest
+	5,  // 16: state.v1.StateService.GetAccount:input_type -> state.v1.GetAccountRequest
+	7,  // 17: state.v1.StateService.RegisterAccount:input_type -> state.v1.RegisterAccountRequest
+	9,  // 18: state.v1.StateService.CreateSession:input_type -> state.v1.CreateSessionRequest
+	11, // 19: state.v1.StateService.GetSession:input_type -> state.v1.GetSessionRequest
+	13, // 20: state.v1.StateService.DeleteSession:input_type -> state.v1.DeleteSessionRequest
+	15, // 21: state.v1.StateService.CreatePlayer:input_type -> state.v1.CreatePlayerRequest
+	17, // 22: state.v1.StateService.GetPlayer:input_type -> state.v1.GetPlayerRequest
+	19, // 23: state.v1.StateService.NextPlayerID:input_type -> state.v1.NextPlayerIDRequest
+	22, // 24: state.v1.StateService.SetPresence:input_type -> state.v1.SetPresenceRequest
+	24, // 25: state.v1.StateService.GetPresence:input_type -> state.v1.GetPresenceRequest
+	26, // 26: state.v1.StateService.ClearPresence:input_type -> state.v1.ClearPresenceRequest
+	4,  // 27: state.v1.StateService.CreateAccount:output_type -> state.v1.CreateAccountResponse
+	6,  // 28: state.v1.StateService.GetAccount:output_type -> state.v1.GetAccountResponse
+	8,  // 29: state.v1.StateService.RegisterAccount:output_type -> state.v1.RegisterAccountResponse
+	10, // 30: state.v1.StateService.CreateSession:output_type -> state.v1.CreateSessionResponse
+	12, // 31: state.v1.StateService.GetSession:output_type -> state.v1.GetSessionResponse
+	14, // 32: state.v1.StateService.DeleteSession:output_type -> state.v1.DeleteSessionResponse
+	16, // 33: state.v1.StateService.CreatePlayer:output_type -> state.v1.CreatePlayerResponse
+	18, // 34: state.v1.StateService.GetPlayer:output_type -> state.v1.GetPlayerResponse
+	20, // 35: state.v1.StateService.NextPlayerID:output_type -> state.v1.NextPlayerIDResponse
+	23, // 36: state.v1.StateService.SetPresence:output_type -> state.v1.SetPresenceResponse
+	25, // 37: state.v1.StateService.GetPresence:output_type -> state.v1.GetPresenceResponse
+	27, // 38: state.v1.StateService.ClearPresence:output_type -> state.v1.ClearPresenceResponse
+	27, // [27:39] is the sub-list for method output_type
+	15, // [15:27] is the sub-list for method input_type
+	15, // [15:15] is the sub-list for extension type_name
+	15, // [15:15] is the sub-list for extension extendee
+	0,  // [0:15] is the sub-list for field type_name
 }
 
 func init() { file_proto_state_v1_state_proto_init() }
@@ -1200,7 +1574,7 @@ func file_proto_state_v1_state_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_state_v1_state_proto_rawDesc), len(file_proto_state_v1_state_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   21,
+			NumMessages:   28,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

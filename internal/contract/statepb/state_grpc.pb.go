@@ -28,6 +28,9 @@ const (
 	StateService_CreatePlayer_FullMethodName    = "/state.v1.StateService/CreatePlayer"
 	StateService_GetPlayer_FullMethodName       = "/state.v1.StateService/GetPlayer"
 	StateService_NextPlayerID_FullMethodName    = "/state.v1.StateService/NextPlayerID"
+	StateService_SetPresence_FullMethodName     = "/state.v1.StateService/SetPresence"
+	StateService_GetPresence_FullMethodName     = "/state.v1.StateService/GetPresence"
+	StateService_ClearPresence_FullMethodName   = "/state.v1.StateService/ClearPresence"
 )
 
 // StateServiceClient is the client API for StateService service.
@@ -43,6 +46,9 @@ type StateServiceClient interface {
 	CreatePlayer(ctx context.Context, in *CreatePlayerRequest, opts ...grpc.CallOption) (*CreatePlayerResponse, error)
 	GetPlayer(ctx context.Context, in *GetPlayerRequest, opts ...grpc.CallOption) (*GetPlayerResponse, error)
 	NextPlayerID(ctx context.Context, in *NextPlayerIDRequest, opts ...grpc.CallOption) (*NextPlayerIDResponse, error)
+	SetPresence(ctx context.Context, in *SetPresenceRequest, opts ...grpc.CallOption) (*SetPresenceResponse, error)
+	GetPresence(ctx context.Context, in *GetPresenceRequest, opts ...grpc.CallOption) (*GetPresenceResponse, error)
+	ClearPresence(ctx context.Context, in *ClearPresenceRequest, opts ...grpc.CallOption) (*ClearPresenceResponse, error)
 }
 
 type stateServiceClient struct {
@@ -143,6 +149,36 @@ func (c *stateServiceClient) NextPlayerID(ctx context.Context, in *NextPlayerIDR
 	return out, nil
 }
 
+func (c *stateServiceClient) SetPresence(ctx context.Context, in *SetPresenceRequest, opts ...grpc.CallOption) (*SetPresenceResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SetPresenceResponse)
+	err := c.cc.Invoke(ctx, StateService_SetPresence_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *stateServiceClient) GetPresence(ctx context.Context, in *GetPresenceRequest, opts ...grpc.CallOption) (*GetPresenceResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetPresenceResponse)
+	err := c.cc.Invoke(ctx, StateService_GetPresence_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *stateServiceClient) ClearPresence(ctx context.Context, in *ClearPresenceRequest, opts ...grpc.CallOption) (*ClearPresenceResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ClearPresenceResponse)
+	err := c.cc.Invoke(ctx, StateService_ClearPresence_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // StateServiceServer is the server API for StateService service.
 // All implementations must embed UnimplementedStateServiceServer
 // for forward compatibility.
@@ -156,6 +192,9 @@ type StateServiceServer interface {
 	CreatePlayer(context.Context, *CreatePlayerRequest) (*CreatePlayerResponse, error)
 	GetPlayer(context.Context, *GetPlayerRequest) (*GetPlayerResponse, error)
 	NextPlayerID(context.Context, *NextPlayerIDRequest) (*NextPlayerIDResponse, error)
+	SetPresence(context.Context, *SetPresenceRequest) (*SetPresenceResponse, error)
+	GetPresence(context.Context, *GetPresenceRequest) (*GetPresenceResponse, error)
+	ClearPresence(context.Context, *ClearPresenceRequest) (*ClearPresenceResponse, error)
 	mustEmbedUnimplementedStateServiceServer()
 }
 
@@ -192,6 +231,15 @@ func (UnimplementedStateServiceServer) GetPlayer(context.Context, *GetPlayerRequ
 }
 func (UnimplementedStateServiceServer) NextPlayerID(context.Context, *NextPlayerIDRequest) (*NextPlayerIDResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method NextPlayerID not implemented")
+}
+func (UnimplementedStateServiceServer) SetPresence(context.Context, *SetPresenceRequest) (*SetPresenceResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SetPresence not implemented")
+}
+func (UnimplementedStateServiceServer) GetPresence(context.Context, *GetPresenceRequest) (*GetPresenceResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetPresence not implemented")
+}
+func (UnimplementedStateServiceServer) ClearPresence(context.Context, *ClearPresenceRequest) (*ClearPresenceResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ClearPresence not implemented")
 }
 func (UnimplementedStateServiceServer) mustEmbedUnimplementedStateServiceServer() {}
 func (UnimplementedStateServiceServer) testEmbeddedByValue()                      {}
@@ -376,6 +424,60 @@ func _StateService_NextPlayerID_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
+func _StateService_SetPresence_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetPresenceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(StateServiceServer).SetPresence(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: StateService_SetPresence_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(StateServiceServer).SetPresence(ctx, req.(*SetPresenceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _StateService_GetPresence_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetPresenceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(StateServiceServer).GetPresence(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: StateService_GetPresence_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(StateServiceServer).GetPresence(ctx, req.(*GetPresenceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _StateService_ClearPresence_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ClearPresenceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(StateServiceServer).ClearPresence(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: StateService_ClearPresence_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(StateServiceServer).ClearPresence(ctx, req.(*ClearPresenceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // StateService_ServiceDesc is the grpc.ServiceDesc for StateService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -418,6 +520,18 @@ var StateService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "NextPlayerID",
 			Handler:    _StateService_NextPlayerID_Handler,
+		},
+		{
+			MethodName: "SetPresence",
+			Handler:    _StateService_SetPresence_Handler,
+		},
+		{
+			MethodName: "GetPresence",
+			Handler:    _StateService_GetPresence_Handler,
+		},
+		{
+			MethodName: "ClearPresence",
+			Handler:    _StateService_ClearPresence_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
