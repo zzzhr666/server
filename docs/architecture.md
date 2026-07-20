@@ -6,7 +6,62 @@
 
 ## Runtime View
 
-当前可运行链路：
+当前可运行链路分成两张图：第一张看进程部署关系，第二张看 Go 包之间的调用边界。这样在 GitHub、GoLand Markdown Preview 或 Mermaid Live Editor 里不会因为单图过宽导致文字被压得太小。
+
+```mermaid
+%%{init: {"theme": "base", "themeVariables": {"fontSize": "18px", "fontFamily": "Arial"}}}%%
+flowchart TB
+    client["Client<br/>HTTP JSON / WebSocket"]
+    nginx["nginx :8080<br/>optional local proxy"]
+
+    subgraph logic["logic-server instances"]
+        logic1["logic-1<br/>:8081"]
+        logic2["logic-2<br/>:8082"]
+    end
+
+    stateServer["state-server<br/>gRPC :9001"]
+    redis[("Redis<br/>127.0.0.1:6379")]
+
+    client -->|"HTTP / WebSocket"| nginx
+    nginx -->|"proxy_pass"| logic1
+    nginx -->|"proxy_pass"| logic2
+    client -. direct .-> logic1
+    client -. direct .-> logic2
+    logic1 -->|"protobuf/gRPC"| stateServer
+    logic2 -->|"protobuf/gRPC"| stateServer
+    stateServer -->|"game:* keys"| redis
+```
+
+```mermaid
+%%{init: {"theme": "base", "themeVariables": {"fontSize": "18px", "fontFamily": "Arial"}}}%%
+flowchart TB
+    httpapi["internal/logic/httpapi<br/>routes, JSON, WebSocket"]
+    logicServices["logic services<br/>auth / player / presence"]
+    stateRepo["logic state repositories<br/>state adapter layer"]
+    stateContract["internal/contract/state<br/>business models and interfaces"]
+    stateClient["internal/state/grpcclient<br/>gRPC client adapter"]
+    statePB["internal/contract/statepb<br/>generated protobuf/gRPC"]
+    proto["proto/state/v1/state.proto"]
+    grpcServer["internal/state/grpcserver<br/>gRPC server adapter"]
+    stateService["internal/state/service<br/>state business operations"]
+    redisStore["internal/state/redisstore<br/>Redis-backed store"]
+    redisClient["internal/platform/redisdb<br/>Redis client wrapper"]
+    redis[("Redis<br/>game:account / player / session / presence")]
+
+    httpapi --> logicServices
+    logicServices --> stateRepo
+    stateRepo --> stateContract
+    stateRepo --> stateClient
+    stateClient --> statePB
+    proto -. generates .-> statePB
+    stateClient -->|"state.v1.StateService"| grpcServer
+    grpcServer --> statePB
+    grpcServer --> stateContract
+    grpcServer --> stateService
+    stateService --> redisStore
+    redisStore --> redisClient
+    redisClient --> redis
+```
 
 ```text
 Client
@@ -233,10 +288,11 @@ internal/
 
 - WebSocket 建连后标记玩家在线。
 - 记录玩家所在 logic-server 实例名。
-- WebSocket 断开后清理仍属于当前实例的在线状态。
+- WebSocket heartbeat 后刷新仍属于当前实例的在线状态 TTL。
+- WebSocket 断开后清理仍属于当前有效连接的在线状态。
 - 把 state presence 错误转换成 logic presence 错误。
 
-presence 的默认 TTL 是 2 分钟。当前实现会在连接建立时写入 TTL，但还没有心跳续期；长连接在线状态的续期策略后续需要补齐。
+presence 的默认 TTL 是 2 分钟。连接建立时会写入 TTL，客户端 heartbeat 会调用 `presence.Refresh` 续期。state/Redis 层的 `RefreshPresence` 只在 Redis 中保存的 `server_name` 仍等于当前 logic-server 实例名时刷新 `updated_at` 和 TTL，避免旧连接或旧实例覆盖新连接的在线状态。
 
 ### internal/logic/httpapi
 
@@ -252,8 +308,19 @@ HTTP/WebSocket 适配层。
 - 把业务错误映射为 HTTP 状态码。
 - 输出 JSON 响应。
 - 在 WebSocket 生命周期里调用 presence service。
+- 用本机 `connManager` 记录当前玩家连接 ID、连接时间和最近 heartbeat 时间。
 
 HTTP 层不直接访问 Redis，也不直接调用 generated gRPC client。
+
+WebSocket 当前只定义一种业务消息：
+
+```json
+{"type":"heartbeat"}
+```
+
+收到 heartbeat 后，HTTP 层先调用 `presence.Refresh` 刷新 Redis presence，再更新本机 `connManager` 的 `lastHeartbeatAt`。读循环使用 90 秒 timeout；如果客户端长期不发送消息，连接会退出并触发清理流程。
+
+`connManager` 的删除使用 `connID` 校验。旧连接断开时，如果同一玩家已经在当前 logic-server 上建立了新连接，旧连接的清理不会触发 `presence.MarkOffline`，避免同一个 `server_name` 下误删新连接的 Redis presence。
 
 ### internal/state/grpcserver
 
@@ -320,7 +387,7 @@ game:next_player_id
 
 `RegisterAccount` 会检查账号是否存在，生成玩家 ID，写入玩家、账号和 session。玩家 ID 使用 Redis 自增，因此在并发冲突或失败重试时允许出现 ID 空洞。
 
-`ClearPresence` 会先比较 Redis 中保存的 `server_name`，只有它仍然等于当前 logic-server 实例名时才删除 key。这样可以避免旧连接断开时误删同一玩家在新连接上写入的在线状态。
+`ClearPresence` 会先比较 Redis 中保存的 `server_name`，只有它仍然等于当前 logic-server 实例名时才删除 key。`RefreshPresence` 也会先比较 `server_name`，只有 owner 匹配时才更新 `updated_at` 并刷新 TTL。这样可以避免旧连接或旧实例误删、误续同一玩家在新连接上写入的在线状态。
 
 如果以后从 Redis 换成 MySQL，优先新增一个 MySQL store，让它实现 `state/service` 需要的 store 接口。理论上 `logic` 层不应该被影响。
 

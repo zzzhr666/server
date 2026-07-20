@@ -205,7 +205,13 @@ GET ws://localhost:8080/ws
 Header: token: <token>
 ```
 
-连接建立后，服务端会把玩家标记为在线；连接断开后，如果 Redis 中记录的 `server_name` 仍然等于当前 logic-server 实例名，就清理该玩家在线状态。
+连接建立后，服务端会把玩家标记为在线；客户端发送 heartbeat 后，服务端会刷新 Redis presence 的更新时间和 TTL；连接断开后，只有当前连接仍是 logic-server 本机有效连接时才清理该玩家在线状态。
+
+Heartbeat 消息：
+
+```json
+{"type":"heartbeat"}
+```
 
 查看 Redis 数据：
 
@@ -240,5 +246,5 @@ GOCACHE=/tmp/go-build-cache go test ./...
 - `logic-server` 和 `state-server` 之间已经迁移到 protobuf/gRPC，但还没有接入 TLS、服务发现或连接池策略。
 - `scripts/run.sh` 默认依赖本机 nginx 和 sudo 权限；没有 nginx 时可以用 `START_NGINX=0` 跑两个 logic-server 实例。
 - `state-server` 已经独立成进程，Redis 写入使用事务 pipeline 和乐观锁控制核心冲突，但还不是商业级分布式事务方案。
-- 在线状态目前只记录 `online`、`server_name` 和更新时间，还没有心跳续期接口、好友可见性或状态广播。
+- 在线状态目前记录 `online`、`server_name` 和更新时间，并支持 WebSocket heartbeat 续期；还没有好友可见性或状态广播。
 - `rcenter-server` 和 `room-server` 还只是骨架。

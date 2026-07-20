@@ -240,7 +240,7 @@ HTTP/1.1 204 No Content
 
 ## GET /ws
 
-建立 WebSocket 连接，并用连接生命周期维护玩家在线状态。
+建立 WebSocket 连接，并用连接生命周期和 heartbeat 维护玩家在线状态。
 
 握手请求：
 
@@ -253,9 +253,19 @@ token: <token>
 
 1. 通过 token 查询 session。
 2. WebSocket upgrade 成功后调用 `presence.MarkOnline`。
-3. 在 Redis 写入 `game:presence:<player_id>`，包含 `player_id`、`server_name`、`status` 和 `updated_at`。
-4. 持续读取客户端消息，直到客户端断开或读取失败。
-5. 连接结束时调用 `presence.MarkOffline`，只清理仍属于当前 `server_name` 的在线状态。
+3. 在 Redis 写入 `game:presence:<player_id>`，包含 `player_id`、`server_name`、`status` 和 `updated_at`，并设置 presence TTL。
+4. 在 logic-server 本机 `connManager` 记录当前玩家连接。
+5. 持续读取客户端消息，直到客户端断开、读取失败或超过读取超时时间。
+6. 收到 heartbeat 后调用 `presence.Refresh`，只在 Redis presence 仍属于当前 `server_name` 时刷新 `updated_at` 和 TTL，同时更新本机连接的 `lastHeartbeatAt`。
+7. 连接结束时只有当前连接仍是本机 `connManager` 中的有效连接才调用 `presence.MarkOffline`，避免旧连接断开误清理同一玩家的新连接。
+
+Heartbeat 消息：
+
+```json
+{"type":"heartbeat"}
+```
+
+客户端建议按固定间隔发送 heartbeat，例如每 30 秒一次。服务端当前 WebSocket read timeout 是 90 秒，超过该时间未收到消息会结束连接并进入离线清理流程。
 
 常见错误：
 
@@ -264,7 +274,7 @@ token: <token>
 101 Switching Protocols: WebSocket 握手成功
 ```
 
-当前 `/ws` 不要求客户端发送业务消息；保持连接即可表示在线。后续游戏内实时协议可以在这个入口上继续扩展，或拆到 room-server。
+当前 `/ws` 只定义了 heartbeat 业务消息；其他未知或非法 JSON 消息会被忽略。后续游戏内实时协议可以在这个入口上继续扩展，或拆到 room-server。
 
 ## Full Manual Check
 
@@ -278,9 +288,10 @@ token: <token>
 6. 调用 `/auth/login`，确认返回新的 token。
 7. 用 token 调用 `/auth/me`，确认返回玩家资料。
 8. 用 token 连接 `/ws`，确认 Redis 出现 `game:presence:<player_id>`。
-9. 断开 `/ws`，确认对应 presence 被清理。
-10. 调用 `/auth/logout`，确认返回 `204 No Content`。
-11. 再用同一个 token 调用 `/auth/me`，确认返回 `401 Unauthorized`。
+9. 发送 `{"type":"heartbeat"}`，确认 Redis 中 presence 的 `updated_at` 和 TTL 被刷新。
+10. 断开 `/ws`，确认对应 presence 被清理。
+11. 调用 `/auth/logout`，确认返回 `204 No Content`。
+12. 再用同一个 token 调用 `/auth/me`，确认返回 `401 Unauthorized`。
 
 可以用下面命令查看 Redis 当前写入的数据：
 
