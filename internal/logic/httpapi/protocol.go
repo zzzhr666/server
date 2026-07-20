@@ -32,3 +32,9 @@ type authSessionResponse struct {
 	Token  string         `json:"token"`
 	Player playerResponse `json:"player"`
 }
+
+type websocketMessage struct {
+	Type string `json:"type"`
+}
+
+const websocketMessageTypeHeartbeat = "heartbeat"

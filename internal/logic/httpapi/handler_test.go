@@ -236,6 +236,99 @@ func TestWebSocketMarksOnlineAndOffline(t *testing.T) {
 	}
 }
 
+func TestWebSocketOldConnectionDoesNotMarkOfflineAfterReconnect(t *testing.T) {
+	auths := newFakeAuthService()
+	session := auths.newSession(7)
+	presences := newFakePresenceService()
+	handler := newTestHandlerWithServices(auths, presences).Routes()
+	server := httptest.NewServer(handler)
+	defer server.Close()
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+	wsURL := "ws" + strings.TrimPrefix(server.URL, "http") + "/ws"
+	dialOptions := &websocket.DialOptions{
+		HTTPHeader: http.Header{"token": []string{session.Token}},
+	}
+
+	oldConn, _, err := websocket.Dial(ctx, wsURL, dialOptions)
+	if err != nil {
+		t.Fatalf("old websocket dial: %v", err)
+	}
+	defer func() {
+		_ = oldConn.CloseNow()
+	}()
+	waitPresenceCall(t, presences.onlineCalls)
+
+	newConn, _, err := websocket.Dial(ctx, wsURL, dialOptions)
+	if err != nil {
+		t.Fatalf("new websocket dial: %v", err)
+	}
+	defer func() {
+		_ = newConn.CloseNow()
+	}()
+	waitPresenceCall(t, presences.onlineCalls)
+
+	if err := oldConn.Close(websocket.StatusNormalClosure, "old connection closed"); err != nil {
+		t.Fatalf("close old websocket: %v", err)
+	}
+	assertNoPresenceCall(t, presences.offlineCalls)
+
+	if err := newConn.Close(websocket.StatusNormalClosure, "new connection closed"); err != nil {
+		t.Fatalf("close new websocket: %v", err)
+	}
+	offlineCall := waitPresenceCall(t, presences.offlineCalls)
+	if offlineCall.PlayerID != 7 {
+		t.Fatalf("offline player id = %d, want 7", offlineCall.PlayerID)
+	}
+}
+
+func TestWebSocketHeartbeatRefreshesPresenceAndConnection(t *testing.T) {
+	auths := newFakeAuthService()
+	session := auths.newSession(7)
+	presences := newFakePresenceService()
+	testHandler := newTestHandlerWithServices(auths, presences)
+	server := httptest.NewServer(testHandler.Routes())
+	defer server.Close()
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+
+	conn, _, err := websocket.Dial(ctx, "ws"+strings.TrimPrefix(server.URL, "http")+"/ws", &websocket.DialOptions{
+		HTTPHeader: http.Header{"token": []string{session.Token}},
+	})
+	if err != nil {
+		t.Fatalf("websocket dial: %v", err)
+	}
+	defer func() {
+		_ = conn.CloseNow()
+	}()
+	waitPresenceCall(t, presences.onlineCalls)
+
+	before, ok := testHandler.connections.Get(7)
+	if !ok {
+		t.Fatalf("connection missing before heartbeat")
+	}
+	if err := conn.Write(ctx, websocket.MessageText, []byte(`{"type":"heartbeat"}`)); err != nil {
+		t.Fatalf("write heartbeat: %v", err)
+	}
+
+	refreshCall := waitPresenceCall(t, presences.refreshCalls)
+	if refreshCall.PlayerID != 7 {
+		t.Fatalf("refresh player id = %d, want 7", refreshCall.PlayerID)
+	}
+	if refreshCall.ServerName != "logic-test" {
+		t.Fatalf("refresh server name = %q, want logic-test", refreshCall.ServerName)
+	}
+	after, ok := testHandler.connections.Get(7)
+	if !ok {
+		t.Fatalf("connection missing after heartbeat")
+	}
+	if !after.lastHeartbeatAt.After(before.lastHeartbeatAt) {
+		t.Fatalf("last heartbeat at = %v, want after %v", after.lastHeartbeatAt, before.lastHeartbeatAt)
+	}
+}
+
 func newTestHandler() *Handler {
 	return newTestHandlerWithAuth(newFakeAuthService())
 }
@@ -385,12 +478,14 @@ type fakePresenceService struct {
 	markOfflineErr error
 	onlineCalls    chan presenceCall
 	offlineCalls   chan presenceCall
+	refreshCalls   chan presenceCall
 }
 
 func newFakePresenceService() *fakePresenceService {
 	return &fakePresenceService{
-		onlineCalls:  make(chan presenceCall, 1),
-		offlineCalls: make(chan presenceCall, 1),
+		onlineCalls:  make(chan presenceCall, 4),
+		offlineCalls: make(chan presenceCall, 4),
+		refreshCalls: make(chan presenceCall, 4),
 	}
 }
 
@@ -403,6 +498,16 @@ func waitPresenceCall(t *testing.T, calls <-chan presenceCall) presenceCall {
 	case <-time.After(time.Second):
 		t.Fatalf("timed out waiting for presence call")
 		return presenceCall{}
+	}
+}
+
+func assertNoPresenceCall(t *testing.T, calls <-chan presenceCall) {
+	t.Helper()
+
+	select {
+	case call := <-calls:
+		t.Fatalf("unexpected presence call: %+v", call)
+	case <-time.After(100 * time.Millisecond):
 	}
 }
 
@@ -424,6 +529,14 @@ func (f *fakePresenceService) MarkOffline(ctx context.Context, playerID int64, s
 	}
 	f.recordCall(f.offlineCalls, playerID, serverName)
 	return f.markOfflineErr
+}
+
+func (f *fakePresenceService) Refresh(ctx context.Context, playerID int64, serverName string) error {
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+	f.recordCall(f.refreshCalls, playerID, serverName)
+	return nil
 }
 
 func (f *fakePresenceService) recordCall(calls chan presenceCall, playerID int64, serverName string) {

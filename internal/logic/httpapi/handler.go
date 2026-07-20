@@ -10,6 +10,7 @@ type Handler struct {
 	authService     auth.Service
 	serverName      string
 	presenceService presence.Service
+	connections     *connManager
 }
 
 // HandlerConfig wires logic services into the HTTP adapter.
@@ -25,5 +26,6 @@ func NewHandler(handlerConfig HandlerConfig) *Handler {
 		authService:     handlerConfig.AuthService,
 		serverName:      handlerConfig.ServerName,
 		presenceService: handlerConfig.PresenceService,
+		connections:     newConnManager(),
 	}
 }
