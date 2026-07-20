@@ -38,7 +38,7 @@ func (h *Handler) handleWebSocket(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-	connInfo := h.connections.Add(session.PlayerID)
+	connInfo := h.connections.Add(session.PlayerID, conn)
 
 	defer func() {
 		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)

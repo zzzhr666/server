@@ -8,7 +8,7 @@ import (
 func TestConnManagerAddStoresConnection(t *testing.T) {
 	manager := newConnManager()
 
-	info := manager.Add(7)
+	info := manager.Add(7, nil)
 
 	if info.playerID != 7 {
 		t.Fatalf("player id = %d, want 7", info.playerID)
@@ -27,7 +27,7 @@ func TestConnManagerAddStoresConnection(t *testing.T) {
 
 func TestConnManagerTouch(t *testing.T) {
 	manager := newConnManager()
-	info := manager.Add(7)
+	info := manager.Add(7, nil)
 	refreshedAt := time.Date(2026, 7, 20, 12, 0, 0, 0, time.UTC)
 
 	if ok := manager.Touch(7, info.id, refreshedAt); !ok {
@@ -47,8 +47,8 @@ func TestConnManagerTouch(t *testing.T) {
 
 func TestConnManagerOldConnectionCannotTouchOrRemoveNewConnection(t *testing.T) {
 	manager := newConnManager()
-	oldInfo := manager.Add(7)
-	newInfo := manager.Add(7)
+	oldInfo := manager.Add(7, nil)
+	newInfo := manager.Add(7, nil)
 	refreshedAt := time.Date(2026, 7, 20, 12, 0, 0, 0, time.UTC)
 
 	if oldInfo.id == newInfo.id {

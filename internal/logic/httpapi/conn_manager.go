@@ -1,8 +1,12 @@
 package httpapi
 
 import (
+	"context"
 	"sync"
 	"time"
+
+	"github.com/coder/websocket"
+	"github.com/coder/websocket/wsjson"
 )
 
 type connID uint64
@@ -10,6 +14,7 @@ type connID uint64
 type connectionInfo struct {
 	playerID        int64
 	id              connID
+	conn            *websocket.Conn
 	connectedAt     time.Time
 	lastHeartbeatAt time.Time
 }
@@ -27,7 +32,7 @@ func newConnManager() *connManager {
 	}
 }
 
-func (m *connManager) Add(playerID int64) connectionInfo {
+func (m *connManager) Add(playerID int64, conn *websocket.Conn) connectionInfo {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
@@ -38,6 +43,7 @@ func (m *connManager) Add(playerID int64) connectionInfo {
 	info := connectionInfo{
 		playerID:        playerID,
 		id:              connectionID,
+		conn:            conn,
 		connectedAt:     now,
 		lastHeartbeatAt: now,
 	}
@@ -78,5 +84,18 @@ func (m *connManager) Remove(playerID int64, id connID) bool {
 		return false
 	}
 	delete(m.players, playerID)
+	return true
+}
+
+func (m *connManager) SendJSON(ctx context.Context, playerID int64, msg any) bool {
+	m.mu.RLock()
+	info, ok := m.players[playerID]
+	m.mu.RUnlock()
+	if !ok {
+		return false
+	}
+	if err := wsjson.Write(ctx, info.conn, msg); err != nil {
+		return false
+	}
 	return true
 }
