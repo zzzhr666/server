@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"server/internal/contract/statepb"
 	"server/internal/logic/auth"
+	"server/internal/logic/friend"
 	"server/internal/logic/httpapi"
 	"server/internal/logic/player"
 	"server/internal/logic/presence"
@@ -67,10 +68,15 @@ func main() {
 	presenceRepo := presence.NewStateRepository(stateService)
 	presenceService := presence.NewService(presenceRepo)
 
+	friendRepo := friend.NewStateRepository(stateService)
+	friendService := friend.NewService(friendRepo)
+
 	handler := httpapi.NewHandler(httpapi.HandlerConfig{
 		AuthService:     authService,
 		ServerName:      serverName,
 		PresenceService: presenceService,
+		FriendService:   friendService,
+		PlayerService:   playerService,
 	})
 
 	log.Printf("logic-server listening on %s", cfg.HTTPAddr)

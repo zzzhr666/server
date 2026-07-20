@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"server/internal/logic/auth"
+	"server/internal/logic/friend"
 	playerpkg "server/internal/logic/player"
 	"server/internal/logic/presence"
 	"strings"
@@ -166,6 +167,231 @@ func TestMeAuthHTTPInvalidToken(t *testing.T) {
 
 	if rec.Code != http.StatusUnauthorized {
 		t.Fatalf("status = %d, want %d; body = %s", rec.Code, http.StatusUnauthorized, rec.Body.String())
+	}
+}
+
+func TestSendFriendRequestHTTP(t *testing.T) {
+	auths := newFakeAuthService()
+	session := auths.newSession(7)
+	friends := newFakeFriendService()
+	handler := newTestHandlerWithFriend(auths, friends).Routes()
+	req := httptest.NewRequest(http.MethodPost, "/friends/requests", strings.NewReader(`{"to_player_id":8}`))
+	req.Header.Set("Authorization", "Bearer "+session.Token)
+	rec := httptest.NewRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusNoContent {
+		t.Fatalf("status = %d, want %d; body = %s", rec.Code, http.StatusNoContent, rec.Body.String())
+	}
+	if friends.sentFromPlayerID != 7 || friends.sentToPlayerID != 8 {
+		t.Fatalf("send request got from=%d to=%d, want from=7 to=8", friends.sentFromPlayerID, friends.sentToPlayerID)
+	}
+}
+
+func TestSendFriendRequestHTTPInvalidJSON(t *testing.T) {
+	auths := newFakeAuthService()
+	session := auths.newSession(7)
+	handler := newTestHandlerWithFriend(auths, newFakeFriendService()).Routes()
+	req := httptest.NewRequest(http.MethodPost, "/friends/requests", strings.NewReader(`{"to_player_id":`))
+	req.Header.Set("Authorization", "Bearer "+session.Token)
+	rec := httptest.NewRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusBadRequest {
+		t.Fatalf("status = %d, want %d; body = %s", rec.Code, http.StatusBadRequest, rec.Body.String())
+	}
+}
+
+func TestSendFriendRequestHTTPConflict(t *testing.T) {
+	auths := newFakeAuthService()
+	session := auths.newSession(7)
+	friends := newFakeFriendService()
+	friends.sendErr = friend.ErrRequestExists
+	handler := newTestHandlerWithFriend(auths, friends).Routes()
+	req := httptest.NewRequest(http.MethodPost, "/friends/requests", strings.NewReader(`{"to_player_id":8}`))
+	req.Header.Set("Authorization", "Bearer "+session.Token)
+	rec := httptest.NewRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusConflict {
+		t.Fatalf("status = %d, want %d; body = %s", rec.Code, http.StatusConflict, rec.Body.String())
+	}
+}
+
+func TestFriendHTTPMissingToken(t *testing.T) {
+	handler := newTestHandlerWithFriend(newFakeAuthService(), newFakeFriendService()).Routes()
+	req := httptest.NewRequest(http.MethodGet, "/friends", nil)
+	rec := httptest.NewRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusUnauthorized {
+		t.Fatalf("status = %d, want %d; body = %s", rec.Code, http.StatusUnauthorized, rec.Body.String())
+	}
+}
+
+func TestListIncomingFriendRequestsHTTP(t *testing.T) {
+	auths := newFakeAuthService()
+	session := auths.newSession(8)
+	createdAt := time.Date(2026, 7, 20, 10, 30, 0, 123, time.UTC)
+	friends := newFakeFriendService()
+	friends.incomingRequests = []*friend.Request{
+		{FromPlayerID: 7, ToPlayerID: 8, CreatedAt: createdAt},
+	}
+	handler := newTestHandlerWithFriend(auths, friends).Routes()
+	req := httptest.NewRequest(http.MethodGet, "/friends/requests/incoming", nil)
+	req.Header.Set("Authorization", "Bearer "+session.Token)
+	rec := httptest.NewRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d, want %d; body = %s", rec.Code, http.StatusOK, rec.Body.String())
+	}
+	if friends.listIncomingPlayerID != 8 {
+		t.Fatalf("list incoming player id = %d, want 8", friends.listIncomingPlayerID)
+	}
+	var resp friendRequestsResponse
+	if err := json.NewDecoder(rec.Body).Decode(&resp); err != nil {
+		t.Fatalf("decode response: %v", err)
+	}
+	if len(resp.Requests) != 1 {
+		t.Fatalf("requests count = %d, want 1", len(resp.Requests))
+	}
+	got := resp.Requests[0]
+	if got.FromPlayerID != 7 || got.ToPlayerID != 8 || got.CreatedAt != createdAt.Format(time.RFC3339Nano) {
+		t.Fatalf("request = %+v, want from=7 to=8 created_at=%q", got, createdAt.Format(time.RFC3339Nano))
+	}
+}
+
+func TestListOutgoingFriendRequestsHTTP(t *testing.T) {
+	auths := newFakeAuthService()
+	session := auths.newSession(7)
+	createdAt := time.Date(2026, 7, 20, 10, 31, 0, 0, time.UTC)
+	friends := newFakeFriendService()
+	friends.outgoingRequests = []*friend.Request{
+		{FromPlayerID: 7, ToPlayerID: 8, CreatedAt: createdAt},
+	}
+	handler := newTestHandlerWithFriend(auths, friends).Routes()
+	req := httptest.NewRequest(http.MethodGet, "/friends/requests/outgoing", nil)
+	req.Header.Set("Authorization", "Bearer "+session.Token)
+	rec := httptest.NewRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d, want %d; body = %s", rec.Code, http.StatusOK, rec.Body.String())
+	}
+	if friends.listOutgoingPlayerID != 7 {
+		t.Fatalf("list outgoing player id = %d, want 7", friends.listOutgoingPlayerID)
+	}
+	var resp friendRequestsResponse
+	if err := json.NewDecoder(rec.Body).Decode(&resp); err != nil {
+		t.Fatalf("decode response: %v", err)
+	}
+	if len(resp.Requests) != 1 || resp.Requests[0].ToPlayerID != 8 {
+		t.Fatalf("requests = %+v, want one outgoing request to 8", resp.Requests)
+	}
+}
+
+func TestAcceptFriendRequestHTTP(t *testing.T) {
+	auths := newFakeAuthService()
+	session := auths.newSession(8)
+	friends := newFakeFriendService()
+	handler := newTestHandlerWithFriend(auths, friends).Routes()
+	req := httptest.NewRequest(http.MethodPost, "/friends/requests/accept", strings.NewReader(`{"from_player_id":7}`))
+	req.Header.Set("Authorization", "Bearer "+session.Token)
+	rec := httptest.NewRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusNoContent {
+		t.Fatalf("status = %d, want %d; body = %s", rec.Code, http.StatusNoContent, rec.Body.String())
+	}
+	if friends.acceptedFromPlayerID != 7 || friends.acceptedToPlayerID != 8 {
+		t.Fatalf("accept request got from=%d to=%d, want from=7 to=8", friends.acceptedFromPlayerID, friends.acceptedToPlayerID)
+	}
+}
+
+func TestRejectFriendRequestHTTPNotFound(t *testing.T) {
+	auths := newFakeAuthService()
+	session := auths.newSession(8)
+	friends := newFakeFriendService()
+	friends.rejectErr = friend.ErrRequestNotFound
+	handler := newTestHandlerWithFriend(auths, friends).Routes()
+	req := httptest.NewRequest(http.MethodPost, "/friends/requests/reject", strings.NewReader(`{"from_player_id":7}`))
+	req.Header.Set("Authorization", "Bearer "+session.Token)
+	rec := httptest.NewRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusNotFound {
+		t.Fatalf("status = %d, want %d; body = %s", rec.Code, http.StatusNotFound, rec.Body.String())
+	}
+}
+
+func TestListFriendsHTTP(t *testing.T) {
+	auths := newFakeAuthService()
+	session := auths.newSession(7)
+	friends := newFakeFriendService()
+	friends.friendIDs = []int64{8, 9}
+	players := newFakePlayerService()
+	players.players[8] = &playerpkg.Player{ID: 8, Nickname: "Bob", Avatar: "bob.png"}
+	players.players[9] = &playerpkg.Player{ID: 9, Nickname: "Carol", Avatar: "carol.png"}
+	presences := newFakePresenceService()
+	presences.presences[8] = &presence.Presence{
+		PlayerID:   8,
+		ServerName: "logic-other",
+		Status:     presence.StatusOnline,
+		UpdatedAt:  time.Date(2026, 7, 20, 10, 40, 0, 0, time.UTC),
+	}
+	handler := newTestHandlerWithAllServices(auths, presences, friends, players).Routes()
+	req := httptest.NewRequest(http.MethodGet, "/friends", nil)
+	req.Header.Set("Authorization", "Bearer "+session.Token)
+	rec := httptest.NewRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d, want %d; body = %s", rec.Code, http.StatusOK, rec.Body.String())
+	}
+	if friends.listFriendIDsPlayerID != 7 {
+		t.Fatalf("list friends player id = %d, want 7", friends.listFriendIDsPlayerID)
+	}
+	var resp friendSummariesResponse
+	if err := json.NewDecoder(rec.Body).Decode(&resp); err != nil {
+		t.Fatalf("decode response: %v", err)
+	}
+	if len(resp.Friends) != 2 {
+		t.Fatalf("friends count = %d, want 2: %+v", len(resp.Friends), resp.Friends)
+	}
+	if resp.Friends[0].PlayerID != 8 || resp.Friends[0].Nickname != "Bob" || resp.Friends[0].Avatar != "bob.png" || !resp.Friends[0].Online || resp.Friends[0].Status != presence.StatusOnline {
+		t.Fatalf("first friend = %+v, want online Bob", resp.Friends[0])
+	}
+	if resp.Friends[1].PlayerID != 9 || resp.Friends[1].Nickname != "Carol" || resp.Friends[1].Avatar != "carol.png" || resp.Friends[1].Online || resp.Friends[1].Status != "offline" {
+		t.Fatalf("second friend = %+v, want offline Carol", resp.Friends[1])
+	}
+}
+
+func TestDeleteFriendHTTP(t *testing.T) {
+	auths := newFakeAuthService()
+	session := auths.newSession(7)
+	friends := newFakeFriendService()
+	handler := newTestHandlerWithFriend(auths, friends).Routes()
+	req := httptest.NewRequest(http.MethodDelete, "/friends", strings.NewReader(`{"friend_player_id":8}`))
+	req.Header.Set("Authorization", "Bearer "+session.Token)
+	rec := httptest.NewRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusNoContent {
+		t.Fatalf("status = %d, want %d; body = %s", rec.Code, http.StatusNoContent, rec.Body.String())
+	}
+	if friends.deletedPlayerID != 7 || friends.deletedFriendID != 8 {
+		t.Fatalf("delete friend got player=%d friend=%d, want player=7 friend=8", friends.deletedPlayerID, friends.deletedFriendID)
 	}
 }
 
@@ -338,9 +564,19 @@ func newTestHandlerWithAuth(auths *fakeAuthService) *Handler {
 }
 
 func newTestHandlerWithServices(auths *fakeAuthService, presences presence.Service) *Handler {
+	return newTestHandlerWithAllServices(auths, presences, newFakeFriendService(), newFakePlayerService())
+}
+
+func newTestHandlerWithFriend(auths *fakeAuthService, friends friend.Service) *Handler {
+	return newTestHandlerWithAllServices(auths, newFakePresenceService(), friends, newFakePlayerService())
+}
+
+func newTestHandlerWithAllServices(auths *fakeAuthService, presences presence.Service, friends friend.Service, players playerpkg.Service) *Handler {
 	return NewHandler(HandlerConfig{
 		AuthService:     auths,
 		PresenceService: presences,
+		FriendService:   friends,
+		PlayerService:   players,
 		ServerName:      "logic-test",
 	})
 }
@@ -479,6 +715,7 @@ type fakePresenceService struct {
 	onlineCalls    chan presenceCall
 	offlineCalls   chan presenceCall
 	refreshCalls   chan presenceCall
+	presences      map[int64]*presence.Presence
 }
 
 func newFakePresenceService() *fakePresenceService {
@@ -486,6 +723,7 @@ func newFakePresenceService() *fakePresenceService {
 		onlineCalls:  make(chan presenceCall, 4),
 		offlineCalls: make(chan presenceCall, 4),
 		refreshCalls: make(chan presenceCall, 4),
+		presences:    make(map[int64]*presence.Presence),
 	}
 }
 
@@ -519,8 +757,16 @@ func (f *fakePresenceService) MarkOnline(ctx context.Context, playerID int64, se
 	return f.markOnlineErr
 }
 
-func (f *fakePresenceService) Get(_ context.Context, _ int64) (*presence.Presence, error) {
-	return nil, presence.ErrNotFound
+func (f *fakePresenceService) Get(ctx context.Context, playerID int64) (*presence.Presence, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
+	p, ok := f.presences[playerID]
+	if !ok {
+		return nil, presence.ErrNotFound
+	}
+	cp := *p
+	return &cp, nil
 }
 
 func (f *fakePresenceService) MarkOffline(ctx context.Context, playerID int64, serverName string) error {
@@ -550,3 +796,138 @@ func (f *fakePresenceService) recordCall(calls chan presenceCall, playerID int64
 }
 
 var _ presence.Service = (*fakePresenceService)(nil)
+
+type fakePlayerService struct {
+	players map[int64]*playerpkg.Player
+	err     error
+}
+
+func newFakePlayerService() *fakePlayerService {
+	return &fakePlayerService{
+		players: make(map[int64]*playerpkg.Player),
+	}
+}
+
+func (f *fakePlayerService) Create(ctx context.Context, input playerpkg.CreateInput) (*playerpkg.Player, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
+	if f.err != nil {
+		return nil, f.err
+	}
+	player := &playerpkg.Player{
+		ID:       int64(len(f.players) + 1),
+		Nickname: input.Nickname,
+		Avatar:   input.Avatar,
+		Email:    input.Email,
+		Phone:    input.Phone,
+	}
+	f.players[player.ID] = player
+	return clonePlayer(player), nil
+}
+
+func (f *fakePlayerService) Get(ctx context.Context, id int64) (*playerpkg.Player, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
+	if f.err != nil {
+		return nil, f.err
+	}
+	player, ok := f.players[id]
+	if !ok {
+		return nil, playerpkg.ErrNotFound
+	}
+	return clonePlayer(player), nil
+}
+
+var _ playerpkg.Service = (*fakePlayerService)(nil)
+
+type fakeFriendService struct {
+	sendErr               error
+	listIncomingErr       error
+	listOutgoingErr       error
+	acceptErr             error
+	rejectErr             error
+	listFriendIDsErr      error
+	deleteErr             error
+	sentFromPlayerID      int64
+	sentToPlayerID        int64
+	listIncomingPlayerID  int64
+	listOutgoingPlayerID  int64
+	incomingRequests      []*friend.Request
+	outgoingRequests      []*friend.Request
+	acceptedFromPlayerID  int64
+	acceptedToPlayerID    int64
+	rejectedFromPlayerID  int64
+	rejectedToPlayerID    int64
+	listFriendIDsPlayerID int64
+	friendIDs             []int64
+	deletedPlayerID       int64
+	deletedFriendID       int64
+}
+
+func newFakeFriendService() *fakeFriendService {
+	return &fakeFriendService{}
+}
+
+func (f *fakeFriendService) SendRequest(ctx context.Context, fromPlayerID, toPlayerID int64) error {
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+	f.sentFromPlayerID = fromPlayerID
+	f.sentToPlayerID = toPlayerID
+	return f.sendErr
+}
+
+func (f *fakeFriendService) ListIncomingRequests(ctx context.Context, playerID int64) ([]*friend.Request, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
+	f.listIncomingPlayerID = playerID
+	return f.incomingRequests, f.listIncomingErr
+}
+
+func (f *fakeFriendService) ListOutgoingRequests(ctx context.Context, playerID int64) ([]*friend.Request, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
+	f.listOutgoingPlayerID = playerID
+	return f.outgoingRequests, f.listOutgoingErr
+}
+
+func (f *fakeFriendService) AcceptRequest(ctx context.Context, fromPlayerID, toPlayerID int64) error {
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+	f.acceptedFromPlayerID = fromPlayerID
+	f.acceptedToPlayerID = toPlayerID
+	return f.acceptErr
+}
+
+func (f *fakeFriendService) RejectRequest(ctx context.Context, fromPlayerID, toPlayerID int64) error {
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+	f.rejectedFromPlayerID = fromPlayerID
+	f.rejectedToPlayerID = toPlayerID
+	return f.rejectErr
+}
+
+func (f *fakeFriendService) ListFriendIDs(ctx context.Context, playerID int64) ([]int64, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
+	f.listFriendIDsPlayerID = playerID
+	return f.friendIDs, f.listFriendIDsErr
+}
+
+func (f *fakeFriendService) DeleteFriend(ctx context.Context, playerID, friendID int64) error {
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+	f.deletedPlayerID = playerID
+	f.deletedFriendID = friendID
+	return f.deleteErr
+}
+
+var _ friend.Service = (*fakeFriendService)(nil)

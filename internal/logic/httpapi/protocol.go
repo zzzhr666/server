@@ -38,3 +38,50 @@ type websocketMessage struct {
 }
 
 const websocketMessageTypeHeartbeat = "heartbeat"
+
+type friendRequestResponse struct {
+	FromPlayerID int64  `json:"from_player_id"`
+	ToPlayerID   int64  `json:"to_player_id"`
+	CreatedAt    string `json:"created_at"`
+}
+
+type friendRequestsResponse struct {
+	Requests []friendRequestResponse `json:"requests"`
+}
+
+type sendFriendRequestRequest struct {
+	ToPlayerID int64 `json:"to_player_id"`
+}
+
+type handleFriendRequestRequest struct {
+	FromPlayerID int64 `json:"from_player_id"`
+}
+
+type deleteFriendRequest struct {
+	FriendPlayerID int64 `json:"friend_player_id"`
+}
+
+type friendSummaryResponse struct {
+	PlayerID  int64  `json:"player_id"`
+	Nickname  string `json:"nickname"`
+	Avatar    string `json:"avatar"`
+	Online    bool   `json:"online"`
+	Status    string `json:"status"`
+	UpdatedAt string `json:"updated_at,omitempty"`
+}
+
+type friendSummariesResponse struct {
+	Friends []friendSummaryResponse `json:"friends"`
+}
+
+type friendPresenceChangedMessage struct {
+	Type     string `json:"type"`
+	PlayerID int64  `json:"player_id"`
+	Online   bool   `json:"online"`
+	Status   string `json:"status"`
+}
+
+type friendRemovedMessage struct {
+	Type     string `json:"type"`
+	PlayerID int64  `json:"player_id"`
+}
