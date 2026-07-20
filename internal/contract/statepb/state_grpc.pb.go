@@ -19,19 +19,26 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	StateService_CreateAccount_FullMethodName   = "/state.v1.StateService/CreateAccount"
-	StateService_GetAccount_FullMethodName      = "/state.v1.StateService/GetAccount"
-	StateService_RegisterAccount_FullMethodName = "/state.v1.StateService/RegisterAccount"
-	StateService_CreateSession_FullMethodName   = "/state.v1.StateService/CreateSession"
-	StateService_GetSession_FullMethodName      = "/state.v1.StateService/GetSession"
-	StateService_DeleteSession_FullMethodName   = "/state.v1.StateService/DeleteSession"
-	StateService_CreatePlayer_FullMethodName    = "/state.v1.StateService/CreatePlayer"
-	StateService_GetPlayer_FullMethodName       = "/state.v1.StateService/GetPlayer"
-	StateService_NextPlayerID_FullMethodName    = "/state.v1.StateService/NextPlayerID"
-	StateService_SetPresence_FullMethodName     = "/state.v1.StateService/SetPresence"
-	StateService_GetPresence_FullMethodName     = "/state.v1.StateService/GetPresence"
-	StateService_ClearPresence_FullMethodName   = "/state.v1.StateService/ClearPresence"
-	StateService_RefreshPresence_FullMethodName = "/state.v1.StateService/RefreshPresence"
+	StateService_CreateAccount_FullMethodName       = "/state.v1.StateService/CreateAccount"
+	StateService_GetAccount_FullMethodName          = "/state.v1.StateService/GetAccount"
+	StateService_RegisterAccount_FullMethodName     = "/state.v1.StateService/RegisterAccount"
+	StateService_CreateSession_FullMethodName       = "/state.v1.StateService/CreateSession"
+	StateService_GetSession_FullMethodName          = "/state.v1.StateService/GetSession"
+	StateService_DeleteSession_FullMethodName       = "/state.v1.StateService/DeleteSession"
+	StateService_CreatePlayer_FullMethodName        = "/state.v1.StateService/CreatePlayer"
+	StateService_GetPlayer_FullMethodName           = "/state.v1.StateService/GetPlayer"
+	StateService_NextPlayerID_FullMethodName        = "/state.v1.StateService/NextPlayerID"
+	StateService_SetPresence_FullMethodName         = "/state.v1.StateService/SetPresence"
+	StateService_GetPresence_FullMethodName         = "/state.v1.StateService/GetPresence"
+	StateService_ClearPresence_FullMethodName       = "/state.v1.StateService/ClearPresence"
+	StateService_RefreshPresence_FullMethodName     = "/state.v1.StateService/RefreshPresence"
+	StateService_SendFriendRequest_FullMethodName   = "/state.v1.StateService/SendFriendRequest"
+	StateService_ListIncomingRequest_FullMethodName = "/state.v1.StateService/ListIncomingRequest"
+	StateService_ListOutgoingRequest_FullMethodName = "/state.v1.StateService/ListOutgoingRequest"
+	StateService_AcceptFriendRequest_FullMethodName = "/state.v1.StateService/AcceptFriendRequest"
+	StateService_RejectFriendRequest_FullMethodName = "/state.v1.StateService/RejectFriendRequest"
+	StateService_ListFriendIDs_FullMethodName       = "/state.v1.StateService/ListFriendIDs"
+	StateService_DeleteFriend_FullMethodName        = "/state.v1.StateService/DeleteFriend"
 )
 
 // StateServiceClient is the client API for StateService service.
@@ -51,6 +58,13 @@ type StateServiceClient interface {
 	GetPresence(ctx context.Context, in *GetPresenceRequest, opts ...grpc.CallOption) (*GetPresenceResponse, error)
 	ClearPresence(ctx context.Context, in *ClearPresenceRequest, opts ...grpc.CallOption) (*ClearPresenceResponse, error)
 	RefreshPresence(ctx context.Context, in *RefreshPresenceRequest, opts ...grpc.CallOption) (*RefreshPresenceResponse, error)
+	SendFriendRequest(ctx context.Context, in *SendFriendRequestRequest, opts ...grpc.CallOption) (*SendFriendRequestResponse, error)
+	ListIncomingRequest(ctx context.Context, in *ListFriendRequestRequest, opts ...grpc.CallOption) (*ListFriendRequestResponse, error)
+	ListOutgoingRequest(ctx context.Context, in *ListFriendRequestRequest, opts ...grpc.CallOption) (*ListFriendRequestResponse, error)
+	AcceptFriendRequest(ctx context.Context, in *HandleFriendRequestRequest, opts ...grpc.CallOption) (*HandleFriendRequestResponse, error)
+	RejectFriendRequest(ctx context.Context, in *HandleFriendRequestRequest, opts ...grpc.CallOption) (*HandleFriendRequestResponse, error)
+	ListFriendIDs(ctx context.Context, in *ListFriendIDsRequest, opts ...grpc.CallOption) (*ListFriendIDsResponse, error)
+	DeleteFriend(ctx context.Context, in *DeleteFriendRequest, opts ...grpc.CallOption) (*DeleteFriendResponse, error)
 }
 
 type stateServiceClient struct {
@@ -191,6 +205,76 @@ func (c *stateServiceClient) RefreshPresence(ctx context.Context, in *RefreshPre
 	return out, nil
 }
 
+func (c *stateServiceClient) SendFriendRequest(ctx context.Context, in *SendFriendRequestRequest, opts ...grpc.CallOption) (*SendFriendRequestResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SendFriendRequestResponse)
+	err := c.cc.Invoke(ctx, StateService_SendFriendRequest_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *stateServiceClient) ListIncomingRequest(ctx context.Context, in *ListFriendRequestRequest, opts ...grpc.CallOption) (*ListFriendRequestResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListFriendRequestResponse)
+	err := c.cc.Invoke(ctx, StateService_ListIncomingRequest_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *stateServiceClient) ListOutgoingRequest(ctx context.Context, in *ListFriendRequestRequest, opts ...grpc.CallOption) (*ListFriendRequestResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListFriendRequestResponse)
+	err := c.cc.Invoke(ctx, StateService_ListOutgoingRequest_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *stateServiceClient) AcceptFriendRequest(ctx context.Context, in *HandleFriendRequestRequest, opts ...grpc.CallOption) (*HandleFriendRequestResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(HandleFriendRequestResponse)
+	err := c.cc.Invoke(ctx, StateService_AcceptFriendRequest_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *stateServiceClient) RejectFriendRequest(ctx context.Context, in *HandleFriendRequestRequest, opts ...grpc.CallOption) (*HandleFriendRequestResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(HandleFriendRequestResponse)
+	err := c.cc.Invoke(ctx, StateService_RejectFriendRequest_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *stateServiceClient) ListFriendIDs(ctx context.Context, in *ListFriendIDsRequest, opts ...grpc.CallOption) (*ListFriendIDsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListFriendIDsResponse)
+	err := c.cc.Invoke(ctx, StateService_ListFriendIDs_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *stateServiceClient) DeleteFriend(ctx context.Context, in *DeleteFriendRequest, opts ...grpc.CallOption) (*DeleteFriendResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeleteFriendResponse)
+	err := c.cc.Invoke(ctx, StateService_DeleteFriend_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // StateServiceServer is the server API for StateService service.
 // All implementations must embed UnimplementedStateServiceServer
 // for forward compatibility.
@@ -208,6 +292,13 @@ type StateServiceServer interface {
 	GetPresence(context.Context, *GetPresenceRequest) (*GetPresenceResponse, error)
 	ClearPresence(context.Context, *ClearPresenceRequest) (*ClearPresenceResponse, error)
 	RefreshPresence(context.Context, *RefreshPresenceRequest) (*RefreshPresenceResponse, error)
+	SendFriendRequest(context.Context, *SendFriendRequestRequest) (*SendFriendRequestResponse, error)
+	ListIncomingRequest(context.Context, *ListFriendRequestRequest) (*ListFriendRequestResponse, error)
+	ListOutgoingRequest(context.Context, *ListFriendRequestRequest) (*ListFriendRequestResponse, error)
+	AcceptFriendRequest(context.Context, *HandleFriendRequestRequest) (*HandleFriendRequestResponse, error)
+	RejectFriendRequest(context.Context, *HandleFriendRequestRequest) (*HandleFriendRequestResponse, error)
+	ListFriendIDs(context.Context, *ListFriendIDsRequest) (*ListFriendIDsResponse, error)
+	DeleteFriend(context.Context, *DeleteFriendRequest) (*DeleteFriendResponse, error)
 	mustEmbedUnimplementedStateServiceServer()
 }
 
@@ -256,6 +347,27 @@ func (UnimplementedStateServiceServer) ClearPresence(context.Context, *ClearPres
 }
 func (UnimplementedStateServiceServer) RefreshPresence(context.Context, *RefreshPresenceRequest) (*RefreshPresenceResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method RefreshPresence not implemented")
+}
+func (UnimplementedStateServiceServer) SendFriendRequest(context.Context, *SendFriendRequestRequest) (*SendFriendRequestResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SendFriendRequest not implemented")
+}
+func (UnimplementedStateServiceServer) ListIncomingRequest(context.Context, *ListFriendRequestRequest) (*ListFriendRequestResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListIncomingRequest not implemented")
+}
+func (UnimplementedStateServiceServer) ListOutgoingRequest(context.Context, *ListFriendRequestRequest) (*ListFriendRequestResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListOutgoingRequest not implemented")
+}
+func (UnimplementedStateServiceServer) AcceptFriendRequest(context.Context, *HandleFriendRequestRequest) (*HandleFriendRequestResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method AcceptFriendRequest not implemented")
+}
+func (UnimplementedStateServiceServer) RejectFriendRequest(context.Context, *HandleFriendRequestRequest) (*HandleFriendRequestResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method RejectFriendRequest not implemented")
+}
+func (UnimplementedStateServiceServer) ListFriendIDs(context.Context, *ListFriendIDsRequest) (*ListFriendIDsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListFriendIDs not implemented")
+}
+func (UnimplementedStateServiceServer) DeleteFriend(context.Context, *DeleteFriendRequest) (*DeleteFriendResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method DeleteFriend not implemented")
 }
 func (UnimplementedStateServiceServer) mustEmbedUnimplementedStateServiceServer() {}
 func (UnimplementedStateServiceServer) testEmbeddedByValue()                      {}
@@ -512,6 +624,132 @@ func _StateService_RefreshPresence_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
+func _StateService_SendFriendRequest_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SendFriendRequestRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(StateServiceServer).SendFriendRequest(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: StateService_SendFriendRequest_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(StateServiceServer).SendFriendRequest(ctx, req.(*SendFriendRequestRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _StateService_ListIncomingRequest_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListFriendRequestRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(StateServiceServer).ListIncomingRequest(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: StateService_ListIncomingRequest_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(StateServiceServer).ListIncomingRequest(ctx, req.(*ListFriendRequestRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _StateService_ListOutgoingRequest_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListFriendRequestRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(StateServiceServer).ListOutgoingRequest(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: StateService_ListOutgoingRequest_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(StateServiceServer).ListOutgoingRequest(ctx, req.(*ListFriendRequestRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _StateService_AcceptFriendRequest_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(HandleFriendRequestRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(StateServiceServer).AcceptFriendRequest(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: StateService_AcceptFriendRequest_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(StateServiceServer).AcceptFriendRequest(ctx, req.(*HandleFriendRequestRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _StateService_RejectFriendRequest_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(HandleFriendRequestRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(StateServiceServer).RejectFriendRequest(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: StateService_RejectFriendRequest_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(StateServiceServer).RejectFriendRequest(ctx, req.(*HandleFriendRequestRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _StateService_ListFriendIDs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListFriendIDsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(StateServiceServer).ListFriendIDs(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: StateService_ListFriendIDs_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(StateServiceServer).ListFriendIDs(ctx, req.(*ListFriendIDsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _StateService_DeleteFriend_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteFriendRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(StateServiceServer).DeleteFriend(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: StateService_DeleteFriend_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(StateServiceServer).DeleteFriend(ctx, req.(*DeleteFriendRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // StateService_ServiceDesc is the grpc.ServiceDesc for StateService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -570,6 +808,34 @@ var StateService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RefreshPresence",
 			Handler:    _StateService_RefreshPresence_Handler,
+		},
+		{
+			MethodName: "SendFriendRequest",
+			Handler:    _StateService_SendFriendRequest_Handler,
+		},
+		{
+			MethodName: "ListIncomingRequest",
+			Handler:    _StateService_ListIncomingRequest_Handler,
+		},
+		{
+			MethodName: "ListOutgoingRequest",
+			Handler:    _StateService_ListOutgoingRequest_Handler,
+		},
+		{
+			MethodName: "AcceptFriendRequest",
+			Handler:    _StateService_AcceptFriendRequest_Handler,
+		},
+		{
+			MethodName: "RejectFriendRequest",
+			Handler:    _StateService_RejectFriendRequest_Handler,
+		},
+		{
+			MethodName: "ListFriendIDs",
+			Handler:    _StateService_ListFriendIDs_Handler,
+		},
+		{
+			MethodName: "DeleteFriend",
+			Handler:    _StateService_DeleteFriend_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

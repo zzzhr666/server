@@ -129,6 +129,92 @@ func TestServiceForwardsPresenceOperations(t *testing.T) {
 	}
 }
 
+func TestServiceForwardsFriendOperations(t *testing.T) {
+	stores := newFakeStores()
+	createdAt := time.Unix(300, 0)
+	stores.incomingFriendRequests = []*statecontract.FriendRequest{
+		{FromPlayerID: 7, ToPlayerID: 8, CreatedAt: createdAt},
+	}
+	stores.outgoingFriendRequests = []*statecontract.FriendRequest{
+		{FromPlayerID: 8, ToPlayerID: 9, CreatedAt: createdAt.Add(time.Minute)},
+	}
+	stores.friendIDs = []int64{10, 11}
+	svc := newTestService(stores)
+
+	if err := svc.SendFriendRequest(context.Background(), 7, 8); err != nil {
+		t.Fatalf("SendFriendRequest returned error: %v", err)
+	}
+	if stores.sentFriendRequestFrom != 7 {
+		t.Fatalf("sent friend request from = %d, want 7", stores.sentFriendRequestFrom)
+	}
+	if stores.sentFriendRequestTo != 8 {
+		t.Fatalf("sent friend request to = %d, want 8", stores.sentFriendRequestTo)
+	}
+
+	incoming, err := svc.ListIncomingFriendRequests(context.Background(), 8)
+	if err != nil {
+		t.Fatalf("ListIncomingFriendRequests returned error: %v", err)
+	}
+	if stores.listIncomingFriendRequestsPlayerID != 8 {
+		t.Fatalf("incoming player id = %d, want 8", stores.listIncomingFriendRequestsPlayerID)
+	}
+	if len(incoming) != 1 || incoming[0].FromPlayerID != 7 {
+		t.Fatalf("incoming requests = %+v, want one request from 7", incoming)
+	}
+
+	outgoing, err := svc.ListOutgoingFriendRequests(context.Background(), 8)
+	if err != nil {
+		t.Fatalf("ListOutgoingFriendRequests returned error: %v", err)
+	}
+	if stores.listOutgoingFriendRequestsPlayerID != 8 {
+		t.Fatalf("outgoing player id = %d, want 8", stores.listOutgoingFriendRequestsPlayerID)
+	}
+	if len(outgoing) != 1 || outgoing[0].ToPlayerID != 9 {
+		t.Fatalf("outgoing requests = %+v, want one request to 9", outgoing)
+	}
+
+	if err := svc.AcceptFriendRequest(context.Background(), 7, 8); err != nil {
+		t.Fatalf("AcceptFriendRequest returned error: %v", err)
+	}
+	if stores.acceptedFriendRequestFrom != 7 {
+		t.Fatalf("accepted from player = %d, want 7", stores.acceptedFriendRequestFrom)
+	}
+	if stores.acceptedFriendRequestTo != 8 {
+		t.Fatalf("accepted to player = %d, want 8", stores.acceptedFriendRequestTo)
+	}
+
+	if err := svc.RejectFriendRequest(context.Background(), 9, 8); err != nil {
+		t.Fatalf("RejectFriendRequest returned error: %v", err)
+	}
+	if stores.rejectedFriendRequestFrom != 9 {
+		t.Fatalf("rejected from player = %d, want 9", stores.rejectedFriendRequestFrom)
+	}
+	if stores.rejectedFriendRequestTo != 8 {
+		t.Fatalf("rejected to player = %d, want 8", stores.rejectedFriendRequestTo)
+	}
+
+	friendIDs, err := svc.ListFriendIDs(context.Background(), 7)
+	if err != nil {
+		t.Fatalf("ListFriendIDs returned error: %v", err)
+	}
+	if stores.listFriendIDsPlayerID != 7 {
+		t.Fatalf("list friend ids player id = %d, want 7", stores.listFriendIDsPlayerID)
+	}
+	if len(friendIDs) != 2 || friendIDs[0] != 10 || friendIDs[1] != 11 {
+		t.Fatalf("friend ids = %v, want [10 11]", friendIDs)
+	}
+
+	if err := svc.DeleteFriend(context.Background(), 7, 10); err != nil {
+		t.Fatalf("DeleteFriend returned error: %v", err)
+	}
+	if stores.deletedFriendPlayerID != 7 {
+		t.Fatalf("delete friend player id = %d, want 7", stores.deletedFriendPlayerID)
+	}
+	if stores.deletedFriendFriendPlayerID != 10 {
+		t.Fatalf("delete friend friend player id = %d, want 10", stores.deletedFriendFriendPlayerID)
+	}
+}
+
 func TestServiceRegisterAccountCreatesAccountPlayerAndSession(t *testing.T) {
 	stores := newFakeStores()
 	stores.nextPlayerID = 7
@@ -197,15 +283,29 @@ func TestServiceRegisterAccountExistingAccountDoesNotCreatePlayerOrSession(t *te
 }
 
 type fakeStores struct {
-	accounts            map[string]*statecontract.Account
-	sessions            map[string]*statecontract.Session
-	players             map[int64]*statecontract.Player
-	presences           map[int64]*statecontract.Presence
-	nextPlayerID        int64
-	refreshedPlayerID   int64
-	refreshedServerName string
-	refreshedAt         time.Time
-	refreshedTTL        time.Duration
+	accounts                           map[string]*statecontract.Account
+	sessions                           map[string]*statecontract.Session
+	players                            map[int64]*statecontract.Player
+	presences                          map[int64]*statecontract.Presence
+	nextPlayerID                       int64
+	refreshedPlayerID                  int64
+	refreshedServerName                string
+	refreshedAt                        time.Time
+	refreshedTTL                       time.Duration
+	sentFriendRequestFrom              int64
+	sentFriendRequestTo                int64
+	listIncomingFriendRequestsPlayerID int64
+	listOutgoingFriendRequestsPlayerID int64
+	incomingFriendRequests             []*statecontract.FriendRequest
+	outgoingFriendRequests             []*statecontract.FriendRequest
+	acceptedFriendRequestFrom          int64
+	acceptedFriendRequestTo            int64
+	rejectedFriendRequestFrom          int64
+	rejectedFriendRequestTo            int64
+	listFriendIDsPlayerID              int64
+	friendIDs                          []int64
+	deletedFriendPlayerID              int64
+	deletedFriendFriendPlayerID        int64
 }
 
 func newFakeStores() *fakeStores {
@@ -224,6 +324,7 @@ func newTestService(stores *fakeStores) *Service {
 		Players:       stores,
 		Presences:     stores,
 		Registrations: stores,
+		Friends:       stores,
 	})
 }
 
@@ -359,5 +460,45 @@ func (f *fakeStores) RefreshPresence(_ context.Context, playerID int64, serverNa
 	return nil
 }
 
+func (f *fakeStores) SendFriendRequest(_ context.Context, fromPlayerID, toPlayerID int64) error {
+	f.sentFriendRequestFrom = fromPlayerID
+	f.sentFriendRequestTo = toPlayerID
+	return nil
+}
+
+func (f *fakeStores) ListIncomingFriendRequests(_ context.Context, playerID int64) ([]*statecontract.FriendRequest, error) {
+	f.listIncomingFriendRequestsPlayerID = playerID
+	return f.incomingFriendRequests, nil
+}
+
+func (f *fakeStores) ListOutgoingFriendRequests(_ context.Context, playerID int64) ([]*statecontract.FriendRequest, error) {
+	f.listOutgoingFriendRequestsPlayerID = playerID
+	return f.outgoingFriendRequests, nil
+}
+
+func (f *fakeStores) AcceptFriendRequest(_ context.Context, fromPlayerID, toPlayerID int64) error {
+	f.acceptedFriendRequestFrom = fromPlayerID
+	f.acceptedFriendRequestTo = toPlayerID
+	return nil
+}
+
+func (f *fakeStores) RejectFriendRequest(_ context.Context, fromPlayerID, toPlayerID int64) error {
+	f.rejectedFriendRequestFrom = fromPlayerID
+	f.rejectedFriendRequestTo = toPlayerID
+	return nil
+}
+
+func (f *fakeStores) ListFriendIDs(_ context.Context, playerID int64) ([]int64, error) {
+	f.listFriendIDsPlayerID = playerID
+	return f.friendIDs, nil
+}
+
+func (f *fakeStores) DeleteFriend(_ context.Context, playerID, friendPlayerID int64) error {
+	f.deletedFriendPlayerID = playerID
+	f.deletedFriendFriendPlayerID = friendPlayerID
+	return nil
+}
+
 var _ statecontract.Client = (*Service)(nil)
 var _ statecontract.PresenceClient = (*Service)(nil)
+var _ statecontract.FriendClient = (*Service)(nil)

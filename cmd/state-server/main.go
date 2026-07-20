@@ -40,12 +40,14 @@ func main() {
 		Players:       store,
 		Registrations: store,
 		Presences:     store,
+		Friends:       store,
 	})
 
 	grpcServer := grpc.NewServer()
 	statepb.RegisterStateServiceServer(grpcServer, grpcserver.NewServer(grpcserver.ServerConfig{
 		StateClient:    stateService,
 		PresenceClient: stateService,
+		FriendClient:   stateService,
 	}))
 	listener, err := net.Listen("tcp", cfg.StateGRPCAddr)
 	if err != nil {

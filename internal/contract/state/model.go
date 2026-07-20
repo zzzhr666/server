@@ -77,3 +77,19 @@ type PresenceClient interface {
 	ClearPresence(ctx context.Context, playerID int64, serverName string) error
 	RefreshPresence(ctx context.Context, playerID int64, serverName string, updatedAt time.Time, ttl time.Duration) error
 }
+
+type FriendRequest struct {
+	FromPlayerID int64
+	ToPlayerID   int64
+	CreatedAt    time.Time
+}
+
+type FriendClient interface {
+	SendFriendRequest(ctx context.Context, fromPlayerID, toPlayerID int64) error
+	ListIncomingFriendRequests(ctx context.Context, playerID int64) ([]*FriendRequest, error)
+	ListOutgoingFriendRequests(ctx context.Context, playerID int64) ([]*FriendRequest, error)
+	AcceptFriendRequest(ctx context.Context, fromPlayerID, toPlayerID int64) error
+	RejectFriendRequest(ctx context.Context, fromPlayerID, toPlayerID int64) error
+	ListFriendIDs(ctx context.Context, fromPlayerID int64) ([]int64, error)
+	DeleteFriend(ctx context.Context, playerID, friendPlayerID int64) error
+}

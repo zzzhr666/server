@@ -133,6 +133,72 @@ func (c *Client) RefreshPresence(ctx context.Context, playerID int64, serverName
 	return mapGRPCError(err)
 }
 
+func (c *Client) SendFriendRequest(ctx context.Context, fromPlayerID, toPlayerID int64) error {
+	_, err := c.grpc.SendFriendRequest(ctx, &statepb.SendFriendRequestRequest{
+		FromPlayerId: fromPlayerID,
+		ToPlayerId:   toPlayerID,
+	})
+	return mapGRPCError(err)
+}
+
+func (c *Client) ListIncomingFriendRequests(ctx context.Context, playerID int64) ([]*state.FriendRequest, error) {
+	res, err := c.grpc.ListIncomingRequest(ctx, &statepb.ListFriendRequestRequest{PlayerId: playerID})
+	if err != nil {
+		return nil, mapGRPCError(err)
+	}
+	var requests []*state.FriendRequest
+	for _, request := range res.GetRequests() {
+		requests = append(requests, stateproto.FromProtoFriendRequest(request))
+	}
+	return requests, nil
+}
+
+func (c *Client) ListOutgoingFriendRequests(ctx context.Context, playerID int64) ([]*state.FriendRequest, error) {
+	res, err := c.grpc.ListOutgoingRequest(ctx, &statepb.ListFriendRequestRequest{PlayerId: playerID})
+	if err != nil {
+		return nil, mapGRPCError(err)
+	}
+	var requests []*state.FriendRequest
+	for _, request := range res.GetRequests() {
+		requests = append(requests, stateproto.FromProtoFriendRequest(request))
+	}
+	return requests, nil
+}
+
+func (c *Client) AcceptFriendRequest(ctx context.Context, fromPlayerID, toPlayerID int64) error {
+	_, err := c.grpc.AcceptFriendRequest(ctx, &statepb.HandleFriendRequestRequest{
+		FromPlayerId: fromPlayerID,
+		ToPlayerId:   toPlayerID,
+	})
+	return mapGRPCError(err)
+}
+
+func (c *Client) RejectFriendRequest(ctx context.Context, fromPlayerID, toPlayerID int64) error {
+	_, err := c.grpc.RejectFriendRequest(ctx, &statepb.HandleFriendRequestRequest{
+		FromPlayerId: fromPlayerID,
+		ToPlayerId:   toPlayerID,
+	})
+	return mapGRPCError(err)
+}
+
+func (c *Client) ListFriendIDs(ctx context.Context, fromPlayerID int64) ([]int64, error) {
+	res, err := c.grpc.ListFriendIDs(ctx, &statepb.ListFriendIDsRequest{
+		PlayerId: fromPlayerID,
+	})
+	if err != nil {
+		return nil, mapGRPCError(err)
+	}
+	return res.GetFriendPlayerIds(), nil
+}
+
+func (c *Client) DeleteFriend(ctx context.Context, playerID, friendPlayerID int64) error {
+	_, err := c.grpc.DeleteFriend(ctx, &statepb.DeleteFriendRequest{
+		PlayerId:       playerID,
+		FriendPlayerId: friendPlayerID,
+	})
+	return mapGRPCError(err)
+}
+
 // NewClient creates a state contract client from generated gRPC bindings.
 func NewClient(grpcClient statepb.StateServiceClient) *Client {
 	return &Client{grpc: grpcClient}
@@ -154,16 +220,26 @@ func mapGRPCError(err error) error {
 			return state.ErrSessionNotFound
 		case state.ErrPresenceNotFound.Error():
 			return state.ErrPresenceNotFound
+		case state.ErrFriendNotFound.Error():
+			return state.ErrFriendNotFound
+		case state.ErrFriendRequestNotFound.Error():
+			return state.ErrFriendRequestNotFound
 		}
 	case codes.AlreadyExists:
 		switch st.Message() {
 		case state.ErrAccountExists.Error():
 			return state.ErrAccountExists
+		case state.ErrFriendAlreadyExists.Error():
+			return state.ErrFriendAlreadyExists
+		case state.ErrFriendRequestExists.Error():
+			return state.ErrFriendRequestExists
 		}
 	case codes.InvalidArgument:
 		switch st.Message() {
 		case state.ErrInvalidPresence.Error():
 			return state.ErrInvalidPresence
+		case state.ErrInvalidFriendRequest.Error():
+			return state.ErrInvalidFriendRequest
 		}
 	}
 

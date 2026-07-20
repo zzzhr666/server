@@ -52,9 +52,34 @@ func TestMapGRPCError(t *testing.T) {
 			want: statecontract.ErrPresenceNotFound,
 		},
 		{
+			name: "friend request not found",
+			err:  status.Error(codes.NotFound, statecontract.ErrFriendRequestNotFound.Error()),
+			want: statecontract.ErrFriendRequestNotFound,
+		},
+		{
+			name: "friend not found",
+			err:  status.Error(codes.NotFound, statecontract.ErrFriendNotFound.Error()),
+			want: statecontract.ErrFriendNotFound,
+		},
+		{
 			name: "invalid presence",
 			err:  status.Error(codes.InvalidArgument, statecontract.ErrInvalidPresence.Error()),
 			want: statecontract.ErrInvalidPresence,
+		},
+		{
+			name: "invalid friend request",
+			err:  status.Error(codes.InvalidArgument, statecontract.ErrInvalidFriendRequest.Error()),
+			want: statecontract.ErrInvalidFriendRequest,
+		},
+		{
+			name: "friend request exists",
+			err:  status.Error(codes.AlreadyExists, statecontract.ErrFriendRequestExists.Error()),
+			want: statecontract.ErrFriendRequestExists,
+		},
+		{
+			name: "friend already exists",
+			err:  status.Error(codes.AlreadyExists, statecontract.ErrFriendAlreadyExists.Error()),
+			want: statecontract.ErrFriendAlreadyExists,
 		},
 		{
 			name: "unknown already exists message",
@@ -304,27 +329,133 @@ func TestClientPresenceMethods(t *testing.T) {
 	}
 }
 
+func TestClientFriendMethods(t *testing.T) {
+	createdAt := time.Date(2026, 7, 20, 9, 0, 0, 0, time.UTC)
+	grpcState := &fakeStateServiceClient{
+		incomingFriendRequests: []*statepb.FriendRequest{
+			{FromPlayer: 7, ToPlayer: 8, CreatedAt: timestamppb.New(createdAt)},
+		},
+		outgoingFriendRequests: []*statepb.FriendRequest{
+			{FromPlayer: 8, ToPlayer: 9, CreatedAt: timestamppb.New(createdAt.Add(time.Minute))},
+		},
+		friendIDs: []int64{10, 11},
+	}
+	client := NewClient(grpcState)
+
+	if err := client.SendFriendRequest(context.Background(), 7, 8); err != nil {
+		t.Fatalf("SendFriendRequest returned error: %v", err)
+	}
+	if grpcState.sentFriendRequest.GetFromPlayerId() != 7 {
+		t.Fatalf("sent friend from player id = %d, want 7", grpcState.sentFriendRequest.GetFromPlayerId())
+	}
+	if grpcState.sentFriendRequest.GetToPlayerId() != 8 {
+		t.Fatalf("sent friend to player id = %d, want 8", grpcState.sentFriendRequest.GetToPlayerId())
+	}
+
+	incoming, err := client.ListIncomingFriendRequests(context.Background(), 8)
+	if err != nil {
+		t.Fatalf("ListIncomingFriendRequests returned error: %v", err)
+	}
+	if grpcState.incomingFriendRequest.GetPlayerId() != 8 {
+		t.Fatalf("incoming list player id = %d, want 8", grpcState.incomingFriendRequest.GetPlayerId())
+	}
+	if len(incoming) != 1 {
+		t.Fatalf("incoming requests = %d, want 1", len(incoming))
+	}
+	if incoming[0].FromPlayerID != 7 || incoming[0].ToPlayerID != 8 {
+		t.Fatalf("incoming request = %+v, want from 7 to 8", incoming[0])
+	}
+	if !incoming[0].CreatedAt.Equal(createdAt) {
+		t.Fatalf("incoming created at = %v, want %v", incoming[0].CreatedAt, createdAt)
+	}
+
+	outgoing, err := client.ListOutgoingFriendRequests(context.Background(), 8)
+	if err != nil {
+		t.Fatalf("ListOutgoingFriendRequests returned error: %v", err)
+	}
+	if grpcState.outgoingFriendRequest.GetPlayerId() != 8 {
+		t.Fatalf("outgoing list player id = %d, want 8", grpcState.outgoingFriendRequest.GetPlayerId())
+	}
+	if len(outgoing) != 1 {
+		t.Fatalf("outgoing requests = %d, want 1", len(outgoing))
+	}
+	if outgoing[0].FromPlayerID != 8 || outgoing[0].ToPlayerID != 9 {
+		t.Fatalf("outgoing request = %+v, want from 8 to 9", outgoing[0])
+	}
+
+	if err := client.AcceptFriendRequest(context.Background(), 7, 8); err != nil {
+		t.Fatalf("AcceptFriendRequest returned error: %v", err)
+	}
+	if grpcState.acceptedFriendRequest.GetFromPlayerId() != 7 {
+		t.Fatalf("accepted from player id = %d, want 7", grpcState.acceptedFriendRequest.GetFromPlayerId())
+	}
+	if grpcState.acceptedFriendRequest.GetToPlayerId() != 8 {
+		t.Fatalf("accepted to player id = %d, want 8", grpcState.acceptedFriendRequest.GetToPlayerId())
+	}
+
+	if err := client.RejectFriendRequest(context.Background(), 9, 8); err != nil {
+		t.Fatalf("RejectFriendRequest returned error: %v", err)
+	}
+	if grpcState.rejectedFriendRequest.GetFromPlayerId() != 9 {
+		t.Fatalf("rejected from player id = %d, want 9", grpcState.rejectedFriendRequest.GetFromPlayerId())
+	}
+	if grpcState.rejectedFriendRequest.GetToPlayerId() != 8 {
+		t.Fatalf("rejected to player id = %d, want 8", grpcState.rejectedFriendRequest.GetToPlayerId())
+	}
+
+	friendIDs, err := client.ListFriendIDs(context.Background(), 7)
+	if err != nil {
+		t.Fatalf("ListFriendIDs returned error: %v", err)
+	}
+	if grpcState.listFriendIDsRequest.GetPlayerId() != 7 {
+		t.Fatalf("list friend ids player id = %d, want 7", grpcState.listFriendIDsRequest.GetPlayerId())
+	}
+	if len(friendIDs) != 2 || friendIDs[0] != 10 || friendIDs[1] != 11 {
+		t.Fatalf("friend ids = %v, want [10 11]", friendIDs)
+	}
+
+	if err := client.DeleteFriend(context.Background(), 7, 10); err != nil {
+		t.Fatalf("DeleteFriend returned error: %v", err)
+	}
+	if grpcState.deletedFriendRequest.GetPlayerId() != 7 {
+		t.Fatalf("delete friend player id = %d, want 7", grpcState.deletedFriendRequest.GetPlayerId())
+	}
+	if grpcState.deletedFriendRequest.GetFriendPlayerId() != 10 {
+		t.Fatalf("delete friend friend player id = %d, want 10", grpcState.deletedFriendRequest.GetFriendPlayerId())
+	}
+}
+
 type fakeStateServiceClient struct {
 	statepb.UnimplementedStateServiceServer
 
-	account           *statepb.Account
-	createdAccount    *statepb.Account
-	gotUsername       string
-	registerRequest   *statepb.RegisterAccountRequest
-	registerResponse  *statepb.RegisterAccountResponse
-	session           *statepb.Session
-	createdSession    *statepb.Session
-	deletedToken      string
-	player            *statepb.Player
-	createdPlayer     *statepb.Player
-	nextPlayerID      int64
-	presence          *statepb.Presence
-	setPresence       *statepb.Presence
-	setPresenceTTL    time.Duration
-	clearedPlayerID   int64
-	clearedServerName string
-	refreshRequest    *statepb.RefreshPresenceRequest
-	err               error
+	account                *statepb.Account
+	createdAccount         *statepb.Account
+	gotUsername            string
+	registerRequest        *statepb.RegisterAccountRequest
+	registerResponse       *statepb.RegisterAccountResponse
+	session                *statepb.Session
+	createdSession         *statepb.Session
+	deletedToken           string
+	player                 *statepb.Player
+	createdPlayer          *statepb.Player
+	nextPlayerID           int64
+	presence               *statepb.Presence
+	setPresence            *statepb.Presence
+	setPresenceTTL         time.Duration
+	clearedPlayerID        int64
+	clearedServerName      string
+	refreshRequest         *statepb.RefreshPresenceRequest
+	err                    error
+	sentFriendRequest      *statepb.SendFriendRequestRequest
+	incomingFriendRequest  *statepb.ListFriendRequestRequest
+	outgoingFriendRequest  *statepb.ListFriendRequestRequest
+	incomingFriendRequests []*statepb.FriendRequest
+	outgoingFriendRequests []*statepb.FriendRequest
+	acceptedFriendRequest  *statepb.HandleFriendRequestRequest
+	rejectedFriendRequest  *statepb.HandleFriendRequestRequest
+	listFriendIDsRequest   *statepb.ListFriendIDsRequest
+	friendIDs              []int64
+	deletedFriendRequest   *statepb.DeleteFriendRequest
 }
 
 func (f *fakeStateServiceClient) CreateAccount(_ context.Context, in *statepb.CreateAccountRequest, _ ...grpc.CallOption) (*statepb.CreateAccountResponse, error) {
@@ -406,6 +537,50 @@ func (f *fakeStateServiceClient) ClearPresence(_ context.Context, in *statepb.Cl
 func (f *fakeStateServiceClient) RefreshPresence(_ context.Context, in *statepb.RefreshPresenceRequest, _ ...grpc.CallOption) (*statepb.RefreshPresenceResponse, error) {
 	f.refreshRequest = in
 	return &statepb.RefreshPresenceResponse{}, f.err
+}
+
+func (f *fakeStateServiceClient) SendFriendRequest(_ context.Context, in *statepb.SendFriendRequestRequest, _ ...grpc.CallOption) (*statepb.SendFriendRequestResponse, error) {
+	f.sentFriendRequest = in
+	return &statepb.SendFriendRequestResponse{}, f.err
+}
+
+func (f *fakeStateServiceClient) ListIncomingRequest(_ context.Context, in *statepb.ListFriendRequestRequest, _ ...grpc.CallOption) (*statepb.ListFriendRequestResponse, error) {
+	f.incomingFriendRequest = in
+	if f.err != nil {
+		return nil, f.err
+	}
+	return &statepb.ListFriendRequestResponse{Requests: f.incomingFriendRequests}, nil
+}
+
+func (f *fakeStateServiceClient) ListOutgoingRequest(_ context.Context, in *statepb.ListFriendRequestRequest, _ ...grpc.CallOption) (*statepb.ListFriendRequestResponse, error) {
+	f.outgoingFriendRequest = in
+	if f.err != nil {
+		return nil, f.err
+	}
+	return &statepb.ListFriendRequestResponse{Requests: f.outgoingFriendRequests}, nil
+}
+
+func (f *fakeStateServiceClient) AcceptFriendRequest(_ context.Context, in *statepb.HandleFriendRequestRequest, _ ...grpc.CallOption) (*statepb.HandleFriendRequestResponse, error) {
+	f.acceptedFriendRequest = in
+	return &statepb.HandleFriendRequestResponse{}, f.err
+}
+
+func (f *fakeStateServiceClient) RejectFriendRequest(_ context.Context, in *statepb.HandleFriendRequestRequest, _ ...grpc.CallOption) (*statepb.HandleFriendRequestResponse, error) {
+	f.rejectedFriendRequest = in
+	return &statepb.HandleFriendRequestResponse{}, f.err
+}
+
+func (f *fakeStateServiceClient) ListFriendIDs(_ context.Context, in *statepb.ListFriendIDsRequest, _ ...grpc.CallOption) (*statepb.ListFriendIDsResponse, error) {
+	f.listFriendIDsRequest = in
+	if f.err != nil {
+		return nil, f.err
+	}
+	return &statepb.ListFriendIDsResponse{FriendPlayerIds: f.friendIDs}, nil
+}
+
+func (f *fakeStateServiceClient) DeleteFriend(_ context.Context, in *statepb.DeleteFriendRequest, _ ...grpc.CallOption) (*statepb.DeleteFriendResponse, error) {
+	f.deletedFriendRequest = in
+	return &statepb.DeleteFriendResponse{}, f.err
 }
 
 var _ statepb.StateServiceClient = (*fakeStateServiceClient)(nil)

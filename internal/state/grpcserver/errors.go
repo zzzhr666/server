@@ -25,7 +25,16 @@ func mapStateError(err error) error {
 		return status.Error(codes.NotFound, err.Error())
 	case errors.Is(err, statecontract.ErrInvalidPresence):
 		return status.Error(codes.InvalidArgument, err.Error())
-
+	case errors.Is(err, statecontract.ErrFriendRequestNotFound):
+		return status.Error(codes.NotFound, err.Error())
+	case errors.Is(err, statecontract.ErrFriendNotFound):
+		return status.Error(codes.NotFound, err.Error())
+	case errors.Is(err, statecontract.ErrFriendRequestExists):
+		return status.Error(codes.AlreadyExists, err.Error())
+	case errors.Is(err, statecontract.ErrFriendAlreadyExists):
+		return status.Error(codes.AlreadyExists, err.Error())
+	case errors.Is(err, statecontract.ErrInvalidFriendRequest):
+		return status.Error(codes.InvalidArgument, err.Error())
 	default:
 		return status.Error(codes.Internal, err.Error())
 	}

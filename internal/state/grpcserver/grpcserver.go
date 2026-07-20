@@ -12,6 +12,7 @@ type Server struct {
 	statepb.UnimplementedStateServiceServer
 	stateClient    statecontract.Client
 	presenceClient statecontract.PresenceClient
+	friendClient   statecontract.FriendClient
 }
 
 // CreateAccount handles a gRPC request to create account credentials.
@@ -144,10 +145,79 @@ func (s *Server) RefreshPresence(ctx context.Context, request *statepb.RefreshPr
 	return &statepb.RefreshPresenceResponse{}, nil
 }
 
+func (s *Server) SendFriendRequest(ctx context.Context, request *statepb.SendFriendRequestRequest) (*statepb.SendFriendRequestResponse, error) {
+	err := s.friendClient.SendFriendRequest(ctx, request.GetFromPlayerId(), request.GetToPlayerId())
+	if err != nil {
+		return nil, mapStateError(err)
+	}
+	return &statepb.SendFriendRequestResponse{}, nil
+}
+
+func (s *Server) ListIncomingRequest(ctx context.Context, request *statepb.ListFriendRequestRequest) (*statepb.ListFriendRequestResponse, error) {
+	stateReq, err := s.friendClient.ListIncomingFriendRequests(ctx, request.GetPlayerId())
+	if err != nil {
+		return nil, mapStateError(err)
+	}
+	requests := make([]*statepb.FriendRequest, 0, len(stateReq))
+	for _, req := range stateReq {
+		requests = append(requests, stateproto.ToProtoFriendRequest(req))
+	}
+	return &statepb.ListFriendRequestResponse{
+		Requests: requests,
+	}, nil
+}
+
+func (s *Server) ListOutgoingRequest(ctx context.Context, request *statepb.ListFriendRequestRequest) (*statepb.ListFriendRequestResponse, error) {
+	stateReq, err := s.friendClient.ListOutgoingFriendRequests(ctx, request.GetPlayerId())
+	if err != nil {
+		return nil, mapStateError(err)
+	}
+	requests := make([]*statepb.FriendRequest, 0, len(stateReq))
+	for _, req := range stateReq {
+		requests = append(requests, stateproto.ToProtoFriendRequest(req))
+	}
+	return &statepb.ListFriendRequestResponse{
+		Requests: requests,
+	}, nil
+}
+
+func (s *Server) AcceptFriendRequest(ctx context.Context, request *statepb.HandleFriendRequestRequest) (*statepb.HandleFriendRequestResponse, error) {
+	err := s.friendClient.AcceptFriendRequest(ctx, request.GetFromPlayerId(), request.GetToPlayerId())
+	if err != nil {
+		return nil, mapStateError(err)
+	}
+	return &statepb.HandleFriendRequestResponse{}, nil
+}
+
+func (s *Server) RejectFriendRequest(ctx context.Context, request *statepb.HandleFriendRequestRequest) (*statepb.HandleFriendRequestResponse, error) {
+	err := s.friendClient.RejectFriendRequest(ctx, request.GetFromPlayerId(), request.GetToPlayerId())
+	if err != nil {
+		return nil, mapStateError(err)
+	}
+	return &statepb.HandleFriendRequestResponse{}, nil
+}
+
+func (s *Server) ListFriendIDs(ctx context.Context, request *statepb.ListFriendIDsRequest) (*statepb.ListFriendIDsResponse, error) {
+	IDs, err := s.friendClient.ListFriendIDs(ctx, request.GetPlayerId())
+	if err != nil {
+		return nil, mapStateError(err)
+	}
+	return &statepb.ListFriendIDsResponse{FriendPlayerIds: IDs}, nil
+}
+
+func (s *Server) DeleteFriend(ctx context.Context, request *statepb.DeleteFriendRequest) (*statepb.DeleteFriendResponse, error) {
+	err := s.friendClient.DeleteFriend(ctx, request.GetPlayerId(), request.GetFriendPlayerId())
+	if err != nil {
+		return nil, mapStateError(err)
+	}
+	return &statepb.DeleteFriendResponse{}, nil
+}
+
 // ServerConfig provides the state clients used by the gRPC adapter.
 type ServerConfig struct {
 	StateClient    statecontract.Client
 	PresenceClient statecontract.PresenceClient
+	FriendClient   statecontract.FriendClient
 }
 
 // NewServer creates a gRPC state server adapter.
@@ -155,5 +225,6 @@ func NewServer(config ServerConfig) *Server {
 	return &Server{
 		stateClient:    config.StateClient,
 		presenceClient: config.PresenceClient,
+		friendClient:   config.FriendClient,
 	}
 }

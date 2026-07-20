@@ -131,3 +131,25 @@ func FromProtoPresence(presence *statepb.Presence) *statecontract.Presence {
 		UpdatedAt:  FromProtoTime(presence.GetUpdatedAt()),
 	}
 }
+
+func FromProtoFriendRequest(friendRequest *statepb.FriendRequest) *statecontract.FriendRequest {
+	if friendRequest == nil {
+		return nil
+	}
+	return &statecontract.FriendRequest{
+		FromPlayerID: friendRequest.GetFromPlayer(),
+		ToPlayerID:   friendRequest.GetToPlayer(),
+		CreatedAt:    FromProtoTime(friendRequest.GetCreatedAt()),
+	}
+}
+
+func ToProtoFriendRequest(friendRequest *statecontract.FriendRequest) *statepb.FriendRequest {
+	if friendRequest == nil {
+		return nil
+	}
+	return &statepb.FriendRequest{
+		FromPlayer: friendRequest.FromPlayerID,
+		ToPlayer:   friendRequest.ToPlayerID,
+		CreatedAt:  ToProtoTime(friendRequest.CreatedAt),
+	}
+}

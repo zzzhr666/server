@@ -343,6 +343,227 @@ func (s *Store) RegisterAccount(ctx context.Context, input statecontract.Registe
 	return result, nil
 }
 
+func (s *Store) SendFriendRequest(ctx context.Context, fromPlayerID, toPlayerID int64) error {
+	if err := validateFriendPair(fromPlayerID, toPlayerID); err != nil {
+		return err
+	}
+	requestKey := friendRequestKey(fromPlayerID, toPlayerID)
+	reverseRequestKey := friendRequestKey(toPlayerID, fromPlayerID)
+	fromFriendKey := friendsKey(fromPlayerID)
+	toFriendKey := friendsKey(toPlayerID)
+	createdAt := time.Now().UTC()
+	score := float64(createdAt.UnixMilli())
+	return retryOptimisticLock(ctx, func() error {
+		return s.client.Watch(ctx, func(tx *redis.Tx) error {
+			isFriend, err := tx.SIsMember(ctx, fromFriendKey, toPlayerID).Result()
+			if err != nil {
+				return err
+			}
+			reverseFriend, err := tx.SIsMember(ctx, toFriendKey, fromPlayerID).Result()
+			if err != nil {
+				return err
+			}
+			if isFriend || reverseFriend {
+				return statecontract.ErrFriendAlreadyExists
+			}
+			exists, err := tx.Exists(ctx, requestKey, reverseRequestKey).Result()
+			if err != nil {
+				return err
+			}
+			if exists > 0 {
+				return statecontract.ErrFriendRequestExists
+			}
+			_, err = tx.TxPipelined(ctx, func(p redis.Pipeliner) error {
+				p.HSet(ctx, requestKey, map[string]any{
+					"from_player_id": fromPlayerID,
+					"to_player_id":   toPlayerID,
+					"created_at":     createdAt.UnixMilli(),
+				})
+				p.ZAdd(ctx, friendIncomingKey(toPlayerID), redis.Z{
+					Score:  score,
+					Member: strconv.FormatInt(fromPlayerID, 10),
+				})
+				p.ZAdd(ctx, friendOutgoingKey(fromPlayerID), redis.Z{
+					Score:  score,
+					Member: strconv.FormatInt(toPlayerID, 10),
+				})
+				return nil
+			})
+			if err != nil {
+				return err
+			}
+			return nil
+		}, requestKey, reverseRequestKey, fromFriendKey, toFriendKey)
+	})
+}
+
+func (s *Store) ListIncomingFriendRequests(ctx context.Context, playerID int64) ([]*statecontract.FriendRequest, error) {
+	if err := validateFriendPlayerID(playerID); err != nil {
+		return nil, err
+	}
+	fromIDs, err := s.client.ZRange(ctx, friendIncomingKey(playerID), 0, -1).Result()
+	if err != nil {
+		return nil, err
+	}
+	requests := make([]*statecontract.FriendRequest, 0, len(fromIDs))
+	for _, id := range fromIDs {
+		fromPlayerID, err := strconv.ParseInt(id, 10, 64)
+		if err != nil {
+			return nil, err
+		}
+		value, err := s.client.HGetAll(ctx, friendRequestKey(fromPlayerID, playerID)).Result()
+		if err != nil {
+			return nil, err
+		}
+		if len(value) == 0 {
+			continue
+		}
+		request, err := parseFriendRequest(value)
+		if err != nil {
+			return nil, err
+		}
+		requests = append(requests, request)
+	}
+	return requests, nil
+}
+
+func (s *Store) ListOutgoingFriendRequests(ctx context.Context, playerID int64) ([]*statecontract.FriendRequest, error) {
+	if err := validateFriendPlayerID(playerID); err != nil {
+		return nil, err
+	}
+	toIDs, err := s.client.ZRange(ctx, friendOutgoingKey(playerID), 0, -1).Result()
+	if err != nil {
+		return nil, err
+	}
+	requests := make([]*statecontract.FriendRequest, 0, len(toIDs))
+	for _, id := range toIDs {
+		toPlayerID, err := strconv.ParseInt(id, 10, 64)
+		if err != nil {
+			return nil, err
+		}
+		value, err := s.client.HGetAll(ctx, friendRequestKey(playerID, toPlayerID)).Result()
+		if err != nil {
+			return nil, err
+		}
+		if len(value) == 0 {
+			continue
+		}
+		request, err := parseFriendRequest(value)
+		if err != nil {
+			return nil, err
+		}
+		requests = append(requests, request)
+	}
+	return requests, nil
+}
+
+func (s *Store) AcceptFriendRequest(ctx context.Context, fromPlayerID, toPlayerID int64) error {
+	if err := validateFriendPair(fromPlayerID, toPlayerID); err != nil {
+		return err
+	}
+	requestKey := friendRequestKey(fromPlayerID, toPlayerID)
+	fromFriendKey := friendsKey(fromPlayerID)
+	toFriendKey := friendsKey(toPlayerID)
+	return retryOptimisticLock(ctx, func() error {
+		return s.client.Watch(ctx, func(tx *redis.Tx) error {
+			exists, err := tx.Exists(ctx, requestKey).Result()
+			if err != nil {
+				return err
+			}
+			if exists == 0 {
+				return statecontract.ErrFriendRequestNotFound
+			}
+			_, err = tx.TxPipelined(ctx, func(p redis.Pipeliner) error {
+				p.SAdd(ctx, fromFriendKey, toPlayerID)
+				p.SAdd(ctx, toFriendKey, fromPlayerID)
+				p.Del(ctx, requestKey)
+				p.ZRem(ctx, friendIncomingKey(toPlayerID), strconv.FormatInt(fromPlayerID, 10))
+				p.ZRem(ctx, friendOutgoingKey(fromPlayerID), strconv.FormatInt(toPlayerID, 10))
+				return nil
+			})
+
+			return err
+		}, requestKey)
+	})
+}
+
+func (s *Store) RejectFriendRequest(ctx context.Context, fromPlayerID, toPlayerID int64) error {
+	if err := validateFriendPair(fromPlayerID, toPlayerID); err != nil {
+		return err
+	}
+	requestKey := friendRequestKey(fromPlayerID, toPlayerID)
+
+	return retryOptimisticLock(ctx, func() error {
+		return s.client.Watch(ctx, func(tx *redis.Tx) error {
+			exists, err := tx.Exists(ctx, requestKey).Result()
+			if err != nil {
+				return err
+			}
+			if exists == 0 {
+				return statecontract.ErrFriendRequestNotFound
+			}
+			_, err = tx.TxPipelined(ctx, func(p redis.Pipeliner) error {
+				p.Del(ctx, requestKey)
+				p.ZRem(ctx, friendIncomingKey(toPlayerID), strconv.FormatInt(fromPlayerID, 10))
+				p.ZRem(ctx, friendOutgoingKey(fromPlayerID), strconv.FormatInt(toPlayerID, 10))
+				return nil
+			})
+			return err
+		}, requestKey)
+	})
+}
+
+func (s *Store) ListFriendIDs(ctx context.Context, playerID int64) ([]int64, error) {
+	if err := validateFriendPlayerID(playerID); err != nil {
+		return nil, err
+	}
+	values, err := s.client.SMembers(ctx, friendsKey(playerID)).Result()
+	if err != nil {
+		return nil, err
+	}
+	ids := make([]int64, 0, len(values))
+	for _, v := range values {
+		id, err := strconv.ParseInt(v, 10, 64)
+		if err != nil {
+			return nil, err
+		}
+		ids = append(ids, id)
+	}
+	return ids, nil
+}
+
+func (s *Store) DeleteFriend(ctx context.Context, playerID, friendPlayerID int64) error {
+	if err := validateFriendPair(playerID, friendPlayerID); err != nil {
+		return err
+	}
+	playerFriendKey := friendsKey(playerID)
+	friendFriendKey := friendsKey(friendPlayerID)
+	return retryOptimisticLock(ctx, func() error {
+		return s.client.Watch(ctx, func(tx *redis.Tx) error {
+			playerExists, err := tx.SIsMember(ctx, playerFriendKey, friendPlayerID).Result()
+			if err != nil {
+				return err
+			}
+			if !playerExists {
+				return statecontract.ErrFriendNotFound
+			}
+			friendExists, err := tx.SIsMember(ctx, friendFriendKey, playerID).Result()
+			if err != nil {
+				return err
+			}
+			if !friendExists {
+				return statecontract.ErrFriendNotFound
+			}
+			_, err = tx.TxPipelined(ctx, func(p redis.Pipeliner) error {
+				p.SRem(ctx, playerFriendKey, friendPlayerID)
+				p.SRem(ctx, friendFriendKey, playerID)
+				return nil
+			})
+			return err
+		}, playerFriendKey, friendFriendKey)
+	})
+}
+
 func retryOptimisticLock(ctx context.Context, operation func() error) error {
 	var err error
 	for range optimisticLockRetries {
@@ -373,4 +594,54 @@ func playerKey(id int64) string {
 }
 func presenceKey(playerID int64) string {
 	return "game:presence:" + strconv.FormatInt(playerID, 10)
+}
+
+func friendRequestKey(fromPlayerID, toPlayerID int64) string {
+	return "game:friend_request:" + strconv.FormatInt(fromPlayerID, 10) + ":" + strconv.FormatInt(toPlayerID, 10)
+}
+
+func friendIncomingKey(playerID int64) string {
+	return "game:friend_request:incoming:" + strconv.FormatInt(playerID, 10)
+}
+
+func friendOutgoingKey(playerID int64) string {
+	return "game:friend_request:outgoing:" + strconv.FormatInt(playerID, 10)
+}
+
+func friendsKey(playerID int64) string {
+	return "game:friends:" + strconv.FormatInt(playerID, 10)
+}
+
+func validateFriendPair(fromPlayerID, toPlayerID int64) error {
+	if fromPlayerID <= 0 || toPlayerID <= 0 || fromPlayerID == toPlayerID {
+		return statecontract.ErrInvalidFriendRequest
+	}
+	return nil
+}
+
+func validateFriendPlayerID(playerID int64) error {
+	if playerID <= 0 {
+		return statecontract.ErrInvalidFriendRequest
+	}
+	return nil
+}
+
+func parseFriendRequest(value map[string]string) (*statecontract.FriendRequest, error) {
+	fromPlayerID, err := strconv.ParseInt(value["from_player_id"], 10, 64)
+	if err != nil {
+		return nil, err
+	}
+	toPlayerID, err := strconv.ParseInt(value["to_player_id"], 10, 64)
+	if err != nil {
+		return nil, err
+	}
+	createdAtMilli, err := strconv.ParseInt(value["created_at"], 10, 64)
+	if err != nil {
+		return nil, err
+	}
+	return &statecontract.FriendRequest{
+		FromPlayerID: fromPlayerID,
+		ToPlayerID:   toPlayerID,
+		CreatedAt:    time.UnixMilli(createdAtMilli),
+	}, nil
 }

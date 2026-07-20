@@ -34,6 +34,16 @@ type registrationStore interface {
 	RegisterAccount(ctx context.Context, input statecontract.RegisterAccountInput) (*statecontract.RegisterAccountResult, error)
 }
 
+type friendStore interface {
+	SendFriendRequest(ctx context.Context, fromPlayerID, toPlayerID int64) error
+	ListIncomingFriendRequests(ctx context.Context, playerID int64) ([]*statecontract.FriendRequest, error)
+	ListOutgoingFriendRequests(ctx context.Context, playerID int64) ([]*statecontract.FriendRequest, error)
+	AcceptFriendRequest(ctx context.Context, fromPlayerID, toPlayerID int64) error
+	RejectFriendRequest(ctx context.Context, fromPlayerID, toPlayerID int64) error
+	ListFriendIDs(ctx context.Context, playerID int64) ([]int64, error)
+	DeleteFriend(ctx context.Context, playerID, friendPlayerID int64) error
+}
+
 // Service coordinates state operations across the configured stores.
 type Service struct {
 	registrations registrationStore
@@ -41,6 +51,7 @@ type Service struct {
 	sessions      sessionStore
 	players       playerStore
 	presences     presenceStore
+	friends       friendStore
 }
 
 // SetPresence records a player's online state.
@@ -108,6 +119,34 @@ func (s *Service) RegisterAccount(ctx context.Context, input statecontract.Regis
 	return s.registrations.RegisterAccount(ctx, input)
 }
 
+func (s *Service) SendFriendRequest(ctx context.Context, fromPlayerID, toPlayerID int64) error {
+	return s.friends.SendFriendRequest(ctx, fromPlayerID, toPlayerID)
+}
+
+func (s *Service) ListIncomingFriendRequests(ctx context.Context, playerID int64) ([]*statecontract.FriendRequest, error) {
+	return s.friends.ListIncomingFriendRequests(ctx, playerID)
+}
+
+func (s *Service) ListOutgoingFriendRequests(ctx context.Context, playerID int64) ([]*statecontract.FriendRequest, error) {
+	return s.friends.ListOutgoingFriendRequests(ctx, playerID)
+}
+
+func (s *Service) AcceptFriendRequest(ctx context.Context, fromPlayerID, toPlayerID int64) error {
+	return s.friends.AcceptFriendRequest(ctx, fromPlayerID, toPlayerID)
+}
+
+func (s *Service) RejectFriendRequest(ctx context.Context, fromPlayerID, toPlayerID int64) error {
+	return s.friends.RejectFriendRequest(ctx, fromPlayerID, toPlayerID)
+}
+
+func (s *Service) ListFriendIDs(ctx context.Context, playerID int64) ([]int64, error) {
+	return s.friends.ListFriendIDs(ctx, playerID)
+}
+
+func (s *Service) DeleteFriend(ctx context.Context, playerID, friendPlayerID int64) error {
+	return s.friends.DeleteFriend(ctx, playerID, friendPlayerID)
+}
+
 // StoreConfig groups the stores required by Service.
 type StoreConfig struct {
 	Accounts      accountStore
@@ -115,6 +154,7 @@ type StoreConfig struct {
 	Players       playerStore
 	Registrations registrationStore
 	Presences     presenceStore
+	Friends       friendStore
 }
 
 // NewService creates a state service from store implementations.
@@ -125,5 +165,6 @@ func NewService(storeConfig StoreConfig) *Service {
 		players:       storeConfig.Players,
 		registrations: storeConfig.Registrations,
 		presences:     storeConfig.Presences,
+		friends:       storeConfig.Friends,
 	}
 }

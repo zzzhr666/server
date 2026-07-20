@@ -24,6 +24,14 @@ service StateService {
   rpc GetPresence(GetPresenceRequest) returns (GetPresenceResponse);
   rpc ClearPresence(ClearPresenceRequest) returns (ClearPresenceResponse);
   rpc RefreshPresence(RefreshPresenceRequest) returns (RefreshPresenceResponse);
+
+  rpc SendFriendRequest(SendFriendRequestRequest) returns (SendFriendRequestResponse);
+  rpc ListIncomingRequest(ListFriendRequestRequest) returns (ListFriendRequestResponse);
+  rpc ListOutgoingRequest(ListFriendRequestRequest) returns (ListFriendRequestResponse);
+  rpc AcceptFriendRequest(HandleFriendRequestRequest) returns (HandleFriendRequestResponse);
+  rpc RejectFriendRequest(HandleFriendRequestRequest) returns (HandleFriendRequestResponse);
+  rpc ListFriendIDs(ListFriendIDsRequest) returns (ListFriendIDsResponse);
+  rpc DeleteFriend(DeleteFriendRequest) returns (DeleteFriendResponse);
 }
 
 message Account {
@@ -154,3 +162,49 @@ message RefreshPresenceRequest {
 }
 
 message RefreshPresenceResponse {}
+
+message FriendRequest {
+  int64 from_player = 1;
+  int64 to_player = 2;
+  google.protobuf.Timestamp created_at = 3;
+}
+
+
+message SendFriendRequestRequest {
+  int64 from_player_id = 1;
+  int64 to_player_id = 2;
+}
+
+message SendFriendRequestResponse {}
+
+message ListFriendRequestRequest {
+  int64 player_id = 1;
+}
+
+message ListFriendRequestResponse {
+  repeated FriendRequest requests = 1;
+}
+
+
+
+message HandleFriendRequestRequest {
+  int64 from_player_id = 1;
+  int64 to_player_id = 2;
+}
+
+message HandleFriendRequestResponse {}
+
+message ListFriendIDsRequest {
+  int64 player_id = 1;
+}
+
+message ListFriendIDsResponse {
+  repeated int64 friend_player_ids = 1;
+}
+
+message DeleteFriendRequest{
+  int64 player_id = 1;
+  int64 friend_player_id = 2;
+}
+
+message DeleteFriendResponse {}
