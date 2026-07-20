@@ -122,6 +122,17 @@ func (c *Client) ClearPresence(ctx context.Context, playerID int64, serverName s
 	return mapGRPCError(err)
 }
 
+// RefreshPresence extends a presence record when it still belongs to serverName.
+func (c *Client) RefreshPresence(ctx context.Context, playerID int64, serverName string, updatedAt time.Time, ttl time.Duration) error {
+	_, err := c.grpc.RefreshPresence(ctx, &statepb.RefreshPresenceRequest{
+		PlayerId:   playerID,
+		ServerName: serverName,
+		UpdatedAt:  stateproto.ToProtoTime(updatedAt),
+		Ttl:        stateproto.ToProtoDuration(ttl),
+	})
+	return mapGRPCError(err)
+}
+
 // NewClient creates a state contract client from generated gRPC bindings.
 func NewClient(grpcClient statepb.StateServiceClient) *Client {
 	return &Client{grpc: grpcClient}

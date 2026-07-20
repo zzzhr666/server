@@ -31,6 +31,7 @@ const (
 	StateService_SetPresence_FullMethodName     = "/state.v1.StateService/SetPresence"
 	StateService_GetPresence_FullMethodName     = "/state.v1.StateService/GetPresence"
 	StateService_ClearPresence_FullMethodName   = "/state.v1.StateService/ClearPresence"
+	StateService_RefreshPresence_FullMethodName = "/state.v1.StateService/RefreshPresence"
 )
 
 // StateServiceClient is the client API for StateService service.
@@ -49,6 +50,7 @@ type StateServiceClient interface {
 	SetPresence(ctx context.Context, in *SetPresenceRequest, opts ...grpc.CallOption) (*SetPresenceResponse, error)
 	GetPresence(ctx context.Context, in *GetPresenceRequest, opts ...grpc.CallOption) (*GetPresenceResponse, error)
 	ClearPresence(ctx context.Context, in *ClearPresenceRequest, opts ...grpc.CallOption) (*ClearPresenceResponse, error)
+	RefreshPresence(ctx context.Context, in *RefreshPresenceRequest, opts ...grpc.CallOption) (*RefreshPresenceResponse, error)
 }
 
 type stateServiceClient struct {
@@ -179,6 +181,16 @@ func (c *stateServiceClient) ClearPresence(ctx context.Context, in *ClearPresenc
 	return out, nil
 }
 
+func (c *stateServiceClient) RefreshPresence(ctx context.Context, in *RefreshPresenceRequest, opts ...grpc.CallOption) (*RefreshPresenceResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RefreshPresenceResponse)
+	err := c.cc.Invoke(ctx, StateService_RefreshPresence_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // StateServiceServer is the server API for StateService service.
 // All implementations must embed UnimplementedStateServiceServer
 // for forward compatibility.
@@ -195,6 +207,7 @@ type StateServiceServer interface {
 	SetPresence(context.Context, *SetPresenceRequest) (*SetPresenceResponse, error)
 	GetPresence(context.Context, *GetPresenceRequest) (*GetPresenceResponse, error)
 	ClearPresence(context.Context, *ClearPresenceRequest) (*ClearPresenceResponse, error)
+	RefreshPresence(context.Context, *RefreshPresenceRequest) (*RefreshPresenceResponse, error)
 	mustEmbedUnimplementedStateServiceServer()
 }
 
@@ -240,6 +253,9 @@ func (UnimplementedStateServiceServer) GetPresence(context.Context, *GetPresence
 }
 func (UnimplementedStateServiceServer) ClearPresence(context.Context, *ClearPresenceRequest) (*ClearPresenceResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ClearPresence not implemented")
+}
+func (UnimplementedStateServiceServer) RefreshPresence(context.Context, *RefreshPresenceRequest) (*RefreshPresenceResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method RefreshPresence not implemented")
 }
 func (UnimplementedStateServiceServer) mustEmbedUnimplementedStateServiceServer() {}
 func (UnimplementedStateServiceServer) testEmbeddedByValue()                      {}
@@ -478,6 +494,24 @@ func _StateService_ClearPresence_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
+func _StateService_RefreshPresence_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RefreshPresenceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(StateServiceServer).RefreshPresence(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: StateService_RefreshPresence_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(StateServiceServer).RefreshPresence(ctx, req.(*RefreshPresenceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // StateService_ServiceDesc is the grpc.ServiceDesc for StateService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -532,6 +566,10 @@ var StateService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ClearPresence",
 			Handler:    _StateService_ClearPresence_Handler,
+		},
+		{
+			MethodName: "RefreshPresence",
+			Handler:    _StateService_RefreshPresence_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

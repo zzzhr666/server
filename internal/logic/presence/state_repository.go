@@ -36,6 +36,11 @@ func (s *StateRepository) ClearPresence(ctx context.Context, playerID int64, ser
 	return mapStateError(s.stateClient.ClearPresence(ctx, playerID, serverName))
 }
 
+// RefreshPresence extends online state through state-server.
+func (s *StateRepository) RefreshPresence(ctx context.Context, playerID int64, serverName string, updatedAt time.Time, ttl time.Duration) error {
+	return mapStateError(s.stateClient.RefreshPresence(ctx, playerID, serverName, updatedAt, ttl))
+}
+
 func toStatePresence(p *Presence) *statecontract.Presence {
 	if p == nil {
 		return nil

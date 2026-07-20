@@ -135,6 +135,15 @@ func (s *Server) ClearPresence(ctx context.Context, request *statepb.ClearPresen
 	return &statepb.ClearPresenceResponse{}, nil
 }
 
+// RefreshPresence handles a gRPC request to extend owned online state.
+func (s *Server) RefreshPresence(ctx context.Context, request *statepb.RefreshPresenceRequest) (*statepb.RefreshPresenceResponse, error) {
+	err := s.presenceClient.RefreshPresence(ctx, request.GetPlayerId(), request.GetServerName(), stateproto.FromProtoTime(request.GetUpdatedAt()), stateproto.FromProtoDuration(request.GetTtl()))
+	if err != nil {
+		return nil, mapStateError(err)
+	}
+	return &statepb.RefreshPresenceResponse{}, nil
+}
+
 // ServerConfig provides the state clients used by the gRPC adapter.
 type ServerConfig struct {
 	StateClient    statecontract.Client

@@ -10,6 +10,7 @@ import (
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/types/known/durationpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -209,6 +210,29 @@ func TestPresenceMethods(t *testing.T) {
 	if state.clearedServerName != "logic-1" {
 		t.Fatalf("cleared server name = %q, want logic-1", state.clearedServerName)
 	}
+
+	refreshedAt := updatedAt.Add(time.Minute)
+	_, err = server.RefreshPresence(context.Background(), &statepb.RefreshPresenceRequest{
+		PlayerId:   7,
+		ServerName: "logic-1",
+		UpdatedAt:  timestamppb.New(refreshedAt),
+		Ttl:        durationpb.New(2 * time.Minute),
+	})
+	if err != nil {
+		t.Fatalf("RefreshPresence returned error: %v", err)
+	}
+	if state.refreshedPlayerID != 7 {
+		t.Fatalf("refreshed player id = %d, want 7", state.refreshedPlayerID)
+	}
+	if state.refreshedServerName != "logic-1" {
+		t.Fatalf("refreshed server name = %q, want logic-1", state.refreshedServerName)
+	}
+	if !state.refreshedAt.Equal(refreshedAt) {
+		t.Fatalf("refreshed at = %v, want %v", state.refreshedAt, refreshedAt)
+	}
+	if state.refreshedTTL != 2*time.Minute {
+		t.Fatalf("refreshed ttl = %v, want %v", state.refreshedTTL, 2*time.Minute)
+	}
 }
 
 func TestGetPresenceNotFound(t *testing.T) {
@@ -237,23 +261,27 @@ func newTestServer(state *fakeStateClient) *Server {
 }
 
 type fakeStateClient struct {
-	account           *statecontract.Account
-	createdAccount    *statecontract.Account
-	session           *statecontract.Session
-	createdSession    *statecontract.Session
-	deletedToken      string
-	player            *statecontract.Player
-	createdPlayer     *statecontract.Player
-	presence          *statecontract.Presence
-	setPresence       *statecontract.Presence
-	setPresenceTTL    time.Duration
-	clearedPlayerID   int64
-	clearedServerName string
-	registerInput     statecontract.RegisterAccountInput
-	registerResult    *statecontract.RegisterAccountResult
-	nextPlayerID      int64
-	err               error
-	gotUsername       string
+	account             *statecontract.Account
+	createdAccount      *statecontract.Account
+	session             *statecontract.Session
+	createdSession      *statecontract.Session
+	deletedToken        string
+	player              *statecontract.Player
+	createdPlayer       *statecontract.Player
+	presence            *statecontract.Presence
+	setPresence         *statecontract.Presence
+	setPresenceTTL      time.Duration
+	clearedPlayerID     int64
+	clearedServerName   string
+	refreshedPlayerID   int64
+	refreshedServerName string
+	refreshedAt         time.Time
+	refreshedTTL        time.Duration
+	registerInput       statecontract.RegisterAccountInput
+	registerResult      *statecontract.RegisterAccountResult
+	nextPlayerID        int64
+	err                 error
+	gotUsername         string
 }
 
 func (f *fakeStateClient) CreateAccount(_ context.Context, account *statecontract.Account) error {
@@ -329,6 +357,14 @@ func (f *fakeStateClient) GetPresence(_ context.Context, _ int64) (*statecontrac
 func (f *fakeStateClient) ClearPresence(_ context.Context, playerID int64, serverName string) error {
 	f.clearedPlayerID = playerID
 	f.clearedServerName = serverName
+	return f.err
+}
+
+func (f *fakeStateClient) RefreshPresence(_ context.Context, playerID int64, serverName string, updatedAt time.Time, ttl time.Duration) error {
+	f.refreshedPlayerID = playerID
+	f.refreshedServerName = serverName
+	f.refreshedAt = updatedAt
+	f.refreshedTTL = ttl
 	return f.err
 }
 

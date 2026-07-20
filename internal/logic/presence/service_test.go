@@ -108,14 +108,52 @@ func TestServiceMarkOfflineInvalidInput(t *testing.T) {
 	}
 }
 
+func TestServiceRefresh(t *testing.T) {
+	repo := &fakePresenceRepository{}
+	svc := NewService(repo)
+
+	if err := svc.Refresh(context.Background(), 7, "logic-1"); err != nil {
+		t.Fatalf("Refresh returned error: %v", err)
+	}
+	if repo.refreshedPlayerID != 7 {
+		t.Fatalf("refreshed player id = %d, want 7", repo.refreshedPlayerID)
+	}
+	if repo.refreshedServerName != "logic-1" {
+		t.Fatalf("refreshed server name = %q, want logic-1", repo.refreshedServerName)
+	}
+	if repo.refreshedAt.IsZero() {
+		t.Fatalf("refreshed at is zero, want current time")
+	}
+	if repo.refreshedTTL != DefaultTTL {
+		t.Fatalf("refreshed ttl = %v, want %v", repo.refreshedTTL, DefaultTTL)
+	}
+}
+
+func TestServiceRefreshInvalidInput(t *testing.T) {
+	repo := &fakePresenceRepository{}
+	svc := NewService(repo)
+
+	err := svc.Refresh(context.Background(), 0, "logic-1")
+	if !errors.Is(err, ErrInvalidPresence) {
+		t.Fatalf("Refresh error = %v, want %v", err, ErrInvalidPresence)
+	}
+	if repo.refreshedPlayerID != 0 {
+		t.Fatalf("refreshed player id = %d, want 0", repo.refreshedPlayerID)
+	}
+}
+
 type fakePresenceRepository struct {
-	presence          *Presence
-	setPresence       *Presence
-	setTTL            time.Duration
-	gotPlayerID       int64
-	clearedPlayerID   int64
-	clearedServerName string
-	err               error
+	presence            *Presence
+	setPresence         *Presence
+	setTTL              time.Duration
+	gotPlayerID         int64
+	clearedPlayerID     int64
+	clearedServerName   string
+	refreshedPlayerID   int64
+	refreshedServerName string
+	refreshedAt         time.Time
+	refreshedTTL        time.Duration
+	err                 error
 }
 
 func (f *fakePresenceRepository) SetPresence(_ context.Context, presence *Presence, ttl time.Duration) error {
@@ -135,6 +173,14 @@ func (f *fakePresenceRepository) GetPresence(_ context.Context, playerID int64) 
 func (f *fakePresenceRepository) ClearPresence(_ context.Context, playerID int64, serverName string) error {
 	f.clearedPlayerID = playerID
 	f.clearedServerName = serverName
+	return f.err
+}
+
+func (f *fakePresenceRepository) RefreshPresence(_ context.Context, playerID int64, serverName string, updatedAt time.Time, ttl time.Duration) error {
+	f.refreshedPlayerID = playerID
+	f.refreshedServerName = serverName
+	f.refreshedAt = updatedAt
+	f.refreshedTTL = ttl
 	return f.err
 }
 

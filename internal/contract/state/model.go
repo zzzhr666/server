@@ -75,4 +75,5 @@ type PresenceClient interface {
 	SetPresence(ctx context.Context, presence *Presence, ttl time.Duration) error
 	GetPresence(ctx context.Context, playerID int64) (*Presence, error)
 	ClearPresence(ctx context.Context, playerID int64, serverName string) error
+	RefreshPresence(ctx context.Context, playerID int64, serverName string, updatedAt time.Time, ttl time.Duration) error
 }

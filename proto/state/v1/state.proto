@@ -23,6 +23,7 @@ service StateService {
   rpc SetPresence(SetPresenceRequest) returns (SetPresenceResponse);
   rpc GetPresence(GetPresenceRequest) returns (GetPresenceResponse);
   rpc ClearPresence(ClearPresenceRequest) returns (ClearPresenceResponse);
+  rpc RefreshPresence(RefreshPresenceRequest) returns (RefreshPresenceResponse);
 }
 
 message Account {
@@ -144,3 +145,12 @@ message ClearPresenceRequest {
 }
 
 message ClearPresenceResponse {}
+
+message RefreshPresenceRequest {
+  int64 player_id = 1;
+  string server_name = 2;
+  google.protobuf.Timestamp updated_at = 3;
+  google.protobuf.Duration ttl = 4;
+}
+
+message RefreshPresenceResponse {}

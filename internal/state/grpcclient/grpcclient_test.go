@@ -285,6 +285,23 @@ func TestClientPresenceMethods(t *testing.T) {
 	if grpcState.clearedServerName != "logic-1" {
 		t.Fatalf("cleared server name = %q, want logic-1", grpcState.clearedServerName)
 	}
+
+	refreshedAt := updatedAt.Add(time.Minute)
+	if err := client.RefreshPresence(context.Background(), 7, "logic-1", refreshedAt, 2*time.Minute); err != nil {
+		t.Fatalf("RefreshPresence returned error: %v", err)
+	}
+	if grpcState.refreshRequest.GetPlayerId() != 7 {
+		t.Fatalf("refresh player id = %d, want 7", grpcState.refreshRequest.GetPlayerId())
+	}
+	if grpcState.refreshRequest.GetServerName() != "logic-1" {
+		t.Fatalf("refresh server name = %q, want logic-1", grpcState.refreshRequest.GetServerName())
+	}
+	if !grpcState.refreshRequest.GetUpdatedAt().AsTime().Equal(refreshedAt) {
+		t.Fatalf("refresh updated at = %v, want %v", grpcState.refreshRequest.GetUpdatedAt().AsTime(), refreshedAt)
+	}
+	if grpcState.refreshRequest.GetTtl().AsDuration() != 2*time.Minute {
+		t.Fatalf("refresh ttl = %v, want %v", grpcState.refreshRequest.GetTtl().AsDuration(), 2*time.Minute)
+	}
 }
 
 type fakeStateServiceClient struct {
@@ -306,6 +323,7 @@ type fakeStateServiceClient struct {
 	setPresenceTTL    time.Duration
 	clearedPlayerID   int64
 	clearedServerName string
+	refreshRequest    *statepb.RefreshPresenceRequest
 	err               error
 }
 
@@ -383,6 +401,11 @@ func (f *fakeStateServiceClient) ClearPresence(_ context.Context, in *statepb.Cl
 	f.clearedPlayerID = in.GetPlayerId()
 	f.clearedServerName = in.GetServerName()
 	return &statepb.ClearPresenceResponse{}, f.err
+}
+
+func (f *fakeStateServiceClient) RefreshPresence(_ context.Context, in *statepb.RefreshPresenceRequest, _ ...grpc.CallOption) (*statepb.RefreshPresenceResponse, error) {
+	f.refreshRequest = in
+	return &statepb.RefreshPresenceResponse{}, f.err
 }
 
 var _ statepb.StateServiceClient = (*fakeStateServiceClient)(nil)

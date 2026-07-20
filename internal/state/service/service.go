@@ -27,6 +27,7 @@ type presenceStore interface {
 	SetPresence(ctx context.Context, presence *statecontract.Presence, ttl time.Duration) error
 	GetPresence(ctx context.Context, playerID int64) (*statecontract.Presence, error)
 	ClearPresence(ctx context.Context, playerID int64, serverName string) error
+	RefreshPresence(ctx context.Context, playerID int64, serverName string, updatedAt time.Time, ttl time.Duration) error
 }
 
 type registrationStore interface {
@@ -55,6 +56,11 @@ func (s *Service) GetPresence(ctx context.Context, playerID int64) (*statecontra
 // ClearPresence removes online state still owned by serverName.
 func (s *Service) ClearPresence(ctx context.Context, playerID int64, serverName string) error {
 	return s.presences.ClearPresence(ctx, playerID, serverName)
+}
+
+// RefreshPresence extends online state still owned by serverName.
+func (s *Service) RefreshPresence(ctx context.Context, playerID int64, serverName string, updatedAt time.Time, ttl time.Duration) error {
+	return s.presences.RefreshPresence(ctx, playerID, serverName, updatedAt, ttl)
 }
 
 // CreatePlayer stores a player profile.

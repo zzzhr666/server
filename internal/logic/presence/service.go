@@ -10,6 +10,7 @@ type Service interface {
 	MarkOnline(ctx context.Context, playerID int64, serverName string) error
 	Get(ctx context.Context, playerID int64) (*Presence, error)
 	MarkOffline(ctx context.Context, playerID int64, serverName string) error
+	Refresh(ctx context.Context, playerID int64, serverName string) error
 }
 
 // Repository stores and clears presence records in the state service.
@@ -17,6 +18,7 @@ type Repository interface {
 	SetPresence(ctx context.Context, presence *Presence, ttl time.Duration) error
 	GetPresence(ctx context.Context, playerID int64) (*Presence, error)
 	ClearPresence(ctx context.Context, playerID int64, serverName string) error
+	RefreshPresence(ctx context.Context, playerID int64, serverName string, updatedAt time.Time, ttl time.Duration) error
 }
 
 // GamePresenceService validates online-state operations before storage.
@@ -61,6 +63,14 @@ func (g *GamePresenceService) Get(ctx context.Context, playerID int64) (*Presenc
 		return nil, err
 	}
 	return presence, nil
+}
+
+// Refresh extends a player's online-state TTL for the owning logic-server.
+func (g *GamePresenceService) Refresh(ctx context.Context, playerID int64, serverName string) error {
+	if playerID <= 0 || serverName == "" {
+		return ErrInvalidPresence
+	}
+	return g.presencesRepo.RefreshPresence(ctx, playerID, serverName, time.Now(), DefaultTTL)
 }
 
 var _ Service = (*GamePresenceService)(nil)

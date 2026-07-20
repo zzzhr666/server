@@ -234,6 +234,36 @@ func (s *Store) ClearPresence(ctx context.Context, playerID int64, serverName st
 	})
 }
 
+// RefreshPresence extends a presence TTL only while serverName still owns it.
+func (s *Store) RefreshPresence(ctx context.Context, playerID int64, serverName string, updatedAt time.Time, ttl time.Duration) error {
+	if playerID <= 0 || serverName == "" || ttl <= 0 {
+		return statecontract.ErrInvalidPresence
+	}
+	key := presenceKey(playerID)
+	return retryOptimisticLock(ctx, func() error {
+		err := s.client.Watch(ctx, func(tx *redis.Tx) error {
+			storedServerName, err := tx.HGet(ctx, key, "server_name").Result()
+			if errors.Is(err, redis.Nil) {
+				return statecontract.ErrPresenceNotFound
+			}
+			if err != nil {
+				return err
+			}
+			if storedServerName != serverName {
+				return statecontract.ErrPresenceNotFound
+			}
+			_, err = tx.TxPipelined(ctx, func(pipeliner redis.Pipeliner) error {
+				pipeliner.HSet(ctx, key, "updated_at", updatedAt.Unix())
+				pipeliner.Expire(ctx, key, ttl)
+				return nil
+			})
+			return err
+		}, key)
+
+		return err
+	})
+}
+
 // RegisterAccount creates account, player, and session records together.
 func (s *Store) RegisterAccount(ctx context.Context, input statecontract.RegisterAccountInput) (*statecontract.RegisterAccountResult, error) {
 	var result *statecontract.RegisterAccountResult

@@ -78,6 +78,28 @@ func TestStateRepositoryClearPresence(t *testing.T) {
 	}
 }
 
+func TestStateRepositoryRefreshPresence(t *testing.T) {
+	client := &fakeStateClient{}
+	repo := NewStateRepository(client)
+	updatedAt := time.Date(2026, 7, 19, 14, 1, 0, 0, time.UTC)
+
+	if err := repo.RefreshPresence(context.Background(), 7, "logic-1", updatedAt, time.Minute); err != nil {
+		t.Fatalf("RefreshPresence returned error: %v", err)
+	}
+	if client.refreshedPlayerID != 7 {
+		t.Fatalf("refreshed player id = %d, want 7", client.refreshedPlayerID)
+	}
+	if client.refreshedServerName != "logic-1" {
+		t.Fatalf("refreshed server name = %q, want logic-1", client.refreshedServerName)
+	}
+	if !client.refreshedAt.Equal(updatedAt) {
+		t.Fatalf("refreshed at = %v, want %v", client.refreshedAt, updatedAt)
+	}
+	if client.refreshedTTL != time.Minute {
+		t.Fatalf("refreshed ttl = %v, want %v", client.refreshedTTL, time.Minute)
+	}
+}
+
 func TestStateRepositoryMapsErrors(t *testing.T) {
 	tests := []struct {
 		name string
@@ -101,12 +123,16 @@ func TestStateRepositoryMapsErrors(t *testing.T) {
 }
 
 type fakeStateClient struct {
-	presence          *statecontract.Presence
-	setPresence       *statecontract.Presence
-	setTTL            time.Duration
-	clearedPlayerID   int64
-	clearedServerName string
-	err               error
+	presence            *statecontract.Presence
+	setPresence         *statecontract.Presence
+	setTTL              time.Duration
+	clearedPlayerID     int64
+	clearedServerName   string
+	refreshedPlayerID   int64
+	refreshedServerName string
+	refreshedAt         time.Time
+	refreshedTTL        time.Duration
+	err                 error
 }
 
 func (f *fakeStateClient) SetPresence(_ context.Context, presence *statecontract.Presence, ttl time.Duration) error {
@@ -125,6 +151,14 @@ func (f *fakeStateClient) GetPresence(_ context.Context, _ int64) (*statecontrac
 func (f *fakeStateClient) ClearPresence(_ context.Context, playerID int64, serverName string) error {
 	f.clearedPlayerID = playerID
 	f.clearedServerName = serverName
+	return f.err
+}
+
+func (f *fakeStateClient) RefreshPresence(_ context.Context, playerID int64, serverName string, updatedAt time.Time, ttl time.Duration) error {
+	f.refreshedPlayerID = playerID
+	f.refreshedServerName = serverName
+	f.refreshedAt = updatedAt
+	f.refreshedTTL = ttl
 	return f.err
 }
 

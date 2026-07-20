@@ -110,6 +110,23 @@ func TestServiceForwardsPresenceOperations(t *testing.T) {
 	if _, err := svc.GetPresence(context.Background(), 7); err == nil {
 		t.Fatalf("GetPresence returned nil error, want missing presence error")
 	}
+
+	refreshedAt := time.Unix(200, 0)
+	if err := svc.RefreshPresence(context.Background(), 8, "logic-2", refreshedAt, 2*time.Minute); err != nil {
+		t.Fatalf("RefreshPresence returned error: %v", err)
+	}
+	if stores.refreshedPlayerID != 8 {
+		t.Fatalf("refreshed player id = %d, want 8", stores.refreshedPlayerID)
+	}
+	if stores.refreshedServerName != "logic-2" {
+		t.Fatalf("refreshed server name = %q, want logic-2", stores.refreshedServerName)
+	}
+	if !stores.refreshedAt.Equal(refreshedAt) {
+		t.Fatalf("refreshed at = %v, want %v", stores.refreshedAt, refreshedAt)
+	}
+	if stores.refreshedTTL != 2*time.Minute {
+		t.Fatalf("refreshed ttl = %v, want %v", stores.refreshedTTL, 2*time.Minute)
+	}
 }
 
 func TestServiceRegisterAccountCreatesAccountPlayerAndSession(t *testing.T) {
@@ -180,11 +197,15 @@ func TestServiceRegisterAccountExistingAccountDoesNotCreatePlayerOrSession(t *te
 }
 
 type fakeStores struct {
-	accounts     map[string]*statecontract.Account
-	sessions     map[string]*statecontract.Session
-	players      map[int64]*statecontract.Player
-	presences    map[int64]*statecontract.Presence
-	nextPlayerID int64
+	accounts            map[string]*statecontract.Account
+	sessions            map[string]*statecontract.Session
+	players             map[int64]*statecontract.Player
+	presences           map[int64]*statecontract.Presence
+	nextPlayerID        int64
+	refreshedPlayerID   int64
+	refreshedServerName string
+	refreshedAt         time.Time
+	refreshedTTL        time.Duration
 }
 
 func newFakeStores() *fakeStores {
@@ -327,6 +348,14 @@ func (f *fakeStores) ClearPresence(_ context.Context, playerID int64, serverName
 	if presence.ServerName == serverName {
 		delete(f.presences, playerID)
 	}
+	return nil
+}
+
+func (f *fakeStores) RefreshPresence(_ context.Context, playerID int64, serverName string, updatedAt time.Time, ttl time.Duration) error {
+	f.refreshedPlayerID = playerID
+	f.refreshedServerName = serverName
+	f.refreshedAt = updatedAt
+	f.refreshedTTL = ttl
 	return nil
 }
 
