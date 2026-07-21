@@ -102,6 +102,12 @@ type RealtimeEvent struct {
 	ActorPlayerID  int64
 	Online         bool
 	Status         string
+	MatchStatus    string
+	RoomName       string
+	MatchToken     string
+	BattleNodeName string
+	BattleKCPAddr  string
+	MatchPlayerIDs []int64
 }
 
 const (
@@ -124,3 +130,6 @@ type RealtimeClient interface {
 	PublishRealtimeToServer(ctx context.Context, serverName string, event *RealtimeEvent) error
 	SubscribeRealtime(ctx context.Context, serverName string) (<-chan *RealtimeEvent, error)
 }
+
+// RealtimeEventMatchResult delivers a cross-logic-server match result.
+const RealtimeEventMatchResult = "match_result"

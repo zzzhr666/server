@@ -1986,6 +1986,12 @@ type RealtimeEvent struct {
 	ActorPlayerId  int64                  `protobuf:"varint,3,opt,name=actor_player_id,json=actorPlayerId,proto3" json:"actor_player_id,omitempty"`
 	Online         bool                   `protobuf:"varint,4,opt,name=online,proto3" json:"online,omitempty"`
 	Status         string                 `protobuf:"bytes,5,opt,name=status,proto3" json:"status,omitempty"`
+	MatchStatus    string                 `protobuf:"bytes,6,opt,name=match_status,json=matchStatus,proto3" json:"match_status,omitempty"`
+	RoomName       string                 `protobuf:"bytes,7,opt,name=room_name,json=roomName,proto3" json:"room_name,omitempty"`
+	MatchToken     string                 `protobuf:"bytes,8,opt,name=match_token,json=matchToken,proto3" json:"match_token,omitempty"`
+	BattleKcpAddr  string                 `protobuf:"bytes,9,opt,name=battle_kcp_addr,json=battleKcpAddr,proto3" json:"battle_kcp_addr,omitempty"`
+	BattleNodeName string                 `protobuf:"bytes,10,opt,name=battle_node_name,json=battleNodeName,proto3" json:"battle_node_name,omitempty"`
+	MatchPlayerIds []int64                `protobuf:"varint,11,rep,packed,name=match_player_ids,json=matchPlayerIds,proto3" json:"match_player_ids,omitempty"`
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
 }
@@ -2053,6 +2059,48 @@ func (x *RealtimeEvent) GetStatus() string {
 		return x.Status
 	}
 	return ""
+}
+
+func (x *RealtimeEvent) GetMatchStatus() string {
+	if x != nil {
+		return x.MatchStatus
+	}
+	return ""
+}
+
+func (x *RealtimeEvent) GetRoomName() string {
+	if x != nil {
+		return x.RoomName
+	}
+	return ""
+}
+
+func (x *RealtimeEvent) GetMatchToken() string {
+	if x != nil {
+		return x.MatchToken
+	}
+	return ""
+}
+
+func (x *RealtimeEvent) GetBattleKcpAddr() string {
+	if x != nil {
+		return x.BattleKcpAddr
+	}
+	return ""
+}
+
+func (x *RealtimeEvent) GetBattleNodeName() string {
+	if x != nil {
+		return x.BattleNodeName
+	}
+	return ""
+}
+
+func (x *RealtimeEvent) GetMatchPlayerIds() []int64 {
+	if x != nil {
+		return x.MatchPlayerIds
+	}
+	return nil
 }
 
 type PublishRealtimeRequest struct {
@@ -2302,13 +2350,21 @@ const file_proto_state_v1_state_proto_rawDesc = "" +
 	"\x13DeleteFriendRequest\x12\x1b\n" +
 	"\tplayer_id\x18\x01 \x01(\x03R\bplayerId\x12(\n" +
 	"\x10friend_player_id\x18\x02 \x01(\x03R\x0efriendPlayerId\"\x16\n" +
-	"\x14DeleteFriendResponse\"\xa5\x01\n" +
+	"\x14DeleteFriendResponse\"\x82\x03\n" +
 	"\rRealtimeEvent\x12\x12\n" +
 	"\x04type\x18\x01 \x01(\tR\x04type\x12(\n" +
 	"\x10target_player_id\x18\x02 \x01(\x03R\x0etargetPlayerId\x12&\n" +
 	"\x0factor_player_id\x18\x03 \x01(\x03R\ractorPlayerId\x12\x16\n" +
 	"\x06online\x18\x04 \x01(\bR\x06online\x12\x16\n" +
-	"\x06status\x18\x05 \x01(\tR\x06status\"h\n" +
+	"\x06status\x18\x05 \x01(\tR\x06status\x12!\n" +
+	"\fmatch_status\x18\x06 \x01(\tR\vmatchStatus\x12\x1b\n" +
+	"\troom_name\x18\a \x01(\tR\broomName\x12\x1f\n" +
+	"\vmatch_token\x18\b \x01(\tR\n" +
+	"matchToken\x12&\n" +
+	"\x0fbattle_kcp_addr\x18\t \x01(\tR\rbattleKcpAddr\x12(\n" +
+	"\x10battle_node_name\x18\n" +
+	" \x01(\tR\x0ebattleNodeName\x12(\n" +
+	"\x10match_player_ids\x18\v \x03(\x03R\x0ematchPlayerIds\"h\n" +
 	"\x16PublishRealtimeRequest\x12\x1f\n" +
 	"\vserver_name\x18\x01 \x01(\tR\n" +
 	"serverName\x12-\n" +
