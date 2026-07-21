@@ -1,0 +1,57 @@
+syntax = "proto3";
+
+package rcenter.v1;
+
+option go_package = "server/internal/contract/rcenterpb;rcenterpb";
+
+
+service RCenterService {
+  rpc RegisterBattleNode(RegisterBattleNodeRequest) returns (RegisterBattleNodeResponse);
+  rpc ListBattleNodes(ListBattleNodesRequest) returns (ListBattleNodesResponse);
+  rpc StartMatch(StartMatchRequest) returns (StartMatchResponse);
+  rpc CancelMatch(CancelMatchRequest) returns (CancelMatchResponse);
+}
+
+message BattleNode {
+  string name = 1;
+  string kcp_addr = 2;
+  string control_addr = 3;
+  int32 max_players = 4;
+  int32 active_players = 5;
+  int64 last_seen_unix = 6;
+}
+
+message MatchResult {
+  string status = 1;
+  string room_name = 2;
+  string token = 3;
+  string battle_node_name = 4;
+  string battle_kcp_addr = 5;
+  repeated int64 player_ids = 6;
+}
+
+message RegisterBattleNodeRequest {
+  BattleNode node = 1;
+}
+
+message RegisterBattleNodeResponse {}
+
+message ListBattleNodesRequest {}
+
+message ListBattleNodesResponse {
+  repeated BattleNode nodes = 1;
+}
+
+message StartMatchRequest {
+  int64 player_id = 1;
+}
+
+message StartMatchResponse {
+  MatchResult result = 1;
+}
+
+message CancelMatchRequest {
+  int64 player_id = 1;
+}
+
+message CancelMatchResponse {}
