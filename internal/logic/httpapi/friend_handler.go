@@ -43,6 +43,7 @@ func (h *Handler) handleSendRequest(w http.ResponseWriter, r *http.Request) {
 		writeFriendError(w, err)
 		return
 	}
+	h.publishFriendRequestReceived(r.Context(), req.ToPlayerID, fromPlayerID)
 	w.WriteHeader(http.StatusNoContent)
 }
 
@@ -89,6 +90,7 @@ func (h *Handler) handleAcceptRequest(w http.ResponseWriter, r *http.Request) {
 		writeFriendError(w, err)
 		return
 	}
+	h.publishFriendRequestHandled(r.Context(), req.FromPlayerID, toPlayerID)
 	w.WriteHeader(http.StatusNoContent)
 }
 
@@ -107,6 +109,7 @@ func (h *Handler) handleRejectRequest(w http.ResponseWriter, r *http.Request) {
 		writeFriendError(w, err)
 		return
 	}
+	h.publishFriendRequestHandled(r.Context(), req.FromPlayerID, toPlayerID)
 	w.WriteHeader(http.StatusNoContent)
 }
 
@@ -131,7 +134,7 @@ func (h *Handler) handleListFriends(w http.ResponseWriter, r *http.Request) {
 		info.Avatar = player.Avatar
 		info.Nickname = player.Nickname
 		info.Online = false
-		info.Status = "offline"
+		info.Status = presence.StatusOffline
 
 		pres, err := h.presenceService.Get(r.Context(), id)
 		if err == nil {
@@ -163,6 +166,7 @@ func (h *Handler) handleDeleteFriend(w http.ResponseWriter, r *http.Request) {
 		writeFriendError(w, err)
 		return
 	}
+	h.publishFriendRemoved(r.Context(), req.FriendPlayerID, currentPlayerID)
 	w.WriteHeader(http.StatusNoContent)
 }
 

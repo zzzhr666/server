@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"server/internal/logic/presence"
 	"time"
 
 	"github.com/coder/websocket"
@@ -32,6 +33,7 @@ func (h *Handler) handleWebSocket(w http.ResponseWriter, r *http.Request) {
 		_ = conn.CloseNow()
 	}()
 
+	h.replaceExistingConnection(r.Context(), session.PlayerID)
 	if err := h.presenceService.MarkOnline(r.Context(), session.PlayerID, h.serverName); err != nil {
 		if closeErr := conn.Close(websocket.StatusInternalError, "presence failed"); closeErr != nil {
 			log.Printf("close websocket failed: player_id = %d err = %v", session.PlayerID, closeErr)
@@ -39,6 +41,8 @@ func (h *Handler) handleWebSocket(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	connInfo := h.connections.Add(session.PlayerID, conn)
+
+	h.publishFriendPresenceChanged(r.Context(), session.PlayerID, true, presence.StatusOnline)
 
 	defer func() {
 		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
@@ -48,7 +52,9 @@ func (h *Handler) handleWebSocket(w http.ResponseWriter, r *http.Request) {
 		}
 		if err := h.presenceService.MarkOffline(ctx, session.PlayerID, h.serverName); err != nil {
 			log.Printf("mark offline failed: player_id = %d server_name = %s,err = %v", session.PlayerID, h.serverName, err)
+			return
 		}
+		h.publishFriendPresenceChanged(ctx, session.PlayerID, false, presence.StatusOffline)
 	}()
 
 	for {

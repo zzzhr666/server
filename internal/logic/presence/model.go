@@ -2,8 +2,12 @@ package presence
 
 import "time"
 
-// StatusOnline is the persisted presence status for connected players.
-const StatusOnline = "online"
+const (
+	// StatusOnline is the persisted presence status for connected players.
+	StatusOnline = "online"
+	// StatusOffline is the status reported when a player disconnects.
+	StatusOffline = "offline"
+)
 
 // DefaultTTL bounds stale online records when a connection is lost.
 const DefaultTTL = 2 * time.Minute

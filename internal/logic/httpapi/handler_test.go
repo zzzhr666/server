@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	statecontract "server/internal/contract/state"
 	"server/internal/logic/auth"
 	"server/internal/logic/friend"
 	playerpkg "server/internal/logic/player"
@@ -392,6 +393,183 @@ func TestDeleteFriendHTTP(t *testing.T) {
 	}
 	if friends.deletedPlayerID != 7 || friends.deletedFriendID != 8 {
 		t.Fatalf("delete friend got player=%d friend=%d, want player=7 friend=8", friends.deletedPlayerID, friends.deletedFriendID)
+	}
+}
+
+func TestPublishFriendPresenceChangedSendsToOnlineFriends(t *testing.T) {
+	auths := newFakeAuthService()
+	friends := newFakeFriendService()
+	friends.friendIDs = []int64{8, 9}
+	presences := newFakePresenceService()
+	presences.presences[8] = &presence.Presence{
+		PlayerID:   8,
+		ServerName: "logic-2",
+		Status:     presence.StatusOnline,
+	}
+	realtime := newFakeRealtimeClient()
+	handler := NewHandler(HandlerConfig{
+		AuthService:     auths,
+		ServerName:      "logic-test",
+		PresenceService: presences,
+		FriendService:   friends,
+		PlayerService:   newFakePlayerService(),
+		RealtimeClient:  realtime,
+	})
+
+	handler.publishFriendPresenceChanged(context.Background(), 7, true, presence.StatusOnline)
+
+	if len(realtime.published) != 1 {
+		t.Fatalf("published events = %d, want 1", len(realtime.published))
+	}
+	got := realtime.published[0]
+	if got.serverName != "logic-2" {
+		t.Fatalf("published server name = %q, want logic-2", got.serverName)
+	}
+	if got.event.Type != statecontract.RealtimeEventFriendPresenceChanged || got.event.TargetPlayerID != 8 || got.event.ActorPlayerID != 7 || !got.event.Online {
+		t.Fatalf("published event = %+v, want online presence change for friend 8 by player 7", got.event)
+	}
+}
+
+func TestPublishFriendRemovedSendsOnlyToRemovedPlayer(t *testing.T) {
+	auths := newFakeAuthService()
+	friends := newFakeFriendService()
+	presences := newFakePresenceService()
+	presences.presences[8] = &presence.Presence{
+		PlayerID:   8,
+		ServerName: "logic-2",
+		Status:     presence.StatusOnline,
+	}
+	realtime := newFakeRealtimeClient()
+	handler := NewHandler(HandlerConfig{
+		AuthService:     auths,
+		ServerName:      "logic-test",
+		PresenceService: presences,
+		FriendService:   friends,
+		PlayerService:   newFakePlayerService(),
+		RealtimeClient:  realtime,
+	})
+
+	handler.publishFriendRemoved(context.Background(), 8, 7)
+
+	if len(realtime.published) != 1 {
+		t.Fatalf("published events = %d, want 1", len(realtime.published))
+	}
+	got := realtime.published[0]
+	if got.serverName != "logic-2" {
+		t.Fatalf("published server name = %q, want logic-2", got.serverName)
+	}
+	if got.event.Type != statecontract.RealtimeEventFriendRemoved || got.event.TargetPlayerID != 8 || got.event.ActorPlayerID != 7 {
+		t.Fatalf("published event = %+v, want friend_removed target=8 actor=7", got.event)
+	}
+}
+
+func TestPublishFriendRequestReceivedSendsToRequestTarget(t *testing.T) {
+	auths := newFakeAuthService()
+	presences := newFakePresenceService()
+	presences.presences[8] = &presence.Presence{
+		PlayerID:   8,
+		ServerName: "logic-2",
+		Status:     presence.StatusOnline,
+	}
+	realtime := newFakeRealtimeClient()
+	handler := NewHandler(HandlerConfig{
+		AuthService:     auths,
+		ServerName:      "logic-test",
+		PresenceService: presences,
+		FriendService:   newFakeFriendService(),
+		PlayerService:   newFakePlayerService(),
+		RealtimeClient:  realtime,
+	})
+
+	handler.publishFriendRequestReceived(context.Background(), 8, 7)
+
+	if len(realtime.published) != 1 {
+		t.Fatalf("published events = %d, want 1", len(realtime.published))
+	}
+	got := realtime.published[0]
+	if got.serverName != "logic-2" {
+		t.Fatalf("published server name = %q, want logic-2", got.serverName)
+	}
+	if got.event.Type != statecontract.RealtimeEventFriendRequestReceived || got.event.TargetPlayerID != 8 || got.event.ActorPlayerID != 7 {
+		t.Fatalf("published event = %+v, want friend_request_received target=8 actor=7", got.event)
+	}
+}
+
+func TestPublishFriendRequestHandledSendsToRequestSender(t *testing.T) {
+	auths := newFakeAuthService()
+	presences := newFakePresenceService()
+	presences.presences[7] = &presence.Presence{
+		PlayerID:   7,
+		ServerName: "logic-1",
+		Status:     presence.StatusOnline,
+	}
+	realtime := newFakeRealtimeClient()
+	handler := NewHandler(HandlerConfig{
+		AuthService:     auths,
+		ServerName:      "logic-test",
+		PresenceService: presences,
+		FriendService:   newFakeFriendService(),
+		PlayerService:   newFakePlayerService(),
+		RealtimeClient:  realtime,
+	})
+
+	handler.publishFriendRequestHandled(context.Background(), 7, 8)
+
+	if len(realtime.published) != 1 {
+		t.Fatalf("published events = %d, want 1", len(realtime.published))
+	}
+	got := realtime.published[0]
+	if got.serverName != "logic-1" {
+		t.Fatalf("published server name = %q, want logic-1", got.serverName)
+	}
+	if got.event.Type != statecontract.RealtimeEventFriendRequestHandled || got.event.TargetPlayerID != 7 || got.event.ActorPlayerID != 8 {
+		t.Fatalf("published event = %+v, want friend_request_handled target=7 actor=8", got.event)
+	}
+}
+
+func TestReplaceExistingConnectionPublishesConnectionReplaced(t *testing.T) {
+	auths := newFakeAuthService()
+	presences := newFakePresenceService()
+	presences.presences[7] = &presence.Presence{
+		PlayerID:   7,
+		ServerName: "logic-old",
+		Status:     presence.StatusOnline,
+	}
+	realtime := newFakeRealtimeClient()
+	handler := NewHandler(HandlerConfig{
+		AuthService:     auths,
+		ServerName:      "logic-new",
+		PresenceService: presences,
+		FriendService:   newFakeFriendService(),
+		PlayerService:   newFakePlayerService(),
+		RealtimeClient:  realtime,
+	})
+
+	handler.replaceExistingConnection(context.Background(), 7)
+
+	if len(realtime.published) != 1 {
+		t.Fatalf("published events = %d, want 1", len(realtime.published))
+	}
+	got := realtime.published[0]
+	if got.serverName != "logic-old" {
+		t.Fatalf("published server name = %q, want logic-old", got.serverName)
+	}
+	if got.event.Type != statecontract.RealtimeEventConnectionReplaced || got.event.TargetPlayerID != 7 || got.event.ActorPlayerID != 7 {
+		t.Fatalf("published event = %+v, want connection_replaced target=7 actor=7", got.event)
+	}
+}
+
+func TestToWebSocketEventConnectionReplaced(t *testing.T) {
+	msg := toWebSocketEvent(statecontract.RealtimeEvent{
+		Type:           statecontract.RealtimeEventConnectionReplaced,
+		TargetPlayerID: 7,
+	})
+	got, ok := msg.(connectionReplacedMessage)
+	if !ok {
+		t.Fatalf("message type = %T, want connectionReplacedMessage", msg)
+	}
+	if got.Type != statecontract.RealtimeEventConnectionReplaced {
+		t.Fatalf("message type field = %q, want %q", got.Type, statecontract.RealtimeEventConnectionReplaced)
 	}
 }
 
@@ -931,3 +1109,41 @@ func (f *fakeFriendService) DeleteFriend(ctx context.Context, playerID, friendID
 }
 
 var _ friend.Service = (*fakeFriendService)(nil)
+
+type publishedRealtimeEvent struct {
+	serverName string
+	event      statecontract.RealtimeEvent
+}
+
+type fakeRealtimeClient struct {
+	published []publishedRealtimeEvent
+}
+
+func newFakeRealtimeClient() *fakeRealtimeClient {
+	return &fakeRealtimeClient{}
+}
+
+func (f *fakeRealtimeClient) PublishRealtimeToServer(ctx context.Context, serverName string, event *statecontract.RealtimeEvent) error {
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+	if event == nil {
+		return nil
+	}
+	f.published = append(f.published, publishedRealtimeEvent{
+		serverName: serverName,
+		event:      *event,
+	})
+	return nil
+}
+
+func (f *fakeRealtimeClient) SubscribeRealtime(ctx context.Context, _ string) (<-chan *statecontract.RealtimeEvent, error) {
+	events := make(chan *statecontract.RealtimeEvent)
+	go func() {
+		defer close(events)
+		<-ctx.Done()
+	}()
+	return events, nil
+}
+
+var _ statecontract.RealtimeClient = (*fakeRealtimeClient)(nil)
