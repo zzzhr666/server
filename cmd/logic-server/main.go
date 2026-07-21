@@ -5,14 +5,17 @@ import (
 	"flag"
 	"log"
 	"net/http"
+	"server/internal/contract/rcenterpb"
 	"server/internal/contract/statepb"
 	"server/internal/logic/auth"
 	"server/internal/logic/friend"
 	"server/internal/logic/httpapi"
+	logicmatch "server/internal/logic/match"
 	"server/internal/logic/player"
 	"server/internal/logic/presence"
 	"server/internal/platform/config"
-	"server/internal/state/grpcclient"
+	rcentergrpcclient "server/internal/rcenter/grpcclient"
+	stategrpcclient "server/internal/state/grpcclient"
 	"strings"
 	"time"
 
@@ -58,7 +61,7 @@ func main() {
 	}()
 
 	statePBClient := statepb.NewStateServiceClient(conn)
-	stateService := grpcclient.NewClient(statePBClient)
+	stateService := stategrpcclient.NewClient(statePBClient)
 
 	playerRepo := player.NewStateRepository(stateService)
 	playerService := player.NewService(playerRepo)
@@ -72,6 +75,19 @@ func main() {
 	friendRepo := friend.NewStateRepository(stateService)
 	friendService := friend.NewService(friendRepo)
 
+	rCenterConn, err := grpc.NewClient(cfg.RCenterGRPCAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		log.Fatalf("rcenter grpc.NewClient failed: %v", err)
+	}
+	defer func() {
+		if err := rCenterConn.Close(); err != nil {
+			log.Fatalf("close rcenter client connection: %v", err)
+		}
+	}()
+	rCenterPBClient := rcenterpb.NewRCenterServiceClient(rCenterConn)
+	rCenterService := rcentergrpcclient.NewClient(rCenterPBClient)
+	matchRepo := logicmatch.NewRCenterRepository(rCenterService)
+	matchService := logicmatch.NewService(matchRepo)
 	handler := httpapi.NewHandler(httpapi.HandlerConfig{
 		AuthService:     authService,
 		ServerName:      serverName,
@@ -79,6 +95,7 @@ func main() {
 		FriendService:   friendService,
 		PlayerService:   playerService,
 		RealtimeClient:  stateService,
+		MatchService:    matchService,
 	})
 
 	ctx, cancel := context.WithCancel(context.Background())

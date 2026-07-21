@@ -5,6 +5,15 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 STATE_GRPC_HOST="${STATE_GRPC_HOST:-127.0.0.1}"
 STATE_GRPC_PORT="${STATE_GRPC_PORT:-9001}"
 STATE_GRPC_TIMEOUT_SECONDS="${STATE_GRPC_TIMEOUT_SECONDS:-10}"
+RCENTER_GRPC_HOST="${RCENTER_GRPC_HOST:-127.0.0.1}"
+RCENTER_GRPC_PORT="${RCENTER_GRPC_PORT:-9002}"
+RCENTER_GRPC_TIMEOUT_SECONDS="${RCENTER_GRPC_TIMEOUT_SECONDS:-10}"
+REGISTER_DEMO_BATTLE_NODE="${REGISTER_DEMO_BATTLE_NODE:-1}"
+DEMO_BATTLE_NAME="${DEMO_BATTLE_NAME:-battle-demo}"
+DEMO_BATTLE_KCP_ADDR="${DEMO_BATTLE_KCP_ADDR:-127.0.0.1:7001}"
+DEMO_BATTLE_CONTROL_ADDR="${DEMO_BATTLE_CONTROL_ADDR:-127.0.0.1:9101}"
+DEMO_BATTLE_MAX_PLAYERS="${DEMO_BATTLE_MAX_PLAYERS:-100}"
+DEMO_BATTLE_ACTIVE_PLAYERS="${DEMO_BATTLE_ACTIVE_PLAYERS:-0}"
 LOGIC_1_PORT="${LOGIC_1_PORT:-8081}"
 LOGIC_2_PORT="${LOGIC_2_PORT:-8082}"
 START_NGINX="${START_NGINX:-1}"
@@ -12,6 +21,7 @@ NGINX_PREFIX="${ROOT_DIR}/tmp/nginx"
 NGINX_CONF="${ROOT_DIR}/deploy/nginx/logic.conf"
 
 state_pid=""
+rcenter_pid=""
 logic_1_pid=""
 logic_2_pid=""
 nginx_started=""
@@ -25,6 +35,9 @@ cleanup() {
 	fi
 	if [[ -n "$logic_2_pid" ]] && kill -0 "$logic_2_pid" 2>/dev/null; then
 		kill "$logic_2_pid" 2>/dev/null || true
+	fi
+	if [[ -n "$rcenter_pid" ]] && kill -0 "$rcenter_pid" 2>/dev/null; then
+		kill "$rcenter_pid" 2>/dev/null || true
 	fi
 	if [[ -n "$state_pid" ]] && kill -0 "$state_pid" 2>/dev/null; then
 		kill "$state_pid" 2>/dev/null || true
@@ -102,12 +115,29 @@ wait_for_state_grpc() {
 	return 1
 }
 
+wait_for_rcenter_grpc() {
+	local deadline=$((SECONDS + RCENTER_GRPC_TIMEOUT_SECONDS))
+	while ((SECONDS < deadline)); do
+		if (echo >"/dev/tcp/${RCENTER_GRPC_HOST}/${RCENTER_GRPC_PORT}") >/dev/null 2>&1; then
+			return 0
+		fi
+		if ! kill -0 "$rcenter_pid" 2>/dev/null; then
+			echo "rcenter-server exited before gRPC port became ready" >&2
+			return 1
+		fi
+		sleep 0.2
+	done
+	echo "rcenter-server gRPC port ${RCENTER_GRPC_HOST}:${RCENTER_GRPC_PORT} was not ready within ${RCENTER_GRPC_TIMEOUT_SECONDS}s" >&2
+	return 1
+}
+
 trap cleanup EXIT INT TERM
 
 cd "$ROOT_DIR"
 
 stop_existing_nginx
 stop_port_listener "state-server" "$STATE_GRPC_PORT"
+stop_port_listener "rcenter-server" "$RCENTER_GRPC_PORT"
 stop_port_listener "logic-1" "$LOGIC_1_PORT"
 stop_port_listener "logic-2" "$LOGIC_2_PORT"
 if [[ "$START_NGINX" == "1" ]]; then
@@ -119,6 +149,23 @@ go run ./cmd/state-server &
 state_pid=$!
 
 wait_for_state_grpc
+
+echo "Starting rcenter-server..."
+rcenter_args=()
+if [[ "$REGISTER_DEMO_BATTLE_NODE" == "1" ]]; then
+	rcenter_args+=(
+		--demo-battle-node
+		--demo-battle-name "$DEMO_BATTLE_NAME"
+		--demo-battle-kcp-addr "$DEMO_BATTLE_KCP_ADDR"
+		--demo-battle-control-addr "$DEMO_BATTLE_CONTROL_ADDR"
+		--demo-battle-max-players "$DEMO_BATTLE_MAX_PLAYERS"
+		--demo-battle-active-players "$DEMO_BATTLE_ACTIVE_PLAYERS"
+	)
+fi
+go run ./cmd/rcenter-server "${rcenter_args[@]}" &
+rcenter_pid=$!
+
+wait_for_rcenter_grpc
 
 echo "Starting logic-server logic-1 on :${LOGIC_1_PORT}..."
 go run ./cmd/logic-server -p "${LOGIC_1_PORT}" --name logic-1 &
