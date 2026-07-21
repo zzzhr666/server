@@ -425,37 +425,60 @@ func TestClientFriendMethods(t *testing.T) {
 	}
 }
 
+func TestClientPublishRealtimeToServer(t *testing.T) {
+	grpcState := &fakeStateServiceClient{}
+	client := NewClient(grpcState)
+
+	err := client.PublishRealtimeToServer(context.Background(), "logic-2", &statecontract.RealtimeEvent{
+		Type:           statecontract.RealtimeEventFriendRemoved,
+		TargetPlayerID: 8,
+		ActorPlayerID:  7,
+	})
+	if err != nil {
+		t.Fatalf("PublishRealtimeToServer returned error: %v", err)
+	}
+	if grpcState.publishedRealtimeRequest.GetServerName() != "logic-2" {
+		t.Fatalf("realtime server name = %q, want logic-2", grpcState.publishedRealtimeRequest.GetServerName())
+	}
+	event := grpcState.publishedRealtimeRequest.GetEvent()
+	if event.GetType() != statecontract.RealtimeEventFriendRemoved || event.GetTargetPlayerId() != 8 || event.GetActorPlayerId() != 7 {
+		t.Fatalf("realtime event = %+v, want friend_removed target=8 actor=7", event)
+	}
+}
+
 type fakeStateServiceClient struct {
 	statepb.UnimplementedStateServiceServer
 
-	account                *statepb.Account
-	createdAccount         *statepb.Account
-	gotUsername            string
-	registerRequest        *statepb.RegisterAccountRequest
-	registerResponse       *statepb.RegisterAccountResponse
-	session                *statepb.Session
-	createdSession         *statepb.Session
-	deletedToken           string
-	player                 *statepb.Player
-	createdPlayer          *statepb.Player
-	nextPlayerID           int64
-	presence               *statepb.Presence
-	setPresence            *statepb.Presence
-	setPresenceTTL         time.Duration
-	clearedPlayerID        int64
-	clearedServerName      string
-	refreshRequest         *statepb.RefreshPresenceRequest
-	err                    error
-	sentFriendRequest      *statepb.SendFriendRequestRequest
-	incomingFriendRequest  *statepb.ListFriendRequestRequest
-	outgoingFriendRequest  *statepb.ListFriendRequestRequest
-	incomingFriendRequests []*statepb.FriendRequest
-	outgoingFriendRequests []*statepb.FriendRequest
-	acceptedFriendRequest  *statepb.HandleFriendRequestRequest
-	rejectedFriendRequest  *statepb.HandleFriendRequestRequest
-	listFriendIDsRequest   *statepb.ListFriendIDsRequest
-	friendIDs              []int64
-	deletedFriendRequest   *statepb.DeleteFriendRequest
+	account                  *statepb.Account
+	createdAccount           *statepb.Account
+	gotUsername              string
+	registerRequest          *statepb.RegisterAccountRequest
+	registerResponse         *statepb.RegisterAccountResponse
+	session                  *statepb.Session
+	createdSession           *statepb.Session
+	deletedToken             string
+	player                   *statepb.Player
+	createdPlayer            *statepb.Player
+	nextPlayerID             int64
+	presence                 *statepb.Presence
+	setPresence              *statepb.Presence
+	setPresenceTTL           time.Duration
+	clearedPlayerID          int64
+	clearedServerName        string
+	refreshRequest           *statepb.RefreshPresenceRequest
+	err                      error
+	sentFriendRequest        *statepb.SendFriendRequestRequest
+	incomingFriendRequest    *statepb.ListFriendRequestRequest
+	outgoingFriendRequest    *statepb.ListFriendRequestRequest
+	incomingFriendRequests   []*statepb.FriendRequest
+	outgoingFriendRequests   []*statepb.FriendRequest
+	acceptedFriendRequest    *statepb.HandleFriendRequestRequest
+	rejectedFriendRequest    *statepb.HandleFriendRequestRequest
+	listFriendIDsRequest     *statepb.ListFriendIDsRequest
+	friendIDs                []int64
+	deletedFriendRequest     *statepb.DeleteFriendRequest
+	publishedRealtimeRequest *statepb.PublishRealtimeRequest
+	subscribeRealtimeRequest *statepb.SubscribeRealtimeRequest
 }
 
 func (f *fakeStateServiceClient) CreateAccount(_ context.Context, in *statepb.CreateAccountRequest, _ ...grpc.CallOption) (*statepb.CreateAccountResponse, error) {
@@ -581,6 +604,16 @@ func (f *fakeStateServiceClient) ListFriendIDs(_ context.Context, in *statepb.Li
 func (f *fakeStateServiceClient) DeleteFriend(_ context.Context, in *statepb.DeleteFriendRequest, _ ...grpc.CallOption) (*statepb.DeleteFriendResponse, error) {
 	f.deletedFriendRequest = in
 	return &statepb.DeleteFriendResponse{}, f.err
+}
+
+func (f *fakeStateServiceClient) PublishRealtime(_ context.Context, in *statepb.PublishRealtimeRequest, _ ...grpc.CallOption) (*statepb.PublishRealtimeResponse, error) {
+	f.publishedRealtimeRequest = in
+	return &statepb.PublishRealtimeResponse{}, f.err
+}
+
+func (f *fakeStateServiceClient) SubscribeRealtime(_ context.Context, in *statepb.SubscribeRealtimeRequest, _ ...grpc.CallOption) (grpc.ServerStreamingClient[statepb.RealtimeEvent], error) {
+	f.subscribeRealtimeRequest = in
+	return nil, f.err
 }
 
 var _ statepb.StateServiceClient = (*fakeStateServiceClient)(nil)

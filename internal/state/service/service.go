@@ -44,6 +44,11 @@ type friendStore interface {
 	DeleteFriend(ctx context.Context, playerID, friendPlayerID int64) error
 }
 
+type realtimeStore interface {
+	PublishRealtimeToServer(ctx context.Context, serverName string, event *statecontract.RealtimeEvent) error
+	SubscribeRealtime(ctx context.Context, serverName string) (<-chan *statecontract.RealtimeEvent, error)
+}
+
 // Service coordinates state operations across the configured stores.
 type Service struct {
 	registrations registrationStore
@@ -52,6 +57,15 @@ type Service struct {
 	players       playerStore
 	presences     presenceStore
 	friends       friendStore
+	realtime      realtimeStore
+}
+
+func (s *Service) PublishRealtimeToServer(ctx context.Context, serverName string, event *statecontract.RealtimeEvent) error {
+	return s.realtime.PublishRealtimeToServer(ctx, serverName, event)
+}
+
+func (s *Service) SubscribeRealtime(ctx context.Context, serverName string) (<-chan *statecontract.RealtimeEvent, error) {
+	return s.realtime.SubscribeRealtime(ctx, serverName)
 }
 
 // SetPresence records a player's online state.
@@ -155,6 +169,7 @@ type StoreConfig struct {
 	Registrations registrationStore
 	Presences     presenceStore
 	Friends       friendStore
+	Realtime      realtimeStore
 }
 
 // NewService creates a state service from store implementations.
@@ -166,5 +181,6 @@ func NewService(storeConfig StoreConfig) *Service {
 		registrations: storeConfig.Registrations,
 		presences:     storeConfig.Presences,
 		friends:       storeConfig.Friends,
+		realtime:      storeConfig.Realtime,
 	}
 }

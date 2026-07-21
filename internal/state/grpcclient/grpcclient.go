@@ -199,6 +199,39 @@ func (c *Client) DeleteFriend(ctx context.Context, playerID, friendPlayerID int6
 	return mapGRPCError(err)
 }
 
+func (c *Client) PublishRealtimeToServer(ctx context.Context, serverName string, event *state.RealtimeEvent) error {
+	_, err := c.grpc.PublishRealtime(ctx, &statepb.PublishRealtimeRequest{
+		ServerName: serverName,
+		Event:      stateproto.ToProtoRealtimeEvent(event),
+	})
+	return mapGRPCError(err)
+}
+
+func (c *Client) SubscribeRealtime(ctx context.Context, serverName string) (<-chan *state.RealtimeEvent, error) {
+	stream, err := c.grpc.SubscribeRealtime(ctx, &statepb.SubscribeRealtimeRequest{
+		ServerName: serverName,
+	})
+	if err != nil {
+		return nil, mapGRPCError(err)
+	}
+	events := make(chan *state.RealtimeEvent, 16)
+	go func() {
+		defer close(events)
+		for {
+			event, err := stream.Recv()
+			if err != nil {
+				return
+			}
+			select {
+			case events <- stateproto.FromProtoRealtimeEvent(event):
+			case <-ctx.Done():
+				return
+			}
+		}
+	}()
+	return events, nil
+}
+
 // NewClient creates a state contract client from generated gRPC bindings.
 func NewClient(grpcClient statepb.StateServiceClient) *Client {
 	return &Client{grpc: grpcClient}
@@ -242,6 +275,5 @@ func mapGRPCError(err error) error {
 			return state.ErrInvalidFriendRequest
 		}
 	}
-
 	return err
 }

@@ -5,6 +5,8 @@ import (
 	statecontract "server/internal/contract/state"
 	"server/internal/contract/statepb"
 	"server/internal/state/stateproto"
+
+	"google.golang.org/grpc"
 )
 
 // Server exposes state contract operations as protobuf/gRPC methods.
@@ -13,6 +15,7 @@ type Server struct {
 	stateClient    statecontract.Client
 	presenceClient statecontract.PresenceClient
 	friendClient   statecontract.FriendClient
+	realtimeClient statecontract.RealtimeClient
 }
 
 // CreateAccount handles a gRPC request to create account credentials.
@@ -213,11 +216,43 @@ func (s *Server) DeleteFriend(ctx context.Context, request *statepb.DeleteFriend
 	return &statepb.DeleteFriendResponse{}, nil
 }
 
+func (s *Server) PublishRealtime(ctx context.Context, request *statepb.PublishRealtimeRequest) (*statepb.PublishRealtimeResponse, error) {
+	err := s.realtimeClient.PublishRealtimeToServer(ctx, request.GetServerName(), stateproto.FromProtoRealtimeEvent(request.GetEvent()))
+	if err != nil {
+		return nil, mapStateError(err)
+	}
+	return &statepb.PublishRealtimeResponse{}, nil
+}
+
+func (s *Server) SubscribeRealtime(request *statepb.SubscribeRealtimeRequest, g grpc.ServerStreamingServer[statepb.RealtimeEvent]) error {
+	events, err := s.realtimeClient.SubscribeRealtime(g.Context(), request.GetServerName())
+	if err != nil {
+		return mapStateError(err)
+	}
+	for {
+		select {
+		case <-g.Context().Done():
+			return g.Context().Err()
+		case event, ok := <-events:
+			if !ok {
+				return nil
+			}
+			if event == nil {
+				continue
+			}
+			if err := g.Send(stateproto.ToProtoRealtimeEvent(event)); err != nil {
+				return err
+			}
+		}
+	}
+}
+
 // ServerConfig provides the state clients used by the gRPC adapter.
 type ServerConfig struct {
 	StateClient    statecontract.Client
 	PresenceClient statecontract.PresenceClient
 	FriendClient   statecontract.FriendClient
+	RealtimeClient statecontract.RealtimeClient
 }
 
 // NewServer creates a gRPC state server adapter.
@@ -226,5 +261,6 @@ func NewServer(config ServerConfig) *Server {
 		stateClient:    config.StateClient,
 		presenceClient: config.PresenceClient,
 		friendClient:   config.FriendClient,
+		realtimeClient: config.RealtimeClient,
 	}
 }

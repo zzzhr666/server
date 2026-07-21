@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"log"
 	"net/http"
@@ -77,7 +78,16 @@ func main() {
 		PresenceService: presenceService,
 		FriendService:   friendService,
 		PlayerService:   playerService,
+		RealtimeClient:  stateService,
 	})
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	go func() {
+		if err := handler.RunRealtimeSubscriber(ctx); err != nil && ctx.Err() == nil {
+			log.Printf("realtime subscriber stopped: %v", err)
+		}
+	}()
 
 	log.Printf("logic-server listening on %s", cfg.HTTPAddr)
 	if err := http.ListenAndServe(cfg.HTTPAddr, handler.Routes()); err != nil {

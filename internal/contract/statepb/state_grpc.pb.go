@@ -39,6 +39,8 @@ const (
 	StateService_RejectFriendRequest_FullMethodName = "/state.v1.StateService/RejectFriendRequest"
 	StateService_ListFriendIDs_FullMethodName       = "/state.v1.StateService/ListFriendIDs"
 	StateService_DeleteFriend_FullMethodName        = "/state.v1.StateService/DeleteFriend"
+	StateService_PublishRealtime_FullMethodName     = "/state.v1.StateService/PublishRealtime"
+	StateService_SubscribeRealtime_FullMethodName   = "/state.v1.StateService/SubscribeRealtime"
 )
 
 // StateServiceClient is the client API for StateService service.
@@ -65,6 +67,8 @@ type StateServiceClient interface {
 	RejectFriendRequest(ctx context.Context, in *HandleFriendRequestRequest, opts ...grpc.CallOption) (*HandleFriendRequestResponse, error)
 	ListFriendIDs(ctx context.Context, in *ListFriendIDsRequest, opts ...grpc.CallOption) (*ListFriendIDsResponse, error)
 	DeleteFriend(ctx context.Context, in *DeleteFriendRequest, opts ...grpc.CallOption) (*DeleteFriendResponse, error)
+	PublishRealtime(ctx context.Context, in *PublishRealtimeRequest, opts ...grpc.CallOption) (*PublishRealtimeResponse, error)
+	SubscribeRealtime(ctx context.Context, in *SubscribeRealtimeRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[RealtimeEvent], error)
 }
 
 type stateServiceClient struct {
@@ -275,6 +279,35 @@ func (c *stateServiceClient) DeleteFriend(ctx context.Context, in *DeleteFriendR
 	return out, nil
 }
 
+func (c *stateServiceClient) PublishRealtime(ctx context.Context, in *PublishRealtimeRequest, opts ...grpc.CallOption) (*PublishRealtimeResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(PublishRealtimeResponse)
+	err := c.cc.Invoke(ctx, StateService_PublishRealtime_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *stateServiceClient) SubscribeRealtime(ctx context.Context, in *SubscribeRealtimeRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[RealtimeEvent], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &StateService_ServiceDesc.Streams[0], StateService_SubscribeRealtime_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[SubscribeRealtimeRequest, RealtimeEvent]{ClientStream: stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type StateService_SubscribeRealtimeClient = grpc.ServerStreamingClient[RealtimeEvent]
+
 // StateServiceServer is the server API for StateService service.
 // All implementations must embed UnimplementedStateServiceServer
 // for forward compatibility.
@@ -299,6 +332,8 @@ type StateServiceServer interface {
 	RejectFriendRequest(context.Context, *HandleFriendRequestRequest) (*HandleFriendRequestResponse, error)
 	ListFriendIDs(context.Context, *ListFriendIDsRequest) (*ListFriendIDsResponse, error)
 	DeleteFriend(context.Context, *DeleteFriendRequest) (*DeleteFriendResponse, error)
+	PublishRealtime(context.Context, *PublishRealtimeRequest) (*PublishRealtimeResponse, error)
+	SubscribeRealtime(*SubscribeRealtimeRequest, grpc.ServerStreamingServer[RealtimeEvent]) error
 	mustEmbedUnimplementedStateServiceServer()
 }
 
@@ -368,6 +403,12 @@ func (UnimplementedStateServiceServer) ListFriendIDs(context.Context, *ListFrien
 }
 func (UnimplementedStateServiceServer) DeleteFriend(context.Context, *DeleteFriendRequest) (*DeleteFriendResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method DeleteFriend not implemented")
+}
+func (UnimplementedStateServiceServer) PublishRealtime(context.Context, *PublishRealtimeRequest) (*PublishRealtimeResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method PublishRealtime not implemented")
+}
+func (UnimplementedStateServiceServer) SubscribeRealtime(*SubscribeRealtimeRequest, grpc.ServerStreamingServer[RealtimeEvent]) error {
+	return status.Error(codes.Unimplemented, "method SubscribeRealtime not implemented")
 }
 func (UnimplementedStateServiceServer) mustEmbedUnimplementedStateServiceServer() {}
 func (UnimplementedStateServiceServer) testEmbeddedByValue()                      {}
@@ -750,6 +791,35 @@ func _StateService_DeleteFriend_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
+func _StateService_PublishRealtime_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PublishRealtimeRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(StateServiceServer).PublishRealtime(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: StateService_PublishRealtime_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(StateServiceServer).PublishRealtime(ctx, req.(*PublishRealtimeRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _StateService_SubscribeRealtime_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(SubscribeRealtimeRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(StateServiceServer).SubscribeRealtime(m, &grpc.GenericServerStream[SubscribeRealtimeRequest, RealtimeEvent]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type StateService_SubscribeRealtimeServer = grpc.ServerStreamingServer[RealtimeEvent]
+
 // StateService_ServiceDesc is the grpc.ServiceDesc for StateService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -837,7 +907,17 @@ var StateService_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "DeleteFriend",
 			Handler:    _StateService_DeleteFriend_Handler,
 		},
+		{
+			MethodName: "PublishRealtime",
+			Handler:    _StateService_PublishRealtime_Handler,
+		},
 	},
-	Streams:  []grpc.StreamDesc{},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "SubscribeRealtime",
+			Handler:       _StateService_SubscribeRealtime_Handler,
+			ServerStreams: true,
+		},
+	},
 	Metadata: "proto/state/v1/state.proto",
 }

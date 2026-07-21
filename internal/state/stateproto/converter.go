@@ -153,3 +153,29 @@ func ToProtoFriendRequest(friendRequest *statecontract.FriendRequest) *statepb.F
 		CreatedAt:  ToProtoTime(friendRequest.CreatedAt),
 	}
 }
+
+func ToProtoRealtimeEvent(event *statecontract.RealtimeEvent) *statepb.RealtimeEvent {
+	if event == nil {
+		return nil
+	}
+	return &statepb.RealtimeEvent{
+		Type:           event.Type,
+		TargetPlayerId: event.TargetPlayerID,
+		ActorPlayerId:  event.ActorPlayerID,
+		Online:         event.Online,
+		Status:         event.Status,
+	}
+}
+
+func FromProtoRealtimeEvent(event *statepb.RealtimeEvent) *statecontract.RealtimeEvent {
+	if event == nil {
+		return nil
+	}
+	return &statecontract.RealtimeEvent{
+		Type:           event.GetType(),
+		TargetPlayerID: event.GetTargetPlayerId(),
+		ActorPlayerID:  event.GetActorPlayerId(),
+		Online:         event.GetOnline(),
+		Status:         event.GetStatus(),
+	}
+}

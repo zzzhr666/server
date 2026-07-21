@@ -2,6 +2,7 @@ package redisstore
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	statecontract "server/internal/contract/state"
 	"strconv"
@@ -564,6 +565,58 @@ func (s *Store) DeleteFriend(ctx context.Context, playerID, friendPlayerID int64
 	})
 }
 
+// PublishRealtimeToServer publishes an event to one logic-server realtime channel.
+func (s *Store) PublishRealtimeToServer(ctx context.Context, serverName string, event *statecontract.RealtimeEvent) error {
+	if serverName == "" || event == nil || event.Type == "" || event.TargetPlayerID <= 0 {
+		return statecontract.ErrInvalidPresence
+	}
+	payload, err := json.Marshal(event)
+	if err != nil {
+		return err
+	}
+	return s.client.Publish(ctx, realtimeChannelKey(serverName), payload).Err()
+}
+
+// SubscribeRealtime subscribes to realtime events addressed to one logic-server.
+func (s *Store) SubscribeRealtime(ctx context.Context, serverName string) (<-chan *statecontract.RealtimeEvent, error) {
+	if serverName == "" {
+		return nil, statecontract.ErrInvalidPresence
+	}
+	pubsub := s.client.Subscribe(ctx, realtimeChannelKey(serverName))
+	if _, err := pubsub.Receive(ctx); err != nil {
+		_ = pubsub.Close()
+		return nil, err
+	}
+	events := make(chan *statecontract.RealtimeEvent, 16)
+	go func() {
+		defer close(events)
+		defer func() {
+			_ = pubsub.Close()
+		}()
+		ch := pubsub.Channel()
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case msg, ok := <-ch:
+				if !ok {
+					return
+				}
+				event := &statecontract.RealtimeEvent{}
+				if err := json.Unmarshal([]byte(msg.Payload), event); err != nil {
+					continue
+				}
+				select {
+				case events <- event:
+				case <-ctx.Done():
+					return
+				}
+			}
+		}
+	}()
+	return events, nil
+}
+
 func retryOptimisticLock(ctx context.Context, operation func() error) error {
 	var err error
 	for range optimisticLockRetries {
@@ -610,6 +663,10 @@ func friendOutgoingKey(playerID int64) string {
 
 func friendsKey(playerID int64) string {
 	return "game:friends:" + strconv.FormatInt(playerID, 10)
+}
+
+func realtimeChannelKey(serverName string) string {
+	return "game:realtime:" + serverName
 }
 
 func validateFriendPair(fromPlayerID, toPlayerID int64) error {

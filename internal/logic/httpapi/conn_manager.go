@@ -99,3 +99,17 @@ func (m *connManager) SendJSON(ctx context.Context, playerID int64, msg any) boo
 	}
 	return true
 }
+
+func (m *connManager) Close(ctx context.Context, playerID int64, msg any, status websocket.StatusCode, reason string) bool {
+	m.mu.RLock()
+	info, ok := m.players[playerID]
+	m.mu.RUnlock()
+	if !ok {
+		return false
+	}
+	_ = wsjson.Write(ctx, info.conn, msg)
+	if err := info.conn.Close(status, reason); err != nil {
+		return false
+	}
+	return true
+}

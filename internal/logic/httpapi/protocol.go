@@ -85,3 +85,17 @@ type friendRemovedMessage struct {
 	Type     string `json:"type"`
 	PlayerID int64  `json:"player_id"`
 }
+
+type friendRequestReceivedMessage struct {
+	Type     string `json:"type"`
+	PlayerID int64  `json:"player_id"`
+}
+
+type friendRequestHandledMessage struct {
+	Type     string `json:"type"`
+	PlayerID int64  `json:"player_id"`
+}
+
+type connectionReplacedMessage struct {
+	Type string `json:"type"`
+}

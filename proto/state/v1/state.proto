@@ -32,6 +32,9 @@ service StateService {
   rpc RejectFriendRequest(HandleFriendRequestRequest) returns (HandleFriendRequestResponse);
   rpc ListFriendIDs(ListFriendIDsRequest) returns (ListFriendIDsResponse);
   rpc DeleteFriend(DeleteFriendRequest) returns (DeleteFriendResponse);
+
+  rpc PublishRealtime(PublishRealtimeRequest) returns (PublishRealtimeResponse);
+  rpc SubscribeRealtime(SubscribeRealtimeRequest) returns (stream RealtimeEvent);
 }
 
 message Account {
@@ -208,3 +211,22 @@ message DeleteFriendRequest{
 }
 
 message DeleteFriendResponse {}
+
+message RealtimeEvent {
+  string type = 1;
+  int64 target_player_id = 2;
+  int64 actor_player_id = 3;
+  bool online = 4;
+  string status = 5;
+}
+
+message PublishRealtimeRequest {
+  string server_name = 1;
+  RealtimeEvent event = 2;
+}
+
+message PublishRealtimeResponse {}
+
+message SubscribeRealtimeRequest {
+  string server_name = 1;
+}

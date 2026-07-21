@@ -84,6 +84,7 @@ type FriendRequest struct {
 	CreatedAt    time.Time
 }
 
+// FriendClient defines state-server operations for friend relationships.
 type FriendClient interface {
 	SendFriendRequest(ctx context.Context, fromPlayerID, toPlayerID int64) error
 	ListIncomingFriendRequests(ctx context.Context, playerID int64) ([]*FriendRequest, error)
@@ -92,4 +93,34 @@ type FriendClient interface {
 	RejectFriendRequest(ctx context.Context, fromPlayerID, toPlayerID int64) error
 	ListFriendIDs(ctx context.Context, fromPlayerID int64) ([]int64, error)
 	DeleteFriend(ctx context.Context, playerID, friendPlayerID int64) error
+}
+
+// RealtimeEvent describes a message routed to one connected player.
+type RealtimeEvent struct {
+	Type           string
+	TargetPlayerID int64
+	ActorPlayerID  int64
+	Online         bool
+	Status         string
+}
+
+const (
+	// RealtimeEventFriendPresenceChanged notifies friends about online-state changes.
+	RealtimeEventFriendPresenceChanged = "friend_presence_changed"
+	// RealtimeEventFriendRemoved notifies a player that another player removed the friendship.
+	RealtimeEventFriendRemoved = "friend_removed"
+
+	// RealtimeEventFriendRequestReceived notifies a player about a new incoming friend request.
+	RealtimeEventFriendRequestReceived = "friend_request_received"
+	// RealtimeEventFriendRequestHandled notifies a requester that a friend request was handled.
+	RealtimeEventFriendRequestHandled = "friend_request_handled"
+
+	// RealtimeEventConnectionReplaced tells an old connection that a newer login replaced it.
+	RealtimeEventConnectionReplaced = "connection_replaced"
+)
+
+// RealtimeClient defines cross-logic-server realtime message routing.
+type RealtimeClient interface {
+	PublishRealtimeToServer(ctx context.Context, serverName string, event *RealtimeEvent) error
+	SubscribeRealtime(ctx context.Context, serverName string) (<-chan *RealtimeEvent, error)
 }

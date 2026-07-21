@@ -2,25 +2,26 @@ package httpapi
 
 import (
 	"context"
-	"server/internal/logic/realtime"
+	statecontract "server/internal/contract/state"
 )
 
 type realtimeSubscriber struct {
 	serverName string
-	bus        realtime.EventBus
+	client     statecontract.RealtimeClient
 	pusher     *localRealtimePusher
 }
 
-func newRealtimeSubscriber(serverName string, bus realtime.EventBus, pusher *localRealtimePusher) *realtimeSubscriber {
+func newRealtimeSubscriber(serverName string, client statecontract.RealtimeClient, pusher *localRealtimePusher) *realtimeSubscriber {
 	return &realtimeSubscriber{
 		serverName: serverName,
-		bus:        bus,
+		client:     client,
 		pusher:     pusher,
 	}
 }
 
+// Run subscribes to this logic-server's realtime channel and forwards events locally.
 func (r *realtimeSubscriber) Run(ctx context.Context) error {
-	events, err := r.bus.Subscribe(ctx, r.serverName)
+	events, err := r.client.SubscribeRealtime(ctx, r.serverName)
 	if err != nil {
 		return err
 	}
@@ -32,7 +33,10 @@ func (r *realtimeSubscriber) Run(ctx context.Context) error {
 			if !ok {
 				return nil
 			}
-			r.pusher.Push(ctx, event)
+			if event == nil {
+				continue
+			}
+			r.pusher.Push(ctx, *event)
 
 		}
 	}
