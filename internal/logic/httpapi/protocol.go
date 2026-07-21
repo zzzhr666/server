@@ -37,7 +37,17 @@ type websocketMessage struct {
 	Type string `json:"type"`
 }
 
-const websocketMessageTypeHeartbeat = "heartbeat"
+const (
+	messageTypeHeartbeat   = "heartbeat"
+	messageTypeMatchStart  = "match_start"
+	messageTypeMatchCancel = "match_cancel"
+)
+
+const (
+	serverEventMatchResult   = "match_result"
+	serverEventMatchError    = "match_error"
+	serverEventMatchCanceled = "match_canceled"
+)
 
 type friendRequestResponse struct {
 	FromPlayerID int64  `json:"from_player_id"`
@@ -97,5 +107,23 @@ type friendRequestHandledMessage struct {
 }
 
 type connectionReplacedMessage struct {
+	Type string `json:"type"`
+}
+
+type matchResultMessage struct {
+	Type           string `json:"type"`
+	Status         string `json:"status"`
+	RoomName       string `json:"room_name,omitempty"`
+	Token          string `json:"token,omitempty"`
+	BattleNodeName string `json:"battle_node_name,omitempty"`
+	BattleKCPAddr  string `json:"battle_kcp_addr,omitempty"`
+}
+
+type matchErrorMessage struct {
+	Type  string `json:"type"`
+	Error string `json:"error"`
+}
+
+type matchCancelMessage struct {
 	Type string `json:"type"`
 }

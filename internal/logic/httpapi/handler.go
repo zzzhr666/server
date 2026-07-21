@@ -5,6 +5,7 @@ import (
 	statecontract "server/internal/contract/state"
 	"server/internal/logic/auth"
 	"server/internal/logic/friend"
+	"server/internal/logic/match"
 	"server/internal/logic/player"
 	"server/internal/logic/presence"
 )
@@ -19,6 +20,7 @@ type Handler struct {
 	playerService      player.Service
 	realtimeSubscriber *realtimeSubscriber
 	realtimeClient     statecontract.RealtimeClient
+	matchService       match.Service
 }
 
 // HandlerConfig wires logic services into the HTTP adapter.
@@ -29,6 +31,7 @@ type HandlerConfig struct {
 	FriendService   friend.Service
 	PlayerService   player.Service
 	RealtimeClient  statecontract.RealtimeClient
+	MatchService    match.Service
 }
 
 // NewHandler creates an HTTP handler with logic-server services.
@@ -47,6 +50,7 @@ func NewHandler(handlerConfig HandlerConfig) *Handler {
 		playerService:      handlerConfig.PlayerService,
 		realtimeSubscriber: subscriber,
 		realtimeClient:     handlerConfig.RealtimeClient,
+		matchService:       handlerConfig.MatchService,
 	}
 }
 

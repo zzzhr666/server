@@ -29,6 +29,7 @@ func (p *localRealtimePusher) Push(ctx context.Context, event statecontract.Real
 	return p.connections.SendJSON(writeCtx, event.TargetPlayerID, msg)
 }
 
+// toWebSocketEvent converts a state realtime event to the wire message shape.
 func toWebSocketEvent(event statecontract.RealtimeEvent) any {
 	switch event.Type {
 	case statecontract.RealtimeEventFriendPresenceChanged:
@@ -56,6 +57,15 @@ func toWebSocketEvent(event statecontract.RealtimeEvent) any {
 	case statecontract.RealtimeEventConnectionReplaced:
 		return connectionReplacedMessage{
 			Type: event.Type,
+		}
+	case statecontract.RealtimeEventMatchResult:
+		return matchResultMessage{
+			Type:           event.Type,
+			Status:         event.MatchStatus,
+			RoomName:       event.RoomName,
+			Token:          event.MatchToken,
+			BattleNodeName: event.BattleNodeName,
+			BattleKCPAddr:  event.BattleKCPAddr,
 		}
 
 	default:

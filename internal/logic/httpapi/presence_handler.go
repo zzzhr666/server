@@ -5,10 +5,13 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	statecontract "server/internal/contract/state"
 	"server/internal/logic/presence"
+	"server/internal/rcenter"
 	"time"
 
 	"github.com/coder/websocket"
+	"github.com/coder/websocket/wsjson"
 )
 
 const websocketReadTimeout = 90 * time.Second
@@ -71,13 +74,92 @@ func (h *Handler) handleWebSocket(w http.ResponseWriter, r *http.Request) {
 		if err := json.Unmarshal(msg, &message); err != nil {
 			continue
 		}
-		if message.Type == websocketMessageTypeHeartbeat {
+		switch message.Type {
+		case messageTypeHeartbeat:
 			if err := h.presenceService.Refresh(context.Background(), session.PlayerID, h.serverName); err != nil {
 				return
 			}
 			if !h.connections.Touch(connInfo.playerID, connInfo.id, time.Now()) {
 				return
 			}
+		case messageTypeMatchStart:
+			if h.matchService == nil {
+				continue
+			}
+			res, err := h.matchService.Start(context.Background(), session.PlayerID)
+			if err != nil {
+				_ = wsjson.Write(context.Background(), conn, matchErrorMessage{
+					Type:  serverEventMatchError,
+					Error: err.Error(),
+				})
+				continue
+			}
+			_ = wsjson.Write(context.Background(), conn, matchResultMessage{
+				Type:           serverEventMatchResult,
+				Status:         string(res.Status),
+				RoomName:       res.RoomName,
+				Token:          res.Token,
+				BattleNodeName: res.BattleNodeName,
+				BattleKCPAddr:  res.BattleKCPAddr,
+			})
+			h.pushMatchResultToPlayers(context.Background(), session.PlayerID, res)
+		case messageTypeMatchCancel:
+			if h.matchService == nil {
+				continue
+			}
+			if err := h.matchService.Cancel(context.Background(), session.PlayerID); err != nil {
+				_ = wsjson.Write(context.Background(), conn, matchErrorMessage{
+					Type:  serverEventMatchError,
+					Error: err.Error(),
+				})
+				continue
+			}
+			_ = wsjson.Write(context.Background(), conn, matchCancelMessage{
+				Type: serverEventMatchCanceled,
+			})
 		}
+	}
+}
+
+// pushMatchResultToPlayers sends a matched result to the other players in the room.
+func (h *Handler) pushMatchResultToPlayers(ctx context.Context, currentPlayerID int64, result *rcenter.MatchResult) {
+	if result == nil || result.Status != rcenter.MatchStatusMatched {
+		return
+	}
+	msg := matchResultMessage{
+		Type:           serverEventMatchResult,
+		Status:         string(result.Status),
+		RoomName:       result.RoomName,
+		Token:          result.Token,
+		BattleNodeName: result.BattleNodeName,
+		BattleKCPAddr:  result.BattleKCPAddr,
+	}
+	for _, playerID := range result.PlayerIDs {
+		if playerID == currentPlayerID {
+			continue
+		}
+		if h.connections.SendJSON(ctx, playerID, msg) {
+			continue
+		}
+		if h.realtimeClient == nil {
+			continue
+		}
+
+		playerPresence, err := h.presenceService.Get(ctx, playerID)
+		if err != nil {
+			continue
+		}
+		event := &statecontract.RealtimeEvent{
+			Type:           statecontract.RealtimeEventMatchResult,
+			TargetPlayerID: playerID,
+			ActorPlayerID:  currentPlayerID,
+			MatchStatus:    string(result.Status),
+			RoomName:       result.RoomName,
+			MatchToken:     result.Token,
+			BattleNodeName: result.BattleNodeName,
+			BattleKCPAddr:  result.BattleKCPAddr,
+			MatchPlayerIDs: result.PlayerIDs,
+		}
+		_ = h.realtimeClient.PublishRealtimeToServer(ctx, playerPresence.ServerName, event)
 	}
 }

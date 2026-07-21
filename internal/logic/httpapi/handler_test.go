@@ -8,13 +8,16 @@ import (
 	statecontract "server/internal/contract/state"
 	"server/internal/logic/auth"
 	"server/internal/logic/friend"
+	"server/internal/logic/match"
 	playerpkg "server/internal/logic/player"
 	"server/internal/logic/presence"
+	"server/internal/rcenter"
 	"strings"
 	"testing"
 	"time"
 
 	"github.com/coder/websocket"
+	"github.com/coder/websocket/wsjson"
 )
 
 func TestHealth(t *testing.T) {
@@ -733,6 +736,197 @@ func TestWebSocketHeartbeatRefreshesPresenceAndConnection(t *testing.T) {
 	}
 }
 
+func TestPushMatchResultPublishesToRemoteLogicServer(t *testing.T) {
+	auths := newFakeAuthService()
+	presences := newFakePresenceService()
+	presences.presences[8] = &presence.Presence{
+		PlayerID:   8,
+		ServerName: "logic-remote",
+		Status:     presence.StatusOnline,
+	}
+	realtime := newFakeRealtimeClient()
+	handler := NewHandler(HandlerConfig{
+		AuthService:     auths,
+		ServerName:      "logic-test",
+		PresenceService: presences,
+		FriendService:   newFakeFriendService(),
+		PlayerService:   newFakePlayerService(),
+		RealtimeClient:  realtime,
+	})
+
+	handler.pushMatchResultToPlayers(context.Background(), 7, &rcenter.MatchResult{
+		Status:         rcenter.MatchStatusMatched,
+		RoomName:       "room-1",
+		Token:          "token-1",
+		BattleNodeName: "battle-1",
+		BattleKCPAddr:  "127.0.0.1:7001",
+		PlayerIDs:      []int64{7, 8},
+	})
+
+	if len(realtime.published) != 1 {
+		t.Fatalf("published events = %d, want 1", len(realtime.published))
+	}
+	got := realtime.published[0]
+	if got.serverName != "logic-remote" {
+		t.Fatalf("published server name = %q, want logic-remote", got.serverName)
+	}
+	if got.event.Type != statecontract.RealtimeEventMatchResult {
+		t.Fatalf("event type = %q, want %q", got.event.Type, statecontract.RealtimeEventMatchResult)
+	}
+	if got.event.TargetPlayerID != 8 || got.event.ActorPlayerID != 7 {
+		t.Fatalf("event players target=%d actor=%d, want target=8 actor=7", got.event.TargetPlayerID, got.event.ActorPlayerID)
+	}
+	if got.event.MatchStatus != string(rcenter.MatchStatusMatched) || got.event.RoomName != "room-1" || got.event.MatchToken != "token-1" {
+		t.Fatalf("event match fields = %+v, want matched room-1 token-1", got.event)
+	}
+	if got.event.BattleNodeName != "battle-1" || got.event.BattleKCPAddr != "127.0.0.1:7001" {
+		t.Fatalf("event battle fields = %+v, want battle-1 127.0.0.1:7001", got.event)
+	}
+}
+
+func TestWebSocketMatchStartWritesMatchResult(t *testing.T) {
+	auths := newFakeAuthService()
+	session := auths.newSession(7)
+	presences := newFakePresenceService()
+	matches := &fakeMatchService{
+		result: &rcenter.MatchResult{
+			Status:         rcenter.MatchStatusMatched,
+			RoomName:       "room-1",
+			Token:          "token-1",
+			BattleNodeName: "battle-1",
+			BattleKCPAddr:  "127.0.0.1:7001",
+		},
+	}
+	testHandler := newTestHandlerWithMatch(auths, presences, matches)
+	server := httptest.NewServer(testHandler.Routes())
+	defer server.Close()
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+
+	conn, _, err := websocket.Dial(ctx, "ws"+strings.TrimPrefix(server.URL, "http")+"/ws", &websocket.DialOptions{
+		HTTPHeader: http.Header{"token": []string{session.Token}},
+	})
+	if err != nil {
+		t.Fatalf("websocket dial: %v", err)
+	}
+	defer func() {
+		_ = conn.CloseNow()
+	}()
+	waitPresenceCall(t, presences.onlineCalls)
+
+	if err := conn.Write(ctx, websocket.MessageText, []byte(`{"type":"match_start"}`)); err != nil {
+		t.Fatalf("write match start: %v", err)
+	}
+
+	var result matchResultMessage
+	if err := wsjson.Read(ctx, conn, &result); err != nil {
+		t.Fatalf("read match result: %v", err)
+	}
+	if matches.playerID != 7 {
+		t.Fatalf("match player id = %d, want 7", matches.playerID)
+	}
+	if result.Type != serverEventMatchResult {
+		t.Fatalf("message type = %q, want %q", result.Type, serverEventMatchResult)
+	}
+	if result.Status != string(rcenter.MatchStatusMatched) {
+		t.Fatalf("status = %q, want %q", result.Status, rcenter.MatchStatusMatched)
+	}
+	if result.RoomName != "room-1" {
+		t.Fatalf("room name = %q, want room-1", result.RoomName)
+	}
+	if result.Token != "token-1" {
+		t.Fatalf("token = %q, want token-1", result.Token)
+	}
+	if result.BattleNodeName != "battle-1" {
+		t.Fatalf("battle node name = %q, want battle-1", result.BattleNodeName)
+	}
+	if result.BattleKCPAddr != "127.0.0.1:7001" {
+		t.Fatalf("battle kcp addr = %q, want 127.0.0.1:7001", result.BattleKCPAddr)
+	}
+}
+
+func TestWebSocketMatchStartWritesMatchError(t *testing.T) {
+	auths := newFakeAuthService()
+	session := auths.newSession(7)
+	presences := newFakePresenceService()
+	matches := &fakeMatchService{err: rcenter.ErrNoAvailableBattleNode}
+	testHandler := newTestHandlerWithMatch(auths, presences, matches)
+	server := httptest.NewServer(testHandler.Routes())
+	defer server.Close()
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+
+	conn, _, err := websocket.Dial(ctx, "ws"+strings.TrimPrefix(server.URL, "http")+"/ws", &websocket.DialOptions{
+		HTTPHeader: http.Header{"token": []string{session.Token}},
+	})
+	if err != nil {
+		t.Fatalf("websocket dial: %v", err)
+	}
+	defer func() {
+		_ = conn.CloseNow()
+	}()
+	waitPresenceCall(t, presences.onlineCalls)
+
+	if err := conn.Write(ctx, websocket.MessageText, []byte(`{"type":"match_start"}`)); err != nil {
+		t.Fatalf("write match start: %v", err)
+	}
+
+	var result matchErrorMessage
+	if err := wsjson.Read(ctx, conn, &result); err != nil {
+		t.Fatalf("read match error: %v", err)
+	}
+	if matches.playerID != 7 {
+		t.Fatalf("match player id = %d, want 7", matches.playerID)
+	}
+	if result.Type != serverEventMatchError {
+		t.Fatalf("message type = %q, want %q", result.Type, serverEventMatchError)
+	}
+	if result.Error != rcenter.ErrNoAvailableBattleNode.Error() {
+		t.Fatalf("error = %q, want %q", result.Error, rcenter.ErrNoAvailableBattleNode.Error())
+	}
+}
+
+func TestWebSocketMatchCancelWritesMatchCanceled(t *testing.T) {
+	auths := newFakeAuthService()
+	session := auths.newSession(7)
+	presences := newFakePresenceService()
+	matches := &fakeMatchService{}
+	testHandler := newTestHandlerWithMatch(auths, presences, matches)
+	server := httptest.NewServer(testHandler.Routes())
+	defer server.Close()
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+
+	conn, _, err := websocket.Dial(ctx, "ws"+strings.TrimPrefix(server.URL, "http")+"/ws", &websocket.DialOptions{
+		HTTPHeader: http.Header{"token": []string{session.Token}},
+	})
+	if err != nil {
+		t.Fatalf("websocket dial: %v", err)
+	}
+	defer func() {
+		_ = conn.CloseNow()
+	}()
+	waitPresenceCall(t, presences.onlineCalls)
+
+	if err := conn.Write(ctx, websocket.MessageText, []byte(`{"type":"match_cancel"}`)); err != nil {
+		t.Fatalf("write match cancel: %v", err)
+	}
+
+	var result matchCancelMessage
+	if err := wsjson.Read(ctx, conn, &result); err != nil {
+		t.Fatalf("read match canceled: %v", err)
+	}
+	if matches.canceledPlayerID != 7 {
+		t.Fatalf("canceled player id = %d, want 7", matches.canceledPlayerID)
+	}
+	if result.Type != serverEventMatchCanceled {
+		t.Fatalf("message type = %q, want %q", result.Type, serverEventMatchCanceled)
+	}
+}
+
 func newTestHandler() *Handler {
 	return newTestHandlerWithAuth(newFakeAuthService())
 }
@@ -747,6 +941,12 @@ func newTestHandlerWithServices(auths *fakeAuthService, presences presence.Servi
 
 func newTestHandlerWithFriend(auths *fakeAuthService, friends friend.Service) *Handler {
 	return newTestHandlerWithAllServices(auths, newFakePresenceService(), friends, newFakePlayerService())
+}
+
+func newTestHandlerWithMatch(auths *fakeAuthService, presences presence.Service, matches match.Service) *Handler {
+	handler := newTestHandlerWithAllServices(auths, presences, newFakeFriendService(), newFakePlayerService())
+	handler.matchService = matches
+	return handler
 }
 
 func newTestHandlerWithAllServices(auths *fakeAuthService, presences presence.Service, friends friend.Service, players playerpkg.Service) *Handler {
@@ -974,6 +1174,34 @@ func (f *fakePresenceService) recordCall(calls chan presenceCall, playerID int64
 }
 
 var _ presence.Service = (*fakePresenceService)(nil)
+
+type fakeMatchService struct {
+	playerID         int64
+	canceledPlayerID int64
+	result           *rcenter.MatchResult
+	err              error
+}
+
+func (f *fakeMatchService) Start(ctx context.Context, playerID int64) (*rcenter.MatchResult, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
+	f.playerID = playerID
+	if f.err != nil {
+		return nil, f.err
+	}
+	return f.result, nil
+}
+
+func (f *fakeMatchService) Cancel(ctx context.Context, playerID int64) error {
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+	f.canceledPlayerID = playerID
+	return f.err
+}
+
+var _ match.Service = (*fakeMatchService)(nil)
 
 type fakePlayerService struct {
 	players map[int64]*playerpkg.Player
