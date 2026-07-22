@@ -11,4 +11,8 @@ var (
 	ErrNoAvailableBattleNode = errors.New("no available BattleNode")
 	// ErrPlayerNotWaiting means a cancel request targeted a player outside the queue.
 	ErrPlayerNotWaiting = errors.New("player not waiting")
+	// ErrCreateBattleRoomFailed means the selected battle node rejected room creation.
+	ErrCreateBattleRoomFailed = errors.New("create BattleRoom failed")
+	// ErrBattleNodeNotRegistered means rcenter has no cached control client for the node.
+	ErrBattleNodeNotRegistered = errors.New("battle node not registered")
 )

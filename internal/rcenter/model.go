@@ -33,3 +33,10 @@ type MatchResult struct {
 	BattleKCPAddr  string
 	PlayerIDs      []int64
 }
+
+// CreateBattleRoomInput contains the room reservation data sent to a battle node.
+type CreateBattleRoomInput struct {
+	RoomName  string
+	Token     string
+	PlayerIDs []int64
+}

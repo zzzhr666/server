@@ -13,7 +13,7 @@ import (
 )
 
 func TestRegisterBattleNodeAndList(t *testing.T) {
-	server := NewServer(rcenter.NewService())
+	server := NewServer(newTestCenterService())
 
 	_, err := server.RegisterBattleNode(context.Background(), &rcenterpb.RegisterBattleNodeRequest{
 		Node: &rcenterpb.BattleNode{
@@ -57,7 +57,7 @@ func TestRegisterBattleNodeAndList(t *testing.T) {
 }
 
 func TestStartMatchCreatesMatchedResult(t *testing.T) {
-	server := NewServer(rcenter.NewService())
+	server := NewServer(newTestCenterService())
 	mustRegisterBattleNode(t, server, &rcenterpb.BattleNode{
 		Name:          "battle-1",
 		KcpAddr:       "127.0.0.1:7001",
@@ -107,7 +107,7 @@ func TestStartMatchCreatesMatchedResult(t *testing.T) {
 }
 
 func TestRegisterBattleNodeInvalidInputMapsToInvalidArgument(t *testing.T) {
-	server := NewServer(rcenter.NewService())
+	server := NewServer(newTestCenterService())
 
 	_, err := server.RegisterBattleNode(context.Background(), &rcenterpb.RegisterBattleNodeRequest{
 		Node: &rcenterpb.BattleNode{
@@ -121,7 +121,7 @@ func TestRegisterBattleNodeInvalidInputMapsToInvalidArgument(t *testing.T) {
 }
 
 func TestStartMatchInvalidPlayerMapsToInvalidArgument(t *testing.T) {
-	server := NewServer(rcenter.NewService())
+	server := NewServer(newTestCenterService())
 
 	_, err := server.StartMatch(context.Background(), &rcenterpb.StartMatchRequest{})
 	if status.Code(err) != codes.InvalidArgument {
@@ -130,7 +130,7 @@ func TestStartMatchInvalidPlayerMapsToInvalidArgument(t *testing.T) {
 }
 
 func TestStartMatchWithoutBattleNodeMapsToUnavailable(t *testing.T) {
-	server := NewServer(rcenter.NewService())
+	server := NewServer(newTestCenterService())
 
 	_, err := server.StartMatch(context.Background(), &rcenterpb.StartMatchRequest{PlayerId: 7})
 	if status.Code(err) != codes.Unavailable {
@@ -139,7 +139,7 @@ func TestStartMatchWithoutBattleNodeMapsToUnavailable(t *testing.T) {
 }
 
 func TestCancelMatch(t *testing.T) {
-	server := NewServer(rcenter.NewService())
+	server := NewServer(newTestCenterService())
 	mustRegisterBattleNode(t, server, &rcenterpb.BattleNode{
 		Name:        "battle-1",
 		KcpAddr:     "127.0.0.1:7001",
@@ -156,7 +156,7 @@ func TestCancelMatch(t *testing.T) {
 }
 
 func TestCancelMatchNotWaitingMapsToFailedPrecondition(t *testing.T) {
-	server := NewServer(rcenter.NewService())
+	server := NewServer(newTestCenterService())
 
 	_, err := server.CancelMatch(context.Background(), &rcenterpb.CancelMatchRequest{PlayerId: 7})
 	if status.Code(err) != codes.FailedPrecondition {
@@ -169,4 +169,18 @@ func mustRegisterBattleNode(t *testing.T, server *Server, node *rcenterpb.Battle
 	if _, err := server.RegisterBattleNode(context.Background(), &rcenterpb.RegisterBattleNodeRequest{Node: node}); err != nil {
 		t.Fatalf("RegisterBattleNode returned error: %v", err)
 	}
+}
+
+func newTestCenterService() *rcenter.GameCenterService {
+	return rcenter.NewService(&fakeBattleNodeController{})
+}
+
+type fakeBattleNodeController struct{}
+
+func (f *fakeBattleNodeController) RegisterNode(ctx context.Context, node rcenter.BattleNode) error {
+	return nil
+}
+
+func (f *fakeBattleNodeController) CreateRoom(ctx context.Context, nodeName string, input rcenter.CreateBattleRoomInput) error {
+	return nil
 }

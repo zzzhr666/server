@@ -8,17 +8,25 @@ import (
 	"time"
 )
 
+// BattleNodeController coordinates registered battle nodes over the control plane.
+type BattleNodeController interface {
+	CreateRoom(ctx context.Context, nodeName string, input CreateBattleRoomInput) error
+	RegisterNode(ctx context.Context, node BattleNode) error
+}
+
 // GameCenterService keeps registered battle nodes and the in-memory match queue.
 type GameCenterService struct {
-	mu             sync.Mutex
-	battleNodes    map[string]BattleNode
-	waitingPlayers []int64
+	mu                   sync.Mutex
+	battleNodes          map[string]BattleNode
+	waitingPlayers       []int64
+	battleNodeController BattleNodeController
 }
 
 // NewService creates an empty in-memory rcenter service.
-func NewService() *GameCenterService {
+func NewService(battleNodeController BattleNodeController) *GameCenterService {
 	return &GameCenterService{
-		battleNodes: make(map[string]BattleNode),
+		battleNodes:          make(map[string]BattleNode),
+		battleNodeController: battleNodeController,
 	}
 }
 
@@ -37,11 +45,14 @@ func (g *GameCenterService) RegisterBattleNode(ctx context.Context, node BattleN
 	if err := validateBattleNode(node); err != nil {
 		return err
 	}
+	if err := g.battleNodeController.RegisterNode(ctx, node); err != nil {
+		return err
+	}
 	g.mu.Lock()
 	defer g.mu.Unlock()
-
 	node.LastSeen = time.Now()
 	g.battleNodes[node.Name] = node
+
 	return nil
 }
 
@@ -65,19 +76,20 @@ func (g *GameCenterService) StartMatch(ctx context.Context, playerID int64) (*Ma
 		return nil, ErrInvalidPlayerID
 	}
 	g.mu.Lock()
-	defer g.mu.Unlock()
-
 	node, ok := g.selectBattleNode()
 	if !ok {
+		g.mu.Unlock()
 		return nil, ErrNoAvailableBattleNode
 	}
 	if g.isWaiting(playerID) {
+		g.mu.Unlock()
 		return &MatchResult{
 			Status: MatchStatusWaiting,
 		}, nil
 	}
 	if len(g.waitingPlayers) == 0 {
 		g.waitingPlayers = append(g.waitingPlayers, playerID)
+		g.mu.Unlock()
 		return &MatchResult{
 			Status: MatchStatusWaiting,
 		}, nil
@@ -85,13 +97,27 @@ func (g *GameCenterService) StartMatch(ctx context.Context, playerID int64) (*Ma
 
 	waitingPlayerID := g.waitingPlayers[0]
 	g.waitingPlayers = g.waitingPlayers[1:]
+	g.mu.Unlock()
+
+	roomName := newRandomName("room")
+	token := newRandomName("token")
+	playerIDs := []int64{waitingPlayerID, playerID}
+
+	if err := g.battleNodeController.CreateRoom(ctx, node.Name, CreateBattleRoomInput{
+		RoomName:  roomName,
+		Token:     token,
+		PlayerIDs: playerIDs,
+	}); err != nil {
+		return nil, err
+	}
+
 	return &MatchResult{
 		Status:         MatchStatusMatched,
-		RoomName:       newRandomName("room"),
-		Token:          newRandomName("token"),
+		RoomName:       roomName,
+		Token:          token,
 		BattleNodeName: node.Name,
 		BattleKCPAddr:  node.KCPAddr,
-		PlayerIDs:      []int64{waitingPlayerID, playerID},
+		PlayerIDs:      playerIDs,
 	}, nil
 }
 
