@@ -1,0 +1,51 @@
+syntax = "proto3";
+
+package battle.v1;
+
+option go_package = "server/internal/contract/battlepb;battlepb";
+
+service BattleControlService {
+  rpc CreateRoom(CreateRoomRequest) returns (CreateRoomResponse);
+  rpc JoinRoom(JoinRoomRequest) returns (JoinRoomResponse);
+}
+
+message CreateRoomRequest {
+  string room_name = 1;
+  string token = 2;
+  repeated int64 player_ids = 3;
+}
+
+enum CreateRoomStatus {
+  CREATE_ROOM_STATUS_UNSPECIFIED = 0;
+  CREATE_ROOM_STATUS_OK = 1;
+  CREATE_ROOM_STATUS_INVALID_REQUEST = 2;
+  CREATE_ROOM_STATUS_ALREADY_EXISTS = 3;
+  CREATE_ROOM_STATUS_INTERNAL_ERROR = 4;
+}
+
+message CreateRoomResponse {
+  CreateRoomStatus status = 1;
+  string message = 2;
+}
+
+message JoinRoomRequest {
+  string room_name = 1;
+  string token = 2;
+  int64 player_id = 3;
+}
+
+enum JoinRoomStatus {
+  JOIN_ROOM_STATUS_UNSPECIFIED = 0;
+  JOIN_ROOM_STATUS_OK = 1;
+  JOIN_ROOM_STATUS_INVALID_REQUEST = 2;
+  JOIN_ROOM_STATUS_ROOM_NOT_FOUND = 3;
+  JOIN_ROOM_STATUS_INVALID_TOKEN = 4;
+  JOIN_ROOM_STATUS_PLAYER_NOT_ALLOWED = 5;
+  JOIN_ROOM_STATUS_ALREADY_JOINED = 6;
+  JOIN_ROOM_STATUS_INTERNAL_ERROR = 7;
+}
+
+message JoinRoomResponse {
+  JoinRoomStatus status = 1;
+  string message = 2;
+}
