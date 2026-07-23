@@ -8,12 +8,11 @@ STATE_GRPC_TIMEOUT_SECONDS="${STATE_GRPC_TIMEOUT_SECONDS:-10}"
 RCENTER_GRPC_HOST="${RCENTER_GRPC_HOST:-127.0.0.1}"
 RCENTER_GRPC_PORT="${RCENTER_GRPC_PORT:-9002}"
 RCENTER_GRPC_TIMEOUT_SECONDS="${RCENTER_GRPC_TIMEOUT_SECONDS:-10}"
-REGISTER_DEMO_BATTLE_NODE="${REGISTER_DEMO_BATTLE_NODE:-1}"
-DEMO_BATTLE_NAME="${DEMO_BATTLE_NAME:-battle-demo}"
-DEMO_BATTLE_KCP_ADDR="${DEMO_BATTLE_KCP_ADDR:-127.0.0.1:7001}"
-DEMO_BATTLE_CONTROL_ADDR="${DEMO_BATTLE_CONTROL_ADDR:-127.0.0.1:9101}"
-DEMO_BATTLE_MAX_PLAYERS="${DEMO_BATTLE_MAX_PLAYERS:-100}"
-DEMO_BATTLE_ACTIVE_PLAYERS="${DEMO_BATTLE_ACTIVE_PLAYERS:-0}"
+START_BATTLE_SERVER="${START_BATTLE_SERVER:-1}"
+BUILD_BATTLE_SERVER="${BUILD_BATTLE_SERVER:-1}"
+BATTLE_BUILD_DIR="${BATTLE_BUILD_DIR:-battle-server/cmake-build-debug-wsl}"
+BATTLE_SERVER_BIN="${BATTLE_SERVER_BIN:-${BATTLE_BUILD_DIR}/battle_server}"
+BATTLE_CONTROL_PORT="${BATTLE_CONTROL_PORT:-9101}"
 LOGIC_1_PORT="${LOGIC_1_PORT:-8081}"
 LOGIC_2_PORT="${LOGIC_2_PORT:-8082}"
 START_NGINX="${START_NGINX:-1}"
@@ -22,6 +21,7 @@ NGINX_CONF="${ROOT_DIR}/deploy/nginx/logic.conf"
 
 state_pid=""
 rcenter_pid=""
+battle_pid=""
 logic_1_pid=""
 logic_2_pid=""
 nginx_started=""
@@ -38,6 +38,9 @@ cleanup() {
 	fi
 	if [[ -n "$rcenter_pid" ]] && kill -0 "$rcenter_pid" 2>/dev/null; then
 		kill "$rcenter_pid" 2>/dev/null || true
+	fi
+	if [[ -n "$battle_pid" ]] && kill -0 "$battle_pid" 2>/dev/null; then
+		kill "$battle_pid" 2>/dev/null || true
 	fi
 	if [[ -n "$state_pid" ]] && kill -0 "$state_pid" 2>/dev/null; then
 		kill "$state_pid" 2>/dev/null || true
@@ -138,6 +141,9 @@ cd "$ROOT_DIR"
 stop_existing_nginx
 stop_port_listener "state-server" "$STATE_GRPC_PORT"
 stop_port_listener "rcenter-server" "$RCENTER_GRPC_PORT"
+if [[ "$START_BATTLE_SERVER" == "1" ]]; then
+	stop_port_listener "battle-server control" "$BATTLE_CONTROL_PORT"
+fi
 stop_port_listener "logic-1" "$LOGIC_1_PORT"
 stop_port_listener "logic-2" "$LOGIC_2_PORT"
 if [[ "$START_NGINX" == "1" ]]; then
@@ -151,21 +157,31 @@ state_pid=$!
 wait_for_state_grpc
 
 echo "Starting rcenter-server..."
-rcenter_args=()
-if [[ "$REGISTER_DEMO_BATTLE_NODE" == "1" ]]; then
-	rcenter_args+=(
-		--demo-battle-node
-		--demo-battle-name "$DEMO_BATTLE_NAME"
-		--demo-battle-kcp-addr "$DEMO_BATTLE_KCP_ADDR"
-		--demo-battle-control-addr "$DEMO_BATTLE_CONTROL_ADDR"
-		--demo-battle-max-players "$DEMO_BATTLE_MAX_PLAYERS"
-		--demo-battle-active-players "$DEMO_BATTLE_ACTIVE_PLAYERS"
-	)
-fi
-go run ./cmd/rcenter-server "${rcenter_args[@]}" &
+go run ./cmd/rcenter-server &
 rcenter_pid=$!
 
 wait_for_rcenter_grpc
+
+if [[ "$START_BATTLE_SERVER" == "1" ]]; then
+	if [[ "$BUILD_BATTLE_SERVER" == "1" ]]; then
+		echo "Building battle-server..."
+		cmake --build "$BATTLE_BUILD_DIR"
+	fi
+
+	if [[ ! -x "$BATTLE_SERVER_BIN" ]]; then
+		echo "battle-server binary not found or not executable: ${BATTLE_SERVER_BIN}" >&2
+		exit 1
+	fi
+
+	echo "Starting battle-server..."
+	"$BATTLE_SERVER_BIN" &
+	battle_pid=$!
+	sleep 0.5
+	if ! kill -0 "$battle_pid" 2>/dev/null; then
+		echo "battle-server exited during startup" >&2
+		exit 1
+	fi
+fi
 
 echo "Starting logic-server logic-1 on :${LOGIC_1_PORT}..."
 go run ./cmd/logic-server -p "${LOGIC_1_PORT}" --name logic-1 &
@@ -185,4 +201,8 @@ if [[ "$START_NGINX" == "1" ]]; then
 	nginx_started="1"
 fi
 
-wait "$logic_1_pid" "$logic_2_pid"
+wait_pids=("$logic_1_pid" "$logic_2_pid")
+if [[ -n "$battle_pid" ]]; then
+	wait_pids+=("$battle_pid")
+fi
+wait "${wait_pids[@]}"
