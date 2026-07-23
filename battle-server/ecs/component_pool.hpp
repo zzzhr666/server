@@ -13,7 +13,7 @@ namespace battle::ecs {
     public:
         static constexpr std::size_t INVALID_INDEX = std::numeric_limits<std::size_t>::max();
 
-        bool has(Entity entity) const {
+        [[nodiscard]] bool has(Entity entity) const {
             if (entity >= sparse_.size())
                 return false;
 

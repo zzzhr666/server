@@ -2,7 +2,7 @@
 
 #include <cmath>
 
-battle::ecs::World::World() : entity_manager_() {}
+battle::ecs::World::World() = default;
 
 battle::ecs::Entity battle::ecs::World::create_player(CreatePlayerConfig config) {
     if (player_entities_.contains(config.player_id)) {
@@ -20,6 +20,17 @@ battle::ecs::Entity battle::ecs::World::create_player(CreatePlayerConfig config)
     player_controllers_.emplace(entity, config.player_id);
 
     player_entities_[config.player_id] = entity;
+    return entity;
+}
+
+battle::ecs::Entity battle::ecs::World::create_monster(CreateMonsterConfig config) {
+    Entity entity = entity_manager_.create();
+    transforms_.emplace(entity, Position{.x = config.x_position, .y = config.y_position},
+                        Direction{.x = 0.0f, .y = 1.0f});
+    velocities_.emplace(entity, 0.0f, 0.0f);
+    health_.emplace(entity, config.max_health, config.max_health);
+    character_stats_.emplace(entity, config.move_speed);
+
     return entity;
 }
 
@@ -64,4 +75,34 @@ void battle::ecs::World::tick(float delta_seconds) {
         transform->position += Position{.x = velocity->x * delta_seconds, .y = velocity->y * delta_seconds};
         transform->direction = {.x = dir_x, .y = dir_y};
     }
+}
+
+battle::ecs::WorldSnapshot battle::ecs::World::snapshot() const {
+    WorldSnapshot snap_shot;
+    for (const auto entity : entity_manager_.entities()) {
+        auto* transform = transforms_.try_get(entity);
+        auto* health = health_.try_get(entity);
+        if (transform && health) {
+            snap_shot.entities.emplace_back(entity, transform->position.x, transform->position.y,
+                                            transform->direction.x, transform->direction.y,
+                                            health->current_health, health->max_health);
+        }
+    }
+    return snap_shot;
+}
+
+bool battle::ecs::World::destroy_entity(Entity entity) {
+    if (!entity_manager_.destroy(entity)) {
+        return false;
+    }
+    transforms_.remove(entity);
+    velocities_.remove(entity);
+    character_stats_.remove(entity);
+    move_input_.remove(entity);
+    health_.remove(entity);
+    if (auto p = player_controllers_.try_get(entity)) {
+        player_entities_.erase(p->player_id);
+    }
+    player_controllers_.remove(entity);
+    return true;
 }

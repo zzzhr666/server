@@ -17,11 +17,34 @@ namespace battle::ecs {
         float move_speed;
     };
 
+    struct CreateMonsterConfig {
+        float x_position;
+        float y_position;
+        int max_health;
+        float move_speed;
+    };
+
+    struct EntitySnapshot {
+        Entity entity;
+        float x_position;
+        float y_position;
+        float x_direction;
+        float y_direction;
+        int current_health;
+        int max_health;
+    };
+
+    struct WorldSnapshot {
+        std::vector<EntitySnapshot> entities;
+    };
+
     class World {
     public:
         World();
 
         Entity create_player(CreatePlayerConfig config);
+
+        Entity create_monster(CreateMonsterConfig config);
 
         bool has_entity(Entity entity) const;
 
@@ -36,6 +59,10 @@ namespace battle::ecs {
         const ComponentPool<PlayerController>& player_controllers() const {
             return player_controllers_;
         }
+
+        WorldSnapshot snapshot() const;
+
+        bool destroy_entity(Entity entity);
 
     private:
         EntityManager entity_manager_;

@@ -19,6 +19,16 @@ namespace battle::ecs {
             return alive_entities_;
         }
 
+        bool destroy(Entity entity) {
+            if (!has(entity)) {
+                return false;
+            }
+            auto it = std::ranges::find(alive_entities_, entity);
+            *it = alive_entities_.back();
+            alive_entities_.pop_back();
+            return true;
+        }
+
         Entity create() {
             auto entity = next_entity_++;
             alive_entities_.push_back(entity);
