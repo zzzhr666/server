@@ -50,6 +50,7 @@ namespace battle {
     struct JoinRoomResult {
         JoinRoomStatus status;
         std::string message;
+        bool all_players_joined;
     };
 
     /// Room stores immutable admission data plus the current joined players.

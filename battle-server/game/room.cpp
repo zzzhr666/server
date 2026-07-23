@@ -19,22 +19,34 @@ bool battle::Room::can_join(int64_t player_id, std::string_view token) const {
 
 battle::JoinRoomResult battle::Room::join(std::int64_t player_id, std::string_view token) {
     if (player_id <= 0 || token.empty()) {
-        return {.status = JoinRoomStatus::InvalidRequest, .message = "invalid request"};
+        return {.status = JoinRoomStatus::InvalidRequest, .message = "invalid request", .all_players_joined = false};
     }
 
     std::lock_guard<std::mutex> lock(join_mutex_);
 
     if (token != token_) {
-        return {.status = JoinRoomStatus::InvalidToken, .message = "token does not match request"};
+        return {
+            .status = JoinRoomStatus::InvalidToken, .message = "token does not match request",
+            .all_players_joined = false
+        };
     }
 
-    if (!std::ranges::any_of(allowed_player_ids_, [player_id](std::int64_t x) { return x == player_id; })) {
-        return {.status = JoinRoomStatus::PlayerNotAllowed, .message = "player not allowed"};
+    if (!std::ranges::any_of(allowed_player_ids_, [player_id](std::int64_t x) {
+        return x == player_id;
+    })) {
+        return {
+            .status = JoinRoomStatus::PlayerNotAllowed, .message = "player not allowed", .all_players_joined = false
+        };
     }
 
     if (joined_player_ids_.contains(player_id)) {
-        return {.status = JoinRoomStatus::AlreadyJoined, .message = "player already joined"};
+        return {
+            .status = JoinRoomStatus::AlreadyJoined, .message = "player already joined", .all_players_joined = false
+        };
     }
     joined_player_ids_.insert(player_id);
-    return {.status = JoinRoomStatus::OK, .message = "player joined"};
+    return {
+        .status = JoinRoomStatus::OK, .message = "player joined",
+        .all_players_joined = allowed_player_ids_.size() == joined_player_ids_.size()
+    };
 }

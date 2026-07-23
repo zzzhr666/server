@@ -70,16 +70,20 @@ std::size_t battle::RoomManager::active_players() const {
     return active_players_;
 }
 
-battle::JoinRoomResult battle::RoomManager::join_room(JoinRoomRequest request) {
+battle::JoinRoomResult battle::RoomManager::join_room(const JoinRoomRequest& request) {
     if (request.room_name.empty() || request.token.empty()) {
-        return {.status = JoinRoomStatus::InvalidRequest, .message = "invalid room name"};
+        return {
+            .status = JoinRoomStatus::InvalidRequest,
+            .message = "invalid room name",
+            .all_players_joined = false
+        };
     }
     std::shared_ptr<Room> room;
     {
         std::lock_guard<std::mutex> lock(mutex_);
         const auto it = rooms_.find(request.room_name);
         if (it == rooms_.end()) {
-            return {.status = JoinRoomStatus::RoomNotFound, .message = "room not found"};
+            return {.status = JoinRoomStatus::RoomNotFound, .message = "room not found",.all_players_joined = false};
         }
         room = it->second;
     }

@@ -28,7 +28,8 @@ namespace battle {
         std::size_t active_players() const;
 
         /// Marks a player as joined if the room token and whitelist allow it.
-        JoinRoomResult join_room(JoinRoomRequest request);
+        JoinRoomResult join_room(const JoinRoomRequest& request);
+
 
     private:
         mutable std::mutex mutex_;

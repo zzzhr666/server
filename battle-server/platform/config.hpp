@@ -9,6 +9,7 @@ namespace battle {
         std::string kcp_addr;
         int max_players;
         int tick_rate;
+        std::string rcenter_addr;
     };
 
     /// DefaultConfig returns development defaults for a single local battle node.

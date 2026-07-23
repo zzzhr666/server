@@ -12,6 +12,9 @@ find_package(gRPC CONFIG REQUIRED)
 add_library(battle_proto
         generated/proto/battle/v1/battle.pb.cc
         generated/proto/battle/v1/battle.grpc.pb.cc
+        generated/proto/battle/v1/session.pb.cc
+        generated/proto/rcenter/v1/rcenter.pb.cc
+        generated/proto/rcenter/v1/rcenter.grpc.pb.cc
 )
 
 add_library(battle_platform
@@ -22,14 +25,25 @@ add_library(battle_app INTERFACE)
 add_library(battle_control
         control/control_handler.cpp
         control/grpc_server.cpp
-        control/grpc_server.hpp
 )
 add_library(battle_ecs INTERFACE)
 add_library(battle_game
         game/room.cpp
         game/game_manager.cpp
 )
-add_library(battle_net INTERFACE)
+add_library(battle_net
+        session/battle_session.cpp
+        session/session_manager.cpp
+        net/packet_codec.cpp
+        net/udp_server.cpp
+        net/udp_server.hpp
+        runtime/battle_runtime.cpp)
+
+add_library(battle_registry
+        registry/rcenter_client.cpp
+        registry/rcenter_client.hpp
+        registry/node_registrar.cpp
+        registry/node_registrar.hpp)
 
 add_executable(battle_server
         main.cpp)
@@ -41,6 +55,9 @@ target_include_directories(battle_game PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR})
 
 target_include_directories(battle_control PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR})
+
+target_include_directories(battle_registry PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR})
 
 target_include_directories(battle_proto PUBLIC
@@ -56,10 +73,22 @@ target_link_libraries(battle_control PUBLIC
         battle_proto
 )
 
+target_link_libraries(battle_net PUBLIC
+        battle_game
+        battle_proto
+)
+
+target_link_libraries(battle_registry PUBLIC
+        battle_game
+        battle_platform
+        battle_proto
+)
+
 target_link_libraries(battle_server PRIVATE
         battle_platform
         battle_app
         battle_control
         battle_ecs
         battle_game
-        battle_net)
+        battle_net
+        battle_registry)
