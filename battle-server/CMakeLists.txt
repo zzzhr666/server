@@ -8,6 +8,9 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 find_package(Protobuf CONFIG REQUIRED)
 find_package(gRPC CONFIG REQUIRED)
+find_package(GTest CONFIG REQUIRED)
+
+enable_testing()
 
 add_library(battle_proto
         generated/proto/battle/v1/battle.pb.cc
@@ -26,7 +29,9 @@ add_library(battle_control
         control/control_handler.cpp
         control/grpc_server.cpp
 )
-add_library(battle_ecs INTERFACE)
+add_library(battle_ecs
+        ecs/world.cpp
+)
 add_library(battle_game
         game/room.cpp
         game/game_manager.cpp
@@ -36,14 +41,12 @@ add_library(battle_net
         session/session_manager.cpp
         net/packet_codec.cpp
         net/udp_server.cpp
-        net/udp_server.hpp
         runtime/battle_runtime.cpp)
 
 add_library(battle_registry
         registry/rcenter_client.cpp
-        registry/rcenter_client.hpp
         registry/node_registrar.cpp
-        registry/node_registrar.hpp)
+)
 
 add_executable(battle_server
         main.cpp)
@@ -58,6 +61,9 @@ target_include_directories(battle_control PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR})
 
 target_include_directories(battle_registry PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR})
+
+target_include_directories(battle_ecs PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR})
 
 target_include_directories(battle_proto PUBLIC
@@ -92,3 +98,15 @@ target_link_libraries(battle_server PRIVATE
         battle_game
         battle_net
         battle_registry)
+
+add_executable(battle_ecs_tests
+        ecs/tests/world_test.cpp
+)
+
+target_link_libraries(battle_ecs_tests PRIVATE
+        battle_ecs
+        GTest::gtest_main
+)
+
+include(GoogleTest)
+gtest_discover_tests(battle_ecs_tests)
