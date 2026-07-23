@@ -36,12 +36,21 @@ add_library(battle_game
         game/room.cpp
         game/game_manager.cpp
 )
-add_library(battle_net
+add_library(battle_gameplay
+        gameplay/spawn_planner.cpp
+)
+add_library(battle_session
         session/battle_session.cpp
         session/session_manager.cpp
+)
+add_library(battle_runtime
+        runtime/battle_runtime.cpp
+        runtime/battle_instance.cpp
+)
+add_library(battle_net
         net/packet_codec.cpp
         net/udp_server.cpp
-        runtime/battle_runtime.cpp)
+)
 
 add_library(battle_registry
         registry/rcenter_client.cpp
@@ -55,6 +64,18 @@ target_include_directories(battle_platform PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR})
 
 target_include_directories(battle_game PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR})
+
+target_include_directories(battle_gameplay PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR})
+
+target_include_directories(battle_session PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR})
+
+target_include_directories(battle_runtime PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR})
+
+target_include_directories(battle_net PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR})
 
 target_include_directories(battle_control PUBLIC
@@ -79,8 +100,24 @@ target_link_libraries(battle_control PUBLIC
         battle_proto
 )
 
-target_link_libraries(battle_net PUBLIC
+target_link_libraries(battle_gameplay PUBLIC
+        battle_ecs
+)
+
+target_link_libraries(battle_session PUBLIC
         battle_game
+)
+
+target_link_libraries(battle_runtime PUBLIC
+        battle_game
+        battle_session
+        battle_gameplay
+        battle_proto
+)
+
+target_link_libraries(battle_net PUBLIC
+        battle_runtime
+        battle_session
         battle_proto
 )
 
@@ -96,6 +133,7 @@ target_link_libraries(battle_server PRIVATE
         battle_control
         battle_ecs
         battle_game
+        battle_gameplay
         battle_net
         battle_registry)
 
@@ -108,5 +146,16 @@ target_link_libraries(battle_ecs_tests PRIVATE
         GTest::gtest_main
 )
 
+add_executable(battle_runtime_tests
+        gameplay/tests/spawn_planner_test.cpp
+        runtime/tests/battle_instance_test.cpp
+)
+
+target_link_libraries(battle_runtime_tests PRIVATE
+        battle_runtime
+        GTest::gtest_main
+)
+
 include(GoogleTest)
 gtest_discover_tests(battle_ecs_tests)
+gtest_discover_tests(battle_runtime_tests)
