@@ -159,11 +159,22 @@ Redis:           127.0.0.1:6379
 C++ battle-server 当前默认配置在 `battle-server/platform/config.cpp`：
 
 ```text
-node_name:    battle-demo
-control_addr: 127.0.0.1:9101
-kcp_addr:     127.0.0.1:7001
-max_players:  100
-tick_rate:    30
+node_name:       battle-demo
+control_addr:    127.0.0.1:9101
+kcp_bind_addr:   0.0.0.0:7001
+kcp_addr:        自动检测到的本机私网 IPv4:7001，例如 WSL 下的 172.x.x.x:7001
+max_players:     100
+tick_rate:       30
+```
+
+`kcp_bind_addr` 是 battle-server 实际监听 UDP 的地址，`kcp_addr` 是注册给 rcenter 并最终发给客户端连接的地址。默认会自动检测非 loopback 私网 IPv4，适合 Unity 跑在 Windows、battle-server 跑在 WSL 的本地开发场景。
+
+如需手动覆盖：
+
+```bash
+BATTLE_KCP_BIND_ADDR=0.0.0.0:7001 \
+BATTLE_KCP_PUBLIC_ADDR=172.29.93.11:7001 \
+./battle-server/cmake-build-debug-wsl/battle_server
 ```
 
 ## 启动
@@ -187,7 +198,7 @@ cmake --build battle-server/cmake-build-debug-wsl
 REGISTER_DEMO_BATTLE_NODE=0 bash scripts/run.sh
 ```
 
-`scripts/run.sh` 会启动 `state-server`、`rcenter-server` 和两个 `logic-server` 实例。当前脚本里保留了 demo battle node flags，但 `cmd/rcenter-server` 还没有解析这些启动参数，所以本阶段用 `REGISTER_DEMO_BATTLE_NODE=0` 启动，再用 gRPC 手动注册 battle 节点。
+`scripts/run.sh` 会启动 `state-server`、`rcenter-server` 和两个 `logic-server` 实例。battle-server 启动后会自动向 rcenter 注册节点并定时刷新。
 
 如果不想启动 nginx：
 
@@ -195,7 +206,7 @@ REGISTER_DEMO_BATTLE_NODE=0 bash scripts/run.sh
 START_NGINX=0 REGISTER_DEMO_BATTLE_NODE=0 bash scripts/run.sh
 ```
 
-手动向 rcenter 注册 battle 节点：
+如需绕过 battle-server 自动注册，也可以手动向 rcenter 注册 battle 节点：
 
 ```bash
 grpcurl -plaintext \

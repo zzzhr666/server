@@ -6,6 +6,7 @@ namespace battle {
     struct Config {
         std::string node_name;
         std::string control_addr;
+        std::string kcp_bind_addr;
         std::string kcp_addr;
         int max_players;
         int tick_rate;

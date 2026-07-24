@@ -17,7 +17,7 @@ int main() {
     auto config = battle::DefaultConfig();
     battle::RoomManager room_manager{};
     battle::SessionManager session_manager{room_manager};
-    battle::UdpServer udp_server{config.kcp_addr, session_manager};
+    battle::UdpServer udp_server{config.kcp_bind_addr, session_manager};
     battle::BattleRuntime battle_runtime{
         room_manager,
         session_manager,
@@ -31,7 +31,7 @@ int main() {
     battle::BattleControlServiceImpl service{control_handler};
 
     if (!udp_server.start()) {
-        std::cerr << "failed to start battle udp server on " << config.kcp_addr << std::endl;
+        std::cerr << "failed to start battle udp server on " << config.kcp_bind_addr << std::endl;
         return 1;
     }
     battle_runtime.start();
@@ -49,7 +49,8 @@ int main() {
 
     std::cerr << "battle control server listening on: " << config.control_addr
         << "\nnode = " << config.node_name
-        << "\nkcp = " << config.kcp_addr << std::endl;
+        << "\nkcp bind = " << config.kcp_bind_addr
+        << "\nkcp public = " << config.kcp_addr << std::endl;
     battle::RCenterClient rcenter_client{
         grpc::CreateChannel(config.rcenter_addr, grpc::InsecureChannelCredentials())
     };
