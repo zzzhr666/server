@@ -19,6 +19,10 @@ namespace battle {
                               const v1::JoinRoomRequest* request,
                               v1::JoinRoomResponse* response) override;
 
+        grpc::Status EndRoom(grpc::ServerContext* context,
+                             const v1::EndRoomRequest* request,
+                             v1::EndRoomResponse* response) override;
+
     private:
         ControlHandler& control_handler_;
     };

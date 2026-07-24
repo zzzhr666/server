@@ -13,12 +13,17 @@
 
 namespace battle {
     class SessionManager;
-    class RoomManager;
 
     class UdpServer {
     public:
-        UdpServer(std::string listen_addr, RoomManager& room_manager, SessionManager& session_manager);
+        UdpServer(std::string listen_addr, SessionManager& session_manager);
+
+        void set_runtime(BattleRuntime& battle_runtime);
+
+        void send_packet(const v1::ServerPacket& packet, const UdpEndpoint& endpoint);
+
         bool start();
+
         void stop();
 
     private:
@@ -32,10 +37,15 @@ namespace battle {
 
         bool parse_listen_addr_(sockaddr_in& out) const;
 
+        void handle_hello_(const v1::ClientPacket& packet, const sockaddr_in& remote_addr, socklen_t remote_addr_len);
+
+        void handle_move_input(const v1::ClientPacket& packet, const sockaddr_in& remote_addr,
+                               socklen_t remote_addr_len);
+
     private:
         std::string listen_addr_;
         SessionManager& session_manager_;
-        BattleRuntime battle_runtime_;
+        BattleRuntime* battle_runtime_;
         std::atomic<bool> running_;
         int fd_;
         std::atomic<std::uint32_t> next_conv_;

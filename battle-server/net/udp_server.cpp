@@ -12,15 +12,13 @@
 #include "session/session_manager.hpp"
 
 
-battle::UdpServer::UdpServer(std::string listen_addr,RoomManager& room_manager, SessionManager& session_manager)
+battle::UdpServer::UdpServer(std::string listen_addr, SessionManager& session_manager)
     : listen_addr_(std::move(listen_addr)), session_manager_(session_manager),
-      battle_runtime_(room_manager,session_manager, [this](const v1::ServerPacket& p, const UdpEndpoint& ep) {
-          send_packet_(p, ep.addr, sizeof(ep.addr));
-      }), running_(false), fd_(-1),
+      battle_runtime_(nullptr), running_(false), fd_(-1),
       next_conv_(1) {}
 
 bool battle::UdpServer::start() {
-    fd_ = socket(AF_INET,SOCK_DGRAM, 0);
+    fd_ = socket(AF_INET, SOCK_DGRAM, 0);
     if (fd_ < 0) {
         return false;
     }
@@ -58,6 +56,10 @@ void battle::UdpServer::stop() {
     }
 }
 
+void battle::UdpServer::set_runtime(BattleRuntime& battle_runtime) {
+    battle_runtime_ = &battle_runtime;
+}
+
 void battle::UdpServer::run_loop_() {
     while (running_) {
         sockaddr_in remote_addr{};
@@ -75,33 +77,20 @@ void battle::UdpServer::run_loop_() {
             send_packet_(make_error("bad_packet", "decode client packet failed"), remote_addr, len);
             continue;
         }
-        if (packet->payload_case() != v1::ClientPacket::kHello) {
-            send_packet_(make_error("unexpected_packet", "unexpected packet"), remote_addr, len);
-            continue;
+        switch (packet->payload_case()) {
+        case v1::ClientPacket::kHello: {
+            handle_hello_(packet.value(), remote_addr, len);
+            break;
         }
 
-        const auto& hello = packet->hello();
-        if (hello.room_name().empty() || hello.token().empty() || hello.player_id() <= 0) {
-            send_packet_(make_error("invalid_request", "invalid hello"), remote_addr, len);
-            continue;
+        case v1::ClientPacket::kMoveInput: {
+            handle_move_input(packet.value(), remote_addr, len);
+            break;
         }
-        auto conv = get_next_conv_();
-        auto join_res = session_manager_.join({
-            .room_name = hello.room_name(),
-            .token = hello.token(),
-            .player_id = hello.player_id(),
-            .conv = conv,
-            .endpoint = UdpEndpoint{remote_addr}
-        });
-        if (join_res.status == JoinSessionStatus::OK) {
-            send_packet_(make_server_hello(join_res.session->conv(), "session joined"), remote_addr, len);
-            if (join_res.all_players_joined) {
-                battle_runtime_.start_room(std::string(join_res.session->room_name()));
-            }
-        } else if (join_res.status == JoinSessionStatus::AlreadyJoined && join_res.session) {
-            send_packet_(make_server_hello(join_res.session->conv(), "session already joined"), remote_addr, len);
-        } else {
-            send_packet_(make_error("join_failed", join_res.message), remote_addr, len);
+
+        default: {
+            send_packet_(make_error("unexpected_packet", "unexpected packet"), remote_addr, len);
+        }
         }
     }
 }
@@ -144,4 +133,60 @@ bool battle::UdpServer::parse_listen_addr_(sockaddr_in& out) const {
     }
 
     return true;
+}
+
+void battle::UdpServer::handle_hello_(const v1::ClientPacket& packet, const sockaddr_in& remote_addr,
+                                      socklen_t remote_addr_len) {
+    const auto& hello = packet.hello();
+    if (hello.room_name().empty() || hello.token().empty() || hello.player_id() <= 0) {
+        send_packet_(make_error("invalid_request", "invalid hello"), remote_addr, remote_addr_len);
+        return;
+    }
+    auto conv = get_next_conv_();
+    auto join_res = session_manager_.join({
+        .room_name = hello.room_name(),
+        .token = hello.token(),
+        .player_id = hello.player_id(),
+        .conv = conv,
+        .endpoint = UdpEndpoint{remote_addr}
+    });
+    if (join_res.status == JoinSessionStatus::OK) {
+        send_packet_(make_server_hello(join_res.session->conv(), "session joined"), remote_addr, remote_addr_len);
+        if (join_res.all_players_joined) {
+            if (!battle_runtime_) {
+                send_packet_(make_error("runtime_unavailable", "battle runtime is not attached"), remote_addr,
+                             remote_addr_len);
+                return;
+            }
+            battle_runtime_->start_room(std::string(join_res.session->room_name()));
+        }
+    } else if (join_res.status == JoinSessionStatus::AlreadyJoined && join_res.session) {
+        send_packet_(make_server_hello(join_res.session->conv(), "session already joined"), remote_addr,
+                     remote_addr_len);
+    } else {
+        send_packet_(make_error("join_failed", join_res.message), remote_addr, remote_addr_len);
+    }
+}
+
+void battle::UdpServer::handle_move_input(const v1::ClientPacket& packet,
+                                          const sockaddr_in& remote_addr,
+                                          socklen_t remote_addr_len) {
+    const auto& move_input = packet.move_input();
+    if (move_input.room_name().empty() || move_input.player_id() <= 0) {
+        send_packet_(make_error("invalid_request", "invalid move input"), remote_addr, remote_addr_len);
+        return;
+    }
+    if (!battle_runtime_) {
+        send_packet_(make_error("runtime_unavailable", "battle runtime is not attached"), remote_addr,
+                     remote_addr_len);
+        return;
+    }
+    if (!battle_runtime_->receive_input(move_input.room_name(), move_input.player_id(), move_input.x(),
+                                        move_input.y())) {
+        send_packet_(make_error("internal_error", "unable to locate instance or entity"), remote_addr, remote_addr_len);
+    }
+}
+
+void battle::UdpServer::send_packet(const v1::ServerPacket& packet, const UdpEndpoint& endpoint) {
+    send_packet_(packet, endpoint.addr, sizeof(endpoint.addr));
 }

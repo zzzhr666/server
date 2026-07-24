@@ -101,6 +101,7 @@ target_link_libraries(battle_proto PUBLIC
 
 target_link_libraries(battle_control PUBLIC
         battle_game
+        battle_runtime
         battle_proto
 )
 
@@ -153,10 +154,12 @@ target_link_libraries(battle_ecs_tests PRIVATE
 add_executable(battle_runtime_tests
         gameplay/tests/spawn_planner_test.cpp
         runtime/tests/battle_instance_test.cpp
+        runtime/tests/battle_runtime_test.cpp
 )
 
 target_link_libraries(battle_runtime_tests PRIVATE
         battle_runtime
+        battle_net
         GTest::gtest_main
 )
 

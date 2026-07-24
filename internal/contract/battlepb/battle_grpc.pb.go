@@ -21,6 +21,7 @@ const _ = grpc.SupportPackageIsVersion9
 const (
 	BattleControlService_CreateRoom_FullMethodName = "/battle.v1.BattleControlService/CreateRoom"
 	BattleControlService_JoinRoom_FullMethodName   = "/battle.v1.BattleControlService/JoinRoom"
+	BattleControlService_EndRoom_FullMethodName    = "/battle.v1.BattleControlService/EndRoom"
 )
 
 // BattleControlServiceClient is the client API for BattleControlService service.
@@ -29,6 +30,7 @@ const (
 type BattleControlServiceClient interface {
 	CreateRoom(ctx context.Context, in *CreateRoomRequest, opts ...grpc.CallOption) (*CreateRoomResponse, error)
 	JoinRoom(ctx context.Context, in *JoinRoomRequest, opts ...grpc.CallOption) (*JoinRoomResponse, error)
+	EndRoom(ctx context.Context, in *EndRoomRequest, opts ...grpc.CallOption) (*EndRoomResponse, error)
 }
 
 type battleControlServiceClient struct {
@@ -59,12 +61,23 @@ func (c *battleControlServiceClient) JoinRoom(ctx context.Context, in *JoinRoomR
 	return out, nil
 }
 
+func (c *battleControlServiceClient) EndRoom(ctx context.Context, in *EndRoomRequest, opts ...grpc.CallOption) (*EndRoomResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(EndRoomResponse)
+	err := c.cc.Invoke(ctx, BattleControlService_EndRoom_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // BattleControlServiceServer is the server API for BattleControlService service.
 // All implementations must embed UnimplementedBattleControlServiceServer
 // for forward compatibility.
 type BattleControlServiceServer interface {
 	CreateRoom(context.Context, *CreateRoomRequest) (*CreateRoomResponse, error)
 	JoinRoom(context.Context, *JoinRoomRequest) (*JoinRoomResponse, error)
+	EndRoom(context.Context, *EndRoomRequest) (*EndRoomResponse, error)
 	mustEmbedUnimplementedBattleControlServiceServer()
 }
 
@@ -80,6 +93,9 @@ func (UnimplementedBattleControlServiceServer) CreateRoom(context.Context, *Crea
 }
 func (UnimplementedBattleControlServiceServer) JoinRoom(context.Context, *JoinRoomRequest) (*JoinRoomResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method JoinRoom not implemented")
+}
+func (UnimplementedBattleControlServiceServer) EndRoom(context.Context, *EndRoomRequest) (*EndRoomResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method EndRoom not implemented")
 }
 func (UnimplementedBattleControlServiceServer) mustEmbedUnimplementedBattleControlServiceServer() {}
 func (UnimplementedBattleControlServiceServer) testEmbeddedByValue()                              {}
@@ -138,6 +154,24 @@ func _BattleControlService_JoinRoom_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BattleControlService_EndRoom_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(EndRoomRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BattleControlServiceServer).EndRoom(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BattleControlService_EndRoom_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BattleControlServiceServer).EndRoom(ctx, req.(*EndRoomRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // BattleControlService_ServiceDesc is the grpc.ServiceDesc for BattleControlService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -152,6 +186,10 @@ var BattleControlService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "JoinRoom",
 			Handler:    _BattleControlService_JoinRoom_Handler,
+		},
+		{
+			MethodName: "EndRoom",
+			Handler:    _BattleControlService_EndRoom_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

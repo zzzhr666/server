@@ -242,6 +242,7 @@ type ClientPacket struct {
 	// Types that are valid to be assigned to Payload:
 	//
 	//	*ClientPacket_Hello
+	//	*ClientPacket_MoveInput
 	Payload       isClientPacket_Payload `protobuf_oneof:"payload"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -293,6 +294,15 @@ func (x *ClientPacket) GetHello() *ClientHello {
 	return nil
 }
 
+func (x *ClientPacket) GetMoveInput() *ClientMoveInput {
+	if x != nil {
+		if x, ok := x.Payload.(*ClientPacket_MoveInput); ok {
+			return x.MoveInput
+		}
+	}
+	return nil
+}
+
 type isClientPacket_Payload interface {
 	isClientPacket_Payload()
 }
@@ -301,7 +311,13 @@ type ClientPacket_Hello struct {
 	Hello *ClientHello `protobuf:"bytes,1,opt,name=hello,proto3,oneof"`
 }
 
+type ClientPacket_MoveInput struct {
+	MoveInput *ClientMoveInput `protobuf:"bytes,2,opt,name=move_input,json=moveInput,proto3,oneof"`
+}
+
 func (*ClientPacket_Hello) isClientPacket_Payload() {}
+
+func (*ClientPacket_MoveInput) isClientPacket_Payload() {}
 
 type ServerPacket struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -311,6 +327,7 @@ type ServerPacket struct {
 	//	*ServerPacket_GameStart
 	//	*ServerPacket_Error
 	//	*ServerPacket_GameOver
+	//	*ServerPacket_Snapshot
 	Payload       isServerPacket_Payload `protobuf_oneof:"payload"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -389,6 +406,15 @@ func (x *ServerPacket) GetGameOver() *GameOver {
 	return nil
 }
 
+func (x *ServerPacket) GetSnapshot() *WorldSnapshot {
+	if x != nil {
+		if x, ok := x.Payload.(*ServerPacket_Snapshot); ok {
+			return x.Snapshot
+		}
+	}
+	return nil
+}
+
 type isServerPacket_Payload interface {
 	isServerPacket_Payload()
 }
@@ -409,6 +435,10 @@ type ServerPacket_GameOver struct {
 	GameOver *GameOver `protobuf:"bytes,4,opt,name=game_over,json=gameOver,proto3,oneof"`
 }
 
+type ServerPacket_Snapshot struct {
+	Snapshot *WorldSnapshot `protobuf:"bytes,5,opt,name=snapshot,proto3,oneof"`
+}
+
 func (*ServerPacket_Hello) isServerPacket_Payload() {}
 
 func (*ServerPacket_GameStart) isServerPacket_Payload() {}
@@ -416,6 +446,8 @@ func (*ServerPacket_GameStart) isServerPacket_Payload() {}
 func (*ServerPacket_Error) isServerPacket_Payload() {}
 
 func (*ServerPacket_GameOver) isServerPacket_Payload() {}
+
+func (*ServerPacket_Snapshot) isServerPacket_Payload() {}
 
 type GameOver struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
@@ -477,6 +509,218 @@ func (x *GameOver) GetReason() string {
 	return ""
 }
 
+type ClientMoveInput struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	RoomName      string                 `protobuf:"bytes,1,opt,name=room_name,json=roomName,proto3" json:"room_name,omitempty"`
+	PlayerId      int64                  `protobuf:"varint,2,opt,name=player_id,json=playerId,proto3" json:"player_id,omitempty"`
+	X             float32                `protobuf:"fixed32,3,opt,name=x,proto3" json:"x,omitempty"`
+	Y             float32                `protobuf:"fixed32,4,opt,name=y,proto3" json:"y,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ClientMoveInput) Reset() {
+	*x = ClientMoveInput{}
+	mi := &file_proto_battle_v1_session_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ClientMoveInput) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ClientMoveInput) ProtoMessage() {}
+
+func (x *ClientMoveInput) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_battle_v1_session_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ClientMoveInput.ProtoReflect.Descriptor instead.
+func (*ClientMoveInput) Descriptor() ([]byte, []int) {
+	return file_proto_battle_v1_session_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *ClientMoveInput) GetRoomName() string {
+	if x != nil {
+		return x.RoomName
+	}
+	return ""
+}
+
+func (x *ClientMoveInput) GetPlayerId() int64 {
+	if x != nil {
+		return x.PlayerId
+	}
+	return 0
+}
+
+func (x *ClientMoveInput) GetX() float32 {
+	if x != nil {
+		return x.X
+	}
+	return 0
+}
+
+func (x *ClientMoveInput) GetY() float32 {
+	if x != nil {
+		return x.Y
+	}
+	return 0
+}
+
+type EntitySnapshot struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Entity        uint32                 `protobuf:"varint,1,opt,name=entity,proto3" json:"entity,omitempty"`
+	XPosition     float32                `protobuf:"fixed32,2,opt,name=x_position,json=xPosition,proto3" json:"x_position,omitempty"`
+	YPosition     float32                `protobuf:"fixed32,3,opt,name=y_position,json=yPosition,proto3" json:"y_position,omitempty"`
+	XDirection    float32                `protobuf:"fixed32,4,opt,name=x_direction,json=xDirection,proto3" json:"x_direction,omitempty"`
+	YDirection    float32                `protobuf:"fixed32,5,opt,name=y_direction,json=yDirection,proto3" json:"y_direction,omitempty"`
+	CurrentHealth int32                  `protobuf:"varint,6,opt,name=current_health,json=currentHealth,proto3" json:"current_health,omitempty"`
+	MaxHealth     int32                  `protobuf:"varint,7,opt,name=max_health,json=maxHealth,proto3" json:"max_health,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *EntitySnapshot) Reset() {
+	*x = EntitySnapshot{}
+	mi := &file_proto_battle_v1_session_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *EntitySnapshot) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*EntitySnapshot) ProtoMessage() {}
+
+func (x *EntitySnapshot) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_battle_v1_session_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use EntitySnapshot.ProtoReflect.Descriptor instead.
+func (*EntitySnapshot) Descriptor() ([]byte, []int) {
+	return file_proto_battle_v1_session_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *EntitySnapshot) GetEntity() uint32 {
+	if x != nil {
+		return x.Entity
+	}
+	return 0
+}
+
+func (x *EntitySnapshot) GetXPosition() float32 {
+	if x != nil {
+		return x.XPosition
+	}
+	return 0
+}
+
+func (x *EntitySnapshot) GetYPosition() float32 {
+	if x != nil {
+		return x.YPosition
+	}
+	return 0
+}
+
+func (x *EntitySnapshot) GetXDirection() float32 {
+	if x != nil {
+		return x.XDirection
+	}
+	return 0
+}
+
+func (x *EntitySnapshot) GetYDirection() float32 {
+	if x != nil {
+		return x.YDirection
+	}
+	return 0
+}
+
+func (x *EntitySnapshot) GetCurrentHealth() int32 {
+	if x != nil {
+		return x.CurrentHealth
+	}
+	return 0
+}
+
+func (x *EntitySnapshot) GetMaxHealth() int32 {
+	if x != nil {
+		return x.MaxHealth
+	}
+	return 0
+}
+
+type WorldSnapshot struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	RoomName      string                 `protobuf:"bytes,1,opt,name=room_name,json=roomName,proto3" json:"room_name,omitempty"`
+	Entities      []*EntitySnapshot      `protobuf:"bytes,2,rep,name=entities,proto3" json:"entities,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *WorldSnapshot) Reset() {
+	*x = WorldSnapshot{}
+	mi := &file_proto_battle_v1_session_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *WorldSnapshot) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*WorldSnapshot) ProtoMessage() {}
+
+func (x *WorldSnapshot) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_battle_v1_session_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use WorldSnapshot.ProtoReflect.Descriptor instead.
+func (*WorldSnapshot) Descriptor() ([]byte, []int) {
+	return file_proto_battle_v1_session_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *WorldSnapshot) GetRoomName() string {
+	if x != nil {
+		return x.RoomName
+	}
+	return ""
+}
+
+func (x *WorldSnapshot) GetEntities() []*EntitySnapshot {
+	if x != nil {
+		return x.Entities
+	}
+	return nil
+}
+
 var File_proto_battle_v1_session_proto protoreflect.FileDescriptor
 
 const file_proto_battle_v1_session_proto_rawDesc = "" +
@@ -495,22 +739,46 @@ const file_proto_battle_v1_session_proto_rawDesc = "" +
 	"player_ids\x18\x02 \x03(\x03R\tplayerIds\"5\n" +
 	"\x05Error\x12\x12\n" +
 	"\x04code\x18\x01 \x01(\tR\x04code\x12\x18\n" +
-	"\amessage\x18\x02 \x01(\tR\amessage\"I\n" +
+	"\amessage\x18\x02 \x01(\tR\amessage\"\x86\x01\n" +
 	"\fClientPacket\x12.\n" +
-	"\x05hello\x18\x01 \x01(\v2\x16.battle.v1.ClientHelloH\x00R\x05helloB\t\n" +
-	"\apayload\"\xde\x01\n" +
+	"\x05hello\x18\x01 \x01(\v2\x16.battle.v1.ClientHelloH\x00R\x05hello\x12;\n" +
+	"\n" +
+	"move_input\x18\x02 \x01(\v2\x1a.battle.v1.ClientMoveInputH\x00R\tmoveInputB\t\n" +
+	"\apayload\"\x96\x02\n" +
 	"\fServerPacket\x12.\n" +
 	"\x05hello\x18\x01 \x01(\v2\x16.battle.v1.ServerHelloH\x00R\x05hello\x125\n" +
 	"\n" +
 	"game_start\x18\x02 \x01(\v2\x14.battle.v1.GameStartH\x00R\tgameStart\x12(\n" +
 	"\x05error\x18\x03 \x01(\v2\x10.battle.v1.ErrorH\x00R\x05error\x122\n" +
-	"\tgame_over\x18\x04 \x01(\v2\x13.battle.v1.GameOverH\x00R\bgameOverB\t\n" +
+	"\tgame_over\x18\x04 \x01(\v2\x13.battle.v1.GameOverH\x00R\bgameOver\x126\n" +
+	"\bsnapshot\x18\x05 \x01(\v2\x18.battle.v1.WorldSnapshotH\x00R\bsnapshotB\t\n" +
 	"\apayload\"^\n" +
 	"\bGameOver\x12\x1b\n" +
 	"\troom_name\x18\x01 \x01(\tR\broomName\x12\x1d\n" +
 	"\n" +
 	"player_ids\x18\x02 \x03(\x03R\tplayerIds\x12\x16\n" +
-	"\x06reason\x18\x03 \x01(\tR\x06reasonB,Z*server/internal/contract/battlepb;battlepbb\x06proto3"
+	"\x06reason\x18\x03 \x01(\tR\x06reason\"g\n" +
+	"\x0fClientMoveInput\x12\x1b\n" +
+	"\troom_name\x18\x01 \x01(\tR\broomName\x12\x1b\n" +
+	"\tplayer_id\x18\x02 \x01(\x03R\bplayerId\x12\f\n" +
+	"\x01x\x18\x03 \x01(\x02R\x01x\x12\f\n" +
+	"\x01y\x18\x04 \x01(\x02R\x01y\"\xee\x01\n" +
+	"\x0eEntitySnapshot\x12\x16\n" +
+	"\x06entity\x18\x01 \x01(\rR\x06entity\x12\x1d\n" +
+	"\n" +
+	"x_position\x18\x02 \x01(\x02R\txPosition\x12\x1d\n" +
+	"\n" +
+	"y_position\x18\x03 \x01(\x02R\tyPosition\x12\x1f\n" +
+	"\vx_direction\x18\x04 \x01(\x02R\n" +
+	"xDirection\x12\x1f\n" +
+	"\vy_direction\x18\x05 \x01(\x02R\n" +
+	"yDirection\x12%\n" +
+	"\x0ecurrent_health\x18\x06 \x01(\x05R\rcurrentHealth\x12\x1d\n" +
+	"\n" +
+	"max_health\x18\a \x01(\x05R\tmaxHealth\"c\n" +
+	"\rWorldSnapshot\x12\x1b\n" +
+	"\troom_name\x18\x01 \x01(\tR\broomName\x125\n" +
+	"\bentities\x18\x02 \x03(\v2\x19.battle.v1.EntitySnapshotR\bentitiesB,Z*server/internal/contract/battlepb;battlepbb\x06proto3"
 
 var (
 	file_proto_battle_v1_session_proto_rawDescOnce sync.Once
@@ -524,27 +792,33 @@ func file_proto_battle_v1_session_proto_rawDescGZIP() []byte {
 	return file_proto_battle_v1_session_proto_rawDescData
 }
 
-var file_proto_battle_v1_session_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
+var file_proto_battle_v1_session_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
 var file_proto_battle_v1_session_proto_goTypes = []any{
-	(*ClientHello)(nil),  // 0: battle.v1.ClientHello
-	(*ServerHello)(nil),  // 1: battle.v1.ServerHello
-	(*GameStart)(nil),    // 2: battle.v1.GameStart
-	(*Error)(nil),        // 3: battle.v1.Error
-	(*ClientPacket)(nil), // 4: battle.v1.ClientPacket
-	(*ServerPacket)(nil), // 5: battle.v1.ServerPacket
-	(*GameOver)(nil),     // 6: battle.v1.GameOver
+	(*ClientHello)(nil),     // 0: battle.v1.ClientHello
+	(*ServerHello)(nil),     // 1: battle.v1.ServerHello
+	(*GameStart)(nil),       // 2: battle.v1.GameStart
+	(*Error)(nil),           // 3: battle.v1.Error
+	(*ClientPacket)(nil),    // 4: battle.v1.ClientPacket
+	(*ServerPacket)(nil),    // 5: battle.v1.ServerPacket
+	(*GameOver)(nil),        // 6: battle.v1.GameOver
+	(*ClientMoveInput)(nil), // 7: battle.v1.ClientMoveInput
+	(*EntitySnapshot)(nil),  // 8: battle.v1.EntitySnapshot
+	(*WorldSnapshot)(nil),   // 9: battle.v1.WorldSnapshot
 }
 var file_proto_battle_v1_session_proto_depIdxs = []int32{
 	0, // 0: battle.v1.ClientPacket.hello:type_name -> battle.v1.ClientHello
-	1, // 1: battle.v1.ServerPacket.hello:type_name -> battle.v1.ServerHello
-	2, // 2: battle.v1.ServerPacket.game_start:type_name -> battle.v1.GameStart
-	3, // 3: battle.v1.ServerPacket.error:type_name -> battle.v1.Error
-	6, // 4: battle.v1.ServerPacket.game_over:type_name -> battle.v1.GameOver
-	5, // [5:5] is the sub-list for method output_type
-	5, // [5:5] is the sub-list for method input_type
-	5, // [5:5] is the sub-list for extension type_name
-	5, // [5:5] is the sub-list for extension extendee
-	0, // [0:5] is the sub-list for field type_name
+	7, // 1: battle.v1.ClientPacket.move_input:type_name -> battle.v1.ClientMoveInput
+	1, // 2: battle.v1.ServerPacket.hello:type_name -> battle.v1.ServerHello
+	2, // 3: battle.v1.ServerPacket.game_start:type_name -> battle.v1.GameStart
+	3, // 4: battle.v1.ServerPacket.error:type_name -> battle.v1.Error
+	6, // 5: battle.v1.ServerPacket.game_over:type_name -> battle.v1.GameOver
+	9, // 6: battle.v1.ServerPacket.snapshot:type_name -> battle.v1.WorldSnapshot
+	8, // 7: battle.v1.WorldSnapshot.entities:type_name -> battle.v1.EntitySnapshot
+	8, // [8:8] is the sub-list for method output_type
+	8, // [8:8] is the sub-list for method input_type
+	8, // [8:8] is the sub-list for extension type_name
+	8, // [8:8] is the sub-list for extension extendee
+	0, // [0:8] is the sub-list for field type_name
 }
 
 func init() { file_proto_battle_v1_session_proto_init() }
@@ -554,12 +828,14 @@ func file_proto_battle_v1_session_proto_init() {
 	}
 	file_proto_battle_v1_session_proto_msgTypes[4].OneofWrappers = []any{
 		(*ClientPacket_Hello)(nil),
+		(*ClientPacket_MoveInput)(nil),
 	}
 	file_proto_battle_v1_session_proto_msgTypes[5].OneofWrappers = []any{
 		(*ServerPacket_Hello)(nil),
 		(*ServerPacket_GameStart)(nil),
 		(*ServerPacket_Error)(nil),
 		(*ServerPacket_GameOver)(nil),
+		(*ServerPacket_Snapshot)(nil),
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
@@ -567,7 +843,7 @@ func file_proto_battle_v1_session_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_battle_v1_session_proto_rawDesc), len(file_proto_battle_v1_session_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   7,
+			NumMessages:   10,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

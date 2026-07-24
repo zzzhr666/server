@@ -53,6 +53,23 @@ namespace battle {
         bool all_players_joined;
     };
 
+    struct EndRoomRequest {
+        std::string room_name;
+        std::string reason;
+    };
+
+    enum class EndRoomStatus : std::uint8_t {
+        OK = 0,
+        InvalidRequest,
+        RoomNotFound,
+        InternalError
+    };
+
+    struct EndRoomResult {
+        EndRoomStatus status;
+        std::string message;
+    };
+
     /// Room stores immutable admission data plus the current joined players.
     class Room {
     public:

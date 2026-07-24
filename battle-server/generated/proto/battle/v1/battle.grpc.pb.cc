@@ -26,6 +26,7 @@ namespace v1 {
 static const char* BattleControlService_method_names[] = {
   "/battle.v1.BattleControlService/CreateRoom",
   "/battle.v1.BattleControlService/JoinRoom",
+  "/battle.v1.BattleControlService/EndRoom",
 };
 
 std::unique_ptr< BattleControlService::Stub> BattleControlService::NewStub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, const ::grpc::StubOptions& options) {
@@ -37,6 +38,7 @@ std::unique_ptr< BattleControlService::Stub> BattleControlService::NewStub(const
 BattleControlService::Stub::Stub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, const ::grpc::StubOptions& options)
   : channel_(channel), rpcmethod_CreateRoom_(BattleControlService_method_names[0], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
   , rpcmethod_JoinRoom_(BattleControlService_method_names[1], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_EndRoom_(BattleControlService_method_names[2], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
   {}
 
 ::grpc::Status BattleControlService::Stub::CreateRoom(::grpc::ClientContext* context, const ::battle::v1::CreateRoomRequest& request, ::battle::v1::CreateRoomResponse* response) {
@@ -85,6 +87,29 @@ void BattleControlService::Stub::async::JoinRoom(::grpc::ClientContext* context,
   return result;
 }
 
+::grpc::Status BattleControlService::Stub::EndRoom(::grpc::ClientContext* context, const ::battle::v1::EndRoomRequest& request, ::battle::v1::EndRoomResponse* response) {
+  return ::grpc::internal::BlockingUnaryCall< ::battle::v1::EndRoomRequest, ::battle::v1::EndRoomResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_EndRoom_, context, request, response);
+}
+
+void BattleControlService::Stub::async::EndRoom(::grpc::ClientContext* context, const ::battle::v1::EndRoomRequest* request, ::battle::v1::EndRoomResponse* response, std::function<void(::grpc::Status)> f) {
+  ::grpc::internal::CallbackUnaryCall< ::battle::v1::EndRoomRequest, ::battle::v1::EndRoomResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_EndRoom_, context, request, response, std::move(f));
+}
+
+void BattleControlService::Stub::async::EndRoom(::grpc::ClientContext* context, const ::battle::v1::EndRoomRequest* request, ::battle::v1::EndRoomResponse* response, ::grpc::ClientUnaryReactor* reactor) {
+  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_EndRoom_, context, request, response, reactor);
+}
+
+::grpc::ClientAsyncResponseReader< ::battle::v1::EndRoomResponse>* BattleControlService::Stub::PrepareAsyncEndRoomRaw(::grpc::ClientContext* context, const ::battle::v1::EndRoomRequest& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::battle::v1::EndRoomResponse, ::battle::v1::EndRoomRequest, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_EndRoom_, context, request);
+}
+
+::grpc::ClientAsyncResponseReader< ::battle::v1::EndRoomResponse>* BattleControlService::Stub::AsyncEndRoomRaw(::grpc::ClientContext* context, const ::battle::v1::EndRoomRequest& request, ::grpc::CompletionQueue* cq) {
+  auto* result =
+    this->PrepareAsyncEndRoomRaw(context, request, cq);
+  result->StartCall();
+  return result;
+}
+
 BattleControlService::Service::Service() {
   AddMethod(new ::grpc::internal::RpcServiceMethod(
       BattleControlService_method_names[0],
@@ -106,6 +131,16 @@ BattleControlService::Service::Service() {
              ::battle::v1::JoinRoomResponse* resp) {
                return service->JoinRoom(ctx, req, resp);
              }, this)));
+  AddMethod(new ::grpc::internal::RpcServiceMethod(
+      BattleControlService_method_names[2],
+      ::grpc::internal::RpcMethod::NORMAL_RPC,
+      new ::grpc::internal::RpcMethodHandler< BattleControlService::Service, ::battle::v1::EndRoomRequest, ::battle::v1::EndRoomResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
+          [](BattleControlService::Service* service,
+             ::grpc::ServerContext* ctx,
+             const ::battle::v1::EndRoomRequest* req,
+             ::battle::v1::EndRoomResponse* resp) {
+               return service->EndRoom(ctx, req, resp);
+             }, this)));
 }
 
 BattleControlService::Service::~Service() {
@@ -119,6 +154,13 @@ BattleControlService::Service::~Service() {
 }
 
 ::grpc::Status BattleControlService::Service::JoinRoom(::grpc::ServerContext* context, const ::battle::v1::JoinRoomRequest* request, ::battle::v1::JoinRoomResponse* response) {
+  (void) context;
+  (void) request;
+  (void) response;
+  return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+}
+
+::grpc::Status BattleControlService::Service::EndRoom(::grpc::ServerContext* context, const ::battle::v1::EndRoomRequest* request, ::battle::v1::EndRoomResponse* response) {
   (void) context;
   (void) request;
   (void) response;

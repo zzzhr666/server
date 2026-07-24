@@ -34,6 +34,34 @@ type CreateRoomResult struct {
 	Message string
 }
 
+// EndRoomInput carries a control-plane request to end a running battle room.
+type EndRoomInput struct {
+	RoomName string
+	Reason   string
+}
+
+// EndRoomStatus is the battle room ending status normalized for tools and callers.
+type EndRoomStatus string
+
+const (
+	// EndRoomStatusOK means the battle node ended the room successfully.
+	EndRoomStatusOK EndRoomStatus = "ok"
+	// EndRoomStatusInvalidRequest means the end request missed required data.
+	EndRoomStatusInvalidRequest EndRoomStatus = "invalid_request"
+	// EndRoomStatusRoomNotFound means the battle node has no running instance for the room.
+	EndRoomStatusRoomNotFound EndRoomStatus = "room_not_found"
+	// EndRoomStatusInternalError means the battle node failed internally.
+	EndRoomStatusInternalError EndRoomStatus = "internal_error"
+	// EndRoomStatusUnexpected preserves unknown protobuf status values.
+	EndRoomStatusUnexpected EndRoomStatus = "unexpected"
+)
+
+// EndRoomResult contains the normalized battle room ending response.
+type EndRoomResult struct {
+	Status  EndRoomStatus
+	Message string
+}
+
 // Client adapts the generated BattleControlService gRPC client for rcenter.
 type Client struct {
 	client battlepb.BattleControlServiceClient
@@ -72,5 +100,35 @@ func fromProtoCreateRoomStatus(status battlepb.CreateRoomStatus) CreateRoomStatu
 		return CreateRoomStatusInternalError
 	default:
 		return CreateRoomStatusUnexpected
+	}
+}
+
+// EndRoom asks a battle node to end a running room.
+func (c *Client) EndRoom(ctx context.Context, input EndRoomInput) (*EndRoomResult, error) {
+	res, err := c.client.EndRoom(ctx, &battlepb.EndRoomRequest{
+		RoomName: input.RoomName,
+		Reason:   input.Reason,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &EndRoomResult{
+		Status:  fromProtoEndRoomStatus(res.GetStatus()),
+		Message: res.GetMessage(),
+	}, nil
+}
+
+func fromProtoEndRoomStatus(status battlepb.EndRoomStatus) EndRoomStatus {
+	switch status {
+	case battlepb.EndRoomStatus_END_ROOM_STATUS_OK:
+		return EndRoomStatusOK
+	case battlepb.EndRoomStatus_END_ROOM_STATUS_INVALID_REQUEST:
+		return EndRoomStatusInvalidRequest
+	case battlepb.EndRoomStatus_END_ROOM_STATUS_ROOM_NOT_FOUND:
+		return EndRoomStatusRoomNotFound
+	case battlepb.EndRoomStatus_END_ROOM_STATUS_INTERNAL_ERROR:
+		return EndRoomStatusInternalError
+	default:
+		return EndRoomStatusUnexpected
 	}
 }
