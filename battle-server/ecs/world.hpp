@@ -1,16 +1,15 @@
 #pragma once
 
-#include <unordered_map>
-
-#include "component_pool.hpp"
-#include "entity.hpp"
-#include "components.hpp"
-#include "entity_manager.hpp"
+#include "component/component_pool.hpp"
+#include "entity/entity.hpp"
+#include "component/components.hpp"
+#include "entity/entity_manager.hpp"
+#include "system/system_scheduler.hpp"
+#include "time.hpp"
 
 
 namespace battle::ecs {
     struct CreatePlayerConfig {
-        std::int64_t player_id;
         float x_position;
         float y_position;
         int max_health;
@@ -42,23 +41,51 @@ namespace battle::ecs {
     public:
         World();
 
+        World(std::initializer_list<sysFunc> functions);
+
         Entity create_player(CreatePlayerConfig config);
 
         Entity create_monster(CreateMonsterConfig config);
 
         bool has_entity(Entity entity) const;
 
-        bool set_move_input(std::int64_t player_id, float x, float y);
+        bool set_move_input(Entity entity, float x, float y);
 
-        void tick(float delta_seconds);
+        void tick(DeltaTime delta_time);
 
         const ComponentPool<Transform>& transforms() const {
             return transforms_;
         }
 
+        ComponentPool<Transform>& transforms() {
+            return transforms_;
+        }
+
+        const ComponentPool<Velocity>& velocities() const {
+            return velocities_;
+        }
+        ComponentPool<Velocity>& velocities() {
+            return velocities_;
+        }
+
+        const ComponentPool<Health>& health() const {
+            return health_;
+        }
+        ComponentPool<Health>& health() {
+            return health_;
+        }
+
         const ComponentPool<PlayerController>& player_controllers() const {
             return player_controllers_;
         }
+
+        const ComponentPool<MoveInput>& move_inputs() const {
+            return move_inputs_;
+        }
+        const ComponentPool<CharacterStats>& character_stats() const {
+            return character_stats_;
+        }
+
 
         WorldSnapshot snapshot() const;
 
@@ -69,10 +96,10 @@ namespace battle::ecs {
         ComponentPool<Transform> transforms_;
         ComponentPool<Velocity> velocities_;
         ComponentPool<Health> health_;
-        ComponentPool<MoveInput> move_input_;
+        ComponentPool<MoveInput> move_inputs_;
         ComponentPool<PlayerController> player_controllers_;
         ComponentPool<CharacterStats> character_stats_;
+        SystemScheduler system_scheduler_;
 
-        std::unordered_map<std::int64_t, Entity> player_entities_;
     };
 }

@@ -38,7 +38,7 @@ TEST(BattleInstanceTest, ReceiveInputAndTickMovesOnlyTargetPlayer) {
     });
 
     ASSERT_TRUE(instance.receive_input(1002, 1.0f, 0.0f));
-    instance.tick(1.0f);
+    instance.tick(ecs::DeltaTime{1.0f});
 
     auto snapshot = instance.snapshot();
 

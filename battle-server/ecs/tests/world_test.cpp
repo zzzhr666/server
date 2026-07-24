@@ -9,7 +9,6 @@ namespace {
 
 CreatePlayerConfig default_player_config() {
     return {
-        .player_id = 1001,
         .x_position = 10.0f,
         .y_position = 20.0f,
         .max_health = 100,
@@ -41,17 +40,20 @@ TEST(WorldTest, CreatePlayerReturnsLiveEntityWithInitialTransform) {
     EXPECT_FLOAT_EQ(transform.direction.y, 1.0f);
 }
 
-TEST(WorldTest, CreatePlayerRejectsDuplicatePlayerID) {
+TEST(WorldTest, CreatePlayerAllowsMultiplePlayerControlledEntities) {
     World world;
 
     auto first = world.create_player(default_player_config());
     auto second = world.create_player(default_player_config());
 
     EXPECT_NE(first, INVALID_ENTITY);
-    EXPECT_EQ(second, INVALID_ENTITY);
+    EXPECT_NE(second, INVALID_ENTITY);
+    EXPECT_NE(first, second);
+    EXPECT_TRUE(world.player_controllers().has(first));
+    EXPECT_TRUE(world.player_controllers().has(second));
 }
 
-TEST(WorldTest, SetMoveInputReturnsFalseForUnknownPlayer) {
+TEST(WorldTest, SetMoveInputReturnsFalseForUnknownEntity) {
     World world;
 
     EXPECT_FALSE(world.set_move_input(404, 1.0f, 0.0f));
@@ -61,8 +63,8 @@ TEST(WorldTest, TickMovesPlayerByInputDirectionAndMoveSpeed) {
     World world;
     auto entity = world.create_player(default_player_config());
 
-    ASSERT_TRUE(world.set_move_input(1001, 1.0f, 0.0f));
-    world.tick(1.0f);
+    ASSERT_TRUE(world.set_move_input(entity, 1.0f, 0.0f));
+    world.tick(DeltaTime{1.0f});
 
     const auto& transform = world.transforms().get(entity);
     EXPECT_FLOAT_EQ(transform.position.x, 15.0f);
@@ -71,12 +73,38 @@ TEST(WorldTest, TickMovesPlayerByInputDirectionAndMoveSpeed) {
     EXPECT_FLOAT_EQ(transform.direction.y, 0.0f);
 }
 
+TEST(WorldTest, TickUsesDeltaSecondsOnce) {
+    World world;
+    auto entity = world.create_player(default_player_config());
+
+    ASSERT_TRUE(world.set_move_input(entity, 1.0f, 0.0f));
+    world.tick(DeltaTime{0.5f});
+
+    const auto& transform = world.transforms().get(entity);
+    EXPECT_FLOAT_EQ(transform.position.x, 12.5f);
+    EXPECT_FLOAT_EQ(transform.position.y, 20.0f);
+}
+
+TEST(WorldTest, TickMovesPlayerInNegativeInputDirection) {
+    World world;
+    auto entity = world.create_player(default_player_config());
+
+    ASSERT_TRUE(world.set_move_input(entity, -1.0f, 0.0f));
+    world.tick(DeltaTime{1.0f});
+
+    const auto& transform = world.transforms().get(entity);
+    EXPECT_FLOAT_EQ(transform.position.x, 5.0f);
+    EXPECT_FLOAT_EQ(transform.position.y, 20.0f);
+    EXPECT_FLOAT_EQ(transform.direction.x, -1.0f);
+    EXPECT_FLOAT_EQ(transform.direction.y, 0.0f);
+}
+
 TEST(WorldTest, TickNormalizesDiagonalMoveInput) {
     World world;
     auto entity = world.create_player(default_player_config());
 
-    ASSERT_TRUE(world.set_move_input(1001, 1.0f, 1.0f));
-    world.tick(1.0f);
+    ASSERT_TRUE(world.set_move_input(entity, 1.0f, 1.0f));
+    world.tick(DeltaTime{1.0f});
 
     const auto& transform = world.transforms().get(entity);
     const float expected_delta = 5.0f / std::sqrt(2.0f);
@@ -90,10 +118,10 @@ TEST(WorldTest, TickWithZeroMoveInputDoesNotMoveOrChangeDirection) {
     World world;
     auto entity = world.create_player(default_player_config());
 
-    ASSERT_TRUE(world.set_move_input(1001, 1.0f, 0.0f));
-    world.tick(1.0f);
-    ASSERT_TRUE(world.set_move_input(1001, 0.0f, 0.0f));
-    world.tick(1.0f);
+    ASSERT_TRUE(world.set_move_input(entity, 1.0f, 0.0f));
+    world.tick(DeltaTime{1.0f});
+    ASSERT_TRUE(world.set_move_input(entity, 0.0f, 0.0f));
+    world.tick(DeltaTime{1.0f});
 
     const auto& transform = world.transforms().get(entity);
     EXPECT_FLOAT_EQ(transform.position.x, 15.0f);
@@ -104,7 +132,7 @@ TEST(WorldTest, TickWithZeroMoveInputDoesNotMoveOrChangeDirection) {
     EXPECT_FALSE(std::isnan(transform.position.y));
 }
 
-TEST(WorldTest, DestroyPlayerRemovesEntityAndPlayerInputBinding) {
+TEST(WorldTest, DestroyPlayerRemovesEntityAndPlayerComponents) {
     World world;
     auto entity = world.create_player(default_player_config());
 
@@ -113,7 +141,7 @@ TEST(WorldTest, DestroyPlayerRemovesEntityAndPlayerInputBinding) {
     EXPECT_FALSE(world.has_entity(entity));
     EXPECT_FALSE(world.transforms().has(entity));
     EXPECT_FALSE(world.player_controllers().has(entity));
-    EXPECT_FALSE(world.set_move_input(1001, 1.0f, 0.0f));
+    EXPECT_FALSE(world.set_move_input(entity, 1.0f, 0.0f));
 }
 
 TEST(WorldTest, DestroyUnknownEntityReturnsFalse) {
@@ -146,12 +174,12 @@ TEST(WorldTest, CreateMonsterReturnsLiveEntityWithInitialTransform) {
     EXPECT_FALSE(world.player_controllers().has(entity));
 }
 
-TEST(WorldTest, MonsterIsNotControlledByPlayerMoveInput) {
+TEST(WorldTest, MonsterDoesNotHaveMoveInput) {
     World world;
     auto entity = world.create_monster(default_monster_config());
 
-    EXPECT_FALSE(world.set_move_input(1001, 1.0f, 0.0f));
-    world.tick(1.0f);
+    EXPECT_FALSE(world.set_move_input(entity, 1.0f, 0.0f));
+    world.tick(DeltaTime{1.0f});
 
     const auto& transform = world.transforms().get(entity);
     EXPECT_FLOAT_EQ(transform.position.x, 30.0f);
@@ -180,8 +208,8 @@ TEST(WorldTest, SnapshotIncludesMovedPlayerTransformAndHealth) {
     World world;
     auto entity = world.create_player(default_player_config());
 
-    ASSERT_TRUE(world.set_move_input(1001, 1.0f, 0.0f));
-    world.tick(1.0f);
+    ASSERT_TRUE(world.set_move_input(entity, 1.0f, 0.0f));
+    world.tick(DeltaTime{1.0f});
 
     auto snapshot = world.snapshot();
 

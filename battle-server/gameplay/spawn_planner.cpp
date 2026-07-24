@@ -3,10 +3,9 @@
 #include <cmath>
 #include <numbers>
 
-battle::ecs::CreatePlayerConfig battle::SpawnPlanner::player_spawn(std::int64_t player_id, std::size_t index) const {
+battle::ecs::CreatePlayerConfig battle::SpawnPlanner::player_spawn(std::size_t index) const {
     index %= 4;
     ecs::CreatePlayerConfig config{
-        .player_id = player_id,
         .max_health = 100,
         .move_speed = 5.0f,
     };

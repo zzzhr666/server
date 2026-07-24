@@ -4,7 +4,7 @@
 #include <utility>
 #include <limits>
 
-#include "entity.hpp"
+#include "ecs/entity/entity.hpp"
 
 
 namespace battle::ecs {

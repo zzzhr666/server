@@ -31,6 +31,10 @@ add_library(battle_control
 )
 add_library(battle_ecs
         ecs/world.cpp
+        ecs/system/system_scheduler.cpp
+        ecs/system/system_scheduler.hpp
+        ecs/system/input_system.cpp
+        ecs/system/move_system.cpp
 )
 add_library(battle_game
         game/room.cpp
