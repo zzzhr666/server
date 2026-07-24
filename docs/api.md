@@ -333,6 +333,8 @@ battle_node_name: rcenter 选择的 battle 节点名
 battle_kcp_addr:  后续客户端连接 battle-server 实时入口的地址
 ```
 
+当前 battle realtime 入口先使用 UDP datagram，地址字段名仍沿用 `battle_kcp_addr`。客户端收到匹配成功后，用该地址发送 battle UDP `hello`。
+
 如果 rcenter 没有可用 battle node，或 battle-server 创建房间失败，服务端返回：
 
 ```json
@@ -491,7 +493,7 @@ grpcurl -plaintext \
 
 ### JoinRoom
 
-当前 JoinRoom 还是 control gRPC 验证入口。后续接入 KCP 后，客户端首个 KCP 业务包会携带 `room_name`、`player_id` 和 `token`，再复用同一套房间校验逻辑。
+当前 JoinRoom 保留为 control gRPC 验证入口。真实客户端进入战斗时使用 UDP `ClientHello`，同样携带 `room_name`、`player_id` 和 `token`，并复用房间校验逻辑。
 
 ```bash
 grpcurl -plaintext \
@@ -520,6 +522,114 @@ grpcurl -plaintext \
 }
 ```
 
+### EndRoom
+
+控制面结束正在运行的 battle instance。当前用于手动测试整局结束；后续可以由局内胜负条件触发同一条 runtime 清理路径。
+
+```bash
+grpcurl -plaintext \
+  -import-path . \
+  -proto proto/battle/v1/battle.proto \
+  -d '{"room_name":"room-e2e","reason":"manual_end"}' \
+  127.0.0.1:9101 \
+  battle.v1.BattleControlService/EndRoom
+```
+
+成功响应：
+
+```json
+{
+  "status": "END_ROOM_STATUS_OK",
+  "message": "room ended"
+}
+```
+
+如果房间还没有开始运行，或者已经结束，会返回：
+
+```json
+{
+  "status": "END_ROOM_STATUS_ROOM_NOT_FOUND",
+  "message": "unable to find instance"
+}
+```
+
+## battle UDP realtime
+
+C++ battle-server UDP 实时入口默认监听：
+
+```text
+127.0.0.1:7001
+```
+
+proto 文件：
+
+```text
+proto/battle/v1/session.proto
+```
+
+### ClientHello
+
+客户端收到 WebSocket `match_result` 后，向 `battle_kcp_addr` 发送 UDP hello：
+
+```text
+room_name: match_result.room_name
+token:     match_result.token
+player_id: 当前玩家 id
+```
+
+服务端校验通过后返回 `ServerHello`。当房间内所有玩家都完成 UDP hello 后，`BattleRuntime` 创建 `BattleInstance` 并广播 `GameStart`。
+
+### ClientMoveInput
+
+客户端发送移动输入：
+
+```text
+room_name: 当前 battle room
+player_id: 当前玩家 id
+x:         横向输入
+y:         纵向输入
+```
+
+服务端把 `player_id` 映射到 `BattleInstance` 内部的 ECS entity，再写入 `World` 的移动输入。`World` 不保存也不感知 `player_id`。
+
+### ServerPacket
+
+当前服务端会下发：
+
+```text
+ServerHello:   UDP session 建立结果
+GameStart:     battle instance 启动
+WorldSnapshot: 当前世界实体位置、方向和血量
+GameOver:      房间结束，客户端可关闭 battle UDP 连接并返回大厅
+Error:         协议或状态错误
+```
+
+可以用工具直接验证 UDP 闭环：
+
+```bash
+go run ./tools/battle_udp_client \
+  -addr 127.0.0.1:7001 \
+  -room room-1 \
+  -token token-1 \
+  -player 1001
+```
+
+```bash
+go run ./tools/battle_udp_client \
+  -addr 127.0.0.1:7001 \
+  -room room-1 \
+  -token token-1 \
+  -player 1002 \
+  -move-x 1 \
+  -move-y 0
+```
+
+`battle_udp_client` 默认收到 `game_over` 后退出。需要继续观察超时或后续包时，可以加：
+
+```bash
+-exit-on-game-over=false
+```
+
 ## Full Manual Check
 
 建议手动验证顺序：
@@ -533,11 +643,32 @@ grpcurl -plaintext \
 7. 用 token 调用 `/auth/me`，确认返回玩家资料。
 8. 用 token 连接 `/ws`，确认 Redis 出现 `game:presence:<player_id>`。
 9. 发送 `{"type":"heartbeat"}`，确认 Redis 中 presence 的 `updated_at` 和 TTL 被刷新。
-10. 启动 battle-server，并用 `RegisterBattleNode` 注册到 rcenter。
+10. 启动 battle-server，并确认它注册到 rcenter。
 11. 两个不同玩家分别发送 `{"type":"match_start"}`，确认第二次返回 `matched`，并且 battle-server 创建房间成功。
-12. 断开 `/ws`，确认对应 presence 被清理。
-13. 调用 `/auth/logout`，确认返回 `204 No Content`。
-14. 再用同一个 token 调用 `/auth/me`，确认返回 `401 Unauthorized`。
+12. 两个玩家分别使用 `battle_kcp_addr`、`room_name`、`token` 和自己的 `player_id` 发送 battle UDP hello。
+13. 确认两个 UDP 客户端收到 `game_start` 和持续 `snapshot`。
+14. 调用 `EndRoom`，确认两个 UDP 客户端收到 `game_over` 后退出。
+15. 客户端关闭 battle UDP 连接后，可以继续保留 lobby WebSocket，并再次发送 `{"type":"match_start"}` 重新匹配。
+16. 断开 `/ws`，确认对应 presence 被清理。
+17. 调用 `/auth/logout`，确认返回 `204 No Content`。
+18. 再用同一个 token 调用 `/auth/me`，确认返回 `401 Unauthorized`。
+
+也可以绕过 WebSocket match，用工具直接验证 battle 层：
+
+```bash
+go run ./tools/create_battle_room \
+  -addr 127.0.0.1:9101 \
+  -room room-1 \
+  -token token-1 \
+  -players 1001,1002
+```
+
+```bash
+go run ./tools/end_battle_room \
+  -addr 127.0.0.1:9101 \
+  -room room-1 \
+  -reason manual_end
+```
 
 可以用下面命令查看 Redis 当前写入的数据：
 

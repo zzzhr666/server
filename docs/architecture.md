@@ -21,7 +21,7 @@ flowchart TB
 
     stateServer["state-server<br/>gRPC :9001"]
     rcenterServer["rcenter-server<br/>gRPC :9002"]
-    battleServer["C++ battle-server<br/>control gRPC :9101<br/>KCP addr :7001 reserved"]
+    battleServer["C++ battle-server<br/>control gRPC :9101<br/>UDP realtime :7001"]
     redis[("Redis<br/>127.0.0.1:6379")]
 
     client -->|"HTTP / WebSocket"| nginx
@@ -82,6 +82,9 @@ flowchart TB
     battlePB["internal/contract/battlepb<br/>generated Go protobuf/gRPC"]
     battleCPP["battle-server/control<br/>C++ gRPC adapter"]
     roomManager["battle-server/game<br/>RoomManager / Room"]
+    udpServer["battle-server/net<br/>UDP packet adapter"]
+    runtime["battle-server/runtime<br/>BattleRuntime / BattleInstance"]
+    world["battle-server/ecs<br/>World / systems / components"]
 
     ws --> matchService
     matchService --> rcenterClient
@@ -93,6 +96,10 @@ flowchart TB
     battleClient --> battlePB
     battleClient -->|"battle.v1.BattleControlService"| battleCPP
     battleCPP --> roomManager
+    battleCPP --> runtime
+    udpServer --> runtime
+    runtime --> roomManager
+    runtime --> world
 ```
 
 ```text
@@ -152,9 +159,17 @@ BattleRepository
   v
 C++ battle-server control (127.0.0.1:9101)
   |
-  | create room / join room
+  | create room / join room / end room
   v
 RoomManager / Room
+  |
+  | UDP hello after clients receive match_result
+  v
+BattleRuntime / BattleInstance
+  |
+  | tick ECS world and broadcast snapshots
+  v
+UDP realtime (127.0.0.1:7001)
 ```
 
 这条链路的意义是把“客户端入口”和“数据状态操作”拆开：
@@ -252,17 +267,38 @@ nginx 只属于当前本地 demo 的启动体验，不进入 Go 业务边界。
 
 入口：`battle-server/main.cpp`
 
-当前状态：C++ 进程，已实现 battle control gRPC 和房间业务。
+当前状态：C++ 进程，已实现 battle control gRPC、UDP 实时入口和第一版局内运行时。
 
 当前职责：
 
 - 监听 control gRPC 地址 `127.0.0.1:9101`。
+- 监听 UDP 实时地址 `127.0.0.1:7001`。
 - 实现 `battle.v1.BattleControlService/CreateRoom`。
 - 实现 `battle.v1.BattleControlService/JoinRoom`。
+- 实现 `battle.v1.BattleControlService/EndRoom`，用于控制面结束房间并下发 `game_over`。
 - `RoomManager` 用 `mutex + shared_ptr<Room>` 管理房间生命周期。
 - `Room` 保存允许进入的玩家列表、房间 token 和已加入玩家集合。
+- `UdpServer` 只负责收发和协议适配，接收客户端 `hello` 和 `move_input`。
+- `BattleRuntime` 负责运行中的 battle instance 生命周期、tick 调度、snapshot 广播和结束清理。
+- `BattleInstance` 负责 `player_id -> ecs::Entity` 映射，避免 `World` 感知外层玩家身份。
+- `World` 专注 ECS 局内逻辑，只处理 entity、component、system 和 snapshot。
 
-当前还没有实现 UDP/KCP 实时传输层。`kcp_addr` 已经作为调度结果返回给客户端，是下一阶段接入 KCP session 的入口信息。
+当前实时入口先使用 UDP datagram 验证闭环，字段名仍沿用前期的 `battle_kcp_addr`。后续如果接入真正 KCP，可以复用这个地址字段和当前 packet 协议，再替换传输层实现。
+
+第一版局外闭环已经覆盖：
+
+```text
+register/login
+  -> WebSocket match_start
+  -> rcenter CreateRoom
+  -> client UDP hello
+  -> BattleRuntime start room
+  -> snapshot broadcast
+  -> control EndRoom
+  -> game_over broadcast
+```
+
+当前还没有实现客户端侧“自动回大厅/自动重新匹配”的正式协议；客户端收到 `game_over` 后可以关闭当前 battle UDP 连接，并重新通过 lobby WebSocket 发起 `match_start`。
 
 ## Package Layout
 
@@ -308,8 +344,13 @@ internal/
 
 battle-server/
 ├── control/
+├── ecs/
 ├── game/
+├── gameplay/
 ├── generated/
+├── net/
+├── runtime/
+├── session/
 └── platform/
 ```
 
@@ -366,6 +407,8 @@ logic-server 通过 `internal/rcenter/grpcclient` 间接使用它；rcenter-serv
 - `BattleControlServiceClient`
 - `CreateRoom`
 - `JoinRoom`
+- `EndRoom`
+- battle UDP packet message，例如 `ClientHello`、`ClientMoveInput`、`WorldSnapshot` 和 `GameOver`
 
 Go 侧当前只作为 rcenter 调用 C++ battle-server 的客户端协议；C++ 侧对应生成物放在 `battle-server/generated`。
 
