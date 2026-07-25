@@ -22,7 +22,11 @@ bool battle::BattleInstance::receive_input(std::int64_t player_id, float x, floa
     if (it == player_entities_.end()) {
         return false;
     }
-    return world_.set_move_input(it->second, x, y);
+    return world_.set_player_command(it->second, ecs::PlayerCommand{
+                                                     .move_x = x,
+                                                     .move_y = y,
+                                                     .attack_requested = false,
+                                                 });
 }
 
 battle::ecs::WorldSnapshot battle::BattleInstance::snapshot() const {

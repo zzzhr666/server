@@ -11,19 +11,19 @@ battle::ecs::CreatePlayerConfig battle::SpawnPlanner::player_spawn(std::size_t i
     };
     switch (index) {
     case 0: {
-        config.x_position = -2.0f;
+        config.position.x = -2.0f;
         break;
     }
     case 1: {
-        config.x_position = 2.0f;
+        config.position.x = 2.0f;
         break;
     }
     case 2: {
-        config.y_position = -2.0f;
+        config.position.y = -2.0f;
         break;
     }
     case 3: {
-        config.y_position = 2.0f;
+        config.position.y = 2.0f;
         break;
     }
     default:

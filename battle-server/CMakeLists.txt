@@ -33,8 +33,19 @@ add_library(battle_ecs
         ecs/world.cpp
         ecs/system/system_scheduler.cpp
         ecs/system/system_scheduler.hpp
-        ecs/system/input_system.cpp
+        ecs/system/move_resolve_system.cpp
+        ecs/system/move_resolve_system.hpp
         ecs/system/move_system.cpp
+        ecs/system/monster_ai_system.cpp
+        ecs/system/monster_ai_system.hpp
+        ecs/system/attack_resolve_system.cpp
+        ecs/system/attack_resolve_system.hpp
+        ecs/system/hit_resolve_system.cpp
+        ecs/system/hit_resolve_system.hpp
+        ecs/system/damage_system.cpp
+        ecs/system/damage_system.hpp
+        ecs/system/death_system.cpp
+        ecs/system/death_system.hpp
 )
 add_library(battle_game
         game/room.cpp

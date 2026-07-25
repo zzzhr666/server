@@ -2,7 +2,16 @@
 
 #include <cstdint>
 
+#include "ecs/entity/entity.hpp"
+#include "ecs/time.hpp"
+
 namespace battle::ecs {
+
+    struct PlayerCommand {
+        float move_x;
+        float move_y;
+        bool attack_requested;
+    };
     struct Position {
         float x;
         float y;
@@ -23,12 +32,23 @@ namespace battle::ecs {
         float y;
     };
 
-    struct MoveInput {
+    struct MoveRequest {
+        float x;
+        float y;
+    };
+
+    struct AttackRequest {
+        bool requested;
+    };
+
+    struct MoveIntent {
         float x;
         float y;
     };
 
     struct PlayerController {};
+
+    struct MonsterController {};
 
     struct CharacterStats {
         float move_speed;
@@ -38,4 +58,26 @@ namespace battle::ecs {
         int current_health;
         int max_health;
     };
+
+    struct AttackIntent {
+        bool active;
+        int damage;
+        float range;
+    };
+    struct MeleeAttack {
+        int damage;
+        float range;
+        DeltaTime cooldown_seconds;
+    };
+
+    struct AttackCooldown {
+        DeltaTime remaining_seconds;
+    };
+
+    struct DamageEvent {
+        Entity source;
+        Entity target;
+        int base_damage;
+    };
+
 }
