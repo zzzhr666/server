@@ -13,17 +13,17 @@ TEST(SpawnPlannerTest, PlayerSpawnPlacesFirstFourPlayersAroundCenter) {
     auto third = planner.player_spawn(2);
     auto fourth = planner.player_spawn(3);
 
-    EXPECT_FLOAT_EQ(first.x_position, -2.0f);
-    EXPECT_FLOAT_EQ(first.y_position, 0.0f);
+    EXPECT_FLOAT_EQ(first.position.x, -2.0f);
+    EXPECT_FLOAT_EQ(first.position.y, 0.0f);
 
-    EXPECT_FLOAT_EQ(second.x_position, 2.0f);
-    EXPECT_FLOAT_EQ(second.y_position, 0.0f);
+    EXPECT_FLOAT_EQ(second.position.x, 2.0f);
+    EXPECT_FLOAT_EQ(second.position.y, 0.0f);
 
-    EXPECT_FLOAT_EQ(third.x_position, 0.0f);
-    EXPECT_FLOAT_EQ(third.y_position, -2.0f);
+    EXPECT_FLOAT_EQ(third.position.x, 0.0f);
+    EXPECT_FLOAT_EQ(third.position.y, -2.0f);
 
-    EXPECT_FLOAT_EQ(fourth.x_position, 0.0f);
-    EXPECT_FLOAT_EQ(fourth.y_position, 2.0f);
+    EXPECT_FLOAT_EQ(fourth.position.x, 0.0f);
+    EXPECT_FLOAT_EQ(fourth.position.y, 2.0f);
 }
 
 TEST(SpawnPlannerTest, PlayerSpawnReusesFourPlayerSlots) {
@@ -31,8 +31,8 @@ TEST(SpawnPlannerTest, PlayerSpawnReusesFourPlayerSlots) {
 
     auto spawn = planner.player_spawn(4);
 
-    EXPECT_FLOAT_EQ(spawn.x_position, -2.0f);
-    EXPECT_FLOAT_EQ(spawn.y_position, 0.0f);
+    EXPECT_FLOAT_EQ(spawn.position.x, -2.0f);
+    EXPECT_FLOAT_EQ(spawn.position.y, 0.0f);
 }
 
 TEST(SpawnPlannerTest, PlayerSpawnUsesDefaultStats) {
