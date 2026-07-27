@@ -4,6 +4,8 @@
 
 #include "system/attack_resolve_system.hpp"
 #include "system/damage_system.hpp"
+#include "system/dash_resolve_system.hpp"
+#include "system/dash_system.hpp"
 #include "system/death_system.hpp"
 #include "system/hit_resolve_system.hpp"
 #include "system/monster_ai_system.hpp"
@@ -14,6 +16,8 @@ battle::ecs::World::World() {
     damage_events_.reserve(InitialDamageEventCount);
     system_scheduler_.add_system(move_resolve_system);
     system_scheduler_.add_system(monster_ai_system);
+    system_scheduler_.add_system(dash_resolve_system);
+    system_scheduler_.add_system(dash_system);
     system_scheduler_.add_system(move_system);
     system_scheduler_.add_system(attack_resolve_system);
     system_scheduler_.add_system(hit_resolve_system);
@@ -32,14 +36,18 @@ battle::ecs::Entity battle::ecs::World::create_player(CreatePlayerConfig config)
     velocities_.emplace(entity, 0.0f, 0.0f);
     move_requests_.emplace(entity, 0.0f, 0.0f);
     attack_requests_.emplace(entity, false);
+    dash_requests_.emplace(entity,false);
     move_intents_.emplace(entity, 0.0f, 0.0f);
     health_.emplace(entity, config.max_health, config.max_health);
     character_stats_.emplace(entity, config.move_speed);
     player_controllers_.emplace(entity);
     attack_intents_.emplace(entity, false, 0, 0.0f);
+    dashes_.emplace(entity,DeltaTime{1.0f},5.0f);
+    dash_intents_.emplace(entity,false,0.0f);
     melee_attacks_.emplace(entity, config.melee_attack.damage, config.melee_attack.range,
                            config.melee_attack.cooldown_seconds);
     attack_cooldowns_.emplace(entity, DeltaTime{0.0f});
+    dash_cooldowns_.emplace(entity,DeltaTime{0.0f});
     return entity;
 }
 
@@ -60,12 +68,13 @@ bool battle::ecs::World::has_entity(Entity entity) const {
 
 
 bool battle::ecs::World::set_player_command(Entity entity, PlayerCommand command) {
-    const bool move_set = set_move_request(entity, command.move_x, command.move_y);
-    const bool attack_set = set_attack_request(entity, command.attack_requested);
-    return move_set && attack_set;
+    const bool move_set = set_move_request_(entity, command.move_x, command.move_y);
+    const bool attack_set = set_attack_request_(entity, command.attack_requested);
+    const bool dash_set = set_dash_request_(entity, command.dash_requested);
+    return move_set && attack_set && dash_set;
 }
 
-bool battle::ecs::World::set_move_request(Entity entity, float x, float y) {
+bool battle::ecs::World::set_move_request_(Entity entity, float x, float y) {
     auto* move_request = move_requests_.try_get(entity);
     if (!move_request) {
         return false;
@@ -75,12 +84,21 @@ bool battle::ecs::World::set_move_request(Entity entity, float x, float y) {
     return true;
 }
 
-bool battle::ecs::World::set_attack_request(Entity entity, bool requested) {
+bool battle::ecs::World::set_attack_request_(Entity entity, bool requested) {
     auto* attack_request = attack_requests_.try_get(entity);
     if (!attack_request) {
         return false;
     }
     attack_request->requested = requested;
+    return true;
+}
+
+bool battle::ecs::World::set_dash_request_(Entity entity, bool requested) {
+    auto* dash_request = dash_requests_.try_get(entity);
+    if (!dash_request) {
+        return false;
+    }
+    dash_request->requested = requested;
     return true;
 }
 
@@ -123,5 +141,9 @@ bool battle::ecs::World::destroy_entity(Entity entity) {
     attack_cooldowns_.remove(entity);
     attack_intents_.remove(entity);
     melee_attacks_.remove(entity);
+    dash_requests_.remove(entity);
+    dash_intents_.remove(entity);
+    dashes_.remove(entity);
+    dash_cooldowns_.remove(entity);
     return true;
 }

@@ -58,10 +58,10 @@ class ClientHello;
 struct ClientHelloDefaultTypeInternal;
 extern ClientHelloDefaultTypeInternal _ClientHello_default_instance_;
 extern const ::google::protobuf::internal::ClassDataFull ClientHello_class_data_;
-class ClientMoveInput;
-struct ClientMoveInputDefaultTypeInternal;
-extern ClientMoveInputDefaultTypeInternal _ClientMoveInput_default_instance_;
-extern const ::google::protobuf::internal::ClassDataFull ClientMoveInput_class_data_;
+class ClientInput;
+struct ClientInputDefaultTypeInternal;
+extern ClientInputDefaultTypeInternal _ClientInput_default_instance_;
+extern const ::google::protobuf::internal::ClassDataFull ClientInput_class_data_;
 class ClientPacket;
 struct ClientPacketDefaultTypeInternal;
 extern ClientPacketDefaultTypeInternal _ClientPacket_default_instance_;
@@ -1244,30 +1244,30 @@ class EntitySnapshot final : public ::google::protobuf::Message
 extern const ::google::protobuf::internal::ClassDataFull EntitySnapshot_class_data_;
 // -------------------------------------------------------------------
 
-class ClientMoveInput final : public ::google::protobuf::Message
-/* @@protoc_insertion_point(class_definition:battle.v1.ClientMoveInput) */ {
+class ClientInput final : public ::google::protobuf::Message
+/* @@protoc_insertion_point(class_definition:battle.v1.ClientInput) */ {
  public:
-  inline ClientMoveInput() : ClientMoveInput(nullptr) {}
-  ~ClientMoveInput() PROTOBUF_FINAL;
+  inline ClientInput() : ClientInput(nullptr) {}
+  ~ClientInput() PROTOBUF_FINAL;
 
 #if defined(PROTOBUF_CUSTOM_VTABLE)
-  void operator delete(ClientMoveInput* PROTOBUF_NONNULL msg, std::destroying_delete_t) {
+  void operator delete(ClientInput* PROTOBUF_NONNULL msg, std::destroying_delete_t) {
     SharedDtor(*msg);
-    ::google::protobuf::internal::SizedDelete(msg, sizeof(ClientMoveInput));
+    ::google::protobuf::internal::SizedDelete(msg, sizeof(ClientInput));
   }
 #endif
 
   template <typename = void>
-  explicit PROTOBUF_CONSTEXPR ClientMoveInput(::google::protobuf::internal::ConstantInitialized);
+  explicit PROTOBUF_CONSTEXPR ClientInput(::google::protobuf::internal::ConstantInitialized);
 
-  inline ClientMoveInput(const ClientMoveInput& from) : ClientMoveInput(nullptr, from) {}
-  inline ClientMoveInput(ClientMoveInput&& from) noexcept
-      : ClientMoveInput(nullptr, ::std::move(from)) {}
-  inline ClientMoveInput& operator=(const ClientMoveInput& from) {
+  inline ClientInput(const ClientInput& from) : ClientInput(nullptr, from) {}
+  inline ClientInput(ClientInput&& from) noexcept
+      : ClientInput(nullptr, ::std::move(from)) {}
+  inline ClientInput& operator=(const ClientInput& from) {
     CopyFrom(from);
     return *this;
   }
-  inline ClientMoveInput& operator=(ClientMoveInput&& from) noexcept {
+  inline ClientInput& operator=(ClientInput&& from) noexcept {
     if (this == &from) return *this;
     if (::google::protobuf::internal::CanMoveWithInternalSwap(GetArena(), from.GetArena())) {
       InternalSwap(&from);
@@ -1295,13 +1295,13 @@ class ClientMoveInput final : public ::google::protobuf::Message
   static const ::google::protobuf::Reflection* PROTOBUF_NONNULL GetReflection() {
     return default_instance().GetMetadata().reflection;
   }
-  static const ClientMoveInput& default_instance() {
-    return *reinterpret_cast<const ClientMoveInput*>(
-        &_ClientMoveInput_default_instance_);
+  static const ClientInput& default_instance() {
+    return *reinterpret_cast<const ClientInput*>(
+        &_ClientInput_default_instance_);
   }
   static constexpr int kIndexInFileMessages = 7;
-  friend void swap(ClientMoveInput& a, ClientMoveInput& b) { a.Swap(&b); }
-  inline void Swap(ClientMoveInput* PROTOBUF_NONNULL other) {
+  friend void swap(ClientInput& a, ClientInput& b) { a.Swap(&b); }
+  inline void Swap(ClientInput* PROTOBUF_NONNULL other) {
     if (other == this) return;
     if (::google::protobuf::internal::CanUseInternalSwap(GetArena(), other->GetArena())) {
       InternalSwap(other);
@@ -1309,7 +1309,7 @@ class ClientMoveInput final : public ::google::protobuf::Message
       ::google::protobuf::internal::GenericSwap(this, other);
     }
   }
-  void UnsafeArenaSwap(ClientMoveInput* PROTOBUF_NONNULL other) {
+  void UnsafeArenaSwap(ClientInput* PROTOBUF_NONNULL other) {
     if (other == this) return;
     ABSL_DCHECK(GetArena() == other->GetArena());
     InternalSwap(other);
@@ -1317,13 +1317,13 @@ class ClientMoveInput final : public ::google::protobuf::Message
 
   // implements Message ----------------------------------------------
 
-  ClientMoveInput* PROTOBUF_NONNULL New(::google::protobuf::Arena* PROTOBUF_NULLABLE arena = nullptr) const {
-    return ::google::protobuf::Message::DefaultConstruct<ClientMoveInput>(arena);
+  ClientInput* PROTOBUF_NONNULL New(::google::protobuf::Arena* PROTOBUF_NULLABLE arena = nullptr) const {
+    return ::google::protobuf::Message::DefaultConstruct<ClientInput>(arena);
   }
   using ::google::protobuf::Message::CopyFrom;
-  void CopyFrom(const ClientMoveInput& from);
+  void CopyFrom(const ClientInput& from);
   using ::google::protobuf::Message::MergeFrom;
-  void MergeFrom(const ClientMoveInput& from) { ClientMoveInput::MergeImpl(*this, from); }
+  void MergeFrom(const ClientInput& from) { ClientInput::MergeImpl(*this, from); }
 
   private:
   static void MergeImpl(::google::protobuf::MessageLite& to_msg,
@@ -1359,18 +1359,18 @@ class ClientMoveInput final : public ::google::protobuf::Message
   private:
   void SharedCtor(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
   static void SharedDtor(MessageLite& self);
-  void InternalSwap(ClientMoveInput* PROTOBUF_NONNULL other);
+  void InternalSwap(ClientInput* PROTOBUF_NONNULL other);
  private:
   template <typename T>
   friend ::absl::string_view(::google::protobuf::internal::GetAnyMessageName)();
-  static ::absl::string_view FullMessageName() { return "battle.v1.ClientMoveInput"; }
+  static ::absl::string_view FullMessageName() { return "battle.v1.ClientInput"; }
 
  protected:
-  explicit ClientMoveInput(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
-  ClientMoveInput(::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const ClientMoveInput& from);
-  ClientMoveInput(
-      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, ClientMoveInput&& from) noexcept
-      : ClientMoveInput(arena) {
+  explicit ClientInput(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  ClientInput(::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const ClientInput& from);
+  ClientInput(
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, ClientInput&& from) noexcept
+      : ClientInput(arena) {
     *this = ::std::move(from);
   }
   const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL GetClassData() const PROTOBUF_FINAL;
@@ -1391,6 +1391,8 @@ class ClientMoveInput final : public ::google::protobuf::Message
     kPlayerIdFieldNumber = 2,
     kXFieldNumber = 3,
     kYFieldNumber = 4,
+    kAttackRequestedFieldNumber = 5,
+    kDashRequestedFieldNumber = 6,
   };
   // string room_name = 1;
   void clear_room_name() ;
@@ -1437,12 +1439,32 @@ class ClientMoveInput final : public ::google::protobuf::Message
   void _internal_set_y(float value);
 
   public:
-  // @@protoc_insertion_point(class_scope:battle.v1.ClientMoveInput)
+  // bool attack_requested = 5;
+  void clear_attack_requested() ;
+  bool attack_requested() const;
+  void set_attack_requested(bool value);
+
+  private:
+  bool _internal_attack_requested() const;
+  void _internal_set_attack_requested(bool value);
+
+  public:
+  // bool dash_requested = 6;
+  void clear_dash_requested() ;
+  bool dash_requested() const;
+  void set_dash_requested(bool value);
+
+  private:
+  bool _internal_dash_requested() const;
+  void _internal_set_dash_requested(bool value);
+
+  public:
+  // @@protoc_insertion_point(class_scope:battle.v1.ClientInput)
  private:
   class _Internal;
   friend class ::google::protobuf::internal::TcParser;
-  static const ::google::protobuf::internal::TcParseTable<2, 4,
-                                   0, 43,
+  static const ::google::protobuf::internal::TcParseTable<3, 6,
+                                   0, 39,
                                    2>
       _table_;
 
@@ -1460,20 +1482,22 @@ class ClientMoveInput final : public ::google::protobuf::Message
     inline explicit Impl_(
         ::google::protobuf::internal::InternalVisibility visibility,
         ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
-        const ClientMoveInput& from_msg);
+        const ClientInput& from_msg);
     ::google::protobuf::internal::HasBits<1> _has_bits_;
     ::google::protobuf::internal::CachedSize _cached_size_;
     ::google::protobuf::internal::ArenaStringPtr room_name_;
     ::int64_t player_id_;
     float x_;
     float y_;
+    bool attack_requested_;
+    bool dash_requested_;
     PROTOBUF_TSAN_DECLARE_MEMBER
   };
   union { Impl_ _impl_; };
   friend struct ::TableStruct_proto_2fbattle_2fv1_2fsession_2eproto;
 };
 
-extern const ::google::protobuf::internal::ClassDataFull ClientMoveInput_class_data_;
+extern const ::google::protobuf::internal::ClassDataFull ClientInput_class_data_;
 // -------------------------------------------------------------------
 
 class ClientHello final : public ::google::protobuf::Message
@@ -1973,7 +1997,7 @@ class ClientPacket final : public ::google::protobuf::Message
   }
   enum PayloadCase {
     kHello = 1,
-    kMoveInput = 2,
+    kInput = 2,
     PAYLOAD_NOT_SET = 0,
   };
   static constexpr int kIndexInFileMessages = 4;
@@ -2065,7 +2089,7 @@ class ClientPacket final : public ::google::protobuf::Message
   // accessors -------------------------------------------------------
   enum : int {
     kHelloFieldNumber = 1,
-    kMoveInputFieldNumber = 2,
+    kInputFieldNumber = 2,
   };
   // .battle.v1.ClientHello hello = 1;
   bool has_hello() const;
@@ -2086,23 +2110,23 @@ class ClientPacket final : public ::google::protobuf::Message
   ::battle::v1::ClientHello* PROTOBUF_NONNULL _internal_mutable_hello();
 
   public:
-  // .battle.v1.ClientMoveInput move_input = 2;
-  bool has_move_input() const;
+  // .battle.v1.ClientInput input = 2;
+  bool has_input() const;
   private:
-  bool _internal_has_move_input() const;
+  bool _internal_has_input() const;
 
   public:
-  void clear_move_input() ;
-  const ::battle::v1::ClientMoveInput& move_input() const;
-  [[nodiscard]] ::battle::v1::ClientMoveInput* PROTOBUF_NULLABLE release_move_input();
-  ::battle::v1::ClientMoveInput* PROTOBUF_NONNULL mutable_move_input();
-  void set_allocated_move_input(::battle::v1::ClientMoveInput* PROTOBUF_NULLABLE value);
-  void unsafe_arena_set_allocated_move_input(::battle::v1::ClientMoveInput* PROTOBUF_NULLABLE value);
-  ::battle::v1::ClientMoveInput* PROTOBUF_NULLABLE unsafe_arena_release_move_input();
+  void clear_input() ;
+  const ::battle::v1::ClientInput& input() const;
+  [[nodiscard]] ::battle::v1::ClientInput* PROTOBUF_NULLABLE release_input();
+  ::battle::v1::ClientInput* PROTOBUF_NONNULL mutable_input();
+  void set_allocated_input(::battle::v1::ClientInput* PROTOBUF_NULLABLE value);
+  void unsafe_arena_set_allocated_input(::battle::v1::ClientInput* PROTOBUF_NULLABLE value);
+  ::battle::v1::ClientInput* PROTOBUF_NULLABLE unsafe_arena_release_input();
 
   private:
-  const ::battle::v1::ClientMoveInput& _internal_move_input() const;
-  ::battle::v1::ClientMoveInput* PROTOBUF_NONNULL _internal_mutable_move_input();
+  const ::battle::v1::ClientInput& _internal_input() const;
+  ::battle::v1::ClientInput* PROTOBUF_NONNULL _internal_mutable_input();
 
   public:
   void clear_payload();
@@ -2111,7 +2135,7 @@ class ClientPacket final : public ::google::protobuf::Message
  private:
   class _Internal;
   void set_has_hello();
-  void set_has_move_input();
+  void set_has_input();
   inline bool has_payload() const;
   inline void clear_has_payload();
   friend class ::google::protobuf::internal::TcParser;
@@ -2139,7 +2163,7 @@ class ClientPacket final : public ::google::protobuf::Message
       constexpr PayloadUnion() : _constinit_{} {}
       ::google::protobuf::internal::ConstantInitialized _constinit_;
       ::battle::v1::ClientHello* PROTOBUF_NULLABLE hello_;
-      ::battle::v1::ClientMoveInput* PROTOBUF_NULLABLE move_input_;
+      ::battle::v1::ClientInput* PROTOBUF_NULLABLE input_;
     } payload_;
     ::google::protobuf::internal::CachedSize _cached_size_;
     ::uint32_t _oneof_case_[1];
@@ -3053,84 +3077,84 @@ inline ::battle::v1::ClientHello* PROTOBUF_NONNULL ClientPacket::mutable_hello()
   return _msg;
 }
 
-// .battle.v1.ClientMoveInput move_input = 2;
-inline bool ClientPacket::has_move_input() const {
-  return payload_case() == kMoveInput;
+// .battle.v1.ClientInput input = 2;
+inline bool ClientPacket::has_input() const {
+  return payload_case() == kInput;
 }
-inline bool ClientPacket::_internal_has_move_input() const {
-  return payload_case() == kMoveInput;
+inline bool ClientPacket::_internal_has_input() const {
+  return payload_case() == kInput;
 }
-inline void ClientPacket::set_has_move_input() {
-  _impl_._oneof_case_[0] = kMoveInput;
+inline void ClientPacket::set_has_input() {
+  _impl_._oneof_case_[0] = kInput;
 }
-inline void ClientPacket::clear_move_input() {
+inline void ClientPacket::clear_input() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  if (payload_case() == kMoveInput) {
+  if (payload_case() == kInput) {
     if (GetArena() == nullptr) {
-      delete _impl_.payload_.move_input_;
+      delete _impl_.payload_.input_;
     } else if (::google::protobuf::internal::DebugHardenClearOneofMessageOnArena()) {
-      ::google::protobuf::internal::MaybePoisonAfterClear(_impl_.payload_.move_input_);
+      ::google::protobuf::internal::MaybePoisonAfterClear(_impl_.payload_.input_);
     }
     clear_has_payload();
   }
 }
-inline ::battle::v1::ClientMoveInput* PROTOBUF_NULLABLE ClientPacket::release_move_input() {
-  // @@protoc_insertion_point(field_release:battle.v1.ClientPacket.move_input)
-  if (payload_case() == kMoveInput) {
+inline ::battle::v1::ClientInput* PROTOBUF_NULLABLE ClientPacket::release_input() {
+  // @@protoc_insertion_point(field_release:battle.v1.ClientPacket.input)
+  if (payload_case() == kInput) {
     clear_has_payload();
-    auto* temp = _impl_.payload_.move_input_;
+    auto* temp = _impl_.payload_.input_;
     if (GetArena() != nullptr) {
       temp = ::google::protobuf::internal::DuplicateIfNonNull(temp);
     }
-    _impl_.payload_.move_input_ = nullptr;
+    _impl_.payload_.input_ = nullptr;
     return temp;
   } else {
     return nullptr;
   }
 }
-inline const ::battle::v1::ClientMoveInput& ClientPacket::_internal_move_input() const {
-  return payload_case() == kMoveInput ? *_impl_.payload_.move_input_ : reinterpret_cast<::battle::v1::ClientMoveInput&>(::battle::v1::_ClientMoveInput_default_instance_);
+inline const ::battle::v1::ClientInput& ClientPacket::_internal_input() const {
+  return payload_case() == kInput ? *_impl_.payload_.input_ : reinterpret_cast<::battle::v1::ClientInput&>(::battle::v1::_ClientInput_default_instance_);
 }
-inline const ::battle::v1::ClientMoveInput& ClientPacket::move_input() const ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  // @@protoc_insertion_point(field_get:battle.v1.ClientPacket.move_input)
-  return _internal_move_input();
+inline const ::battle::v1::ClientInput& ClientPacket::input() const ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:battle.v1.ClientPacket.input)
+  return _internal_input();
 }
-inline ::battle::v1::ClientMoveInput* PROTOBUF_NULLABLE ClientPacket::unsafe_arena_release_move_input() {
-  // @@protoc_insertion_point(field_unsafe_arena_release:battle.v1.ClientPacket.move_input)
-  if (payload_case() == kMoveInput) {
+inline ::battle::v1::ClientInput* PROTOBUF_NULLABLE ClientPacket::unsafe_arena_release_input() {
+  // @@protoc_insertion_point(field_unsafe_arena_release:battle.v1.ClientPacket.input)
+  if (payload_case() == kInput) {
     clear_has_payload();
-    auto* temp = _impl_.payload_.move_input_;
-    _impl_.payload_.move_input_ = nullptr;
+    auto* temp = _impl_.payload_.input_;
+    _impl_.payload_.input_ = nullptr;
     return temp;
   } else {
     return nullptr;
   }
 }
-inline void ClientPacket::unsafe_arena_set_allocated_move_input(
-    ::battle::v1::ClientMoveInput* PROTOBUF_NULLABLE value) {
+inline void ClientPacket::unsafe_arena_set_allocated_input(
+    ::battle::v1::ClientInput* PROTOBUF_NULLABLE value) {
   // We rely on the oneof clear method to free the earlier contents
   // of this oneof. We can directly use the pointer we're given to
   // set the new value.
   clear_payload();
   if (value) {
-    set_has_move_input();
-    _impl_.payload_.move_input_ = value;
+    set_has_input();
+    _impl_.payload_.input_ = value;
   }
-  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:battle.v1.ClientPacket.move_input)
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:battle.v1.ClientPacket.input)
 }
-inline ::battle::v1::ClientMoveInput* PROTOBUF_NONNULL ClientPacket::_internal_mutable_move_input() {
-  if (payload_case() != kMoveInput) {
+inline ::battle::v1::ClientInput* PROTOBUF_NONNULL ClientPacket::_internal_mutable_input() {
+  if (payload_case() != kInput) {
     clear_payload();
-    set_has_move_input();
-    _impl_.payload_.move_input_ =
-        ::google::protobuf::Message::DefaultConstruct<::battle::v1::ClientMoveInput>(GetArena());
+    set_has_input();
+    _impl_.payload_.input_ = 
+        ::google::protobuf::Message::DefaultConstruct<::battle::v1::ClientInput>(GetArena());
   }
-  return _impl_.payload_.move_input_;
+  return _impl_.payload_.input_;
 }
-inline ::battle::v1::ClientMoveInput* PROTOBUF_NONNULL ClientPacket::mutable_move_input()
+inline ::battle::v1::ClientInput* PROTOBUF_NONNULL ClientPacket::mutable_input()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  ::battle::v1::ClientMoveInput* _msg = _internal_mutable_move_input();
-  // @@protoc_insertion_point(field_mutable:battle.v1.ClientPacket.move_input)
+  ::battle::v1::ClientInput* _msg = _internal_mutable_input();
+  // @@protoc_insertion_point(field_mutable:battle.v1.ClientPacket.input)
   return _msg;
 }
 
@@ -3743,49 +3767,49 @@ inline void GameOver::set_allocated_reason(::std::string* PROTOBUF_NULLABLE valu
 
 // -------------------------------------------------------------------
 
-// ClientMoveInput
+// ClientInput
 
 // string room_name = 1;
-inline void ClientMoveInput::clear_room_name() {
+inline void ClientInput::clear_room_name() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.room_name_.ClearToEmpty();
   _impl_._has_bits_[0] &= ~0x00000001u;
 }
-inline const ::std::string& ClientMoveInput::room_name() const
+inline const ::std::string& ClientInput::room_name() const
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  // @@protoc_insertion_point(field_get:battle.v1.ClientMoveInput.room_name)
+  // @@protoc_insertion_point(field_get:battle.v1.ClientInput.room_name)
   return _internal_room_name();
 }
 template <typename Arg_, typename... Args_>
-PROTOBUF_ALWAYS_INLINE void ClientMoveInput::set_room_name(Arg_&& arg, Args_... args) {
+PROTOBUF_ALWAYS_INLINE void ClientInput::set_room_name(Arg_&& arg, Args_... args) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_._has_bits_[0] |= 0x00000001u;
   _impl_.room_name_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
-  // @@protoc_insertion_point(field_set:battle.v1.ClientMoveInput.room_name)
+  // @@protoc_insertion_point(field_set:battle.v1.ClientInput.room_name)
 }
-inline ::std::string* PROTOBUF_NONNULL ClientMoveInput::mutable_room_name()
+inline ::std::string* PROTOBUF_NONNULL ClientInput::mutable_room_name()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   ::std::string* _s = _internal_mutable_room_name();
-  // @@protoc_insertion_point(field_mutable:battle.v1.ClientMoveInput.room_name)
+  // @@protoc_insertion_point(field_mutable:battle.v1.ClientInput.room_name)
   return _s;
 }
-inline const ::std::string& ClientMoveInput::_internal_room_name() const {
+inline const ::std::string& ClientInput::_internal_room_name() const {
   ::google::protobuf::internal::TSanRead(&_impl_);
   return _impl_.room_name_.Get();
 }
-inline void ClientMoveInput::_internal_set_room_name(const ::std::string& value) {
+inline void ClientInput::_internal_set_room_name(const ::std::string& value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_._has_bits_[0] |= 0x00000001u;
   _impl_.room_name_.Set(value, GetArena());
 }
-inline ::std::string* PROTOBUF_NONNULL ClientMoveInput::_internal_mutable_room_name() {
+inline ::std::string* PROTOBUF_NONNULL ClientInput::_internal_mutable_room_name() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_._has_bits_[0] |= 0x00000001u;
   return _impl_.room_name_.Mutable( GetArena());
 }
-inline ::std::string* PROTOBUF_NULLABLE ClientMoveInput::release_room_name() {
+inline ::std::string* PROTOBUF_NULLABLE ClientInput::release_room_name() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  // @@protoc_insertion_point(field_release:battle.v1.ClientMoveInput.room_name)
+  // @@protoc_insertion_point(field_release:battle.v1.ClientInput.room_name)
   if ((_impl_._has_bits_[0] & 0x00000001u) == 0) {
     return nullptr;
   }
@@ -3796,7 +3820,7 @@ inline ::std::string* PROTOBUF_NULLABLE ClientMoveInput::release_room_name() {
   }
   return released;
 }
-inline void ClientMoveInput::set_allocated_room_name(::std::string* PROTOBUF_NULLABLE value) {
+inline void ClientInput::set_allocated_room_name(::std::string* PROTOBUF_NULLABLE value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (value != nullptr) {
     _impl_._has_bits_[0] |= 0x00000001u;
@@ -3807,79 +3831,127 @@ inline void ClientMoveInput::set_allocated_room_name(::std::string* PROTOBUF_NUL
   if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.room_name_.IsDefault()) {
     _impl_.room_name_.Set("", GetArena());
   }
-  // @@protoc_insertion_point(field_set_allocated:battle.v1.ClientMoveInput.room_name)
+  // @@protoc_insertion_point(field_set_allocated:battle.v1.ClientInput.room_name)
 }
 
 // int64 player_id = 2;
-inline void ClientMoveInput::clear_player_id() {
+inline void ClientInput::clear_player_id() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.player_id_ = ::int64_t{0};
   _impl_._has_bits_[0] &= ~0x00000002u;
 }
-inline ::int64_t ClientMoveInput::player_id() const {
-  // @@protoc_insertion_point(field_get:battle.v1.ClientMoveInput.player_id)
+inline ::int64_t ClientInput::player_id() const {
+  // @@protoc_insertion_point(field_get:battle.v1.ClientInput.player_id)
   return _internal_player_id();
 }
-inline void ClientMoveInput::set_player_id(::int64_t value) {
+inline void ClientInput::set_player_id(::int64_t value) {
   _internal_set_player_id(value);
   _impl_._has_bits_[0] |= 0x00000002u;
-  // @@protoc_insertion_point(field_set:battle.v1.ClientMoveInput.player_id)
+  // @@protoc_insertion_point(field_set:battle.v1.ClientInput.player_id)
 }
-inline ::int64_t ClientMoveInput::_internal_player_id() const {
+inline ::int64_t ClientInput::_internal_player_id() const {
   ::google::protobuf::internal::TSanRead(&_impl_);
   return _impl_.player_id_;
 }
-inline void ClientMoveInput::_internal_set_player_id(::int64_t value) {
+inline void ClientInput::_internal_set_player_id(::int64_t value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.player_id_ = value;
 }
 
 // float x = 3;
-inline void ClientMoveInput::clear_x() {
+inline void ClientInput::clear_x() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.x_ = 0;
   _impl_._has_bits_[0] &= ~0x00000004u;
 }
-inline float ClientMoveInput::x() const {
-  // @@protoc_insertion_point(field_get:battle.v1.ClientMoveInput.x)
+inline float ClientInput::x() const {
+  // @@protoc_insertion_point(field_get:battle.v1.ClientInput.x)
   return _internal_x();
 }
-inline void ClientMoveInput::set_x(float value) {
+inline void ClientInput::set_x(float value) {
   _internal_set_x(value);
   _impl_._has_bits_[0] |= 0x00000004u;
-  // @@protoc_insertion_point(field_set:battle.v1.ClientMoveInput.x)
+  // @@protoc_insertion_point(field_set:battle.v1.ClientInput.x)
 }
-inline float ClientMoveInput::_internal_x() const {
+inline float ClientInput::_internal_x() const {
   ::google::protobuf::internal::TSanRead(&_impl_);
   return _impl_.x_;
 }
-inline void ClientMoveInput::_internal_set_x(float value) {
+inline void ClientInput::_internal_set_x(float value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.x_ = value;
 }
 
 // float y = 4;
-inline void ClientMoveInput::clear_y() {
+inline void ClientInput::clear_y() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.y_ = 0;
   _impl_._has_bits_[0] &= ~0x00000008u;
 }
-inline float ClientMoveInput::y() const {
-  // @@protoc_insertion_point(field_get:battle.v1.ClientMoveInput.y)
+inline float ClientInput::y() const {
+  // @@protoc_insertion_point(field_get:battle.v1.ClientInput.y)
   return _internal_y();
 }
-inline void ClientMoveInput::set_y(float value) {
+inline void ClientInput::set_y(float value) {
   _internal_set_y(value);
   _impl_._has_bits_[0] |= 0x00000008u;
-  // @@protoc_insertion_point(field_set:battle.v1.ClientMoveInput.y)
+  // @@protoc_insertion_point(field_set:battle.v1.ClientInput.y)
 }
-inline float ClientMoveInput::_internal_y() const {
+inline float ClientInput::_internal_y() const {
   ::google::protobuf::internal::TSanRead(&_impl_);
   return _impl_.y_;
 }
-inline void ClientMoveInput::_internal_set_y(float value) {
+inline void ClientInput::_internal_set_y(float value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.y_ = value;
+}
+
+// bool attack_requested = 5;
+inline void ClientInput::clear_attack_requested() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.attack_requested_ = false;
+  _impl_._has_bits_[0] &= ~0x00000010u;
+}
+inline bool ClientInput::attack_requested() const {
+  // @@protoc_insertion_point(field_get:battle.v1.ClientInput.attack_requested)
+  return _internal_attack_requested();
+}
+inline void ClientInput::set_attack_requested(bool value) {
+  _internal_set_attack_requested(value);
+  _impl_._has_bits_[0] |= 0x00000010u;
+  // @@protoc_insertion_point(field_set:battle.v1.ClientInput.attack_requested)
+}
+inline bool ClientInput::_internal_attack_requested() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.attack_requested_;
+}
+inline void ClientInput::_internal_set_attack_requested(bool value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.attack_requested_ = value;
+}
+
+// bool dash_requested = 6;
+inline void ClientInput::clear_dash_requested() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.dash_requested_ = false;
+  _impl_._has_bits_[0] &= ~0x00000020u;
+}
+inline bool ClientInput::dash_requested() const {
+  // @@protoc_insertion_point(field_get:battle.v1.ClientInput.dash_requested)
+  return _internal_dash_requested();
+}
+inline void ClientInput::set_dash_requested(bool value) {
+  _internal_set_dash_requested(value);
+  _impl_._has_bits_[0] |= 0x00000020u;
+  // @@protoc_insertion_point(field_set:battle.v1.ClientInput.dash_requested)
+}
+inline bool ClientInput::_internal_dash_requested() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.dash_requested_;
+}
+inline void ClientInput::_internal_set_dash_requested(bool value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.dash_requested_ = value;
 }
 
 // -------------------------------------------------------------------

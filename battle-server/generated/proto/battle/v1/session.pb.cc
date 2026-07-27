@@ -177,7 +177,7 @@ struct EntitySnapshotDefaultTypeInternal {
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT
     PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 EntitySnapshotDefaultTypeInternal _EntitySnapshot_default_instance_;
 
-inline constexpr ClientMoveInput::Impl_::Impl_(
+inline constexpr ClientInput::Impl_::Impl_(
     ::_pbi::ConstantInitialized) noexcept
       : _cached_size_{0},
         room_name_(
@@ -185,27 +185,29 @@ inline constexpr ClientMoveInput::Impl_::Impl_(
             ::_pbi::ConstantInitialized()),
         player_id_{::int64_t{0}},
         x_{0},
-        y_{0} {}
+        y_{0},
+        attack_requested_{false},
+        dash_requested_{false} {}
 
 template <typename>
-PROTOBUF_CONSTEXPR ClientMoveInput::ClientMoveInput(::_pbi::ConstantInitialized)
+PROTOBUF_CONSTEXPR ClientInput::ClientInput(::_pbi::ConstantInitialized)
 #if defined(PROTOBUF_CUSTOM_VTABLE)
-    : ::google::protobuf::Message(ClientMoveInput_class_data_.base()),
+    : ::google::protobuf::Message(ClientInput_class_data_.base()),
 #else   // PROTOBUF_CUSTOM_VTABLE
     : ::google::protobuf::Message(),
 #endif  // PROTOBUF_CUSTOM_VTABLE
       _impl_(::_pbi::ConstantInitialized()) {
 }
-struct ClientMoveInputDefaultTypeInternal {
-  PROTOBUF_CONSTEXPR ClientMoveInputDefaultTypeInternal() : _instance(::_pbi::ConstantInitialized{}) {}
-  ~ClientMoveInputDefaultTypeInternal() {}
+struct ClientInputDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR ClientInputDefaultTypeInternal() : _instance(::_pbi::ConstantInitialized{}) {}
+  ~ClientInputDefaultTypeInternal() {}
   union {
-    ClientMoveInput _instance;
+    ClientInput _instance;
   };
 };
 
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT
-    PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 ClientMoveInputDefaultTypeInternal _ClientMoveInput_default_instance_;
+    PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 ClientInputDefaultTypeInternal _ClientInput_default_instance_;
 
 inline constexpr ClientHello::Impl_::Impl_(
     ::_pbi::ConstantInitialized) noexcept
@@ -379,16 +381,20 @@ const ::uint32_t
         ~0u,
         1,
         0x081, // bitmap
-        PROTOBUF_FIELD_OFFSET(::battle::v1::ClientMoveInput, _impl_._has_bits_),
-        7, // hasbit index offset
-        PROTOBUF_FIELD_OFFSET(::battle::v1::ClientMoveInput, _impl_.room_name_),
-        PROTOBUF_FIELD_OFFSET(::battle::v1::ClientMoveInput, _impl_.player_id_),
-        PROTOBUF_FIELD_OFFSET(::battle::v1::ClientMoveInput, _impl_.x_),
-        PROTOBUF_FIELD_OFFSET(::battle::v1::ClientMoveInput, _impl_.y_),
+        PROTOBUF_FIELD_OFFSET(::battle::v1::ClientInput, _impl_._has_bits_),
+        9, // hasbit index offset
+        PROTOBUF_FIELD_OFFSET(::battle::v1::ClientInput, _impl_.room_name_),
+        PROTOBUF_FIELD_OFFSET(::battle::v1::ClientInput, _impl_.player_id_),
+        PROTOBUF_FIELD_OFFSET(::battle::v1::ClientInput, _impl_.x_),
+        PROTOBUF_FIELD_OFFSET(::battle::v1::ClientInput, _impl_.y_),
+        PROTOBUF_FIELD_OFFSET(::battle::v1::ClientInput, _impl_.attack_requested_),
+        PROTOBUF_FIELD_OFFSET(::battle::v1::ClientInput, _impl_.dash_requested_),
         0,
         1,
         2,
         3,
+        4,
+        5,
         0x081, // bitmap
         PROTOBUF_FIELD_OFFSET(::battle::v1::EntitySnapshot, _impl_._has_bits_),
         10, // hasbit index offset
@@ -424,9 +430,9 @@ static const ::_pbi::MigrationSchema
         {30, sizeof(::battle::v1::ClientPacket)},
         {35, sizeof(::battle::v1::ServerPacket)},
         {43, sizeof(::battle::v1::GameOver)},
-        {52, sizeof(::battle::v1::ClientMoveInput)},
-        {63, sizeof(::battle::v1::EntitySnapshot)},
-        {80, sizeof(::battle::v1::WorldSnapshot)},
+        {52, sizeof(::battle::v1::ClientInput)},
+        {67, sizeof(::battle::v1::EntitySnapshot)},
+        {84, sizeof(::battle::v1::WorldSnapshot)},
 };
 static const ::_pb::Message* PROTOBUF_NONNULL const file_default_instances[] = {
     &::battle::v1::_ClientHello_default_instance_._instance,
@@ -436,7 +442,7 @@ static const ::_pb::Message* PROTOBUF_NONNULL const file_default_instances[] = {
     &::battle::v1::_ClientPacket_default_instance_._instance,
     &::battle::v1::_ServerPacket_default_instance_._instance,
     &::battle::v1::_GameOver_default_instance_._instance,
-    &::battle::v1::_ClientMoveInput_default_instance_._instance,
+    &::battle::v1::_ClientInput_default_instance_._instance,
     &::battle::v1::_EntitySnapshot_default_instance_._instance,
     &::battle::v1::_WorldSnapshot_default_instance_._instance,
 };
@@ -448,33 +454,34 @@ const char descriptor_table_protodef_proto_2fbattle_2fv1_2fsession_2eproto[] ABS
     "Hello\022\014\n\004conv\030\001 \001(\r\022\017\n\007message\030\002 \001(\t\"2\n\t"
     "GameStart\022\021\n\troom_name\030\001 \001(\t\022\022\n\nplayer_i"
     "ds\030\002 \003(\003\"&\n\005Error\022\014\n\004code\030\001 \001(\t\022\017\n\007messa"
-    "ge\030\002 \001(\t\"t\n\014ClientPacket\022\'\n\005hello\030\001 \001(\0132"
-    "\026.battle.v1.ClientHelloH\000\0220\n\nmove_input\030"
-    "\002 \001(\0132\032.battle.v1.ClientMoveInputH\000B\t\n\007p"
-    "ayload\"\351\001\n\014ServerPacket\022\'\n\005hello\030\001 \001(\0132\026"
-    ".battle.v1.ServerHelloH\000\022*\n\ngame_start\030\002"
-    " \001(\0132\024.battle.v1.GameStartH\000\022!\n\005error\030\003 "
-    "\001(\0132\020.battle.v1.ErrorH\000\022(\n\tgame_over\030\004 \001"
-    "(\0132\023.battle.v1.GameOverH\000\022,\n\010snapshot\030\005 "
-    "\001(\0132\030.battle.v1.WorldSnapshotH\000B\t\n\007paylo"
-    "ad\"A\n\010GameOver\022\021\n\troom_name\030\001 \001(\t\022\022\n\npla"
-    "yer_ids\030\002 \003(\003\022\016\n\006reason\030\003 \001(\t\"M\n\017ClientM"
-    "oveInput\022\021\n\troom_name\030\001 \001(\t\022\021\n\tplayer_id"
-    "\030\002 \001(\003\022\t\n\001x\030\003 \001(\002\022\t\n\001y\030\004 \001(\002\"\236\001\n\016EntityS"
-    "napshot\022\016\n\006entity\030\001 \001(\r\022\022\n\nx_position\030\002 "
-    "\001(\002\022\022\n\ny_position\030\003 \001(\002\022\023\n\013x_direction\030\004"
-    " \001(\002\022\023\n\013y_direction\030\005 \001(\002\022\026\n\016current_hea"
-    "lth\030\006 \001(\005\022\022\n\nmax_health\030\007 \001(\005\"O\n\rWorldSn"
-    "apshot\022\021\n\troom_name\030\001 \001(\t\022+\n\010entities\030\002 "
-    "\003(\0132\031.battle.v1.EntitySnapshotB,Z*server"
-    "/internal/contract/battlepb;battlepbb\006pr"
-    "oto3"
+    "ge\030\002 \001(\t\"k\n\014ClientPacket\022\'\n\005hello\030\001 \001(\0132"
+    "\026.battle.v1.ClientHelloH\000\022\'\n\005input\030\002 \001(\013"
+    "2\026.battle.v1.ClientInputH\000B\t\n\007payload\"\351\001"
+    "\n\014ServerPacket\022\'\n\005hello\030\001 \001(\0132\026.battle.v"
+    "1.ServerHelloH\000\022*\n\ngame_start\030\002 \001(\0132\024.ba"
+    "ttle.v1.GameStartH\000\022!\n\005error\030\003 \001(\0132\020.bat"
+    "tle.v1.ErrorH\000\022(\n\tgame_over\030\004 \001(\0132\023.batt"
+    "le.v1.GameOverH\000\022,\n\010snapshot\030\005 \001(\0132\030.bat"
+    "tle.v1.WorldSnapshotH\000B\t\n\007payload\"A\n\010Gam"
+    "eOver\022\021\n\troom_name\030\001 \001(\t\022\022\n\nplayer_ids\030\002"
+    " \003(\003\022\016\n\006reason\030\003 \001(\t\"{\n\013ClientInput\022\021\n\tr"
+    "oom_name\030\001 \001(\t\022\021\n\tplayer_id\030\002 \001(\003\022\t\n\001x\030\003"
+    " \001(\002\022\t\n\001y\030\004 \001(\002\022\030\n\020attack_requested\030\005 \001("
+    "\010\022\026\n\016dash_requested\030\006 \001(\010\"\236\001\n\016EntitySnap"
+    "shot\022\016\n\006entity\030\001 \001(\r\022\022\n\nx_position\030\002 \001(\002"
+    "\022\022\n\ny_position\030\003 \001(\002\022\023\n\013x_direction\030\004 \001("
+    "\002\022\023\n\013y_direction\030\005 \001(\002\022\026\n\016current_health"
+    "\030\006 \001(\005\022\022\n\nmax_health\030\007 \001(\005\"O\n\rWorldSnaps"
+    "hot\022\021\n\troom_name\030\001 \001(\t\022+\n\010entities\030\002 \003(\013"
+    "2\031.battle.v1.EntitySnapshotB,Z*server/in"
+    "ternal/contract/battlepb;battlepbb\006proto"
+    "3"
 };
 static ::absl::once_flag descriptor_table_proto_2fbattle_2fv1_2fsession_2eproto_once;
 PROTOBUF_CONSTINIT const ::_pbi::DescriptorTable descriptor_table_proto_2fbattle_2fv1_2fsession_2eproto = {
     false,
     false,
-    1044,
+    1081,
     descriptor_table_protodef_proto_2fbattle_2fv1_2fsession_2eproto,
     "proto/battle/v1/session.proto",
     &descriptor_table_proto_2fbattle_2fv1_2fsession_2eproto_once,
@@ -1758,18 +1765,18 @@ void ClientPacket::set_allocated_hello(::battle::v1::ClientHello* PROTOBUF_NULLA
   }
   // @@protoc_insertion_point(field_set_allocated:battle.v1.ClientPacket.hello)
 }
-void ClientPacket::set_allocated_move_input(::battle::v1::ClientMoveInput* PROTOBUF_NULLABLE move_input) {
+void ClientPacket::set_allocated_input(::battle::v1::ClientInput* PROTOBUF_NULLABLE input) {
   ::google::protobuf::Arena* message_arena = GetArena();
   clear_payload();
-  if (move_input) {
-    ::google::protobuf::Arena* submessage_arena = move_input->GetArena();
+  if (input) {
+    ::google::protobuf::Arena* submessage_arena = input->GetArena();
     if (message_arena != submessage_arena) {
-      move_input = ::google::protobuf::internal::GetOwnedMessage(message_arena, move_input, submessage_arena);
+      input = ::google::protobuf::internal::GetOwnedMessage(message_arena, input, submessage_arena);
     }
-    set_has_move_input();
-    _impl_.payload_.move_input_ = move_input;
+    set_has_input();
+    _impl_.payload_.input_ = input;
   }
-  // @@protoc_insertion_point(field_set_allocated:battle.v1.ClientPacket.move_input)
+  // @@protoc_insertion_point(field_set_allocated:battle.v1.ClientPacket.input)
 }
 ClientPacket::ClientPacket(::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
 #if defined(PROTOBUF_CUSTOM_VTABLE)
@@ -1807,8 +1814,8 @@ ClientPacket::ClientPacket(
       case kHello:
         _impl_.payload_.hello_ = ::google::protobuf::Message::CopyConstruct(arena, *from._impl_.payload_.hello_);
         break;
-      case kMoveInput:
-        _impl_.payload_.move_input_ = ::google::protobuf::Message::CopyConstruct(arena, *from._impl_.payload_.move_input_);
+      case kInput:
+        _impl_.payload_.input_ = ::google::protobuf::Message::CopyConstruct(arena, *from._impl_.payload_.input_);
         break;
   }
 
@@ -1850,11 +1857,11 @@ void ClientPacket::clear_payload() {
       }
       break;
     }
-    case kMoveInput: {
+    case kInput: {
       if (GetArena() == nullptr) {
-        delete _impl_.payload_.move_input_;
+        delete _impl_.payload_.input_;
       } else if (::google::protobuf::internal::DebugHardenClearOneofMessageOnArena()) {
-        ::google::protobuf::internal::MaybePoisonAfterClear(_impl_.payload_.move_input_);
+        ::google::protobuf::internal::MaybePoisonAfterClear(_impl_.payload_.input_);
       }
       break;
     }
@@ -1935,13 +1942,13 @@ ClientPacket::_table_ = {
     // .battle.v1.ClientHello hello = 1;
     {PROTOBUF_FIELD_OFFSET(ClientPacket, _impl_.payload_.hello_), _Internal::kOneofCaseOffset + 0, 0,
     (0 | ::_fl::kFcOneof | ::_fl::kMessage | ::_fl::kTvTable)},
-    // .battle.v1.ClientMoveInput move_input = 2;
-    {PROTOBUF_FIELD_OFFSET(ClientPacket, _impl_.payload_.move_input_), _Internal::kOneofCaseOffset + 0, 1,
+    // .battle.v1.ClientInput input = 2;
+    {PROTOBUF_FIELD_OFFSET(ClientPacket, _impl_.payload_.input_), _Internal::kOneofCaseOffset + 0, 1,
     (0 | ::_fl::kFcOneof | ::_fl::kMessage | ::_fl::kTvTable)},
   }},
   {{
       {::_pbi::TcParser::GetTable<::battle::v1::ClientHello>()},
-      {::_pbi::TcParser::GetTable<::battle::v1::ClientMoveInput>()},
+      {::_pbi::TcParser::GetTable<::battle::v1::ClientInput>()},
   }},
   {{
   }},
@@ -1979,9 +1986,9 @@ PROTOBUF_NOINLINE void ClientPacket::Clear() {
           stream);
       break;
     }
-    case kMoveInput: {
+    case kInput: {
       target = ::google::protobuf::internal::WireFormatLite::InternalWriteMessage(
-          2, *this_._impl_.payload_.move_input_, this_._impl_.payload_.move_input_->GetCachedSize(), target,
+          2, *this_._impl_.payload_.input_, this_._impl_.payload_.input_->GetCachedSize(), target,
           stream);
       break;
     }
@@ -2018,10 +2025,10 @@ PROTOBUF_NOINLINE void ClientPacket::Clear() {
                     ::google::protobuf::internal::WireFormatLite::MessageSize(*this_._impl_.payload_.hello_);
       break;
     }
-    // .battle.v1.ClientMoveInput move_input = 2;
-    case kMoveInput: {
+    // .battle.v1.ClientInput input = 2;
+    case kInput: {
       total_size += 1 +
-                    ::google::protobuf::internal::WireFormatLite::MessageSize(*this_._impl_.payload_.move_input_);
+                    ::google::protobuf::internal::WireFormatLite::MessageSize(*this_._impl_.payload_.input_);
       break;
     }
     case PAYLOAD_NOT_SET: {
@@ -2060,11 +2067,11 @@ void ClientPacket::MergeImpl(::google::protobuf::MessageLite& to_msg, const ::go
         }
         break;
       }
-      case kMoveInput: {
+      case kInput: {
         if (oneof_needs_init) {
-          _this->_impl_.payload_.move_input_ = ::google::protobuf::Message::CopyConstruct(arena, *from._impl_.payload_.move_input_);
+          _this->_impl_.payload_.input_ = ::google::protobuf::Message::CopyConstruct(arena, *from._impl_.payload_.input_);
         } else {
-          _this->_impl_.payload_.move_input_->MergeFrom(*from._impl_.payload_.move_input_);
+          _this->_impl_.payload_.input_->MergeFrom(*from._impl_.payload_.input_);
         }
         break;
       }
@@ -2946,40 +2953,40 @@ void GameOver::InternalSwap(GameOver* PROTOBUF_RESTRICT PROTOBUF_NONNULL other) 
 }
 // ===================================================================
 
-class ClientMoveInput::_Internal {
+class ClientInput::_Internal {
  public:
   using HasBits =
-      decltype(::std::declval<ClientMoveInput>()._impl_._has_bits_);
+      decltype(::std::declval<ClientInput>()._impl_._has_bits_);
   static constexpr ::int32_t kHasBitsOffset =
-      8 * PROTOBUF_FIELD_OFFSET(ClientMoveInput, _impl_._has_bits_);
+      8 * PROTOBUF_FIELD_OFFSET(ClientInput, _impl_._has_bits_);
 };
 
-ClientMoveInput::ClientMoveInput(::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
+ClientInput::ClientInput(::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
 #if defined(PROTOBUF_CUSTOM_VTABLE)
-    : ::google::protobuf::Message(arena, ClientMoveInput_class_data_.base()) {
+    : ::google::protobuf::Message(arena, ClientInput_class_data_.base()) {
 #else   // PROTOBUF_CUSTOM_VTABLE
     : ::google::protobuf::Message(arena) {
 #endif  // PROTOBUF_CUSTOM_VTABLE
   SharedCtor(arena);
-  // @@protoc_insertion_point(arena_constructor:battle.v1.ClientMoveInput)
+  // @@protoc_insertion_point(arena_constructor:battle.v1.ClientInput)
 }
-PROTOBUF_NDEBUG_INLINE ClientMoveInput::Impl_::Impl_(
+PROTOBUF_NDEBUG_INLINE ClientInput::Impl_::Impl_(
     ::google::protobuf::internal::InternalVisibility visibility,
     ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
-    const ::battle::v1::ClientMoveInput& from_msg)
+    const ::battle::v1::ClientInput& from_msg)
       : _has_bits_{from._has_bits_},
         _cached_size_{0},
         room_name_(arena, from.room_name_) {}
 
-ClientMoveInput::ClientMoveInput(
+ClientInput::ClientInput(
     ::google::protobuf::Arena* PROTOBUF_NULLABLE arena,
-    const ClientMoveInput& from)
+    const ClientInput& from)
 #if defined(PROTOBUF_CUSTOM_VTABLE)
-    : ::google::protobuf::Message(arena, ClientMoveInput_class_data_.base()) {
+    : ::google::protobuf::Message(arena, ClientInput_class_data_.base()) {
 #else   // PROTOBUF_CUSTOM_VTABLE
     : ::google::protobuf::Message(arena) {
 #endif  // PROTOBUF_CUSTOM_VTABLE
-  ClientMoveInput* const _this = this;
+  ClientInput* const _this = this;
   (void)_this;
   _internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
       from._internal_metadata_);
@@ -2988,138 +2995,152 @@ ClientMoveInput::ClientMoveInput(
                offsetof(Impl_, player_id_),
            reinterpret_cast<const char *>(&from._impl_) +
                offsetof(Impl_, player_id_),
-           offsetof(Impl_, y_) -
+           offsetof(Impl_, dash_requested_) -
                offsetof(Impl_, player_id_) +
-               sizeof(Impl_::y_));
+               sizeof(Impl_::dash_requested_));
 
-  // @@protoc_insertion_point(copy_constructor:battle.v1.ClientMoveInput)
+  // @@protoc_insertion_point(copy_constructor:battle.v1.ClientInput)
 }
-PROTOBUF_NDEBUG_INLINE ClientMoveInput::Impl_::Impl_(
+PROTOBUF_NDEBUG_INLINE ClientInput::Impl_::Impl_(
     ::google::protobuf::internal::InternalVisibility visibility,
     ::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
       : _cached_size_{0},
         room_name_(arena) {}
 
-inline void ClientMoveInput::SharedCtor(::_pb::Arena* PROTOBUF_NULLABLE arena) {
+inline void ClientInput::SharedCtor(::_pb::Arena* PROTOBUF_NULLABLE arena) {
   new (&_impl_) Impl_(internal_visibility(), arena);
   ::memset(reinterpret_cast<char *>(&_impl_) +
                offsetof(Impl_, player_id_),
            0,
-           offsetof(Impl_, y_) -
+           offsetof(Impl_, dash_requested_) -
                offsetof(Impl_, player_id_) +
-               sizeof(Impl_::y_));
+               sizeof(Impl_::dash_requested_));
 }
-ClientMoveInput::~ClientMoveInput() {
-  // @@protoc_insertion_point(destructor:battle.v1.ClientMoveInput)
+ClientInput::~ClientInput() {
+  // @@protoc_insertion_point(destructor:battle.v1.ClientInput)
   SharedDtor(*this);
 }
-inline void ClientMoveInput::SharedDtor(MessageLite& self) {
-  ClientMoveInput& this_ = static_cast<ClientMoveInput&>(self);
+inline void ClientInput::SharedDtor(MessageLite& self) {
+  ClientInput& this_ = static_cast<ClientInput&>(self);
   this_._internal_metadata_.Delete<::google::protobuf::UnknownFieldSet>();
   ABSL_DCHECK(this_.GetArena() == nullptr);
   this_._impl_.room_name_.Destroy();
   this_._impl_.~Impl_();
 }
 
-inline void* PROTOBUF_NONNULL ClientMoveInput::PlacementNew_(
+inline void* PROTOBUF_NONNULL ClientInput::PlacementNew_(
     const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
     ::google::protobuf::Arena* PROTOBUF_NULLABLE arena) {
-  return ::new (mem) ClientMoveInput(arena);
+  return ::new (mem) ClientInput(arena);
 }
-constexpr auto ClientMoveInput::InternalNewImpl_() {
-  return ::google::protobuf::internal::MessageCreator::CopyInit(sizeof(ClientMoveInput),
-                                            alignof(ClientMoveInput));
+constexpr auto ClientInput::InternalNewImpl_() {
+  return ::google::protobuf::internal::MessageCreator::CopyInit(sizeof(ClientInput),
+                                            alignof(ClientInput));
 }
-constexpr auto ClientMoveInput::InternalGenerateClassData_() {
+constexpr auto ClientInput::InternalGenerateClassData_() {
   return ::google::protobuf::internal::ClassDataFull{
       ::google::protobuf::internal::ClassData{
-          &_ClientMoveInput_default_instance_._instance,
+          &_ClientInput_default_instance_._instance,
           &_table_.header,
           nullptr,  // OnDemandRegisterArenaDtor
           nullptr,  // IsInitialized
-          &ClientMoveInput::MergeImpl,
-          ::google::protobuf::Message::GetNewImpl<ClientMoveInput>(),
+          &ClientInput::MergeImpl,
+          ::google::protobuf::Message::GetNewImpl<ClientInput>(),
 #if defined(PROTOBUF_CUSTOM_VTABLE)
-          &ClientMoveInput::SharedDtor,
-          ::google::protobuf::Message::GetClearImpl<ClientMoveInput>(), &ClientMoveInput::ByteSizeLong,
-              &ClientMoveInput::_InternalSerialize,
+          &ClientInput::SharedDtor,
+          ::google::protobuf::Message::GetClearImpl<ClientInput>(), &ClientInput::ByteSizeLong,
+              &ClientInput::_InternalSerialize,
 #endif  // PROTOBUF_CUSTOM_VTABLE
-          PROTOBUF_FIELD_OFFSET(ClientMoveInput, _impl_._cached_size_),
+          PROTOBUF_FIELD_OFFSET(ClientInput, _impl_._cached_size_),
           false,
       },
-      &ClientMoveInput::kDescriptorMethods,
+      &ClientInput::kDescriptorMethods,
       &descriptor_table_proto_2fbattle_2fv1_2fsession_2eproto,
       nullptr,  // tracker
   };
 }
 
 PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 const
-    ::google::protobuf::internal::ClassDataFull ClientMoveInput_class_data_ =
-        ClientMoveInput::InternalGenerateClassData_();
+    ::google::protobuf::internal::ClassDataFull ClientInput_class_data_ =
+        ClientInput::InternalGenerateClassData_();
 
 PROTOBUF_ATTRIBUTE_WEAK const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL
-ClientMoveInput::GetClassData() const {
-  ::google::protobuf::internal::PrefetchToLocalCache(&ClientMoveInput_class_data_);
-  ::google::protobuf::internal::PrefetchToLocalCache(ClientMoveInput_class_data_.tc_table);
-  return ClientMoveInput_class_data_.base();
+ClientInput::GetClassData() const {
+  ::google::protobuf::internal::PrefetchToLocalCache(&ClientInput_class_data_);
+  ::google::protobuf::internal::PrefetchToLocalCache(ClientInput_class_data_.tc_table);
+  return ClientInput_class_data_.base();
 }
 PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
-const ::_pbi::TcParseTable<2, 4, 0, 43, 2>
-ClientMoveInput::_table_ = {
+const ::_pbi::TcParseTable<3, 6, 0, 39, 2>
+ClientInput::_table_ = {
   {
-    PROTOBUF_FIELD_OFFSET(ClientMoveInput, _impl_._has_bits_),
+    PROTOBUF_FIELD_OFFSET(ClientInput, _impl_._has_bits_),
     0, // no _extensions_
-    4, 24,  // max_field_number, fast_idx_mask
+    6, 56,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
-    4294967280,  // skipmap
+    4294967232,  // skipmap
     offsetof(decltype(_table_), field_entries),
-    4,  // num_field_entries
+    6,  // num_field_entries
     0,  // num_aux_entries
     offsetof(decltype(_table_), field_names),  // no aux_entries
-    ClientMoveInput_class_data_.base(),
+    ClientInput_class_data_.base(),
     nullptr,  // post_loop_handler
     ::_pbi::TcParser::GenericFallback,  // fallback
     #ifdef PROTOBUF_PREFETCH_PARSE_TABLE
-    ::_pbi::TcParser::GetTable<::battle::v1::ClientMoveInput>(),  // to_prefetch
+    ::_pbi::TcParser::GetTable<::battle::v1::ClientInput>(),  // to_prefetch
     #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
   }, {{
-    // float y = 4;
-    {::_pbi::TcParser::FastF32S1,
-     {37, 3, 0, PROTOBUF_FIELD_OFFSET(ClientMoveInput, _impl_.y_)}},
+    {::_pbi::TcParser::MiniParse, {}},
     // string room_name = 1;
     {::_pbi::TcParser::FastUS1,
-     {10, 0, 0, PROTOBUF_FIELD_OFFSET(ClientMoveInput, _impl_.room_name_)}},
+     {10, 0, 0, PROTOBUF_FIELD_OFFSET(ClientInput, _impl_.room_name_)}},
     // int64 player_id = 2;
-    {::_pbi::TcParser::SingularVarintNoZag1<::uint64_t, offsetof(ClientMoveInput, _impl_.player_id_), 1>(),
-     {16, 1, 0, PROTOBUF_FIELD_OFFSET(ClientMoveInput, _impl_.player_id_)}},
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint64_t, offsetof(ClientInput, _impl_.player_id_), 1>(),
+     {16, 1, 0, PROTOBUF_FIELD_OFFSET(ClientInput, _impl_.player_id_)}},
     // float x = 3;
     {::_pbi::TcParser::FastF32S1,
-     {29, 2, 0, PROTOBUF_FIELD_OFFSET(ClientMoveInput, _impl_.x_)}},
+     {29, 2, 0, PROTOBUF_FIELD_OFFSET(ClientInput, _impl_.x_)}},
+    // float y = 4;
+    {::_pbi::TcParser::FastF32S1,
+     {37, 3, 0, PROTOBUF_FIELD_OFFSET(ClientInput, _impl_.y_)}},
+    // bool attack_requested = 5;
+    {::_pbi::TcParser::SingularVarintNoZag1<bool, offsetof(ClientInput, _impl_.attack_requested_), 4>(),
+     {40, 4, 0, PROTOBUF_FIELD_OFFSET(ClientInput, _impl_.attack_requested_)}},
+    // bool dash_requested = 6;
+    {::_pbi::TcParser::SingularVarintNoZag1<bool, offsetof(ClientInput, _impl_.dash_requested_), 5>(),
+     {48, 5, 0, PROTOBUF_FIELD_OFFSET(ClientInput, _impl_.dash_requested_)}},
+    {::_pbi::TcParser::MiniParse, {}},
   }}, {{
     65535, 65535
   }}, {{
     // string room_name = 1;
-    {PROTOBUF_FIELD_OFFSET(ClientMoveInput, _impl_.room_name_), _Internal::kHasBitsOffset + 0, 0,
+    {PROTOBUF_FIELD_OFFSET(ClientInput, _impl_.room_name_), _Internal::kHasBitsOffset + 0, 0,
     (0 | ::_fl::kFcOptional | ::_fl::kUtf8String | ::_fl::kRepAString)},
     // int64 player_id = 2;
-    {PROTOBUF_FIELD_OFFSET(ClientMoveInput, _impl_.player_id_), _Internal::kHasBitsOffset + 1, 0,
+    {PROTOBUF_FIELD_OFFSET(ClientInput, _impl_.player_id_), _Internal::kHasBitsOffset + 1, 0,
     (0 | ::_fl::kFcOptional | ::_fl::kInt64)},
     // float x = 3;
-    {PROTOBUF_FIELD_OFFSET(ClientMoveInput, _impl_.x_), _Internal::kHasBitsOffset + 2, 0,
+    {PROTOBUF_FIELD_OFFSET(ClientInput, _impl_.x_), _Internal::kHasBitsOffset + 2, 0,
     (0 | ::_fl::kFcOptional | ::_fl::kFloat)},
     // float y = 4;
-    {PROTOBUF_FIELD_OFFSET(ClientMoveInput, _impl_.y_), _Internal::kHasBitsOffset + 3, 0,
+    {PROTOBUF_FIELD_OFFSET(ClientInput, _impl_.y_), _Internal::kHasBitsOffset + 3, 0,
     (0 | ::_fl::kFcOptional | ::_fl::kFloat)},
+    // bool attack_requested = 5;
+    {PROTOBUF_FIELD_OFFSET(ClientInput, _impl_.attack_requested_), _Internal::kHasBitsOffset + 4, 0,
+    (0 | ::_fl::kFcOptional | ::_fl::kBool)},
+    // bool dash_requested = 6;
+    {PROTOBUF_FIELD_OFFSET(ClientInput, _impl_.dash_requested_), _Internal::kHasBitsOffset + 5, 0,
+    (0 | ::_fl::kFcOptional | ::_fl::kBool)},
   }},
   // no aux_entries
   {{
-    "\31\11\0\0\0\0\0\0"
-    "battle.v1.ClientMoveInput"
+    "\25\11\0\0\0\0\0\0"
+    "battle.v1.ClientInput"
     "room_name"
   }},
 };
-PROTOBUF_NOINLINE void ClientMoveInput::Clear() {
-// @@protoc_insertion_point(message_clear_start:battle.v1.ClientMoveInput)
+PROTOBUF_NOINLINE void ClientInput::Clear() {
+// @@protoc_insertion_point(message_clear_start:battle.v1.ClientInput)
   ::google::protobuf::internal::TSanWrite(&_impl_);
   ::uint32_t cached_has_bits = 0;
   // Prevent compiler warnings about cached_has_bits being unused
@@ -3129,27 +3150,27 @@ PROTOBUF_NOINLINE void ClientMoveInput::Clear() {
   if ((cached_has_bits & 0x00000001u) != 0) {
     _impl_.room_name_.ClearNonDefaultToEmpty();
   }
-  if ((cached_has_bits & 0x0000000eu) != 0) {
+  if ((cached_has_bits & 0x0000003eu) != 0) {
     ::memset(&_impl_.player_id_, 0, static_cast<::size_t>(
-        reinterpret_cast<char*>(&_impl_.y_) -
-        reinterpret_cast<char*>(&_impl_.player_id_)) + sizeof(_impl_.y_));
+        reinterpret_cast<char*>(&_impl_.dash_requested_) -
+        reinterpret_cast<char*>(&_impl_.player_id_)) + sizeof(_impl_.dash_requested_));
   }
   _impl_._has_bits_.Clear();
   _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
 }
 
 #if defined(PROTOBUF_CUSTOM_VTABLE)
-::uint8_t* PROTOBUF_NONNULL ClientMoveInput::_InternalSerialize(
+::uint8_t* PROTOBUF_NONNULL ClientInput::_InternalSerialize(
     const ::google::protobuf::MessageLite& base, ::uint8_t* PROTOBUF_NONNULL target,
     ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) {
-  const ClientMoveInput& this_ = static_cast<const ClientMoveInput&>(base);
+  const ClientInput& this_ = static_cast<const ClientInput&>(base);
 #else   // PROTOBUF_CUSTOM_VTABLE
-::uint8_t* PROTOBUF_NONNULL ClientMoveInput::_InternalSerialize(
+::uint8_t* PROTOBUF_NONNULL ClientInput::_InternalSerialize(
     ::uint8_t* PROTOBUF_NONNULL target,
     ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
-  const ClientMoveInput& this_ = *this;
+  const ClientInput& this_ = *this;
 #endif  // PROTOBUF_CUSTOM_VTABLE
-  // @@protoc_insertion_point(serialize_to_array_start:battle.v1.ClientMoveInput)
+  // @@protoc_insertion_point(serialize_to_array_start:battle.v1.ClientInput)
   ::uint32_t cached_has_bits = 0;
   (void)cached_has_bits;
 
@@ -3158,7 +3179,7 @@ PROTOBUF_NOINLINE void ClientMoveInput::Clear() {
     if (!this_._internal_room_name().empty()) {
       const ::std::string& _s = this_._internal_room_name();
       ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-          _s.data(), static_cast<int>(_s.length()), ::google::protobuf::internal::WireFormatLite::SERIALIZE, "battle.v1.ClientMoveInput.room_name");
+          _s.data(), static_cast<int>(_s.length()), ::google::protobuf::internal::WireFormatLite::SERIALIZE, "battle.v1.ClientInput.room_name");
       target = stream->WriteStringMaybeAliased(1, _s, target);
     }
   }
@@ -3190,23 +3211,41 @@ PROTOBUF_NOINLINE void ClientMoveInput::Clear() {
     }
   }
 
+  // bool attack_requested = 5;
+  if ((this_._impl_._has_bits_[0] & 0x00000010u) != 0) {
+    if (this_._internal_attack_requested() != 0) {
+      target = stream->EnsureSpace(target);
+      target = ::_pbi::WireFormatLite::WriteBoolToArray(
+          5, this_._internal_attack_requested(), target);
+    }
+  }
+
+  // bool dash_requested = 6;
+  if ((this_._impl_._has_bits_[0] & 0x00000020u) != 0) {
+    if (this_._internal_dash_requested() != 0) {
+      target = stream->EnsureSpace(target);
+      target = ::_pbi::WireFormatLite::WriteBoolToArray(
+          6, this_._internal_dash_requested(), target);
+    }
+  }
+
   if (ABSL_PREDICT_FALSE(this_._internal_metadata_.have_unknown_fields())) {
     target =
         ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
             this_._internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance), target, stream);
   }
-  // @@protoc_insertion_point(serialize_to_array_end:battle.v1.ClientMoveInput)
+  // @@protoc_insertion_point(serialize_to_array_end:battle.v1.ClientInput)
   return target;
 }
 
 #if defined(PROTOBUF_CUSTOM_VTABLE)
-::size_t ClientMoveInput::ByteSizeLong(const MessageLite& base) {
-  const ClientMoveInput& this_ = static_cast<const ClientMoveInput&>(base);
+::size_t ClientInput::ByteSizeLong(const MessageLite& base) {
+  const ClientInput& this_ = static_cast<const ClientInput&>(base);
 #else   // PROTOBUF_CUSTOM_VTABLE
-::size_t ClientMoveInput::ByteSizeLong() const {
-  const ClientMoveInput& this_ = *this;
+::size_t ClientInput::ByteSizeLong() const {
+  const ClientInput& this_ = *this;
 #endif  // PROTOBUF_CUSTOM_VTABLE
-  // @@protoc_insertion_point(message_byte_size_start:battle.v1.ClientMoveInput)
+  // @@protoc_insertion_point(message_byte_size_start:battle.v1.ClientInput)
   ::size_t total_size = 0;
 
   ::uint32_t cached_has_bits = 0;
@@ -3215,7 +3254,7 @@ PROTOBUF_NOINLINE void ClientMoveInput::Clear() {
 
   ::_pbi::Prefetch5LinesFrom7Lines(&this_);
   cached_has_bits = this_._impl_._has_bits_[0];
-  if ((cached_has_bits & 0x0000000fu) != 0) {
+  if ((cached_has_bits & 0x0000003fu) != 0) {
     // string room_name = 1;
     if ((cached_has_bits & 0x00000001u) != 0) {
       if (!this_._internal_room_name().empty()) {
@@ -3242,21 +3281,33 @@ PROTOBUF_NOINLINE void ClientMoveInput::Clear() {
         total_size += 5;
       }
     }
+    // bool attack_requested = 5;
+    if ((cached_has_bits & 0x00000010u) != 0) {
+      if (this_._internal_attack_requested() != 0) {
+        total_size += 2;
+      }
+    }
+    // bool dash_requested = 6;
+    if ((cached_has_bits & 0x00000020u) != 0) {
+      if (this_._internal_dash_requested() != 0) {
+        total_size += 2;
+      }
+    }
   }
   return this_.MaybeComputeUnknownFieldsSize(total_size,
                                              &this_._impl_._cached_size_);
 }
 
-void ClientMoveInput::MergeImpl(::google::protobuf::MessageLite& to_msg, const ::google::protobuf::MessageLite& from_msg) {
-  auto* const _this = static_cast<ClientMoveInput*>(&to_msg);
-  auto& from = static_cast<const ClientMoveInput&>(from_msg);
-  // @@protoc_insertion_point(class_specific_merge_from_start:battle.v1.ClientMoveInput)
+void ClientInput::MergeImpl(::google::protobuf::MessageLite& to_msg, const ::google::protobuf::MessageLite& from_msg) {
+  auto* const _this = static_cast<ClientInput*>(&to_msg);
+  auto& from = static_cast<const ClientInput&>(from_msg);
+  // @@protoc_insertion_point(class_specific_merge_from_start:battle.v1.ClientInput)
   ABSL_DCHECK_NE(&from, _this);
   ::uint32_t cached_has_bits = 0;
   (void) cached_has_bits;
 
   cached_has_bits = from._impl_._has_bits_[0];
-  if ((cached_has_bits & 0x0000000fu) != 0) {
+  if ((cached_has_bits & 0x0000003fu) != 0) {
     if ((cached_has_bits & 0x00000001u) != 0) {
       if (!from._internal_room_name().empty()) {
         _this->_internal_set_room_name(from._internal_room_name());
@@ -3281,20 +3332,30 @@ void ClientMoveInput::MergeImpl(::google::protobuf::MessageLite& to_msg, const :
         _this->_impl_.y_ = from._impl_.y_;
       }
     }
+    if ((cached_has_bits & 0x00000010u) != 0) {
+      if (from._internal_attack_requested() != 0) {
+        _this->_impl_.attack_requested_ = from._impl_.attack_requested_;
+      }
+    }
+    if ((cached_has_bits & 0x00000020u) != 0) {
+      if (from._internal_dash_requested() != 0) {
+        _this->_impl_.dash_requested_ = from._impl_.dash_requested_;
+      }
+    }
   }
   _this->_impl_._has_bits_[0] |= cached_has_bits;
   _this->_internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(from._internal_metadata_);
 }
 
-void ClientMoveInput::CopyFrom(const ClientMoveInput& from) {
-// @@protoc_insertion_point(class_specific_copy_from_start:battle.v1.ClientMoveInput)
+void ClientInput::CopyFrom(const ClientInput& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:battle.v1.ClientInput)
   if (&from == this) return;
   Clear();
   MergeFrom(from);
 }
 
 
-void ClientMoveInput::InternalSwap(ClientMoveInput* PROTOBUF_RESTRICT PROTOBUF_NONNULL other) {
+void ClientInput::InternalSwap(ClientInput* PROTOBUF_RESTRICT PROTOBUF_NONNULL other) {
   using ::std::swap;
   auto* arena = GetArena();
   ABSL_DCHECK_EQ(arena, other->GetArena());
@@ -3302,14 +3363,14 @@ void ClientMoveInput::InternalSwap(ClientMoveInput* PROTOBUF_RESTRICT PROTOBUF_N
   swap(_impl_._has_bits_[0], other->_impl_._has_bits_[0]);
   ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.room_name_, &other->_impl_.room_name_, arena);
   ::google::protobuf::internal::memswap<
-      PROTOBUF_FIELD_OFFSET(ClientMoveInput, _impl_.y_)
-      + sizeof(ClientMoveInput::_impl_.y_)
-      - PROTOBUF_FIELD_OFFSET(ClientMoveInput, _impl_.player_id_)>(
+      PROTOBUF_FIELD_OFFSET(ClientInput, _impl_.dash_requested_)
+      + sizeof(ClientInput::_impl_.dash_requested_)
+      - PROTOBUF_FIELD_OFFSET(ClientInput, _impl_.player_id_)>(
           reinterpret_cast<char*>(&_impl_.player_id_),
           reinterpret_cast<char*>(&other->_impl_.player_id_));
 }
 
-::google::protobuf::Metadata ClientMoveInput::GetMetadata() const {
+::google::protobuf::Metadata ClientInput::GetMetadata() const {
   return ::google::protobuf::Message::GetMetadataImpl(GetClassData()->full());
 }
 // ===================================================================

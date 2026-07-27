@@ -20,7 +20,9 @@ func main() {
 	playerID := flag.Int64("player", 0, "player id")
 	moveX := flag.Float64("move-x", 0, "move input x")
 	moveY := flag.Float64("move-y", 0, "move input y")
-	moveAfter := flag.Duration("move-after", time.Second, "delay before sending move input")
+	attack := flag.Bool("attack", false, "request attack in input packet")
+	dash := flag.Bool("dash", false, "request dash in input packet")
+	inputEvery := flag.Duration("move-after", 500*time.Millisecond, "input send interval after game_start")
 	timeout := flag.Duration("timeout", 10*time.Second, "read timeout")
 	exitOnTimeout := flag.Bool("exit-on-timeout", false, "exit when no packet is received before timeout")
 	exitOnGameOver := flag.Bool("exit-on-game-over", true, "exit after receiving a game_over packet")
@@ -58,31 +60,8 @@ func main() {
 	}
 	fmt.Printf("sent hello player=%d room=%s addr=%s\n", *playerID, *roomName, *addr)
 
-	go func() {
-		time.Sleep(*moveAfter)
-		moveInput := &battlepb.ClientPacket{
-			Payload: &battlepb.ClientPacket_MoveInput{
-				MoveInput: &battlepb.ClientMoveInput{
-					RoomName: *roomName,
-					PlayerId: *playerID,
-					X:        float32(*moveX),
-					Y:        float32(*moveY),
-				},
-			},
-		}
-		bytes, err := proto.Marshal(moveInput)
-		if err != nil {
-			log.Printf("marshal move input: %v", err)
-			return
-		}
-		if _, err := conn.Write(bytes); err != nil {
-			log.Printf("send move input: %v", err)
-			return
-		}
-		fmt.Printf("sent move_input player=%d x=%.2f y=%.2f\n", *playerID, *moveX, *moveY)
-	}()
-
 	buffer := make([]byte, 4096)
+	inputLoopStarted := false
 	for {
 		if err := conn.SetReadDeadline(time.Now().Add(*timeout)); err != nil {
 			log.Fatalf("set read deadline: %v", err)
@@ -105,10 +84,53 @@ func main() {
 			fmt.Printf("received undecodable packet len=%d err=%v\n", n, err)
 			continue
 		}
+		if _, ok := packet.GetPayload().(*battlepb.ServerPacket_GameStart); ok && !inputLoopStarted {
+			inputLoopStarted = true
+			go sendInputLoop(conn, *roomName, *playerID, *moveX, *moveY, *attack, *dash, *inputEvery)
+		}
 		if printServerPacket(&packet) && *exitOnGameOver {
 			return
 		}
 	}
+}
+
+func sendInputLoop(conn *net.UDPConn, roomName string, playerID int64, moveX, moveY float64, attack, dash bool, interval time.Duration) {
+	if interval <= 0 {
+		interval = 500 * time.Millisecond
+	}
+	ticker := time.NewTicker(interval)
+	defer ticker.Stop()
+	for {
+		if err := sendInput(conn, roomName, playerID, moveX, moveY, attack, dash); err != nil {
+			log.Printf("send input: %v", err)
+			return
+		}
+		<-ticker.C
+	}
+}
+
+func sendInput(conn *net.UDPConn, roomName string, playerID int64, moveX, moveY float64, attack, dash bool) error {
+	input := &battlepb.ClientPacket{
+		Payload: &battlepb.ClientPacket_Input{
+			Input: &battlepb.ClientInput{
+				RoomName:        roomName,
+				PlayerId:        playerID,
+				X:               float32(moveX),
+				Y:               float32(moveY),
+				AttackRequested: attack,
+				DashRequested:   dash,
+			},
+		},
+	}
+	bytes, err := proto.Marshal(input)
+	if err != nil {
+		return fmt.Errorf("marshal input: %w", err)
+	}
+	if _, err := conn.Write(bytes); err != nil {
+		return fmt.Errorf("write input: %w", err)
+	}
+	fmt.Printf("sent input player=%d x=%.2f y=%.2f attack=%v dash=%v\n", playerID, moveX, moveY, attack, dash)
+	return nil
 }
 
 func printServerPacket(packet *battlepb.ServerPacket) bool {

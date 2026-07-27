@@ -373,7 +373,7 @@ player_id: int64
 token: string
 ```
 
-`move_input`：
+`input`：
 
 ```text
 room_name: string

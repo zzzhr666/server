@@ -28,7 +28,7 @@ message Error {
 message ClientPacket {
   oneof payload {
     ClientHello hello = 1;
-    ClientMoveInput move_input = 2;
+    ClientInput input = 2;
   }
 }
 
@@ -48,11 +48,13 @@ message GameOver {
   string reason = 3;
 }
 
-message ClientMoveInput {
+message ClientInput {
   string room_name = 1;
   int64 player_id = 2;
   float x = 3;
   float y = 4;
+  bool attack_requested = 5;
+  bool dash_requested = 6;
 }
 
 message EntitySnapshot{
@@ -69,3 +71,4 @@ message WorldSnapshot {
   string room_name = 1;
   repeated EntitySnapshot entities = 2;
 }
+

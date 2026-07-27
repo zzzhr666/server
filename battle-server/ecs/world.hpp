@@ -9,8 +9,8 @@
 
 
 namespace battle::ecs {
-
     constexpr std::size_t InitialDamageEventCount = 256;
+
     struct CreatePlayerConfig {
         Position position{.x = 0.0f, .y = 0.0f};
         int max_health = 100;
@@ -55,6 +55,14 @@ namespace battle::ecs {
 
         [[nodiscard]] bool has_entity(Entity entity) const;
 
+        [[nodiscard]] bool has_living_players() const {
+            return !player_controllers_.entities().empty();
+        }
+
+        [[nodiscard]] bool has_living_monsters() const {
+            return !monster_controllers_.entities().empty();
+        }
+
         bool set_player_command(Entity entity, PlayerCommand command);
 
         void tick(DeltaTime delta_time);
@@ -91,6 +99,10 @@ namespace battle::ecs {
             return monster_controllers_;
         }
 
+        ComponentPool<MonsterController>& monster_controllers() {
+            return monster_controllers_;
+        }
+
         [[nodiscard]] const ComponentPool<MoveRequest>& move_requests() const {
             return move_requests_;
         }
@@ -105,6 +117,14 @@ namespace battle::ecs {
 
         ComponentPool<AttackRequest>& attack_requests() {
             return attack_requests_;
+        }
+
+        [[nodiscard]] const ComponentPool<DashRequest>& dash_requests() const {
+            return dash_requests_;
+        }
+
+        ComponentPool<DashRequest>& dash_requests() {
+            return dash_requests_;
         }
 
         [[nodiscard]] const ComponentPool<MoveIntent>& move_intents() const {
@@ -123,6 +143,10 @@ namespace battle::ecs {
             return melee_attacks_;
         }
 
+        [[nodiscard]] const ComponentPool<Dash>& dashes() const {
+            return dashes_;
+        }
+
         [[nodiscard]] const ComponentPool<AttackIntent>& attack_intents() const {
             return attack_intents_;
         }
@@ -130,6 +154,19 @@ namespace battle::ecs {
         ComponentPool<AttackIntent>& attack_intents() {
             return attack_intents_;
         }
+
+        ComponentPool<DashIntent>& dash_intents() {
+            return dash_intents_;
+        }
+
+        ComponentPool<DashCooldown>& dash_cooldowns() {
+            return dash_cooldowns_;
+        }
+
+        [[nodiscard]] const ComponentPool<DashCooldown>& dash_cooldowns() const {
+            return dash_cooldowns_;
+        }
+
 
         [[nodiscard]] const ComponentPool<AttackCooldown>& attack_cooldowns() const {
             return attack_cooldowns_;
@@ -150,9 +187,11 @@ namespace battle::ecs {
         bool destroy_entity(Entity entity);
 
     private:
-        bool set_move_request(Entity entity, float x, float y);
+        bool set_move_request_(Entity entity, float x, float y);
 
-        bool set_attack_request(Entity entity, bool requested);
+        bool set_attack_request_(Entity entity, bool requested);
+
+        bool set_dash_request_(Entity entity, bool requested);
 
         EntityManager entity_manager_;
         ComponentPool<Transform> transforms_;
@@ -160,13 +199,17 @@ namespace battle::ecs {
         ComponentPool<Health> health_;
         ComponentPool<MoveRequest> move_requests_;
         ComponentPool<AttackRequest> attack_requests_;
+        ComponentPool<DashRequest> dash_requests_;
         ComponentPool<MoveIntent> move_intents_;
         ComponentPool<PlayerController> player_controllers_;
         ComponentPool<CharacterStats> character_stats_;
         ComponentPool<MonsterController> monster_controllers_;
         ComponentPool<AttackIntent> attack_intents_;
+        ComponentPool<DashIntent> dash_intents_;
         ComponentPool<MeleeAttack> melee_attacks_;
+        ComponentPool<Dash> dashes_;
         ComponentPool<AttackCooldown> attack_cooldowns_;
+        ComponentPool<DashCooldown> dash_cooldowns_;
         std::vector<DamageEvent> damage_events_;
         SystemScheduler system_scheduler_;
     };

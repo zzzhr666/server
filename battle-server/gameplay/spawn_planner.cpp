@@ -44,7 +44,5 @@ battle::ecs::CreateMonsterConfig battle::SpawnPlanner::monster_spawn(std::size_t
     return {
         .x_position = x,
         .y_position = y,
-        .max_health = 50,
-        .move_speed = 3.0f,
     };
 }

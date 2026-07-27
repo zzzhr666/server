@@ -74,14 +74,5 @@ TEST(SpawnPlannerTest, MonsterSpawnTreatsZeroCountAsOne) {
     EXPECT_NEAR(spawn.y_position, 0.0f, 0.001f);
 }
 
-TEST(SpawnPlannerTest, MonsterSpawnUsesDefaultStats) {
-    SpawnPlanner planner;
-
-    auto spawn = planner.monster_spawn(0, 1);
-
-    EXPECT_EQ(spawn.max_health, 50);
-    EXPECT_FLOAT_EQ(spawn.move_speed, 3.0f);
-}
-
 }  // namespace
 }  // namespace battle

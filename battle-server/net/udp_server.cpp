@@ -83,7 +83,7 @@ void battle::UdpServer::run_loop_() {
             break;
         }
 
-        case v1::ClientPacket::kMoveInput: {
+        case v1::ClientPacket::kInput: {
             handle_move_input(packet.value(), remote_addr, len);
             break;
         }
@@ -171,8 +171,8 @@ void battle::UdpServer::handle_hello_(const v1::ClientPacket& packet, const sock
 void battle::UdpServer::handle_move_input(const v1::ClientPacket& packet,
                                           const sockaddr_in& remote_addr,
                                           socklen_t remote_addr_len) {
-    const auto& move_input = packet.move_input();
-    if (move_input.room_name().empty() || move_input.player_id() <= 0) {
+    const auto& input = packet.input();
+    if (input.room_name().empty() || input.player_id() <= 0) {
         send_packet_(make_error("invalid_request", "invalid move input"), remote_addr, remote_addr_len);
         return;
     }
@@ -181,8 +181,13 @@ void battle::UdpServer::handle_move_input(const v1::ClientPacket& packet,
                      remote_addr_len);
         return;
     }
-    if (!battle_runtime_->receive_input(move_input.room_name(), move_input.player_id(), move_input.x(),
-                                        move_input.y())) {
+    if (!battle_runtime_->receive_input(input.room_name(), input.player_id(), PlayerInput{
+                                            .move_x = input.x(),
+                                            .move_y = input.y(),
+                                            .attack_requested = input.attack_requested(),
+                                            .dash_requested = input.dash_requested(),
+
+                                        })) {
         send_packet_(make_error("internal_error", "unable to locate instance or entity"), remote_addr, remote_addr_len);
     }
 }

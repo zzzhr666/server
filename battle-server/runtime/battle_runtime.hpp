@@ -15,24 +15,29 @@
 #include "game/room.hpp"
 #include "net/udp_endpoint.hpp"
 #include "proto/battle/v1/session.pb.h"
+#include "player_input.hpp"
+#include "battle_instance.hpp"
 
 namespace battle {
+
     class SessionManager;
     class RoomManager;
     class BattleInstance;
 
     using SendPacketCallback = std::function<void(const v1::ServerPacket&, const UdpEndpoint&)>;
 
+
     class BattleRuntime {
     public:
-        BattleRuntime(RoomManager& room_manager, SessionManager& session_manager, SendPacketCallback callback);
+        using BattleInstanceFactory = std::function<std::unique_ptr<BattleInstance>(BattleInstanceConfig)>;
+        BattleRuntime(RoomManager& room_manager, SessionManager& session_manager, SendPacketCallback callback,BattleInstanceFactory factory ={});
         ~BattleRuntime();
 
         void start_room(const std::string& room_name);
 
         void tick(ecs::DeltaTime delta_time);
 
-        bool receive_input(const std::string& room_name, std::int64_t player_id, float x, float y);
+        bool receive_input(const std::string& room_name, std::int64_t player_id, PlayerInput input);
 
         void start();
 
@@ -49,5 +54,6 @@ namespace battle {
         std::unordered_set<std::string> starting_rooms_;
         std::atomic<bool> running_;
         std::thread tick_thread_;
+        BattleInstanceFactory instance_factory_;
     };
 }

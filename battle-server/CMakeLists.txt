@@ -46,6 +46,10 @@ add_library(battle_ecs
         ecs/system/damage_system.hpp
         ecs/system/death_system.cpp
         ecs/system/death_system.hpp
+        ecs/system/dash_system.cpp
+        ecs/system/dash_system.hpp
+        ecs/system/dash_resolve_system.cpp
+        ecs/system/dash_resolve_system.hpp
 )
 add_library(battle_game
         game/room.cpp
@@ -53,6 +57,10 @@ add_library(battle_game
 )
 add_library(battle_gameplay
         gameplay/spawn_planner.cpp
+        gameplay/wave_planner.cpp
+        gameplay/wave_planner.hpp
+        gameplay/monster_planner.cpp
+        gameplay/monster_planner.hpp
 )
 add_library(battle_session
         session/battle_session.cpp
@@ -164,6 +172,7 @@ target_link_libraries(battle_ecs_tests PRIVATE
 
 add_executable(battle_runtime_tests
         gameplay/tests/spawn_planner_test.cpp
+        gameplay/tests/wave_planner_test.cpp
         runtime/tests/battle_instance_test.cpp
         runtime/tests/battle_runtime_test.cpp
 )

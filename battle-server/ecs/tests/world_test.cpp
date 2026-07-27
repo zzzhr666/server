@@ -90,6 +90,7 @@ TEST(WorldTest, SetPlayerCommandReturnsFalseForUnknownEntity) {
                                                    .move_x = 1.0f,
                                                    .move_y = 0.0f,
                                                    .attack_requested = false,
+                                                     .dash_requested = false,
                                                }));
 }
 
@@ -101,6 +102,7 @@ TEST(WorldTest, SetPlayerCommandWritesMoveAndAttackRequests) {
                                                      .move_x = 1.0f,
                                                      .move_y = 0.0f,
                                                      .attack_requested = true,
+                                                     .dash_requested = false,
                                                  }));
 
     EXPECT_FLOAT_EQ(world.move_requests().get(entity).x, 1.0f);
@@ -117,6 +119,7 @@ TEST(WorldTest, SetPlayerCommandReturnsFalseForMonster) {
                                                        .move_x = 1.0f,
                                                        .move_y = 0.0f,
                                                        .attack_requested = true,
+                                                     .dash_requested = false,
                                                    }));
 }
 
@@ -137,6 +140,7 @@ TEST(WorldTest, TickResolvesAttackRequestIntoAttackIntent) {
                                                      .move_x = 0.0f,
                                                      .move_y = 0.0f,
                                                      .attack_requested = true,
+                                                     .dash_requested = false,
                                                  }));
     world.tick(DeltaTime{0.0f});
 
@@ -164,6 +168,7 @@ TEST(WorldTest, TickDoesNotResolveAttackRequestDuringCooldown) {
                                                      .move_x = 0.0f,
                                                      .move_y = 0.0f,
                                                      .attack_requested = true,
+                                                     .dash_requested = false,
                                                  }));
     world.tick(DeltaTime{0.0f});
     ASSERT_TRUE(world.attack_intents().get(entity).active);
@@ -172,6 +177,7 @@ TEST(WorldTest, TickDoesNotResolveAttackRequestDuringCooldown) {
                                                      .move_x = 0.0f,
                                                      .move_y = 0.0f,
                                                      .attack_requested = true,
+                                                     .dash_requested = false,
                                                  }));
     world.tick(DeltaTime{0.1f});
 
@@ -199,6 +205,7 @@ TEST(WorldTest, TickAllowsAttackAfterCooldownExpires) {
                                                      .move_x = 0.0f,
                                                      .move_y = 0.0f,
                                                      .attack_requested = true,
+                                                     .dash_requested = false,
                                                  }));
     world.tick(DeltaTime{0.0f});
 
@@ -206,6 +213,7 @@ TEST(WorldTest, TickAllowsAttackAfterCooldownExpires) {
                                                      .move_x = 0.0f,
                                                      .move_y = 0.0f,
                                                      .attack_requested = true,
+                                                     .dash_requested = false,
                                                  }));
     world.tick(DeltaTime{0.75f});
 
@@ -240,6 +248,7 @@ TEST(WorldTest, TickDamagesMonsterInsideAttackRange) {
                                                      .move_x = 0.0f,
                                                      .move_y = 0.0f,
                                                      .attack_requested = true,
+                                                     .dash_requested = false,
                                                  }));
     world.tick(DeltaTime{0.0f});
 
@@ -271,6 +280,7 @@ TEST(WorldTest, TickDoesNotDamageMonsterOutsideAttackRange) {
                                                      .move_x = 0.0f,
                                                      .move_y = 0.0f,
                                                      .attack_requested = true,
+                                                     .dash_requested = false,
                                                  }));
     world.tick(DeltaTime{0.0f});
 
@@ -305,6 +315,7 @@ TEST(WorldTest, TickDoesNotDamageOtherPlayers) {
                                                        .move_x = 0.0f,
                                                        .move_y = 0.0f,
                                                        .attack_requested = true,
+                                                     .dash_requested = false,
                                                    }));
     world.tick(DeltaTime{0.0f});
 
@@ -334,6 +345,7 @@ TEST(WorldTest, TickDestroysMonsterWhenHealthReachesZero) {
                                                      .move_x = 0.0f,
                                                      .move_y = 0.0f,
                                                      .attack_requested = true,
+                                                     .dash_requested = false,
                                                  }));
     world.tick(DeltaTime{0.0f});
 
@@ -401,6 +413,7 @@ TEST(WorldTest, TickMovesPlayerByInputDirectionAndMoveSpeed) {
                                                      .move_x = 1.0f,
                                                      .move_y = 0.0f,
                                                      .attack_requested = false,
+                                                     .dash_requested = false,
                                                  }));
     world.tick(DeltaTime{1.0f});
 
@@ -411,6 +424,54 @@ TEST(WorldTest, TickMovesPlayerByInputDirectionAndMoveSpeed) {
     EXPECT_FLOAT_EQ(transform.direction.y, 0.0f);
 }
 
+TEST(WorldTest, TickDashMovesPlayerWithDashSpeedMultiplierOnce) {
+    World world;
+    auto entity = world.create_player(default_player_config());
+
+    ASSERT_TRUE(world.set_player_command(entity, PlayerCommand{
+                                                     .move_x = 1.0f,
+                                                     .move_y = 0.0f,
+                                                     .attack_requested = false,
+                                                     .dash_requested = true,
+                                                 }));
+    world.tick(DeltaTime{1.0f});
+
+    const auto& transform = world.transforms().get(entity);
+    EXPECT_FLOAT_EQ(transform.position.x, 35.0f);
+    EXPECT_FLOAT_EQ(transform.position.y, 20.0f);
+    EXPECT_FLOAT_EQ(transform.direction.x, 1.0f);
+    EXPECT_FLOAT_EQ(transform.direction.y, 0.0f);
+    EXPECT_FALSE(world.dash_requests().get(entity).requested);
+    EXPECT_FLOAT_EQ(world.dash_cooldowns().get(entity).remaining_seconds.count(), 1.0f);
+}
+
+TEST(WorldTest, TickDoesNotDashAgainDuringCooldown) {
+    World world;
+    auto entity = world.create_player(default_player_config());
+
+    ASSERT_TRUE(world.set_player_command(entity, PlayerCommand{
+                                                     .move_x = 1.0f,
+                                                     .move_y = 0.0f,
+                                                     .attack_requested = false,
+                                                     .dash_requested = true,
+                                                 }));
+    world.tick(DeltaTime{1.0f});
+
+    ASSERT_TRUE(world.set_player_command(entity, PlayerCommand{
+                                                     .move_x = 1.0f,
+                                                     .move_y = 0.0f,
+                                                     .attack_requested = false,
+                                                     .dash_requested = true,
+                                                 }));
+    world.tick(DeltaTime{0.5f});
+
+    const auto& transform = world.transforms().get(entity);
+    EXPECT_FLOAT_EQ(transform.position.x, 37.5f);
+    EXPECT_FLOAT_EQ(transform.position.y, 20.0f);
+    EXPECT_FALSE(world.dash_requests().get(entity).requested);
+    EXPECT_FLOAT_EQ(world.dash_cooldowns().get(entity).remaining_seconds.count(), 0.5f);
+}
+
 TEST(WorldTest, TickUsesDeltaSecondsOnce) {
     World world;
     auto entity = world.create_player(default_player_config());
@@ -419,6 +480,7 @@ TEST(WorldTest, TickUsesDeltaSecondsOnce) {
                                                      .move_x = 1.0f,
                                                      .move_y = 0.0f,
                                                      .attack_requested = false,
+                                                     .dash_requested = false,
                                                  }));
     world.tick(DeltaTime{0.5f});
 
@@ -435,6 +497,7 @@ TEST(WorldTest, TickMovesPlayerInNegativeInputDirection) {
                                                      .move_x = -1.0f,
                                                      .move_y = 0.0f,
                                                      .attack_requested = false,
+                                                     .dash_requested = false,
                                                  }));
     world.tick(DeltaTime{1.0f});
 
@@ -453,6 +516,7 @@ TEST(WorldTest, TickNormalizesDiagonalMoveIntent) {
                                                      .move_x = 1.0f,
                                                      .move_y = 1.0f,
                                                      .attack_requested = false,
+                                                     .dash_requested = false,
                                                  }));
     world.tick(DeltaTime{1.0f});
 
@@ -472,12 +536,14 @@ TEST(WorldTest, TickWithZeroMoveIntentDoesNotMoveOrChangeDirection) {
                                                      .move_x = 1.0f,
                                                      .move_y = 0.0f,
                                                      .attack_requested = false,
+                                                     .dash_requested = false,
                                                  }));
     world.tick(DeltaTime{1.0f});
     ASSERT_TRUE(world.set_player_command(entity, PlayerCommand{
                                                      .move_x = 0.0f,
                                                      .move_y = 0.0f,
                                                      .attack_requested = false,
+                                                     .dash_requested = false,
                                                  }));
     world.tick(DeltaTime{1.0f});
 
@@ -505,11 +571,28 @@ TEST(WorldTest, DestroyPlayerRemovesEntityAndPlayerComponents) {
     EXPECT_FALSE(world.attack_cooldowns().has(entity));
     EXPECT_FALSE(world.move_requests().has(entity));
     EXPECT_FALSE(world.move_intents().has(entity));
+    EXPECT_FALSE(world.dash_requests().has(entity));
+    EXPECT_FALSE(world.dash_intents().has(entity));
+    EXPECT_FALSE(world.dashes().has(entity));
+    EXPECT_FALSE(world.dash_cooldowns().has(entity));
     EXPECT_FALSE(world.set_player_command(entity, PlayerCommand{
                                                       .move_x = 1.0f,
                                                       .move_y = 0.0f,
                                                       .attack_requested = false,
+                                                     .dash_requested = false,
                                                   }));
+}
+
+TEST(WorldTest, HasLivingPlayersReflectsPlayerControllerEntities) {
+    World world;
+
+    EXPECT_FALSE(world.has_living_players());
+
+    auto player = world.create_player(default_player_config());
+    EXPECT_TRUE(world.has_living_players());
+
+    ASSERT_TRUE(world.destroy_entity(player));
+    EXPECT_FALSE(world.has_living_players());
 }
 
 TEST(WorldTest, DestroyUnknownEntityReturnsFalse) {
@@ -551,6 +634,7 @@ TEST(WorldTest, MonsterDoesNotHavePlayerCommand) {
                                                       .move_x = 1.0f,
                                                       .move_y = 0.0f,
                                                       .attack_requested = false,
+                                                     .dash_requested = false,
                                                   }));
     world.tick(DeltaTime{1.0f});
 
@@ -678,6 +762,18 @@ TEST(WorldTest, DestroyMonsterRemovesEntityComponents) {
     EXPECT_FALSE(world.monster_controllers().has(entity));
 }
 
+TEST(WorldTest, HasLivingMonstersReflectsMonsterControllerEntities) {
+    World world;
+
+    EXPECT_FALSE(world.has_living_monsters());
+
+    auto monster = world.create_monster(default_monster_config());
+    EXPECT_TRUE(world.has_living_monsters());
+
+    ASSERT_TRUE(world.destroy_entity(monster));
+    EXPECT_FALSE(world.has_living_monsters());
+}
+
 TEST(WorldTest, SnapshotReturnsEmptyEntitiesForEmptyWorld) {
     World world;
 
@@ -694,6 +790,7 @@ TEST(WorldTest, SnapshotIncludesMovedPlayerTransformAndHealth) {
                                                      .move_x = 1.0f,
                                                      .move_y = 0.0f,
                                                      .attack_requested = false,
+                                                     .dash_requested = false,
                                                  }));
     world.tick(DeltaTime{1.0f});
 

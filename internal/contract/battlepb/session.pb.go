@@ -242,7 +242,7 @@ type ClientPacket struct {
 	// Types that are valid to be assigned to Payload:
 	//
 	//	*ClientPacket_Hello
-	//	*ClientPacket_MoveInput
+	//	*ClientPacket_Input
 	Payload       isClientPacket_Payload `protobuf_oneof:"payload"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -294,10 +294,10 @@ func (x *ClientPacket) GetHello() *ClientHello {
 	return nil
 }
 
-func (x *ClientPacket) GetMoveInput() *ClientMoveInput {
+func (x *ClientPacket) GetInput() *ClientInput {
 	if x != nil {
-		if x, ok := x.Payload.(*ClientPacket_MoveInput); ok {
-			return x.MoveInput
+		if x, ok := x.Payload.(*ClientPacket_Input); ok {
+			return x.Input
 		}
 	}
 	return nil
@@ -311,13 +311,13 @@ type ClientPacket_Hello struct {
 	Hello *ClientHello `protobuf:"bytes,1,opt,name=hello,proto3,oneof"`
 }
 
-type ClientPacket_MoveInput struct {
-	MoveInput *ClientMoveInput `protobuf:"bytes,2,opt,name=move_input,json=moveInput,proto3,oneof"`
+type ClientPacket_Input struct {
+	Input *ClientInput `protobuf:"bytes,2,opt,name=input,proto3,oneof"`
 }
 
 func (*ClientPacket_Hello) isClientPacket_Payload() {}
 
-func (*ClientPacket_MoveInput) isClientPacket_Payload() {}
+func (*ClientPacket_Input) isClientPacket_Payload() {}
 
 type ServerPacket struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -509,30 +509,32 @@ func (x *GameOver) GetReason() string {
 	return ""
 }
 
-type ClientMoveInput struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	RoomName      string                 `protobuf:"bytes,1,opt,name=room_name,json=roomName,proto3" json:"room_name,omitempty"`
-	PlayerId      int64                  `protobuf:"varint,2,opt,name=player_id,json=playerId,proto3" json:"player_id,omitempty"`
-	X             float32                `protobuf:"fixed32,3,opt,name=x,proto3" json:"x,omitempty"`
-	Y             float32                `protobuf:"fixed32,4,opt,name=y,proto3" json:"y,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+type ClientInput struct {
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	RoomName        string                 `protobuf:"bytes,1,opt,name=room_name,json=roomName,proto3" json:"room_name,omitempty"`
+	PlayerId        int64                  `protobuf:"varint,2,opt,name=player_id,json=playerId,proto3" json:"player_id,omitempty"`
+	X               float32                `protobuf:"fixed32,3,opt,name=x,proto3" json:"x,omitempty"`
+	Y               float32                `protobuf:"fixed32,4,opt,name=y,proto3" json:"y,omitempty"`
+	AttackRequested bool                   `protobuf:"varint,5,opt,name=attack_requested,json=attackRequested,proto3" json:"attack_requested,omitempty"`
+	DashRequested   bool                   `protobuf:"varint,6,opt,name=dash_requested,json=dashRequested,proto3" json:"dash_requested,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
 }
 
-func (x *ClientMoveInput) Reset() {
-	*x = ClientMoveInput{}
+func (x *ClientInput) Reset() {
+	*x = ClientInput{}
 	mi := &file_proto_battle_v1_session_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *ClientMoveInput) String() string {
+func (x *ClientInput) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*ClientMoveInput) ProtoMessage() {}
+func (*ClientInput) ProtoMessage() {}
 
-func (x *ClientMoveInput) ProtoReflect() protoreflect.Message {
+func (x *ClientInput) ProtoReflect() protoreflect.Message {
 	mi := &file_proto_battle_v1_session_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -544,37 +546,51 @@ func (x *ClientMoveInput) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use ClientMoveInput.ProtoReflect.Descriptor instead.
-func (*ClientMoveInput) Descriptor() ([]byte, []int) {
+// Deprecated: Use ClientInput.ProtoReflect.Descriptor instead.
+func (*ClientInput) Descriptor() ([]byte, []int) {
 	return file_proto_battle_v1_session_proto_rawDescGZIP(), []int{7}
 }
 
-func (x *ClientMoveInput) GetRoomName() string {
+func (x *ClientInput) GetRoomName() string {
 	if x != nil {
 		return x.RoomName
 	}
 	return ""
 }
 
-func (x *ClientMoveInput) GetPlayerId() int64 {
+func (x *ClientInput) GetPlayerId() int64 {
 	if x != nil {
 		return x.PlayerId
 	}
 	return 0
 }
 
-func (x *ClientMoveInput) GetX() float32 {
+func (x *ClientInput) GetX() float32 {
 	if x != nil {
 		return x.X
 	}
 	return 0
 }
 
-func (x *ClientMoveInput) GetY() float32 {
+func (x *ClientInput) GetY() float32 {
 	if x != nil {
 		return x.Y
 	}
 	return 0
+}
+
+func (x *ClientInput) GetAttackRequested() bool {
+	if x != nil {
+		return x.AttackRequested
+	}
+	return false
+}
+
+func (x *ClientInput) GetDashRequested() bool {
+	if x != nil {
+		return x.DashRequested
+	}
+	return false
 }
 
 type EntitySnapshot struct {
@@ -739,11 +755,10 @@ const file_proto_battle_v1_session_proto_rawDesc = "" +
 	"player_ids\x18\x02 \x03(\x03R\tplayerIds\"5\n" +
 	"\x05Error\x12\x12\n" +
 	"\x04code\x18\x01 \x01(\tR\x04code\x12\x18\n" +
-	"\amessage\x18\x02 \x01(\tR\amessage\"\x86\x01\n" +
+	"\amessage\x18\x02 \x01(\tR\amessage\"y\n" +
 	"\fClientPacket\x12.\n" +
-	"\x05hello\x18\x01 \x01(\v2\x16.battle.v1.ClientHelloH\x00R\x05hello\x12;\n" +
-	"\n" +
-	"move_input\x18\x02 \x01(\v2\x1a.battle.v1.ClientMoveInputH\x00R\tmoveInputB\t\n" +
+	"\x05hello\x18\x01 \x01(\v2\x16.battle.v1.ClientHelloH\x00R\x05hello\x12.\n" +
+	"\x05input\x18\x02 \x01(\v2\x16.battle.v1.ClientInputH\x00R\x05inputB\t\n" +
 	"\apayload\"\x96\x02\n" +
 	"\fServerPacket\x12.\n" +
 	"\x05hello\x18\x01 \x01(\v2\x16.battle.v1.ServerHelloH\x00R\x05hello\x125\n" +
@@ -757,12 +772,14 @@ const file_proto_battle_v1_session_proto_rawDesc = "" +
 	"\troom_name\x18\x01 \x01(\tR\broomName\x12\x1d\n" +
 	"\n" +
 	"player_ids\x18\x02 \x03(\x03R\tplayerIds\x12\x16\n" +
-	"\x06reason\x18\x03 \x01(\tR\x06reason\"g\n" +
-	"\x0fClientMoveInput\x12\x1b\n" +
+	"\x06reason\x18\x03 \x01(\tR\x06reason\"\xb5\x01\n" +
+	"\vClientInput\x12\x1b\n" +
 	"\troom_name\x18\x01 \x01(\tR\broomName\x12\x1b\n" +
 	"\tplayer_id\x18\x02 \x01(\x03R\bplayerId\x12\f\n" +
 	"\x01x\x18\x03 \x01(\x02R\x01x\x12\f\n" +
-	"\x01y\x18\x04 \x01(\x02R\x01y\"\xee\x01\n" +
+	"\x01y\x18\x04 \x01(\x02R\x01y\x12)\n" +
+	"\x10attack_requested\x18\x05 \x01(\bR\x0fattackRequested\x12%\n" +
+	"\x0edash_requested\x18\x06 \x01(\bR\rdashRequested\"\xee\x01\n" +
 	"\x0eEntitySnapshot\x12\x16\n" +
 	"\x06entity\x18\x01 \x01(\rR\x06entity\x12\x1d\n" +
 	"\n" +
@@ -794,20 +811,20 @@ func file_proto_battle_v1_session_proto_rawDescGZIP() []byte {
 
 var file_proto_battle_v1_session_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
 var file_proto_battle_v1_session_proto_goTypes = []any{
-	(*ClientHello)(nil),     // 0: battle.v1.ClientHello
-	(*ServerHello)(nil),     // 1: battle.v1.ServerHello
-	(*GameStart)(nil),       // 2: battle.v1.GameStart
-	(*Error)(nil),           // 3: battle.v1.Error
-	(*ClientPacket)(nil),    // 4: battle.v1.ClientPacket
-	(*ServerPacket)(nil),    // 5: battle.v1.ServerPacket
-	(*GameOver)(nil),        // 6: battle.v1.GameOver
-	(*ClientMoveInput)(nil), // 7: battle.v1.ClientMoveInput
-	(*EntitySnapshot)(nil),  // 8: battle.v1.EntitySnapshot
-	(*WorldSnapshot)(nil),   // 9: battle.v1.WorldSnapshot
+	(*ClientHello)(nil),    // 0: battle.v1.ClientHello
+	(*ServerHello)(nil),    // 1: battle.v1.ServerHello
+	(*GameStart)(nil),      // 2: battle.v1.GameStart
+	(*Error)(nil),          // 3: battle.v1.Error
+	(*ClientPacket)(nil),   // 4: battle.v1.ClientPacket
+	(*ServerPacket)(nil),   // 5: battle.v1.ServerPacket
+	(*GameOver)(nil),       // 6: battle.v1.GameOver
+	(*ClientInput)(nil),    // 7: battle.v1.ClientInput
+	(*EntitySnapshot)(nil), // 8: battle.v1.EntitySnapshot
+	(*WorldSnapshot)(nil),  // 9: battle.v1.WorldSnapshot
 }
 var file_proto_battle_v1_session_proto_depIdxs = []int32{
 	0, // 0: battle.v1.ClientPacket.hello:type_name -> battle.v1.ClientHello
-	7, // 1: battle.v1.ClientPacket.move_input:type_name -> battle.v1.ClientMoveInput
+	7, // 1: battle.v1.ClientPacket.input:type_name -> battle.v1.ClientInput
 	1, // 2: battle.v1.ServerPacket.hello:type_name -> battle.v1.ServerHello
 	2, // 3: battle.v1.ServerPacket.game_start:type_name -> battle.v1.GameStart
 	3, // 4: battle.v1.ServerPacket.error:type_name -> battle.v1.Error
@@ -828,7 +845,7 @@ func file_proto_battle_v1_session_proto_init() {
 	}
 	file_proto_battle_v1_session_proto_msgTypes[4].OneofWrappers = []any{
 		(*ClientPacket_Hello)(nil),
-		(*ClientPacket_MoveInput)(nil),
+		(*ClientPacket_Input)(nil),
 	}
 	file_proto_battle_v1_session_proto_msgTypes[5].OneofWrappers = []any{
 		(*ServerPacket_Hello)(nil),

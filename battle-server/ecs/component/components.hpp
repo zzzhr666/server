@@ -11,6 +11,7 @@ namespace battle::ecs {
         float move_x;
         float move_y;
         bool attack_requested;
+        bool dash_requested;
     };
     struct Position {
         float x;
@@ -41,6 +42,10 @@ namespace battle::ecs {
         bool requested;
     };
 
+    struct DashRequest {
+        bool requested;
+    };
+
     struct MoveIntent {
         float x;
         float y;
@@ -64,13 +69,28 @@ namespace battle::ecs {
         int damage;
         float range;
     };
+
+    struct DashIntent {
+        bool active;
+        float dash_speed_multiplier;
+    };
+
     struct MeleeAttack {
         int damage;
         float range;
         DeltaTime cooldown_seconds;
     };
 
+    struct Dash {
+        DeltaTime cooldown_seconds;
+        float dash_speed_multiplier;
+    };
+
     struct AttackCooldown {
+        DeltaTime remaining_seconds;
+    };
+
+    struct DashCooldown {
         DeltaTime remaining_seconds;
     };
 

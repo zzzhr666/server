@@ -28,12 +28,32 @@ namespace {
         }
         return packet;
     }
+
+    std::string battle_end_reason_to_string(battle::BattleEndReason reason) {
+        switch (reason) {
+        case battle::BattleEndReason::Defeat: {
+            return "defeat";
+        }
+        case battle::BattleEndReason::Victory: {
+            return "victory";
+        }
+        default: {
+            return "unknown";
+        }
+        }
+    }
 }
 
 battle::BattleRuntime::BattleRuntime(RoomManager& room_manager, SessionManager& session_manager,
-                                     SendPacketCallback callback)
+                                     SendPacketCallback callback,BattleInstanceFactory factory)
     : room_manager_(room_manager), session_manager_(session_manager),
-      send_packet_(std::move(callback)), running_(false) {}
+      send_packet_(std::move(callback)), running_(false),instance_factory_(std::move(factory)) {
+    if (!instance_factory_) {
+        instance_factory_ = [](BattleInstanceConfig config) {
+          return std::make_unique<BattleInstance>(std::move(config));
+        };
+    }
+}
 
 battle::BattleRuntime::~BattleRuntime() {
     stop();
@@ -56,8 +76,8 @@ void battle::BattleRuntime::start_room(const std::string& room_name) {
         player_ids.push_back(session->player_id());
     }
 
-    auto instance = std::make_unique<BattleInstance>(BattleInstanceConfig{
-        .room_name = room_name,
+    auto instance = instance_factory_(BattleInstanceConfig{
+        .room_name =  room_name,
         .player_ids = player_ids,
     });
 
@@ -77,10 +97,16 @@ void battle::BattleRuntime::start_room(const std::string& room_name) {
 void battle::BattleRuntime::tick(ecs::DeltaTime delta_time) {
     std::vector<v1::ServerPacket> packets;
     std::vector<UdpEndpoint> endpoints;
+    std::vector<std::pair<std::string, BattleEndReason>> end_state;
     {
         std::lock_guard<std::mutex> lock(mutex_);
         for (auto& [room_name, instance] : instances_) {
             instance->tick(delta_time);
+            if (instance->ended()) {
+                auto reason = instance->end_reason();
+                end_state.emplace_back(room_name, reason);
+                continue;
+            }
             auto snapshot = instance->snapshot();
             const auto packet = make_snapshot(room_name, snapshot);
             auto sessions = session_manager_.sessions_in_room(room_name);
@@ -90,18 +116,23 @@ void battle::BattleRuntime::tick(ecs::DeltaTime delta_time) {
             }
         }
     }
+
+    for (const auto& [room_name,reason] : end_state) {
+        end_room(room_name, battle_end_reason_to_string(reason));
+    }
+
     for (std::size_t i = 0; i < packets.size(); i++) {
         send_packet_(packets[i], endpoints[i]);
     }
 }
 
-bool battle::BattleRuntime::receive_input(const std::string& room_name, std::int64_t player_id, float x, float y) {
+bool battle::BattleRuntime::receive_input(const std::string& room_name, std::int64_t player_id, PlayerInput input) {
     std::lock_guard<std::mutex> lock(mutex_);
     auto it = instances_.find(room_name);
     if (it == instances_.end()) {
         return false;
     }
-    return it->second->receive_input(player_id, x, y);
+    return it->second->receive_input(player_id, input);
 }
 
 void battle::BattleRuntime::start() {
