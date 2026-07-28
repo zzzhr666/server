@@ -196,12 +196,13 @@ func (EndRoomStatus) EnumDescriptor() ([]byte, []int) {
 }
 
 type CreateRoomRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	RoomName      string                 `protobuf:"bytes,1,opt,name=room_name,json=roomName,proto3" json:"room_name,omitempty"`
-	Token         string                 `protobuf:"bytes,2,opt,name=token,proto3" json:"token,omitempty"`
-	PlayerIds     []int64                `protobuf:"varint,3,rep,packed,name=player_ids,json=playerIds,proto3" json:"player_ids,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	RoomName       string                 `protobuf:"bytes,1,opt,name=room_name,json=roomName,proto3" json:"room_name,omitempty"`
+	Token          string                 `protobuf:"bytes,2,opt,name=token,proto3" json:"token,omitempty"`
+	PlayerIds      []int64                `protobuf:"varint,3,rep,packed,name=player_ids,json=playerIds,proto3" json:"player_ids,omitempty"`
+	PlayerLoadouts []*PlayerLoadout       `protobuf:"bytes,4,rep,name=player_loadouts,json=playerLoadouts,proto3" json:"player_loadouts,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
 func (x *CreateRoomRequest) Reset() {
@@ -251,6 +252,13 @@ func (x *CreateRoomRequest) GetToken() string {
 func (x *CreateRoomRequest) GetPlayerIds() []int64 {
 	if x != nil {
 		return x.PlayerIds
+	}
+	return nil
+}
+
+func (x *CreateRoomRequest) GetPlayerLoadouts() []*PlayerLoadout {
+	if x != nil {
+		return x.PlayerLoadouts
 	}
 	return nil
 }
@@ -523,16 +531,69 @@ func (x *EndRoomResponse) GetMessage() string {
 	return ""
 }
 
+type PlayerLoadout struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	PlayerId      int64                  `protobuf:"varint,1,opt,name=player_id,json=playerId,proto3" json:"player_id,omitempty"`
+	Weapon        string                 `protobuf:"bytes,2,opt,name=weapon,proto3" json:"weapon,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PlayerLoadout) Reset() {
+	*x = PlayerLoadout{}
+	mi := &file_proto_battle_v1_battle_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PlayerLoadout) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PlayerLoadout) ProtoMessage() {}
+
+func (x *PlayerLoadout) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_battle_v1_battle_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PlayerLoadout.ProtoReflect.Descriptor instead.
+func (*PlayerLoadout) Descriptor() ([]byte, []int) {
+	return file_proto_battle_v1_battle_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *PlayerLoadout) GetPlayerId() int64 {
+	if x != nil {
+		return x.PlayerId
+	}
+	return 0
+}
+
+func (x *PlayerLoadout) GetWeapon() string {
+	if x != nil {
+		return x.Weapon
+	}
+	return ""
+}
+
 var File_proto_battle_v1_battle_proto protoreflect.FileDescriptor
 
 const file_proto_battle_v1_battle_proto_rawDesc = "" +
 	"\n" +
-	"\x1cproto/battle/v1/battle.proto\x12\tbattle.v1\"e\n" +
+	"\x1cproto/battle/v1/battle.proto\x12\tbattle.v1\"\xa8\x01\n" +
 	"\x11CreateRoomRequest\x12\x1b\n" +
 	"\troom_name\x18\x01 \x01(\tR\broomName\x12\x14\n" +
 	"\x05token\x18\x02 \x01(\tR\x05token\x12\x1d\n" +
 	"\n" +
-	"player_ids\x18\x03 \x03(\x03R\tplayerIds\"c\n" +
+	"player_ids\x18\x03 \x03(\x03R\tplayerIds\x12A\n" +
+	"\x0fplayer_loadouts\x18\x04 \x03(\v2\x18.battle.v1.PlayerLoadoutR\x0eplayerLoadouts\"c\n" +
 	"\x12CreateRoomResponse\x123\n" +
 	"\x06status\x18\x01 \x01(\x0e2\x1b.battle.v1.CreateRoomStatusR\x06status\x12\x18\n" +
 	"\amessage\x18\x02 \x01(\tR\amessage\"a\n" +
@@ -548,7 +609,10 @@ const file_proto_battle_v1_battle_proto_rawDesc = "" +
 	"\x06reason\x18\x02 \x01(\tR\x06reason\"]\n" +
 	"\x0fEndRoomResponse\x120\n" +
 	"\x06status\x18\x01 \x01(\x0e2\x18.battle.v1.EndRoomStatusR\x06status\x12\x18\n" +
-	"\amessage\x18\x02 \x01(\tR\amessage*\xc7\x01\n" +
+	"\amessage\x18\x02 \x01(\tR\amessage\"D\n" +
+	"\rPlayerLoadout\x12\x1b\n" +
+	"\tplayer_id\x18\x01 \x01(\x03R\bplayerId\x12\x16\n" +
+	"\x06weapon\x18\x02 \x01(\tR\x06weapon*\xc7\x01\n" +
 	"\x10CreateRoomStatus\x12\"\n" +
 	"\x1eCREATE_ROOM_STATUS_UNSPECIFIED\x10\x00\x12\x19\n" +
 	"\x15CREATE_ROOM_STATUS_OK\x10\x01\x12&\n" +
@@ -589,7 +653,7 @@ func file_proto_battle_v1_battle_proto_rawDescGZIP() []byte {
 }
 
 var file_proto_battle_v1_battle_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
-var file_proto_battle_v1_battle_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
+var file_proto_battle_v1_battle_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
 var file_proto_battle_v1_battle_proto_goTypes = []any{
 	(CreateRoomStatus)(0),      // 0: battle.v1.CreateRoomStatus
 	(JoinRoomStatus)(0),        // 1: battle.v1.JoinRoomStatus
@@ -600,22 +664,24 @@ var file_proto_battle_v1_battle_proto_goTypes = []any{
 	(*JoinRoomResponse)(nil),   // 6: battle.v1.JoinRoomResponse
 	(*EndRoomRequest)(nil),     // 7: battle.v1.EndRoomRequest
 	(*EndRoomResponse)(nil),    // 8: battle.v1.EndRoomResponse
+	(*PlayerLoadout)(nil),      // 9: battle.v1.PlayerLoadout
 }
 var file_proto_battle_v1_battle_proto_depIdxs = []int32{
-	0, // 0: battle.v1.CreateRoomResponse.status:type_name -> battle.v1.CreateRoomStatus
-	1, // 1: battle.v1.JoinRoomResponse.status:type_name -> battle.v1.JoinRoomStatus
-	2, // 2: battle.v1.EndRoomResponse.status:type_name -> battle.v1.EndRoomStatus
-	3, // 3: battle.v1.BattleControlService.CreateRoom:input_type -> battle.v1.CreateRoomRequest
-	5, // 4: battle.v1.BattleControlService.JoinRoom:input_type -> battle.v1.JoinRoomRequest
-	7, // 5: battle.v1.BattleControlService.EndRoom:input_type -> battle.v1.EndRoomRequest
-	4, // 6: battle.v1.BattleControlService.CreateRoom:output_type -> battle.v1.CreateRoomResponse
-	6, // 7: battle.v1.BattleControlService.JoinRoom:output_type -> battle.v1.JoinRoomResponse
-	8, // 8: battle.v1.BattleControlService.EndRoom:output_type -> battle.v1.EndRoomResponse
-	6, // [6:9] is the sub-list for method output_type
-	3, // [3:6] is the sub-list for method input_type
-	3, // [3:3] is the sub-list for extension type_name
-	3, // [3:3] is the sub-list for extension extendee
-	0, // [0:3] is the sub-list for field type_name
+	9, // 0: battle.v1.CreateRoomRequest.player_loadouts:type_name -> battle.v1.PlayerLoadout
+	0, // 1: battle.v1.CreateRoomResponse.status:type_name -> battle.v1.CreateRoomStatus
+	1, // 2: battle.v1.JoinRoomResponse.status:type_name -> battle.v1.JoinRoomStatus
+	2, // 3: battle.v1.EndRoomResponse.status:type_name -> battle.v1.EndRoomStatus
+	3, // 4: battle.v1.BattleControlService.CreateRoom:input_type -> battle.v1.CreateRoomRequest
+	5, // 5: battle.v1.BattleControlService.JoinRoom:input_type -> battle.v1.JoinRoomRequest
+	7, // 6: battle.v1.BattleControlService.EndRoom:input_type -> battle.v1.EndRoomRequest
+	4, // 7: battle.v1.BattleControlService.CreateRoom:output_type -> battle.v1.CreateRoomResponse
+	6, // 8: battle.v1.BattleControlService.JoinRoom:output_type -> battle.v1.JoinRoomResponse
+	8, // 9: battle.v1.BattleControlService.EndRoom:output_type -> battle.v1.EndRoomResponse
+	7, // [7:10] is the sub-list for method output_type
+	4, // [4:7] is the sub-list for method input_type
+	4, // [4:4] is the sub-list for extension type_name
+	4, // [4:4] is the sub-list for extension extendee
+	0, // [0:4] is the sub-list for field type_name
 }
 
 func init() { file_proto_battle_v1_battle_proto_init() }
@@ -629,7 +695,7 @@ func file_proto_battle_v1_battle_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_battle_v1_battle_proto_rawDesc), len(file_proto_battle_v1_battle_proto_rawDesc)),
 			NumEnums:      3,
-			NumMessages:   6,
+			NumMessages:   7,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

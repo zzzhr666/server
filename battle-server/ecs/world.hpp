@@ -10,16 +10,23 @@
 
 namespace battle::ecs {
     constexpr std::size_t InitialDamageEventCount = 256;
+    constexpr int DefaultPlayerMaxHealth = 100;
+    constexpr float DefaultPlayerMoveSpeed = 7.5f;
+    constexpr int DefaultPlayerAttackDamage = 30;
+    constexpr float DefaultPlayerAttackRange = 1.5f;
+    constexpr DeltaTime DefaultPlayerAttackCooldown{0.4f};
+    constexpr float DefaultPlayerDashSpeedMultiplier = 10.0f;
+    constexpr DeltaTime DefaultPlayerDashCooldown{1.0f};
 
     struct CreatePlayerConfig {
         Position position{.x = 0.0f, .y = 0.0f};
-        int max_health = 100;
-        float move_speed = 5.0f;
+        int max_health = DefaultPlayerMaxHealth;
+        float move_speed = DefaultPlayerMoveSpeed;
         AttackDefinition attack{
             .kind = AttackKind::Melee,
-            .damage = 25,
-            .range = 1.5f,
-            .cooldown_seconds = DeltaTime{0.5f},
+            .damage = DefaultPlayerAttackDamage,
+            .range = DefaultPlayerAttackRange,
+            .cooldown_seconds = DefaultPlayerAttackCooldown,
             .projectile_speed = 0.0f,
         };
     };
@@ -220,9 +227,18 @@ namespace battle::ecs {
             return attack_cooldowns_;
         }
 
+        [[nodiscard]] const ComponentPool<PlayerProgress>& player_progress() const {
+            return player_progress_;
+        }
+
+        ComponentPool<PlayerProgress>& player_progress() {
+            return player_progress_;
+        }
+
         std::vector<DamageEvent>& damage_events() {
             return damage_events_;
         }
+
         std::vector<KillEvent>& kill_events() {
             return kill_events_;
         }
@@ -268,6 +284,7 @@ namespace battle::ecs {
         ComponentPool<AttackCooldown> attack_cooldowns_;
         ComponentPool<DashCooldown> dash_cooldowns_;
         ComponentPool<MonsterIdentity> monster_identities_;
+        ComponentPool<PlayerProgress> player_progress_;
         std::vector<KillEvent> kill_events_;
         std::vector<DamageEvent> damage_events_;
         SystemScheduler system_scheduler_;

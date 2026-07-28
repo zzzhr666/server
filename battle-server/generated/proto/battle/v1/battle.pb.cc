@@ -27,6 +27,34 @@ namespace _fl = ::google::protobuf::internal::field_layout;
 namespace battle {
 namespace v1 {
 
+inline constexpr PlayerLoadout::Impl_::Impl_(
+    ::_pbi::ConstantInitialized) noexcept
+      : _cached_size_{0},
+        weapon_(
+            &::google::protobuf::internal::fixed_address_empty_string,
+            ::_pbi::ConstantInitialized()),
+        player_id_{::int64_t{0}} {}
+
+template <typename>
+PROTOBUF_CONSTEXPR PlayerLoadout::PlayerLoadout(::_pbi::ConstantInitialized)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(PlayerLoadout_class_data_.base()),
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(),
+#endif  // PROTOBUF_CUSTOM_VTABLE
+      _impl_(::_pbi::ConstantInitialized()) {
+}
+struct PlayerLoadoutDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR PlayerLoadoutDefaultTypeInternal() : _instance(::_pbi::ConstantInitialized{}) {}
+  ~PlayerLoadoutDefaultTypeInternal() {}
+  union {
+    PlayerLoadout _instance;
+  };
+};
+
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT
+    PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 PlayerLoadoutDefaultTypeInternal _PlayerLoadout_default_instance_;
+
 inline constexpr JoinRoomResponse::Impl_::Impl_(
     ::_pbi::ConstantInitialized) noexcept
       : _cached_size_{0},
@@ -177,6 +205,7 @@ inline constexpr CreateRoomRequest::Impl_::Impl_(
       : _cached_size_{0},
         player_ids_{},
         _player_ids_cached_byte_size_{0},
+        player_loadouts_{},
         room_name_(
             &::google::protobuf::internal::fixed_address_empty_string,
             ::_pbi::ConstantInitialized()),
@@ -214,12 +243,14 @@ const ::uint32_t
         protodesc_cold) = {
         0x081, // bitmap
         PROTOBUF_FIELD_OFFSET(::battle::v1::CreateRoomRequest, _impl_._has_bits_),
-        6, // hasbit index offset
+        7, // hasbit index offset
         PROTOBUF_FIELD_OFFSET(::battle::v1::CreateRoomRequest, _impl_.room_name_),
         PROTOBUF_FIELD_OFFSET(::battle::v1::CreateRoomRequest, _impl_.token_),
         PROTOBUF_FIELD_OFFSET(::battle::v1::CreateRoomRequest, _impl_.player_ids_),
+        PROTOBUF_FIELD_OFFSET(::battle::v1::CreateRoomRequest, _impl_.player_loadouts_),
         0,
         1,
+        ~0u,
         ~0u,
         0x081, // bitmap
         PROTOBUF_FIELD_OFFSET(::battle::v1::CreateRoomResponse, _impl_._has_bits_),
@@ -258,16 +289,24 @@ const ::uint32_t
         PROTOBUF_FIELD_OFFSET(::battle::v1::EndRoomResponse, _impl_.message_),
         1,
         0,
+        0x081, // bitmap
+        PROTOBUF_FIELD_OFFSET(::battle::v1::PlayerLoadout, _impl_._has_bits_),
+        5, // hasbit index offset
+        PROTOBUF_FIELD_OFFSET(::battle::v1::PlayerLoadout, _impl_.player_id_),
+        PROTOBUF_FIELD_OFFSET(::battle::v1::PlayerLoadout, _impl_.weapon_),
+        1,
+        0,
 };
 
 static const ::_pbi::MigrationSchema
     schemas[] ABSL_ATTRIBUTE_SECTION_VARIABLE(protodesc_cold) = {
         {0, sizeof(::battle::v1::CreateRoomRequest)},
-        {9, sizeof(::battle::v1::CreateRoomResponse)},
-        {16, sizeof(::battle::v1::JoinRoomRequest)},
-        {25, sizeof(::battle::v1::JoinRoomResponse)},
-        {32, sizeof(::battle::v1::EndRoomRequest)},
-        {39, sizeof(::battle::v1::EndRoomResponse)},
+        {11, sizeof(::battle::v1::CreateRoomResponse)},
+        {18, sizeof(::battle::v1::JoinRoomRequest)},
+        {27, sizeof(::battle::v1::JoinRoomResponse)},
+        {34, sizeof(::battle::v1::EndRoomRequest)},
+        {41, sizeof(::battle::v1::EndRoomResponse)},
+        {48, sizeof(::battle::v1::PlayerLoadout)},
 };
 static const ::_pb::Message* PROTOBUF_NONNULL const file_default_instances[] = {
     &::battle::v1::_CreateRoomRequest_default_instance_._instance,
@@ -276,58 +315,62 @@ static const ::_pb::Message* PROTOBUF_NONNULL const file_default_instances[] = {
     &::battle::v1::_JoinRoomResponse_default_instance_._instance,
     &::battle::v1::_EndRoomRequest_default_instance_._instance,
     &::battle::v1::_EndRoomResponse_default_instance_._instance,
+    &::battle::v1::_PlayerLoadout_default_instance_._instance,
 };
 const char descriptor_table_protodef_proto_2fbattle_2fv1_2fbattle_2eproto[] ABSL_ATTRIBUTE_SECTION_VARIABLE(
     protodesc_cold) = {
     "\n\034proto/battle/v1/battle.proto\022\tbattle.v"
-    "1\"I\n\021CreateRoomRequest\022\021\n\troom_name\030\001 \001("
-    "\t\022\r\n\005token\030\002 \001(\t\022\022\n\nplayer_ids\030\003 \003(\003\"R\n\022"
-    "CreateRoomResponse\022+\n\006status\030\001 \001(\0162\033.bat"
-    "tle.v1.CreateRoomStatus\022\017\n\007message\030\002 \001(\t"
-    "\"F\n\017JoinRoomRequest\022\021\n\troom_name\030\001 \001(\t\022\r"
-    "\n\005token\030\002 \001(\t\022\021\n\tplayer_id\030\003 \001(\003\"N\n\020Join"
-    "RoomResponse\022)\n\006status\030\001 \001(\0162\031.battle.v1"
-    ".JoinRoomStatus\022\017\n\007message\030\002 \001(\t\"3\n\016EndR"
-    "oomRequest\022\021\n\troom_name\030\001 \001(\t\022\016\n\006reason\030"
-    "\002 \001(\t\"L\n\017EndRoomResponse\022(\n\006status\030\001 \001(\016"
-    "2\030.battle.v1.EndRoomStatus\022\017\n\007message\030\002 "
-    "\001(\t*\307\001\n\020CreateRoomStatus\022\"\n\036CREATE_ROOM_"
-    "STATUS_UNSPECIFIED\020\000\022\031\n\025CREATE_ROOM_STAT"
-    "US_OK\020\001\022&\n\"CREATE_ROOM_STATUS_INVALID_RE"
-    "QUEST\020\002\022%\n!CREATE_ROOM_STATUS_ALREADY_EX"
-    "ISTS\020\003\022%\n!CREATE_ROOM_STATUS_INTERNAL_ER"
-    "ROR\020\004*\255\002\n\016JoinRoomStatus\022 \n\034JOIN_ROOM_ST"
-    "ATUS_UNSPECIFIED\020\000\022\027\n\023JOIN_ROOM_STATUS_O"
-    "K\020\001\022$\n JOIN_ROOM_STATUS_INVALID_REQUEST\020"
-    "\002\022#\n\037JOIN_ROOM_STATUS_ROOM_NOT_FOUND\020\003\022\""
-    "\n\036JOIN_ROOM_STATUS_INVALID_TOKEN\020\004\022\'\n#JO"
-    "IN_ROOM_STATUS_PLAYER_NOT_ALLOWED\020\005\022#\n\037J"
-    "OIN_ROOM_STATUS_ALREADY_JOINED\020\006\022#\n\037JOIN"
-    "_ROOM_STATUS_INTERNAL_ERROR\020\007*\265\001\n\rEndRoo"
-    "mStatus\022\037\n\033END_ROOM_STATUS_UNSPECIFIED\020\000"
-    "\022\026\n\022END_ROOM_STATUS_OK\020\001\022#\n\037END_ROOM_STA"
-    "TUS_INVALID_REQUEST\020\002\022\"\n\036END_ROOM_STATUS"
-    "_ROOM_NOT_FOUND\020\003\022\"\n\036END_ROOM_STATUS_INT"
-    "ERNAL_ERROR\020\0042\350\001\n\024BattleControlService\022I"
-    "\n\nCreateRoom\022\034.battle.v1.CreateRoomReque"
-    "st\032\035.battle.v1.CreateRoomResponse\022C\n\010Joi"
-    "nRoom\022\032.battle.v1.JoinRoomRequest\032\033.batt"
-    "le.v1.JoinRoomResponse\022@\n\007EndRoom\022\031.batt"
-    "le.v1.EndRoomRequest\032\032.battle.v1.EndRoom"
-    "ResponseB,Z*server/internal/contract/bat"
-    "tlepb;battlepbb\006proto3"
+    "1\"|\n\021CreateRoomRequest\022\021\n\troom_name\030\001 \001("
+    "\t\022\r\n\005token\030\002 \001(\t\022\022\n\nplayer_ids\030\003 \003(\003\0221\n\017"
+    "player_loadouts\030\004 \003(\0132\030.battle.v1.Player"
+    "Loadout\"R\n\022CreateRoomResponse\022+\n\006status\030"
+    "\001 \001(\0162\033.battle.v1.CreateRoomStatus\022\017\n\007me"
+    "ssage\030\002 \001(\t\"F\n\017JoinRoomRequest\022\021\n\troom_n"
+    "ame\030\001 \001(\t\022\r\n\005token\030\002 \001(\t\022\021\n\tplayer_id\030\003 "
+    "\001(\003\"N\n\020JoinRoomResponse\022)\n\006status\030\001 \001(\0162"
+    "\031.battle.v1.JoinRoomStatus\022\017\n\007message\030\002 "
+    "\001(\t\"3\n\016EndRoomRequest\022\021\n\troom_name\030\001 \001(\t"
+    "\022\016\n\006reason\030\002 \001(\t\"L\n\017EndRoomResponse\022(\n\006s"
+    "tatus\030\001 \001(\0162\030.battle.v1.EndRoomStatus\022\017\n"
+    "\007message\030\002 \001(\t\"2\n\rPlayerLoadout\022\021\n\tplaye"
+    "r_id\030\001 \001(\003\022\016\n\006weapon\030\002 \001(\t*\307\001\n\020CreateRoo"
+    "mStatus\022\"\n\036CREATE_ROOM_STATUS_UNSPECIFIE"
+    "D\020\000\022\031\n\025CREATE_ROOM_STATUS_OK\020\001\022&\n\"CREATE"
+    "_ROOM_STATUS_INVALID_REQUEST\020\002\022%\n!CREATE"
+    "_ROOM_STATUS_ALREADY_EXISTS\020\003\022%\n!CREATE_"
+    "ROOM_STATUS_INTERNAL_ERROR\020\004*\255\002\n\016JoinRoo"
+    "mStatus\022 \n\034JOIN_ROOM_STATUS_UNSPECIFIED\020"
+    "\000\022\027\n\023JOIN_ROOM_STATUS_OK\020\001\022$\n JOIN_ROOM_"
+    "STATUS_INVALID_REQUEST\020\002\022#\n\037JOIN_ROOM_ST"
+    "ATUS_ROOM_NOT_FOUND\020\003\022\"\n\036JOIN_ROOM_STATU"
+    "S_INVALID_TOKEN\020\004\022\'\n#JOIN_ROOM_STATUS_PL"
+    "AYER_NOT_ALLOWED\020\005\022#\n\037JOIN_ROOM_STATUS_A"
+    "LREADY_JOINED\020\006\022#\n\037JOIN_ROOM_STATUS_INTE"
+    "RNAL_ERROR\020\007*\265\001\n\rEndRoomStatus\022\037\n\033END_RO"
+    "OM_STATUS_UNSPECIFIED\020\000\022\026\n\022END_ROOM_STAT"
+    "US_OK\020\001\022#\n\037END_ROOM_STATUS_INVALID_REQUE"
+    "ST\020\002\022\"\n\036END_ROOM_STATUS_ROOM_NOT_FOUND\020\003"
+    "\022\"\n\036END_ROOM_STATUS_INTERNAL_ERROR\020\0042\350\001\n"
+    "\024BattleControlService\022I\n\nCreateRoom\022\034.ba"
+    "ttle.v1.CreateRoomRequest\032\035.battle.v1.Cr"
+    "eateRoomResponse\022C\n\010JoinRoom\022\032.battle.v1"
+    ".JoinRoomRequest\032\033.battle.v1.JoinRoomRes"
+    "ponse\022@\n\007EndRoom\022\031.battle.v1.EndRoomRequ"
+    "est\032\032.battle.v1.EndRoomResponseB,Z*serve"
+    "r/internal/contract/battlepb;battlepbb\006p"
+    "roto3"
 };
 static ::absl::once_flag descriptor_table_proto_2fbattle_2fv1_2fbattle_2eproto_once;
 PROTOBUF_CONSTINIT const ::_pbi::DescriptorTable descriptor_table_proto_2fbattle_2fv1_2fbattle_2eproto = {
     false,
     false,
-    1462,
+    1565,
     descriptor_table_protodef_proto_2fbattle_2fv1_2fbattle_2eproto,
     "proto/battle/v1/battle.proto",
     &descriptor_table_proto_2fbattle_2fv1_2fbattle_2eproto_once,
     nullptr,
     0,
-    6,
+    7,
     schemas,
     file_default_instances,
     TableStruct_proto_2fbattle_2fv1_2fbattle_2eproto::offsets,
@@ -381,6 +424,7 @@ PROTOBUF_NDEBUG_INLINE CreateRoomRequest::Impl_::Impl_(
         _cached_size_{0},
         player_ids_{visibility, arena, from.player_ids_},
         _player_ids_cached_byte_size_{0},
+        player_loadouts_{visibility, arena, from.player_loadouts_},
         room_name_(arena, from.room_name_),
         token_(arena, from.token_) {}
 
@@ -406,6 +450,7 @@ PROTOBUF_NDEBUG_INLINE CreateRoomRequest::Impl_::Impl_(
       : _cached_size_{0},
         player_ids_{visibility, arena},
         _player_ids_cached_byte_size_{0},
+        player_loadouts_{visibility, arena},
         room_name_(arena),
         token_(arena) {}
 
@@ -434,6 +479,10 @@ constexpr auto CreateRoomRequest::InternalNewImpl_() {
   constexpr auto arena_bits = ::google::protobuf::internal::EncodePlacementArenaOffsets({
       PROTOBUF_FIELD_OFFSET(CreateRoomRequest, _impl_.player_ids_) +
           decltype(CreateRoomRequest::_impl_.player_ids_)::
+              InternalGetArenaOffset(
+                  ::google::protobuf::Message::internal_visibility()),
+      PROTOBUF_FIELD_OFFSET(CreateRoomRequest, _impl_.player_loadouts_) +
+          decltype(CreateRoomRequest::_impl_.player_loadouts_)::
               InternalGetArenaOffset(
                   ::google::protobuf::Message::internal_visibility()),
   });
@@ -480,18 +529,18 @@ CreateRoomRequest::GetClassData() const {
   return CreateRoomRequest_class_data_.base();
 }
 PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
-const ::_pbi::TcParseTable<2, 3, 0, 50, 2>
+const ::_pbi::TcParseTable<2, 4, 1, 50, 2>
 CreateRoomRequest::_table_ = {
   {
     PROTOBUF_FIELD_OFFSET(CreateRoomRequest, _impl_._has_bits_),
     0, // no _extensions_
-    3, 24,  // max_field_number, fast_idx_mask
+    4, 24,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
-    4294967288,  // skipmap
+    4294967280,  // skipmap
     offsetof(decltype(_table_), field_entries),
-    3,  // num_field_entries
-    0,  // num_aux_entries
-    offsetof(decltype(_table_), field_names),  // no aux_entries
+    4,  // num_field_entries
+    1,  // num_aux_entries
+    offsetof(decltype(_table_), aux_entries),
     CreateRoomRequest_class_data_.base(),
     nullptr,  // post_loop_handler
     ::_pbi::TcParser::GenericFallback,  // fallback
@@ -499,7 +548,9 @@ CreateRoomRequest::_table_ = {
     ::_pbi::TcParser::GetTable<::battle::v1::CreateRoomRequest>(),  // to_prefetch
     #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
   }, {{
-    {::_pbi::TcParser::MiniParse, {}},
+    // repeated .battle.v1.PlayerLoadout player_loadouts = 4;
+    {::_pbi::TcParser::FastMtR1,
+     {34, 63, 0, PROTOBUF_FIELD_OFFSET(CreateRoomRequest, _impl_.player_loadouts_)}},
     // string room_name = 1;
     {::_pbi::TcParser::FastUS1,
      {10, 0, 0, PROTOBUF_FIELD_OFFSET(CreateRoomRequest, _impl_.room_name_)}},
@@ -521,8 +572,13 @@ CreateRoomRequest::_table_ = {
     // repeated int64 player_ids = 3;
     {PROTOBUF_FIELD_OFFSET(CreateRoomRequest, _impl_.player_ids_), -1, 0,
     (0 | ::_fl::kFcRepeated | ::_fl::kPackedInt64)},
+    // repeated .battle.v1.PlayerLoadout player_loadouts = 4;
+    {PROTOBUF_FIELD_OFFSET(CreateRoomRequest, _impl_.player_loadouts_), -1, 0,
+    (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
   }},
-  // no aux_entries
+  {{
+      {::_pbi::TcParser::GetTable<::battle::v1::PlayerLoadout>()},
+  }},
   {{
     "\33\11\5\0\0\0\0\0"
     "battle.v1.CreateRoomRequest"
@@ -538,6 +594,7 @@ PROTOBUF_NOINLINE void CreateRoomRequest::Clear() {
   (void) cached_has_bits;
 
   _impl_.player_ids_.Clear();
+  _impl_.player_loadouts_.Clear();
   cached_has_bits = _impl_._has_bits_[0];
   if ((cached_has_bits & 0x00000003u) != 0) {
     if ((cached_has_bits & 0x00000001u) != 0) {
@@ -595,6 +652,17 @@ PROTOBUF_NOINLINE void CreateRoomRequest::Clear() {
     }
   }
 
+  // repeated .battle.v1.PlayerLoadout player_loadouts = 4;
+  for (unsigned i = 0, n = static_cast<unsigned>(
+                           this_._internal_player_loadouts_size());
+       i < n; i++) {
+    const auto& repfield = this_._internal_player_loadouts().Get(i);
+    target =
+        ::google::protobuf::internal::WireFormatLite::InternalWriteMessage(
+            4, repfield, repfield.GetCachedSize(),
+            target, stream);
+  }
+
   if (ABSL_PREDICT_FALSE(this_._internal_metadata_.have_unknown_fields())) {
     target =
         ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
@@ -627,6 +695,13 @@ PROTOBUF_NOINLINE void CreateRoomRequest::Clear() {
               this_._internal_player_ids(), 1,
               this_._impl_._player_ids_cached_byte_size_);
     }
+    // repeated .battle.v1.PlayerLoadout player_loadouts = 4;
+    {
+      total_size += 1UL * this_._internal_player_loadouts_size();
+      for (const auto& msg : this_._internal_player_loadouts()) {
+        total_size += ::google::protobuf::internal::WireFormatLite::MessageSize(msg);
+      }
+    }
   }
   cached_has_bits = this_._impl_._has_bits_[0];
   if ((cached_has_bits & 0x00000003u) != 0) {
@@ -658,6 +733,8 @@ void CreateRoomRequest::MergeImpl(::google::protobuf::MessageLite& to_msg, const
   (void) cached_has_bits;
 
   _this->_internal_mutable_player_ids()->MergeFrom(from._internal_player_ids());
+  _this->_internal_mutable_player_loadouts()->MergeFrom(
+      from._internal_player_loadouts());
   cached_has_bits = from._impl_._has_bits_[0];
   if ((cached_has_bits & 0x00000003u) != 0) {
     if ((cached_has_bits & 0x00000001u) != 0) {
@@ -698,6 +775,7 @@ void CreateRoomRequest::InternalSwap(CreateRoomRequest* PROTOBUF_RESTRICT PROTOB
   _internal_metadata_.InternalSwap(&other->_internal_metadata_);
   swap(_impl_._has_bits_[0], other->_impl_._has_bits_[0]);
   _impl_.player_ids_.InternalSwap(&other->_impl_.player_ids_);
+  _impl_.player_loadouts_.InternalSwap(&other->_impl_.player_loadouts_);
   ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.room_name_, &other->_impl_.room_name_, arena);
   ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.token_, &other->_impl_.token_, arena);
 }
@@ -2237,6 +2315,302 @@ void EndRoomResponse::InternalSwap(EndRoomResponse* PROTOBUF_RESTRICT PROTOBUF_N
 }
 
 ::google::protobuf::Metadata EndRoomResponse::GetMetadata() const {
+  return ::google::protobuf::Message::GetMetadataImpl(GetClassData()->full());
+}
+// ===================================================================
+
+class PlayerLoadout::_Internal {
+ public:
+  using HasBits =
+      decltype(::std::declval<PlayerLoadout>()._impl_._has_bits_);
+  static constexpr ::int32_t kHasBitsOffset =
+      8 * PROTOBUF_FIELD_OFFSET(PlayerLoadout, _impl_._has_bits_);
+};
+
+PlayerLoadout::PlayerLoadout(::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(arena, PlayerLoadout_class_data_.base()) {
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(arena) {
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  SharedCtor(arena);
+  // @@protoc_insertion_point(arena_constructor:battle.v1.PlayerLoadout)
+}
+PROTOBUF_NDEBUG_INLINE PlayerLoadout::Impl_::Impl_(
+    ::google::protobuf::internal::InternalVisibility visibility,
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
+    const ::battle::v1::PlayerLoadout& from_msg)
+      : _has_bits_{from._has_bits_},
+        _cached_size_{0},
+        weapon_(arena, from.weapon_) {}
+
+PlayerLoadout::PlayerLoadout(
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena,
+    const PlayerLoadout& from)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(arena, PlayerLoadout_class_data_.base()) {
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(arena) {
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  PlayerLoadout* const _this = this;
+  (void)_this;
+  _internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
+      from._internal_metadata_);
+  new (&_impl_) Impl_(internal_visibility(), arena, from._impl_, from);
+  _impl_.player_id_ = from._impl_.player_id_;
+
+  // @@protoc_insertion_point(copy_constructor:battle.v1.PlayerLoadout)
+}
+PROTOBUF_NDEBUG_INLINE PlayerLoadout::Impl_::Impl_(
+    ::google::protobuf::internal::InternalVisibility visibility,
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
+      : _cached_size_{0},
+        weapon_(arena) {}
+
+inline void PlayerLoadout::SharedCtor(::_pb::Arena* PROTOBUF_NULLABLE arena) {
+  new (&_impl_) Impl_(internal_visibility(), arena);
+  _impl_.player_id_ = {};
+}
+PlayerLoadout::~PlayerLoadout() {
+  // @@protoc_insertion_point(destructor:battle.v1.PlayerLoadout)
+  SharedDtor(*this);
+}
+inline void PlayerLoadout::SharedDtor(MessageLite& self) {
+  PlayerLoadout& this_ = static_cast<PlayerLoadout&>(self);
+  this_._internal_metadata_.Delete<::google::protobuf::UnknownFieldSet>();
+  ABSL_DCHECK(this_.GetArena() == nullptr);
+  this_._impl_.weapon_.Destroy();
+  this_._impl_.~Impl_();
+}
+
+inline void* PROTOBUF_NONNULL PlayerLoadout::PlacementNew_(
+    const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena) {
+  return ::new (mem) PlayerLoadout(arena);
+}
+constexpr auto PlayerLoadout::InternalNewImpl_() {
+  return ::google::protobuf::internal::MessageCreator::CopyInit(sizeof(PlayerLoadout),
+                                            alignof(PlayerLoadout));
+}
+constexpr auto PlayerLoadout::InternalGenerateClassData_() {
+  return ::google::protobuf::internal::ClassDataFull{
+      ::google::protobuf::internal::ClassData{
+          &_PlayerLoadout_default_instance_._instance,
+          &_table_.header,
+          nullptr,  // OnDemandRegisterArenaDtor
+          nullptr,  // IsInitialized
+          &PlayerLoadout::MergeImpl,
+          ::google::protobuf::Message::GetNewImpl<PlayerLoadout>(),
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+          &PlayerLoadout::SharedDtor,
+          ::google::protobuf::Message::GetClearImpl<PlayerLoadout>(), &PlayerLoadout::ByteSizeLong,
+              &PlayerLoadout::_InternalSerialize,
+#endif  // PROTOBUF_CUSTOM_VTABLE
+          PROTOBUF_FIELD_OFFSET(PlayerLoadout, _impl_._cached_size_),
+          false,
+      },
+      &PlayerLoadout::kDescriptorMethods,
+      &descriptor_table_proto_2fbattle_2fv1_2fbattle_2eproto,
+      nullptr,  // tracker
+  };
+}
+
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 const
+    ::google::protobuf::internal::ClassDataFull PlayerLoadout_class_data_ =
+        PlayerLoadout::InternalGenerateClassData_();
+
+PROTOBUF_ATTRIBUTE_WEAK const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL
+PlayerLoadout::GetClassData() const {
+  ::google::protobuf::internal::PrefetchToLocalCache(&PlayerLoadout_class_data_);
+  ::google::protobuf::internal::PrefetchToLocalCache(PlayerLoadout_class_data_.tc_table);
+  return PlayerLoadout_class_data_.base();
+}
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
+const ::_pbi::TcParseTable<1, 2, 0, 38, 2>
+PlayerLoadout::_table_ = {
+  {
+    PROTOBUF_FIELD_OFFSET(PlayerLoadout, _impl_._has_bits_),
+    0, // no _extensions_
+    2, 8,  // max_field_number, fast_idx_mask
+    offsetof(decltype(_table_), field_lookup_table),
+    4294967292,  // skipmap
+    offsetof(decltype(_table_), field_entries),
+    2,  // num_field_entries
+    0,  // num_aux_entries
+    offsetof(decltype(_table_), field_names),  // no aux_entries
+    PlayerLoadout_class_data_.base(),
+    nullptr,  // post_loop_handler
+    ::_pbi::TcParser::GenericFallback,  // fallback
+    #ifdef PROTOBUF_PREFETCH_PARSE_TABLE
+    ::_pbi::TcParser::GetTable<::battle::v1::PlayerLoadout>(),  // to_prefetch
+    #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
+  }, {{
+    // string weapon = 2;
+    {::_pbi::TcParser::FastUS1,
+     {18, 0, 0, PROTOBUF_FIELD_OFFSET(PlayerLoadout, _impl_.weapon_)}},
+    // int64 player_id = 1;
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint64_t, offsetof(PlayerLoadout, _impl_.player_id_), 1>(),
+     {8, 1, 0, PROTOBUF_FIELD_OFFSET(PlayerLoadout, _impl_.player_id_)}},
+  }}, {{
+    65535, 65535
+  }}, {{
+    // int64 player_id = 1;
+    {PROTOBUF_FIELD_OFFSET(PlayerLoadout, _impl_.player_id_), _Internal::kHasBitsOffset + 1, 0,
+    (0 | ::_fl::kFcOptional | ::_fl::kInt64)},
+    // string weapon = 2;
+    {PROTOBUF_FIELD_OFFSET(PlayerLoadout, _impl_.weapon_), _Internal::kHasBitsOffset + 0, 0,
+    (0 | ::_fl::kFcOptional | ::_fl::kUtf8String | ::_fl::kRepAString)},
+  }},
+  // no aux_entries
+  {{
+    "\27\0\6\0\0\0\0\0"
+    "battle.v1.PlayerLoadout"
+    "weapon"
+  }},
+};
+PROTOBUF_NOINLINE void PlayerLoadout::Clear() {
+// @@protoc_insertion_point(message_clear_start:battle.v1.PlayerLoadout)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  ::uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  cached_has_bits = _impl_._has_bits_[0];
+  if ((cached_has_bits & 0x00000001u) != 0) {
+    _impl_.weapon_.ClearNonDefaultToEmpty();
+  }
+  _impl_.player_id_ = ::int64_t{0};
+  _impl_._has_bits_.Clear();
+  _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
+}
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+::uint8_t* PROTOBUF_NONNULL PlayerLoadout::_InternalSerialize(
+    const ::google::protobuf::MessageLite& base, ::uint8_t* PROTOBUF_NONNULL target,
+    ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) {
+  const PlayerLoadout& this_ = static_cast<const PlayerLoadout&>(base);
+#else   // PROTOBUF_CUSTOM_VTABLE
+::uint8_t* PROTOBUF_NONNULL PlayerLoadout::_InternalSerialize(
+    ::uint8_t* PROTOBUF_NONNULL target,
+    ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+  const PlayerLoadout& this_ = *this;
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  // @@protoc_insertion_point(serialize_to_array_start:battle.v1.PlayerLoadout)
+  ::uint32_t cached_has_bits = 0;
+  (void)cached_has_bits;
+
+  // int64 player_id = 1;
+  if ((this_._impl_._has_bits_[0] & 0x00000002u) != 0) {
+    if (this_._internal_player_id() != 0) {
+      target =
+          ::google::protobuf::internal::WireFormatLite::WriteInt64ToArrayWithField<1>(
+              stream, this_._internal_player_id(), target);
+    }
+  }
+
+  // string weapon = 2;
+  if ((this_._impl_._has_bits_[0] & 0x00000001u) != 0) {
+    if (!this_._internal_weapon().empty()) {
+      const ::std::string& _s = this_._internal_weapon();
+      ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+          _s.data(), static_cast<int>(_s.length()), ::google::protobuf::internal::WireFormatLite::SERIALIZE, "battle.v1.PlayerLoadout.weapon");
+      target = stream->WriteStringMaybeAliased(2, _s, target);
+    }
+  }
+
+  if (ABSL_PREDICT_FALSE(this_._internal_metadata_.have_unknown_fields())) {
+    target =
+        ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+            this_._internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:battle.v1.PlayerLoadout)
+  return target;
+}
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+::size_t PlayerLoadout::ByteSizeLong(const MessageLite& base) {
+  const PlayerLoadout& this_ = static_cast<const PlayerLoadout&>(base);
+#else   // PROTOBUF_CUSTOM_VTABLE
+::size_t PlayerLoadout::ByteSizeLong() const {
+  const PlayerLoadout& this_ = *this;
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  // @@protoc_insertion_point(message_byte_size_start:battle.v1.PlayerLoadout)
+  ::size_t total_size = 0;
+
+  ::uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void)cached_has_bits;
+
+  ::_pbi::Prefetch5LinesFrom7Lines(&this_);
+  cached_has_bits = this_._impl_._has_bits_[0];
+  if ((cached_has_bits & 0x00000003u) != 0) {
+    // string weapon = 2;
+    if ((cached_has_bits & 0x00000001u) != 0) {
+      if (!this_._internal_weapon().empty()) {
+        total_size += 1 + ::google::protobuf::internal::WireFormatLite::StringSize(
+                                        this_._internal_weapon());
+      }
+    }
+    // int64 player_id = 1;
+    if ((cached_has_bits & 0x00000002u) != 0) {
+      if (this_._internal_player_id() != 0) {
+        total_size += ::_pbi::WireFormatLite::Int64SizePlusOne(
+            this_._internal_player_id());
+      }
+    }
+  }
+  return this_.MaybeComputeUnknownFieldsSize(total_size,
+                                             &this_._impl_._cached_size_);
+}
+
+void PlayerLoadout::MergeImpl(::google::protobuf::MessageLite& to_msg, const ::google::protobuf::MessageLite& from_msg) {
+  auto* const _this = static_cast<PlayerLoadout*>(&to_msg);
+  auto& from = static_cast<const PlayerLoadout&>(from_msg);
+  // @@protoc_insertion_point(class_specific_merge_from_start:battle.v1.PlayerLoadout)
+  ABSL_DCHECK_NE(&from, _this);
+  ::uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  cached_has_bits = from._impl_._has_bits_[0];
+  if ((cached_has_bits & 0x00000003u) != 0) {
+    if ((cached_has_bits & 0x00000001u) != 0) {
+      if (!from._internal_weapon().empty()) {
+        _this->_internal_set_weapon(from._internal_weapon());
+      } else {
+        if (_this->_impl_.weapon_.IsDefault()) {
+          _this->_internal_set_weapon("");
+        }
+      }
+    }
+    if ((cached_has_bits & 0x00000002u) != 0) {
+      if (from._internal_player_id() != 0) {
+        _this->_impl_.player_id_ = from._impl_.player_id_;
+      }
+    }
+  }
+  _this->_impl_._has_bits_[0] |= cached_has_bits;
+  _this->_internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(from._internal_metadata_);
+}
+
+void PlayerLoadout::CopyFrom(const PlayerLoadout& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:battle.v1.PlayerLoadout)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+
+void PlayerLoadout::InternalSwap(PlayerLoadout* PROTOBUF_RESTRICT PROTOBUF_NONNULL other) {
+  using ::std::swap;
+  auto* arena = GetArena();
+  ABSL_DCHECK_EQ(arena, other->GetArena());
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  swap(_impl_._has_bits_[0], other->_impl_._has_bits_[0]);
+  ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.weapon_, &other->_impl_.weapon_, arena);
+  swap(_impl_.player_id_, other->_impl_.player_id_);
+}
+
+::google::protobuf::Metadata PlayerLoadout::GetMetadata() const {
   return ::google::protobuf::Message::GetMetadataImpl(GetClassData()->full());
 }
 // @@protoc_insertion_point(namespace_scope)

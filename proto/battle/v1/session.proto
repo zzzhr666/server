@@ -46,6 +46,18 @@ message GameOver {
   string room_name = 1;
   repeated int64 player_ids = 2;
   string reason = 3;
+  repeated PlayerBattleStats player_stats = 4;
+}
+
+message PlayerBattleStats {
+  int64 player_id = 1;
+  int32 total_kills = 2;
+  repeated MonsterKillCount kills = 3;
+}
+
+message MonsterKillCount {
+  string monster_kind = 1;
+  int32 count = 2;
 }
 
 message ClientInput {

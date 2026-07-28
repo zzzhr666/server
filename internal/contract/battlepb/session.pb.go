@@ -503,6 +503,7 @@ type GameOver struct {
 	RoomName      string                 `protobuf:"bytes,1,opt,name=room_name,json=roomName,proto3" json:"room_name,omitempty"`
 	PlayerIds     []int64                `protobuf:"varint,2,rep,packed,name=player_ids,json=playerIds,proto3" json:"player_ids,omitempty"`
 	Reason        string                 `protobuf:"bytes,3,opt,name=reason,proto3" json:"reason,omitempty"`
+	PlayerStats   []*PlayerBattleStats   `protobuf:"bytes,4,rep,name=player_stats,json=playerStats,proto3" json:"player_stats,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -558,6 +559,125 @@ func (x *GameOver) GetReason() string {
 	return ""
 }
 
+func (x *GameOver) GetPlayerStats() []*PlayerBattleStats {
+	if x != nil {
+		return x.PlayerStats
+	}
+	return nil
+}
+
+type PlayerBattleStats struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	PlayerId      int64                  `protobuf:"varint,1,opt,name=player_id,json=playerId,proto3" json:"player_id,omitempty"`
+	TotalKills    int32                  `protobuf:"varint,2,opt,name=total_kills,json=totalKills,proto3" json:"total_kills,omitempty"`
+	Kills         []*MonsterKillCount    `protobuf:"bytes,3,rep,name=kills,proto3" json:"kills,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PlayerBattleStats) Reset() {
+	*x = PlayerBattleStats{}
+	mi := &file_proto_battle_v1_session_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PlayerBattleStats) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PlayerBattleStats) ProtoMessage() {}
+
+func (x *PlayerBattleStats) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_battle_v1_session_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PlayerBattleStats.ProtoReflect.Descriptor instead.
+func (*PlayerBattleStats) Descriptor() ([]byte, []int) {
+	return file_proto_battle_v1_session_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *PlayerBattleStats) GetPlayerId() int64 {
+	if x != nil {
+		return x.PlayerId
+	}
+	return 0
+}
+
+func (x *PlayerBattleStats) GetTotalKills() int32 {
+	if x != nil {
+		return x.TotalKills
+	}
+	return 0
+}
+
+func (x *PlayerBattleStats) GetKills() []*MonsterKillCount {
+	if x != nil {
+		return x.Kills
+	}
+	return nil
+}
+
+type MonsterKillCount struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	MonsterKind   string                 `protobuf:"bytes,1,opt,name=monster_kind,json=monsterKind,proto3" json:"monster_kind,omitempty"`
+	Count         int32                  `protobuf:"varint,2,opt,name=count,proto3" json:"count,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *MonsterKillCount) Reset() {
+	*x = MonsterKillCount{}
+	mi := &file_proto_battle_v1_session_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *MonsterKillCount) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*MonsterKillCount) ProtoMessage() {}
+
+func (x *MonsterKillCount) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_battle_v1_session_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use MonsterKillCount.ProtoReflect.Descriptor instead.
+func (*MonsterKillCount) Descriptor() ([]byte, []int) {
+	return file_proto_battle_v1_session_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *MonsterKillCount) GetMonsterKind() string {
+	if x != nil {
+		return x.MonsterKind
+	}
+	return ""
+}
+
+func (x *MonsterKillCount) GetCount() int32 {
+	if x != nil {
+		return x.Count
+	}
+	return 0
+}
+
 type ClientInput struct {
 	state           protoimpl.MessageState `protogen:"open.v1"`
 	RoomName        string                 `protobuf:"bytes,1,opt,name=room_name,json=roomName,proto3" json:"room_name,omitempty"`
@@ -572,7 +692,7 @@ type ClientInput struct {
 
 func (x *ClientInput) Reset() {
 	*x = ClientInput{}
-	mi := &file_proto_battle_v1_session_proto_msgTypes[7]
+	mi := &file_proto_battle_v1_session_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -584,7 +704,7 @@ func (x *ClientInput) String() string {
 func (*ClientInput) ProtoMessage() {}
 
 func (x *ClientInput) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_battle_v1_session_proto_msgTypes[7]
+	mi := &file_proto_battle_v1_session_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -597,7 +717,7 @@ func (x *ClientInput) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ClientInput.ProtoReflect.Descriptor instead.
 func (*ClientInput) Descriptor() ([]byte, []int) {
-	return file_proto_battle_v1_session_proto_rawDescGZIP(), []int{7}
+	return file_proto_battle_v1_session_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *ClientInput) GetRoomName() string {
@@ -660,7 +780,7 @@ type EntitySnapshot struct {
 
 func (x *EntitySnapshot) Reset() {
 	*x = EntitySnapshot{}
-	mi := &file_proto_battle_v1_session_proto_msgTypes[8]
+	mi := &file_proto_battle_v1_session_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -672,7 +792,7 @@ func (x *EntitySnapshot) String() string {
 func (*EntitySnapshot) ProtoMessage() {}
 
 func (x *EntitySnapshot) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_battle_v1_session_proto_msgTypes[8]
+	mi := &file_proto_battle_v1_session_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -685,7 +805,7 @@ func (x *EntitySnapshot) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EntitySnapshot.ProtoReflect.Descriptor instead.
 func (*EntitySnapshot) Descriptor() ([]byte, []int) {
-	return file_proto_battle_v1_session_proto_rawDescGZIP(), []int{8}
+	return file_proto_battle_v1_session_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *EntitySnapshot) GetEntity() uint32 {
@@ -768,7 +888,7 @@ type WorldSnapshot struct {
 
 func (x *WorldSnapshot) Reset() {
 	*x = WorldSnapshot{}
-	mi := &file_proto_battle_v1_session_proto_msgTypes[9]
+	mi := &file_proto_battle_v1_session_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -780,7 +900,7 @@ func (x *WorldSnapshot) String() string {
 func (*WorldSnapshot) ProtoMessage() {}
 
 func (x *WorldSnapshot) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_battle_v1_session_proto_msgTypes[9]
+	mi := &file_proto_battle_v1_session_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -793,7 +913,7 @@ func (x *WorldSnapshot) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WorldSnapshot.ProtoReflect.Descriptor instead.
 func (*WorldSnapshot) Descriptor() ([]byte, []int) {
-	return file_proto_battle_v1_session_proto_rawDescGZIP(), []int{9}
+	return file_proto_battle_v1_session_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *WorldSnapshot) GetRoomName() string {
@@ -840,12 +960,21 @@ const file_proto_battle_v1_session_proto_rawDesc = "" +
 	"\x05error\x18\x03 \x01(\v2\x10.battle.v1.ErrorH\x00R\x05error\x122\n" +
 	"\tgame_over\x18\x04 \x01(\v2\x13.battle.v1.GameOverH\x00R\bgameOver\x126\n" +
 	"\bsnapshot\x18\x05 \x01(\v2\x18.battle.v1.WorldSnapshotH\x00R\bsnapshotB\t\n" +
-	"\apayload\"^\n" +
+	"\apayload\"\x9f\x01\n" +
 	"\bGameOver\x12\x1b\n" +
 	"\troom_name\x18\x01 \x01(\tR\broomName\x12\x1d\n" +
 	"\n" +
 	"player_ids\x18\x02 \x03(\x03R\tplayerIds\x12\x16\n" +
-	"\x06reason\x18\x03 \x01(\tR\x06reason\"\xb5\x01\n" +
+	"\x06reason\x18\x03 \x01(\tR\x06reason\x12?\n" +
+	"\fplayer_stats\x18\x04 \x03(\v2\x1c.battle.v1.PlayerBattleStatsR\vplayerStats\"\x84\x01\n" +
+	"\x11PlayerBattleStats\x12\x1b\n" +
+	"\tplayer_id\x18\x01 \x01(\x03R\bplayerId\x12\x1f\n" +
+	"\vtotal_kills\x18\x02 \x01(\x05R\n" +
+	"totalKills\x121\n" +
+	"\x05kills\x18\x03 \x03(\v2\x1b.battle.v1.MonsterKillCountR\x05kills\"K\n" +
+	"\x10MonsterKillCount\x12!\n" +
+	"\fmonster_kind\x18\x01 \x01(\tR\vmonsterKind\x12\x14\n" +
+	"\x05count\x18\x02 \x01(\x05R\x05count\"\xb5\x01\n" +
 	"\vClientInput\x12\x1b\n" +
 	"\troom_name\x18\x01 \x01(\tR\broomName\x12\x1b\n" +
 	"\tplayer_id\x18\x02 \x01(\x03R\bplayerId\x12\f\n" +
@@ -892,35 +1021,39 @@ func file_proto_battle_v1_session_proto_rawDescGZIP() []byte {
 }
 
 var file_proto_battle_v1_session_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_proto_battle_v1_session_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
+var file_proto_battle_v1_session_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
 var file_proto_battle_v1_session_proto_goTypes = []any{
-	(EntityKind)(0),        // 0: battle.v1.EntityKind
-	(*ClientHello)(nil),    // 1: battle.v1.ClientHello
-	(*ServerHello)(nil),    // 2: battle.v1.ServerHello
-	(*GameStart)(nil),      // 3: battle.v1.GameStart
-	(*Error)(nil),          // 4: battle.v1.Error
-	(*ClientPacket)(nil),   // 5: battle.v1.ClientPacket
-	(*ServerPacket)(nil),   // 6: battle.v1.ServerPacket
-	(*GameOver)(nil),       // 7: battle.v1.GameOver
-	(*ClientInput)(nil),    // 8: battle.v1.ClientInput
-	(*EntitySnapshot)(nil), // 9: battle.v1.EntitySnapshot
-	(*WorldSnapshot)(nil),  // 10: battle.v1.WorldSnapshot
+	(EntityKind)(0),           // 0: battle.v1.EntityKind
+	(*ClientHello)(nil),       // 1: battle.v1.ClientHello
+	(*ServerHello)(nil),       // 2: battle.v1.ServerHello
+	(*GameStart)(nil),         // 3: battle.v1.GameStart
+	(*Error)(nil),             // 4: battle.v1.Error
+	(*ClientPacket)(nil),      // 5: battle.v1.ClientPacket
+	(*ServerPacket)(nil),      // 6: battle.v1.ServerPacket
+	(*GameOver)(nil),          // 7: battle.v1.GameOver
+	(*PlayerBattleStats)(nil), // 8: battle.v1.PlayerBattleStats
+	(*MonsterKillCount)(nil),  // 9: battle.v1.MonsterKillCount
+	(*ClientInput)(nil),       // 10: battle.v1.ClientInput
+	(*EntitySnapshot)(nil),    // 11: battle.v1.EntitySnapshot
+	(*WorldSnapshot)(nil),     // 12: battle.v1.WorldSnapshot
 }
 var file_proto_battle_v1_session_proto_depIdxs = []int32{
 	1,  // 0: battle.v1.ClientPacket.hello:type_name -> battle.v1.ClientHello
-	8,  // 1: battle.v1.ClientPacket.input:type_name -> battle.v1.ClientInput
+	10, // 1: battle.v1.ClientPacket.input:type_name -> battle.v1.ClientInput
 	2,  // 2: battle.v1.ServerPacket.hello:type_name -> battle.v1.ServerHello
 	3,  // 3: battle.v1.ServerPacket.game_start:type_name -> battle.v1.GameStart
 	4,  // 4: battle.v1.ServerPacket.error:type_name -> battle.v1.Error
 	7,  // 5: battle.v1.ServerPacket.game_over:type_name -> battle.v1.GameOver
-	10, // 6: battle.v1.ServerPacket.snapshot:type_name -> battle.v1.WorldSnapshot
-	0,  // 7: battle.v1.EntitySnapshot.kind:type_name -> battle.v1.EntityKind
-	9,  // 8: battle.v1.WorldSnapshot.entities:type_name -> battle.v1.EntitySnapshot
-	9,  // [9:9] is the sub-list for method output_type
-	9,  // [9:9] is the sub-list for method input_type
-	9,  // [9:9] is the sub-list for extension type_name
-	9,  // [9:9] is the sub-list for extension extendee
-	0,  // [0:9] is the sub-list for field type_name
+	12, // 6: battle.v1.ServerPacket.snapshot:type_name -> battle.v1.WorldSnapshot
+	8,  // 7: battle.v1.GameOver.player_stats:type_name -> battle.v1.PlayerBattleStats
+	9,  // 8: battle.v1.PlayerBattleStats.kills:type_name -> battle.v1.MonsterKillCount
+	0,  // 9: battle.v1.EntitySnapshot.kind:type_name -> battle.v1.EntityKind
+	11, // 10: battle.v1.WorldSnapshot.entities:type_name -> battle.v1.EntitySnapshot
+	11, // [11:11] is the sub-list for method output_type
+	11, // [11:11] is the sub-list for method input_type
+	11, // [11:11] is the sub-list for extension type_name
+	11, // [11:11] is the sub-list for extension extendee
+	0,  // [0:11] is the sub-list for field type_name
 }
 
 func init() { file_proto_battle_v1_session_proto_init() }
@@ -945,7 +1078,7 @@ func file_proto_battle_v1_session_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_battle_v1_session_proto_rawDesc), len(file_proto_battle_v1_session_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   10,
+			NumMessages:   12,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

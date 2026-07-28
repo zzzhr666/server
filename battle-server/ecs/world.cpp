@@ -41,7 +41,7 @@ battle::ecs::Entity battle::ecs::World::create_player(CreatePlayerConfig config)
     character_stats_.emplace(entity, config.move_speed);
     player_controllers_.emplace(entity);
     attack_intents_.emplace(entity, false, AttackKind::Melee, 0, 0.0f, 0.0f);
-    dashes_.emplace(entity, DeltaTime{1.0f}, 5.0f);
+    dashes_.emplace(entity, DefaultPlayerDashCooldown, DefaultPlayerDashSpeedMultiplier);
     dash_intents_.emplace(entity, false, 0.0f);
     attack_definitions_.emplace(entity, config.attack.kind, config.attack.damage, config.attack.range,
                                 config.attack.cooldown_seconds, config.attack.projectile_speed);

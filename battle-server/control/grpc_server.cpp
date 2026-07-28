@@ -10,6 +10,13 @@ namespace {
         for (const auto id : request.player_ids()) {
             out.player_ids.push_back(id);
         }
+        out.player_loadouts.reserve(request.player_loadouts().size());
+        for (const auto& loadout : request.player_loadouts()) {
+            out.player_loadouts.push_back(battle::PlayerLoadout{
+                .player_id = loadout.player_id(),
+                .weapon = loadout.weapon(),
+            });
+        }
         return out;
     }
 

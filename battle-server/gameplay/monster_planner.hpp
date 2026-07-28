@@ -4,6 +4,9 @@
 #include "monster_kind.hpp"
 
 namespace battle {
+    constexpr float MeleeMonsterAttackRange = 0.7f;
+    constexpr ecs::DeltaTime MeleeMonsterAttackCooldown{1.6f};
+
     struct MonsterDefinition {
         MonsterKind kind;
         int base_health;

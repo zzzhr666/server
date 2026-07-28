@@ -7,11 +7,17 @@
 #include <vector>
 
 namespace battle {
+    struct PlayerLoadout {
+        std::int64_t player_id;
+        std::string weapon;
+    };
+
     /// Request used by rcenter to reserve a battle room.
     struct CreateRoomRequest {
         std::string room_name;
         std::string token;
         std::vector<int64_t> player_ids;
+        std::vector<PlayerLoadout> player_loadouts;
     };
 
     /// Business status for room creation before it is translated to protobuf.
@@ -85,6 +91,8 @@ namespace battle {
 
         [[nodiscard]] bool can_join(int64_t player_id, std::string_view token) const;
 
+        [[nodiscard]] std::vector<PlayerLoadout> player_loadouts() const;
+
         /// Adds a player once if the token and player whitelist are valid.
         JoinRoomResult join(std::int64_t player_id, std::string_view token);
 
@@ -93,6 +101,7 @@ namespace battle {
         std::string room_name_;
         std::string token_;
         std::vector<std::int64_t> allowed_player_ids_;
+        std::vector<PlayerLoadout> player_loadouts_;
         std::unordered_set<std::int64_t> joined_player_ids_;
     };
 }

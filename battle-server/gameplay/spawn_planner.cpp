@@ -3,12 +3,17 @@
 #include <cmath>
 #include <numbers>
 
+#include "weapon.hpp"
+
 battle::ecs::CreatePlayerConfig battle::SpawnPlanner::player_spawn(std::size_t index) const {
     index %= 4;
+    auto weapon = weapon_definition(WeaponKind::Sword);
     ecs::CreatePlayerConfig config{
-        .max_health = 100,
-        .move_speed = 5.0f,
+        .max_health = ecs::DefaultPlayerMaxHealth,
+        .move_speed = ecs::DefaultPlayerMoveSpeed,
+        .attack = weapon.attack,
     };
+
     switch (index) {
     case 0: {
         config.position.x = -2.0f;

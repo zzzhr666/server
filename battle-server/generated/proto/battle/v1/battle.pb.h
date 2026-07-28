@@ -85,6 +85,10 @@ class JoinRoomResponse;
 struct JoinRoomResponseDefaultTypeInternal;
 extern JoinRoomResponseDefaultTypeInternal _JoinRoomResponse_default_instance_;
 extern const ::google::protobuf::internal::ClassDataFull JoinRoomResponse_class_data_;
+class PlayerLoadout;
+struct PlayerLoadoutDefaultTypeInternal;
+extern PlayerLoadoutDefaultTypeInternal _PlayerLoadout_default_instance_;
+extern const ::google::protobuf::internal::ClassDataFull PlayerLoadout_class_data_;
 }  // namespace v1
 }  // namespace battle
 namespace google {
@@ -227,6 +231,214 @@ inline bool EndRoomStatus_Parse(
 // ===================================================================
 
 
+// -------------------------------------------------------------------
+
+class PlayerLoadout final : public ::google::protobuf::Message
+/* @@protoc_insertion_point(class_definition:battle.v1.PlayerLoadout) */ {
+ public:
+  inline PlayerLoadout() : PlayerLoadout(nullptr) {}
+  ~PlayerLoadout() PROTOBUF_FINAL;
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+  void operator delete(PlayerLoadout* PROTOBUF_NONNULL msg, std::destroying_delete_t) {
+    SharedDtor(*msg);
+    ::google::protobuf::internal::SizedDelete(msg, sizeof(PlayerLoadout));
+  }
+#endif
+
+  template <typename = void>
+  explicit PROTOBUF_CONSTEXPR PlayerLoadout(::google::protobuf::internal::ConstantInitialized);
+
+  inline PlayerLoadout(const PlayerLoadout& from) : PlayerLoadout(nullptr, from) {}
+  inline PlayerLoadout(PlayerLoadout&& from) noexcept
+      : PlayerLoadout(nullptr, ::std::move(from)) {}
+  inline PlayerLoadout& operator=(const PlayerLoadout& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline PlayerLoadout& operator=(PlayerLoadout&& from) noexcept {
+    if (this == &from) return *this;
+    if (::google::protobuf::internal::CanMoveWithInternalSwap(GetArena(), from.GetArena())) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance);
+  }
+  inline ::google::protobuf::UnknownFieldSet* PROTOBUF_NONNULL mutable_unknown_fields()
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.mutable_unknown_fields<::google::protobuf::UnknownFieldSet>();
+  }
+
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL descriptor() {
+    return GetDescriptor();
+  }
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::google::protobuf::Reflection* PROTOBUF_NONNULL GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const PlayerLoadout& default_instance() {
+    return *reinterpret_cast<const PlayerLoadout*>(
+        &_PlayerLoadout_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages = 6;
+  friend void swap(PlayerLoadout& a, PlayerLoadout& b) { a.Swap(&b); }
+  inline void Swap(PlayerLoadout* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    if (::google::protobuf::internal::CanUseInternalSwap(GetArena(), other->GetArena())) {
+      InternalSwap(other);
+    } else {
+      ::google::protobuf::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(PlayerLoadout* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    ABSL_DCHECK(GetArena() == other->GetArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  PlayerLoadout* PROTOBUF_NONNULL New(::google::protobuf::Arena* PROTOBUF_NULLABLE arena = nullptr) const {
+    return ::google::protobuf::Message::DefaultConstruct<PlayerLoadout>(arena);
+  }
+  using ::google::protobuf::Message::CopyFrom;
+  void CopyFrom(const PlayerLoadout& from);
+  using ::google::protobuf::Message::MergeFrom;
+  void MergeFrom(const PlayerLoadout& from) { PlayerLoadout::MergeImpl(*this, from); }
+
+  private:
+  static void MergeImpl(::google::protobuf::MessageLite& to_msg,
+                        const ::google::protobuf::MessageLite& from_msg);
+
+  public:
+  bool IsInitialized() const {
+    return true;
+  }
+  ABSL_ATTRIBUTE_REINITIALIZES void Clear() PROTOBUF_FINAL;
+  #if defined(PROTOBUF_CUSTOM_VTABLE)
+  private:
+  static ::size_t ByteSizeLong(const ::google::protobuf::MessageLite& msg);
+  static ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      const ::google::protobuf::MessageLite& msg, ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream);
+
+  public:
+  ::size_t ByteSizeLong() const { return ByteSizeLong(*this); }
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+    return _InternalSerialize(*this, target, stream);
+  }
+  #else   // PROTOBUF_CUSTOM_VTABLE
+  ::size_t ByteSizeLong() const final;
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const final;
+  #endif  // PROTOBUF_CUSTOM_VTABLE
+  int GetCachedSize() const { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static void SharedDtor(MessageLite& self);
+  void InternalSwap(PlayerLoadout* PROTOBUF_NONNULL other);
+ private:
+  template <typename T>
+  friend ::absl::string_view(::google::protobuf::internal::GetAnyMessageName)();
+  static ::absl::string_view FullMessageName() { return "battle.v1.PlayerLoadout"; }
+
+ protected:
+  explicit PlayerLoadout(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  PlayerLoadout(::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const PlayerLoadout& from);
+  PlayerLoadout(
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, PlayerLoadout&& from) noexcept
+      : PlayerLoadout(arena) {
+    *this = ::std::move(from);
+  }
+  const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL GetClassData() const PROTOBUF_FINAL;
+  static void* PROTOBUF_NONNULL PlacementNew_(
+      const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static constexpr auto InternalNewImpl_();
+
+ public:
+  static constexpr auto InternalGenerateClassData_();
+
+  ::google::protobuf::Metadata GetMetadata() const;
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+  enum : int {
+    kWeaponFieldNumber = 2,
+    kPlayerIdFieldNumber = 1,
+  };
+  // string weapon = 2;
+  void clear_weapon() ;
+  const ::std::string& weapon() const;
+  template <typename Arg_ = const ::std::string&, typename... Args_>
+  void set_weapon(Arg_&& arg, Args_... args);
+  ::std::string* PROTOBUF_NONNULL mutable_weapon();
+  [[nodiscard]] ::std::string* PROTOBUF_NULLABLE release_weapon();
+  void set_allocated_weapon(::std::string* PROTOBUF_NULLABLE value);
+
+  private:
+  const ::std::string& _internal_weapon() const;
+  PROTOBUF_ALWAYS_INLINE void _internal_set_weapon(const ::std::string& value);
+  ::std::string* PROTOBUF_NONNULL _internal_mutable_weapon();
+
+  public:
+  // int64 player_id = 1;
+  void clear_player_id() ;
+  ::int64_t player_id() const;
+  void set_player_id(::int64_t value);
+
+  private:
+  ::int64_t _internal_player_id() const;
+  void _internal_set_player_id(::int64_t value);
+
+  public:
+  // @@protoc_insertion_point(class_scope:battle.v1.PlayerLoadout)
+ private:
+  class _Internal;
+  friend class ::google::protobuf::internal::TcParser;
+  static const ::google::protobuf::internal::TcParseTable<1, 2,
+                                   0, 38,
+                                   2>
+      _table_;
+
+  friend class ::google::protobuf::MessageLite;
+  friend class ::google::protobuf::Arena;
+  template <typename T>
+  friend class ::google::protobuf::Arena::InternalHelper;
+  using InternalArenaConstructable_ = void;
+  using DestructorSkippable_ = void;
+  struct Impl_ {
+    inline explicit constexpr Impl_(::google::protobuf::internal::ConstantInitialized) noexcept;
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
+        const PlayerLoadout& from_msg);
+    ::google::protobuf::internal::HasBits<1> _has_bits_;
+    ::google::protobuf::internal::CachedSize _cached_size_;
+    ::google::protobuf::internal::ArenaStringPtr weapon_;
+    ::int64_t player_id_;
+    PROTOBUF_TSAN_DECLARE_MEMBER
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_proto_2fbattle_2fv1_2fbattle_2eproto;
+};
+
+extern const ::google::protobuf::internal::ClassDataFull PlayerLoadout_class_data_;
 // -------------------------------------------------------------------
 
 class JoinRoomResponse final : public ::google::protobuf::Message
@@ -1435,6 +1647,7 @@ class CreateRoomRequest final : public ::google::protobuf::Message
   // accessors -------------------------------------------------------
   enum : int {
     kPlayerIdsFieldNumber = 3,
+    kPlayerLoadoutsFieldNumber = 4,
     kRoomNameFieldNumber = 1,
     kTokenFieldNumber = 2,
   };
@@ -1456,6 +1669,23 @@ class CreateRoomRequest final : public ::google::protobuf::Message
   ::google::protobuf::RepeatedField<::int64_t>* PROTOBUF_NONNULL _internal_mutable_player_ids();
 
   public:
+  // repeated .battle.v1.PlayerLoadout player_loadouts = 4;
+  int player_loadouts_size() const;
+  private:
+  int _internal_player_loadouts_size() const;
+
+  public:
+  void clear_player_loadouts() ;
+  ::battle::v1::PlayerLoadout* PROTOBUF_NONNULL mutable_player_loadouts(int index);
+  ::google::protobuf::RepeatedPtrField<::battle::v1::PlayerLoadout>* PROTOBUF_NONNULL mutable_player_loadouts();
+
+  private:
+  const ::google::protobuf::RepeatedPtrField<::battle::v1::PlayerLoadout>& _internal_player_loadouts() const;
+  ::google::protobuf::RepeatedPtrField<::battle::v1::PlayerLoadout>* PROTOBUF_NONNULL _internal_mutable_player_loadouts();
+  public:
+  const ::battle::v1::PlayerLoadout& player_loadouts(int index) const;
+  ::battle::v1::PlayerLoadout* PROTOBUF_NONNULL add_player_loadouts();
+  const ::google::protobuf::RepeatedPtrField<::battle::v1::PlayerLoadout>& player_loadouts() const;
   // string room_name = 1;
   void clear_room_name() ;
   const ::std::string& room_name() const;
@@ -1490,8 +1720,8 @@ class CreateRoomRequest final : public ::google::protobuf::Message
  private:
   class _Internal;
   friend class ::google::protobuf::internal::TcParser;
-  static const ::google::protobuf::internal::TcParseTable<2, 3,
-                                   0, 50,
+  static const ::google::protobuf::internal::TcParseTable<2, 4,
+                                   1, 50,
                                    2>
       _table_;
 
@@ -1514,6 +1744,7 @@ class CreateRoomRequest final : public ::google::protobuf::Message
     ::google::protobuf::internal::CachedSize _cached_size_;
     ::google::protobuf::RepeatedField<::int64_t> player_ids_;
     ::google::protobuf::internal::CachedSize _player_ids_cached_byte_size_;
+    ::google::protobuf::RepeatedPtrField< ::battle::v1::PlayerLoadout > player_loadouts_;
     ::google::protobuf::internal::ArenaStringPtr room_name_;
     ::google::protobuf::internal::ArenaStringPtr token_;
     PROTOBUF_TSAN_DECLARE_MEMBER
@@ -1714,6 +1945,56 @@ inline ::google::protobuf::RepeatedField<::int64_t>* PROTOBUF_NONNULL
 CreateRoomRequest::_internal_mutable_player_ids() {
   ::google::protobuf::internal::TSanRead(&_impl_);
   return &_impl_.player_ids_;
+}
+
+// repeated .battle.v1.PlayerLoadout player_loadouts = 4;
+inline int CreateRoomRequest::_internal_player_loadouts_size() const {
+  return _internal_player_loadouts().size();
+}
+inline int CreateRoomRequest::player_loadouts_size() const {
+  return _internal_player_loadouts_size();
+}
+inline void CreateRoomRequest::clear_player_loadouts() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.player_loadouts_.Clear();
+}
+inline ::battle::v1::PlayerLoadout* PROTOBUF_NONNULL CreateRoomRequest::mutable_player_loadouts(int index)
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_mutable:battle.v1.CreateRoomRequest.player_loadouts)
+  return _internal_mutable_player_loadouts()->Mutable(index);
+}
+inline ::google::protobuf::RepeatedPtrField<::battle::v1::PlayerLoadout>* PROTOBUF_NONNULL CreateRoomRequest::mutable_player_loadouts()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_mutable_list:battle.v1.CreateRoomRequest.player_loadouts)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  return _internal_mutable_player_loadouts();
+}
+inline const ::battle::v1::PlayerLoadout& CreateRoomRequest::player_loadouts(int index) const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:battle.v1.CreateRoomRequest.player_loadouts)
+  return _internal_player_loadouts().Get(index);
+}
+inline ::battle::v1::PlayerLoadout* PROTOBUF_NONNULL CreateRoomRequest::add_player_loadouts()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  ::battle::v1::PlayerLoadout* _add = _internal_mutable_player_loadouts()->Add();
+  // @@protoc_insertion_point(field_add:battle.v1.CreateRoomRequest.player_loadouts)
+  return _add;
+}
+inline const ::google::protobuf::RepeatedPtrField<::battle::v1::PlayerLoadout>& CreateRoomRequest::player_loadouts() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_list:battle.v1.CreateRoomRequest.player_loadouts)
+  return _internal_player_loadouts();
+}
+inline const ::google::protobuf::RepeatedPtrField<::battle::v1::PlayerLoadout>&
+CreateRoomRequest::_internal_player_loadouts() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.player_loadouts_;
+}
+inline ::google::protobuf::RepeatedPtrField<::battle::v1::PlayerLoadout>* PROTOBUF_NONNULL
+CreateRoomRequest::_internal_mutable_player_loadouts() {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return &_impl_.player_loadouts_;
 }
 
 // -------------------------------------------------------------------
@@ -2285,6 +2566,99 @@ inline void EndRoomResponse::set_allocated_message(::std::string* PROTOBUF_NULLA
     _impl_.message_.Set("", GetArena());
   }
   // @@protoc_insertion_point(field_set_allocated:battle.v1.EndRoomResponse.message)
+}
+
+// -------------------------------------------------------------------
+
+// PlayerLoadout
+
+// int64 player_id = 1;
+inline void PlayerLoadout::clear_player_id() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.player_id_ = ::int64_t{0};
+  _impl_._has_bits_[0] &= ~0x00000002u;
+}
+inline ::int64_t PlayerLoadout::player_id() const {
+  // @@protoc_insertion_point(field_get:battle.v1.PlayerLoadout.player_id)
+  return _internal_player_id();
+}
+inline void PlayerLoadout::set_player_id(::int64_t value) {
+  _internal_set_player_id(value);
+  _impl_._has_bits_[0] |= 0x00000002u;
+  // @@protoc_insertion_point(field_set:battle.v1.PlayerLoadout.player_id)
+}
+inline ::int64_t PlayerLoadout::_internal_player_id() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.player_id_;
+}
+inline void PlayerLoadout::_internal_set_player_id(::int64_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.player_id_ = value;
+}
+
+// string weapon = 2;
+inline void PlayerLoadout::clear_weapon() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.weapon_.ClearToEmpty();
+  _impl_._has_bits_[0] &= ~0x00000001u;
+}
+inline const ::std::string& PlayerLoadout::weapon() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:battle.v1.PlayerLoadout.weapon)
+  return _internal_weapon();
+}
+template <typename Arg_, typename... Args_>
+PROTOBUF_ALWAYS_INLINE void PlayerLoadout::set_weapon(Arg_&& arg, Args_... args) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_._has_bits_[0] |= 0x00000001u;
+  _impl_.weapon_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
+  // @@protoc_insertion_point(field_set:battle.v1.PlayerLoadout.weapon)
+}
+inline ::std::string* PROTOBUF_NONNULL PlayerLoadout::mutable_weapon()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  ::std::string* _s = _internal_mutable_weapon();
+  // @@protoc_insertion_point(field_mutable:battle.v1.PlayerLoadout.weapon)
+  return _s;
+}
+inline const ::std::string& PlayerLoadout::_internal_weapon() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.weapon_.Get();
+}
+inline void PlayerLoadout::_internal_set_weapon(const ::std::string& value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_._has_bits_[0] |= 0x00000001u;
+  _impl_.weapon_.Set(value, GetArena());
+}
+inline ::std::string* PROTOBUF_NONNULL PlayerLoadout::_internal_mutable_weapon() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_._has_bits_[0] |= 0x00000001u;
+  return _impl_.weapon_.Mutable( GetArena());
+}
+inline ::std::string* PROTOBUF_NULLABLE PlayerLoadout::release_weapon() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  // @@protoc_insertion_point(field_release:battle.v1.PlayerLoadout.weapon)
+  if ((_impl_._has_bits_[0] & 0x00000001u) == 0) {
+    return nullptr;
+  }
+  _impl_._has_bits_[0] &= ~0x00000001u;
+  auto* released = _impl_.weapon_.Release();
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString()) {
+    _impl_.weapon_.Set("", GetArena());
+  }
+  return released;
+}
+inline void PlayerLoadout::set_allocated_weapon(::std::string* PROTOBUF_NULLABLE value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (value != nullptr) {
+    _impl_._has_bits_[0] |= 0x00000001u;
+  } else {
+    _impl_._has_bits_[0] &= ~0x00000001u;
+  }
+  _impl_.weapon_.SetAllocated(value, GetArena());
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.weapon_.IsDefault()) {
+    _impl_.weapon_.Set("", GetArena());
+  }
+  // @@protoc_insertion_point(field_set_allocated:battle.v1.PlayerLoadout.weapon)
 }
 
 #ifdef __GNUC__

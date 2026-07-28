@@ -60,6 +60,19 @@ bool battle::RoomManager::can_join(std::string_view room_name, std::int64_t play
     return room->can_join(player_id, token);
 }
 
+std::vector<battle::PlayerLoadout> battle::RoomManager::player_loadouts(std::string_view room_name) const {
+    std::shared_ptr<Room> room;
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        const auto it = rooms_.find(std::string(room_name));
+        if (it == rooms_.end()) {
+            return {};
+        }
+        room = it->second;
+    }
+    return room->player_loadouts();
+}
+
 std::size_t battle::RoomManager::active_rooms() const {
     std::lock_guard<std::mutex> lock(mutex_);
     return rooms_.size();

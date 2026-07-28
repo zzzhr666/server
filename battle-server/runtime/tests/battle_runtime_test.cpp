@@ -1,5 +1,6 @@
 #include "runtime/battle_runtime.hpp"
 
+#include <unordered_map>
 #include <utility>
 #include <vector>
 
@@ -71,7 +72,7 @@ TEST(BattleRuntimeTest, ReceiveInputAndTickBroadcastsMovedSnapshot) {
         EXPECT_FLOAT_EQ(packet.snapshot().entities(0).y_position(), 0.0f);
         EXPECT_EQ(packet.snapshot().entities(1).kind(), v1::ENTITY_KIND_PLAYER);
         EXPECT_EQ(packet.snapshot().entities(1).player_id(), 1002);
-        EXPECT_FLOAT_EQ(packet.snapshot().entities(1).x_position(), 7.0f);
+        EXPECT_FLOAT_EQ(packet.snapshot().entities(1).x_position(), 9.5f);
         EXPECT_FLOAT_EQ(packet.snapshot().entities(1).y_position(), 0.0f);
         EXPECT_FLOAT_EQ(packet.snapshot().entities(1).x_direction(), 1.0f);
         EXPECT_FLOAT_EQ(packet.snapshot().entities(1).y_direction(), 0.0f);
@@ -88,6 +89,45 @@ TEST(BattleRuntimeTest, ReceiveInputReturnsFalseForMissingRoom) {
                                                        .move_x = 1.0f,
                                                        .move_y = 0.0f,
                                                    }));
+}
+
+TEST(BattleRuntimeTest, StartRoomPassesConfiguredPlayerWeaponsToInstance) {
+    RoomManager room_manager;
+    SessionManager session_manager(room_manager);
+    std::unordered_map<std::int64_t, WeaponKind> captured_weapons;
+    BattleRuntime runtime(
+        room_manager, session_manager,
+        [](const v1::ServerPacket&, const UdpEndpoint&) {},
+        [&captured_weapons](BattleInstanceConfig config) {
+            captured_weapons = config.player_weapons;
+            return std::make_unique<BattleInstance>(std::move(config));
+        });
+
+    ASSERT_EQ(room_manager.create_room({
+                  .room_name = "room-1",
+                  .token = "token-1",
+                  .player_ids = {1001},
+                  .player_loadouts = {
+                      PlayerLoadout{
+                          .player_id = 1001,
+                          .weapon = "dagger",
+                      },
+                  },
+              }).status,
+              CreateRoomStatus::OK);
+    ASSERT_EQ(session_manager.join({
+                  .room_name = "room-1",
+                  .token = "token-1",
+                  .player_id = 1001,
+                  .conv = 1,
+                  .endpoint = endpoint_with_port(7001),
+              }).status,
+              JoinSessionStatus::OK);
+
+    runtime.start_room("room-1");
+
+    ASSERT_TRUE(captured_weapons.contains(1001));
+    EXPECT_EQ(captured_weapons.at(1001), WeaponKind::Dagger);
 }
 
 TEST(BattleRuntimeTest, EndRoomBroadcastsGameOverAndCleansRoom) {
@@ -141,6 +181,13 @@ TEST(BattleRuntimeTest, EndRoomBroadcastsGameOverAndCleansRoom) {
         ASSERT_EQ(packet.game_over().player_ids_size(), 2);
         EXPECT_EQ(packet.game_over().player_ids(0), 1001);
         EXPECT_EQ(packet.game_over().player_ids(1), 1002);
+        ASSERT_EQ(packet.game_over().player_stats_size(), 2);
+        EXPECT_EQ(packet.game_over().player_stats(0).player_id(), 1001);
+        EXPECT_EQ(packet.game_over().player_stats(0).total_kills(), 0);
+        EXPECT_EQ(packet.game_over().player_stats(0).kills_size(), 0);
+        EXPECT_EQ(packet.game_over().player_stats(1).player_id(), 1002);
+        EXPECT_EQ(packet.game_over().player_stats(1).total_kills(), 0);
+        EXPECT_EQ(packet.game_over().player_stats(1).kills_size(), 0);
     }
     EXPECT_FALSE(runtime.receive_input("room-1", 1001, PlayerInput{
                                                    .move_x = 1.0f,
@@ -222,6 +269,12 @@ TEST(BattleRuntimeTest, TickBroadcastsGameOverAndCleansRoomWhenInstanceEnds) {
     EXPECT_EQ(packet.game_over().reason(), "victory");
     ASSERT_EQ(packet.game_over().player_ids_size(), 1);
     EXPECT_EQ(packet.game_over().player_ids(0), 1001);
+    ASSERT_EQ(packet.game_over().player_stats_size(), 1);
+    EXPECT_EQ(packet.game_over().player_stats(0).player_id(), 1001);
+    EXPECT_EQ(packet.game_over().player_stats(0).total_kills(), 1);
+    ASSERT_EQ(packet.game_over().player_stats(0).kills_size(), 1);
+    EXPECT_EQ(packet.game_over().player_stats(0).kills(0).monster_kind(), "melee");
+    EXPECT_EQ(packet.game_over().player_stats(0).kills(0).count(), 1);
     EXPECT_FALSE(runtime.receive_input("room-1", 1001, PlayerInput{
                                                    .move_x = 1.0f,
                                                    .move_y = 0.0f,

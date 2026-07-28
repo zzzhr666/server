@@ -10,8 +10,8 @@ battle::MonsterDefinition battle::monster_definition(MonsterKind kind) {
             .base_attack = ecs::AttackDefinition{
                 .kind = ecs::AttackKind::Melee,
                 .damage = 10,
-                .range = 1.0f,
-                .cooldown_seconds = ecs::DeltaTime{1.0f},
+                .range = MeleeMonsterAttackRange,
+                .cooldown_seconds = MeleeMonsterAttackCooldown,
                 .projectile_speed = 0.0f,
             },
         };

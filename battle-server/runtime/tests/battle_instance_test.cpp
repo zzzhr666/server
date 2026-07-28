@@ -52,7 +52,7 @@ TEST(BattleInstanceTest, ReceiveInputAndTickMovesOnlyTargetPlayer) {
     ASSERT_EQ(snapshot.entities.size(), 2);
     EXPECT_FLOAT_EQ(snapshot.entities[0].x_position, -2.0f);
     EXPECT_FLOAT_EQ(snapshot.entities[0].y_position, 0.0f);
-    EXPECT_FLOAT_EQ(snapshot.entities[1].x_position, 7.0f);
+    EXPECT_FLOAT_EQ(snapshot.entities[1].x_position, 9.5f);
     EXPECT_FLOAT_EQ(snapshot.entities[1].y_position, 0.0f);
     EXPECT_FLOAT_EQ(snapshot.entities[1].x_direction, 1.0f);
     EXPECT_FLOAT_EQ(snapshot.entities[1].y_direction, 0.0f);
@@ -82,6 +82,40 @@ TEST(BattleInstanceTest, TickClampsPlayerToConfiguredWorldBounds) {
     ASSERT_EQ(snapshot.entities.size(), 1);
     EXPECT_FLOAT_EQ(snapshot.entities[0].x_position, 1.0f);
     EXPECT_FLOAT_EQ(snapshot.entities[0].y_position, 0.0f);
+}
+
+TEST(BattleInstanceTest, ConstructorAppliesConfiguredPlayerWeapon) {
+    BattleInstance instance({
+        .room_name = "room-1",
+        .player_ids = {1001},
+        .wave_config = WaveConfig{
+            .waves = {
+                WaveDefinition{
+                    .groups = {
+                        WaveMonsterGroup{
+                            .kind = MonsterKind::Melee,
+                            .count = 1,
+                        },
+                    },
+                    .health_multiplier = 1.0f,
+                    .move_speed_multiplier = 1.0f,
+                },
+            },
+        },
+        .player_weapons = {
+            {1001, WeaponKind::Axe},
+        },
+    });
+
+    instance.tick(ecs::DeltaTime{2.8f});
+
+    ASSERT_TRUE(instance.receive_input(1001, PlayerInput{
+                                                 .attack_requested = true,
+                                             }));
+    instance.tick(ecs::DeltaTime{0.0f});
+
+    EXPECT_TRUE(instance.ended());
+    EXPECT_EQ(instance.end_reason(), BattleEndReason::Victory);
 }
 
 TEST(BattleInstanceTest, FirstTickSpawnsFirstConfiguredWave) {

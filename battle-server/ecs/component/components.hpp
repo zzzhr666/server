@@ -119,4 +119,11 @@ namespace battle::ecs {
         Entity victim;
         MonsterKind monster_kind;
     };
+
+    struct PlayerProgress {
+        int level;
+        int experience;
+        int experience_to_next_level;
+    };
+
 }

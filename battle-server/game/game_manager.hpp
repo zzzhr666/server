@@ -21,6 +21,9 @@ namespace battle {
         /// Checks whether a player can enter a room without mutating join state.
         bool can_join(std::string_view room_name, std::int64_t player_id, std::string_view token) const;
 
+        /// Returns immutable battle loadouts configured for a reserved room.
+        std::vector<PlayerLoadout> player_loadouts(std::string_view room_name) const;
+
         /// Returns the number of currently reserved rooms.
         std::size_t active_rooms() const;
 

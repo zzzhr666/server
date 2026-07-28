@@ -7,6 +7,7 @@
 
 #include "battle_instance.hpp"
 #include "game/game_manager.hpp"
+#include "gameplay/weapon.hpp"
 #include "net/packet_codec.hpp"
 #include "session/battle_session.hpp"
 #include "session/session_manager.hpp"
@@ -56,6 +57,26 @@ namespace {
         }
         }
     }
+
+    std::vector<battle::PacketPlayerBattleStats> to_packet_player_stats(const battle::BattleSettlement& settlement) {
+        std::vector<battle::PacketPlayerBattleStats> result;
+        result.reserve(settlement.players.size());
+        for (const auto& player : settlement.players) {
+            battle::PacketPlayerBattleStats player_stat{
+                .player_id = player.player_id,
+                .total_kills = player.total_kills,
+            };
+            player_stat.kills.reserve(player.kills.size());
+            for (const auto& kill : player.kills) {
+                player_stat.kills.push_back(battle::PacketMonsterKillCount{
+                    .monster_kind = kill.monster_kind,
+                    .count = kill.count,
+                });
+            }
+            result.emplace_back(std::move(player_stat));
+        }
+        return result;
+    }
 }
 
 battle::BattleRuntime::BattleRuntime(RoomManager& room_manager, SessionManager& session_manager,
@@ -85,16 +106,27 @@ void battle::BattleRuntime::start_room(const std::string& room_name) {
     }
 
     auto sessions = session_manager_.sessions_in_room(room_name);
+    auto configured_loadouts = room_manager_.player_loadouts(room_name);
 
     std::vector<std::int64_t> player_ids;
     player_ids.reserve(sessions.size());
     for (const auto& session : sessions) {
         player_ids.push_back(session->player_id());
     }
+    std::unordered_map<std::int64_t, WeaponKind> player_weapons;
+    player_weapons.reserve(configured_loadouts.size());
+    for (const auto& loadout : configured_loadouts) {
+        auto weapon_kind = weapon_kind_from_string(loadout.weapon);
+        if (!weapon_kind.has_value()) {
+            continue;
+        }
+        player_weapons.emplace(loadout.player_id, weapon_kind.value());
+    }
 
     auto instance = instance_factory_(BattleInstanceConfig{
         .room_name = room_name,
         .player_ids = player_ids,
+        .player_weapons = std::move(player_weapons),
     });
 
     auto game_start_packet = make_game_start(room_name, player_ids);
@@ -200,7 +232,7 @@ battle::EndRoomResult battle::BattleRuntime::end_room(const std::string& room_na
             player_ids.push_back(session->player_id());
             endpoints.push_back(session->endpoint());
         }
-        packet = make_game_over(room_name, player_ids, reason);
+        packet = make_game_over(room_name, player_ids, reason, to_packet_player_stats(settlement));
         instances_.erase(it);
     }
     for (auto& endpoint : endpoints) {

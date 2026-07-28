@@ -61,6 +61,10 @@ add_library(battle_gameplay
         gameplay/wave_planner.hpp
         gameplay/monster_planner.cpp
         gameplay/monster_planner.hpp
+        gameplay/monster_kind_codec.cpp
+        gameplay/monster_kind_codec.hpp
+        gameplay/weapon.cpp
+        gameplay/weapon.hpp
 )
 add_library(battle_session
         session/battle_session.cpp

@@ -18,6 +18,12 @@ battle::BattleInstance::BattleInstance(BattleInstanceConfig config)
         }
         auto spawn_config = spawn_planner_.player_spawn(i);
 
+        auto weapon_kind = WeaponKind::Sword;
+        if (auto it = config.player_weapons.find(config.player_ids[i]); it != config.player_weapons.end()) {
+            weapon_kind = it->second;
+        }
+        auto weapon = weapon_definition(weapon_kind);
+        spawn_config.attack = weapon.attack;
         if (config.player_config_override.has_value()) {
             auto override_config = config.player_config_override.value();
             override_config.position = spawn_config.position;

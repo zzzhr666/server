@@ -12,8 +12,8 @@ namespace {
 CreatePlayerConfig default_player_config() {
     return {
         .position = Position{.x = 10.0f, .y = 20.0f},
-        .max_health = 100,
-        .move_speed = 5.0f,
+        .max_health = DefaultPlayerMaxHealth,
+        .move_speed = DefaultPlayerMoveSpeed,
     };
 }
 
@@ -470,7 +470,7 @@ TEST(WorldTest, TickMovesPlayerByInputDirectionAndMoveSpeed) {
     world.tick(DeltaTime{1.0f});
 
     const auto& transform = world.transforms().get(entity);
-    EXPECT_FLOAT_EQ(transform.position.x, 15.0f);
+    EXPECT_FLOAT_EQ(transform.position.x, 17.5f);
     EXPECT_FLOAT_EQ(transform.position.y, 20.0f);
     EXPECT_FLOAT_EQ(transform.direction.x, 1.0f);
     EXPECT_FLOAT_EQ(transform.direction.y, 0.0f);
@@ -517,7 +517,7 @@ TEST(WorldTest, TickDashMovesPlayerWithDashSpeedMultiplierOnce) {
     world.tick(DeltaTime{1.0f});
 
     const auto& transform = world.transforms().get(entity);
-    EXPECT_FLOAT_EQ(transform.position.x, 35.0f);
+    EXPECT_FLOAT_EQ(transform.position.x, 85.0f);
     EXPECT_FLOAT_EQ(transform.position.y, 20.0f);
     EXPECT_FLOAT_EQ(transform.direction.x, 1.0f);
     EXPECT_FLOAT_EQ(transform.direction.y, 0.0f);
@@ -546,7 +546,7 @@ TEST(WorldTest, TickDoesNotDashAgainDuringCooldown) {
     world.tick(DeltaTime{0.5f});
 
     const auto& transform = world.transforms().get(entity);
-    EXPECT_FLOAT_EQ(transform.position.x, 37.5f);
+    EXPECT_FLOAT_EQ(transform.position.x, 88.75f);
     EXPECT_FLOAT_EQ(transform.position.y, 20.0f);
     EXPECT_FALSE(world.dash_requests().get(entity).requested);
     EXPECT_FLOAT_EQ(world.dash_cooldowns().get(entity).remaining_seconds.count(), 0.5f);
@@ -565,7 +565,7 @@ TEST(WorldTest, TickUsesDeltaSecondsOnce) {
     world.tick(DeltaTime{0.5f});
 
     const auto& transform = world.transforms().get(entity);
-    EXPECT_FLOAT_EQ(transform.position.x, 12.5f);
+    EXPECT_FLOAT_EQ(transform.position.x, 13.75f);
     EXPECT_FLOAT_EQ(transform.position.y, 20.0f);
 }
 
@@ -582,7 +582,7 @@ TEST(WorldTest, TickMovesPlayerInNegativeInputDirection) {
     world.tick(DeltaTime{1.0f});
 
     const auto& transform = world.transforms().get(entity);
-    EXPECT_FLOAT_EQ(transform.position.x, 5.0f);
+    EXPECT_FLOAT_EQ(transform.position.x, 2.5f);
     EXPECT_FLOAT_EQ(transform.position.y, 20.0f);
     EXPECT_FLOAT_EQ(transform.direction.x, -1.0f);
     EXPECT_FLOAT_EQ(transform.direction.y, 0.0f);
@@ -601,7 +601,7 @@ TEST(WorldTest, TickNormalizesDiagonalMoveIntent) {
     world.tick(DeltaTime{1.0f});
 
     const auto& transform = world.transforms().get(entity);
-    const float expected_delta = 5.0f / std::sqrt(2.0f);
+    const float expected_delta = DefaultPlayerMoveSpeed / std::sqrt(2.0f);
     EXPECT_NEAR(transform.position.x, 10.0f + expected_delta, 0.001f);
     EXPECT_NEAR(transform.position.y, 20.0f + expected_delta, 0.001f);
     EXPECT_NEAR(transform.direction.x, 1.0f / std::sqrt(2.0f), 0.001f);
@@ -628,7 +628,7 @@ TEST(WorldTest, TickWithZeroMoveIntentDoesNotMoveOrChangeDirection) {
     world.tick(DeltaTime{1.0f});
 
     const auto& transform = world.transforms().get(entity);
-    EXPECT_FLOAT_EQ(transform.position.x, 15.0f);
+    EXPECT_FLOAT_EQ(transform.position.x, 17.5f);
     EXPECT_FLOAT_EQ(transform.position.y, 20.0f);
     EXPECT_FLOAT_EQ(transform.direction.x, 1.0f);
     EXPECT_FLOAT_EQ(transform.direction.y, 0.0f);
@@ -1077,7 +1077,7 @@ TEST(WorldTest, SnapshotIncludesMovedPlayerTransformAndHealth) {
     const auto& entity_snapshot = snapshot.entities[0];
     EXPECT_EQ(entity_snapshot.entity, entity);
     EXPECT_EQ(entity_snapshot.kind, EntityKind::Player);
-    EXPECT_FLOAT_EQ(entity_snapshot.x_position, 15.0f);
+    EXPECT_FLOAT_EQ(entity_snapshot.x_position, 17.5f);
     EXPECT_FLOAT_EQ(entity_snapshot.y_position, 20.0f);
     EXPECT_FLOAT_EQ(entity_snapshot.x_direction, 1.0f);
     EXPECT_FLOAT_EQ(entity_snapshot.y_direction, 0.0f);

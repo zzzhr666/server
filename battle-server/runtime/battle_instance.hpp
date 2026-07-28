@@ -11,6 +11,7 @@
 #include "gameplay/spawn_planner.hpp"
 #include "gameplay/wave_planner.hpp"
 #include "gameplay/monster_kind.hpp"
+#include "gameplay/weapon.hpp"
 
 
 namespace battle {
@@ -18,6 +19,7 @@ namespace battle {
         std::string room_name;
         std::vector<std::int64_t> player_ids;
         WaveConfig wave_config = default_wave_config();
+        std::unordered_map<std::int64_t, WeaponKind> player_weapons;
         std::optional<ecs::CreatePlayerConfig> player_config_override;
         ecs::WorldBounds world_bounds = ecs::WorldBounds{
             .min_x = -20.0f,

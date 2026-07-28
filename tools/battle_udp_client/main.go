@@ -141,6 +141,12 @@ func printServerPacket(packet *battlepb.ServerPacket) bool {
 		fmt.Printf("game_start room=%s players=%v\n", payload.GameStart.GetRoomName(), payload.GameStart.GetPlayerIds())
 	case *battlepb.ServerPacket_GameOver:
 		fmt.Printf("game_over room=%s players=%v reason=%s\n", payload.GameOver.GetRoomName(), payload.GameOver.GetPlayerIds(), payload.GameOver.GetReason())
+		for _, playerStat := range payload.GameOver.GetPlayerStats() {
+			fmt.Printf("  player=%d total_kills=%d\n", playerStat.GetPlayerId(), playerStat.GetTotalKills())
+			for _, kill := range playerStat.GetKills() {
+				fmt.Printf("    monster_kind=%s count=%d\n", kill.GetMonsterKind(), kill.GetCount())
+			}
+		}
 		return true
 	case *battlepb.ServerPacket_Snapshot:
 		fmt.Printf("snapshot room=%s entities=%d\n", payload.Snapshot.GetRoomName(), len(payload.Snapshot.GetEntities()))

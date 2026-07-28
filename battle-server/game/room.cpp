@@ -6,7 +6,8 @@
 battle::Room::Room(CreateRoomRequest request)
     : room_name_(std::move(request.room_name)),
       token_(std::move(request.token)),
-      allowed_player_ids_(std::move(request.player_ids)) {}
+      allowed_player_ids_(std::move(request.player_ids)),
+      player_loadouts_(std::move(request.player_loadouts)) {}
 
 bool battle::Room::can_join(int64_t player_id, std::string_view token) const {
     if (token.empty() || token != token_) {
@@ -15,6 +16,10 @@ bool battle::Room::can_join(int64_t player_id, std::string_view token) const {
     return std::ranges::any_of(allowed_player_ids_, [player_id](std::int64_t x) {
         return x == player_id;
     });
+}
+
+std::vector<battle::PlayerLoadout> battle::Room::player_loadouts() const {
+    return player_loadouts_;
 }
 
 battle::JoinRoomResult battle::Room::join(std::int64_t player_id, std::string_view token) {

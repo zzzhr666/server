@@ -41,7 +41,9 @@ TEST(SpawnPlannerTest, PlayerSpawnUsesDefaultStats) {
     auto spawn = planner.player_spawn(0);
 
     EXPECT_EQ(spawn.max_health, 100);
-    EXPECT_FLOAT_EQ(spawn.move_speed, 5.0f);
+    EXPECT_FLOAT_EQ(spawn.move_speed, 7.5f);
+    EXPECT_EQ(spawn.attack.damage, 30);
+    EXPECT_FLOAT_EQ(spawn.attack.cooldown_seconds.count(), 0.4f);
 }
 
 TEST(SpawnPlannerTest, MonsterSpawnPlacesMonstersOnCircle) {
