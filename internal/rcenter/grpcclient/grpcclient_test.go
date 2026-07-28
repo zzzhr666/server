@@ -24,17 +24,24 @@ func TestClientStartMatch(t *testing.T) {
 				BattleNodeName: "battle-1",
 				BattleKcpAddr:  "127.0.0.1:7001",
 				PlayerIds:      []int64{7, 8},
+				PlayerLoadouts: []*rcenterpb.PlayerLoadout{
+					{PlayerId: 7, Weapon: "axe"},
+					{PlayerId: 8, Weapon: "dagger"},
+				},
 			},
 		},
 	}
 	client := NewClient(grpcCenter)
 
-	result, err := client.StartMatch(context.Background(), 7)
+	result, err := client.StartMatch(context.Background(), 7, "axe")
 	if err != nil {
 		t.Fatalf("StartMatch returned error: %v", err)
 	}
 	if grpcCenter.startMatchRequest.GetPlayerId() != 7 {
 		t.Fatalf("player id = %d, want 7", grpcCenter.startMatchRequest.GetPlayerId())
+	}
+	if grpcCenter.startMatchRequest.GetWeapon() != "axe" {
+		t.Fatalf("weapon = %q, want axe", grpcCenter.startMatchRequest.GetWeapon())
 	}
 	if result.Status != rcenter.MatchStatusMatched {
 		t.Fatalf("status = %q, want %q", result.Status, rcenter.MatchStatusMatched)
@@ -54,6 +61,13 @@ func TestClientStartMatch(t *testing.T) {
 	if !reflect.DeepEqual(result.PlayerIDs, []int64{7, 8}) {
 		t.Fatalf("player ids = %v, want [7 8]", result.PlayerIDs)
 	}
+	wantLoadouts := []rcenter.PlayerLoadout{
+		{PlayerID: 7, Weapon: "axe"},
+		{PlayerID: 8, Weapon: "dagger"},
+	}
+	if !reflect.DeepEqual(result.PlayerLoadouts, wantLoadouts) {
+		t.Fatalf("player loadouts = %+v, want %+v", result.PlayerLoadouts, wantLoadouts)
+	}
 }
 
 func TestClientStartMatchMapsInvalidPlayer(t *testing.T) {
@@ -61,7 +75,7 @@ func TestClientStartMatchMapsInvalidPlayer(t *testing.T) {
 		err: status.Error(codes.InvalidArgument, rcenter.ErrInvalidPlayerID.Error()),
 	})
 
-	_, err := client.StartMatch(context.Background(), 0)
+	_, err := client.StartMatch(context.Background(), 0, "")
 	if !errors.Is(err, rcenter.ErrInvalidPlayerID) {
 		t.Fatalf("StartMatch error = %v, want %v", err, rcenter.ErrInvalidPlayerID)
 	}
@@ -72,7 +86,7 @@ func TestClientStartMatchMapsNoAvailableBattleNode(t *testing.T) {
 		err: status.Error(codes.Unavailable, rcenter.ErrNoAvailableBattleNode.Error()),
 	})
 
-	_, err := client.StartMatch(context.Background(), 7)
+	_, err := client.StartMatch(context.Background(), 7, "")
 	if !errors.Is(err, rcenter.ErrNoAvailableBattleNode) {
 		t.Fatalf("StartMatch error = %v, want %v", err, rcenter.ErrNoAvailableBattleNode)
 	}
@@ -107,7 +121,7 @@ func TestClientStartMatchMapsPlayerInGame(t *testing.T) {
 		err: status.Error(codes.FailedPrecondition, rcenter.ErrPlayerInGame.Error()),
 	})
 
-	_, err := client.StartMatch(context.Background(), 7)
+	_, err := client.StartMatch(context.Background(), 7, "")
 	if !errors.Is(err, rcenter.ErrPlayerInGame) {
 		t.Fatalf("StartMatch error = %v, want %v", err, rcenter.ErrPlayerInGame)
 	}

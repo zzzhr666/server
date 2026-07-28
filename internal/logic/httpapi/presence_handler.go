@@ -86,7 +86,7 @@ func (h *Handler) handleWebSocket(w http.ResponseWriter, r *http.Request) {
 			if h.matchService == nil {
 				continue
 			}
-			res, err := h.matchService.Start(context.Background(), session.PlayerID)
+			res, err := h.matchService.Start(context.Background(), session.PlayerID, message.Weapon)
 			if err != nil {
 				_ = wsjson.Write(context.Background(), conn, matchErrorMessage{
 					Type:  serverEventMatchError,

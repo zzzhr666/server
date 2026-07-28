@@ -54,9 +54,10 @@ func (b *BattleRepository) CreateRoom(ctx context.Context, nodeName string, inpu
 		return ErrBattleNodeNotRegistered
 	}
 	res, err := entry.client.CreateRoom(ctx, grpcclient.CreateRoomInput{
-		RoomName:  input.RoomName,
-		Token:     input.Token,
-		PlayerIDs: input.PlayerIDs,
+		RoomName:       input.RoomName,
+		Token:          input.Token,
+		PlayerIDs:      input.PlayerIDs,
+		PlayerLoadouts: toBattleGRPCPlayerLoadouts(input.PlayerLoadouts),
 	})
 	if err != nil {
 		return err
@@ -65,6 +66,17 @@ func (b *BattleRepository) CreateRoom(ctx context.Context, nodeName string, inpu
 		return ErrCreateBattleRoomFailed
 	}
 	return nil
+}
+
+func toBattleGRPCPlayerLoadouts(loadouts []PlayerLoadout) []grpcclient.PlayerLoadout {
+	result := make([]grpcclient.PlayerLoadout, 0, len(loadouts))
+	for _, loadout := range loadouts {
+		result = append(result, grpcclient.PlayerLoadout{
+			PlayerID: loadout.PlayerID,
+			Weapon:   loadout.Weapon,
+		})
+	}
+	return result
 }
 
 // RegisterNode creates or replaces the cached control client for a battle node.

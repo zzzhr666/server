@@ -64,7 +64,7 @@ func TestServiceStartMatchWaitsForFirstPlayer(t *testing.T) {
 		MaxPlayers:  100,
 	})
 
-	result, err := svc.StartMatch(context.Background(), 7)
+	result, err := svc.StartMatch(context.Background(), 7, "")
 	if err != nil {
 		t.Fatalf("StartMatch returned error: %v", err)
 	}
@@ -94,7 +94,7 @@ func TestServiceStartMatchCreatesRoomForSecondPlayer(t *testing.T) {
 		ActivePlayers: 1,
 	})
 
-	first, err := svc.StartMatch(context.Background(), 7)
+	first, err := svc.StartMatch(context.Background(), 7, "axe")
 	if err != nil {
 		t.Fatalf("first StartMatch returned error: %v", err)
 	}
@@ -102,7 +102,7 @@ func TestServiceStartMatchCreatesRoomForSecondPlayer(t *testing.T) {
 		t.Fatalf("first status = %q, want %q", first.Status, MatchStatusWaiting)
 	}
 
-	second, err := svc.StartMatch(context.Background(), 8)
+	second, err := svc.StartMatch(context.Background(), 8, "dagger")
 	if err != nil {
 		t.Fatalf("second StartMatch returned error: %v", err)
 	}
@@ -124,6 +124,13 @@ func TestServiceStartMatchCreatesRoomForSecondPlayer(t *testing.T) {
 	if !reflect.DeepEqual(second.PlayerIDs, []int64{7, 8}) {
 		t.Fatalf("player ids = %v, want [7 8]", second.PlayerIDs)
 	}
+	wantLoadouts := []PlayerLoadout{
+		{PlayerID: 7, Weapon: "axe"},
+		{PlayerID: 8, Weapon: "dagger"},
+	}
+	if !reflect.DeepEqual(second.PlayerLoadouts, wantLoadouts) {
+		t.Fatalf("player loadouts = %+v, want %+v", second.PlayerLoadouts, wantLoadouts)
+	}
 	if battleRooms.createRoomNodeName != "battle-2" {
 		t.Fatalf("battle create room node = %q, want battle-2", battleRooms.createRoomNodeName)
 	}
@@ -135,6 +142,9 @@ func TestServiceStartMatchCreatesRoomForSecondPlayer(t *testing.T) {
 	}
 	if !reflect.DeepEqual(battleRooms.createRoomInput.PlayerIDs, []int64{7, 8}) {
 		t.Fatalf("battle player ids = %v, want [7 8]", battleRooms.createRoomInput.PlayerIDs)
+	}
+	if !reflect.DeepEqual(battleRooms.createRoomInput.PlayerLoadouts, wantLoadouts) {
+		t.Fatalf("battle player loadouts = %+v, want %+v", battleRooms.createRoomInput.PlayerLoadouts, wantLoadouts)
 	}
 }
 
@@ -149,7 +159,7 @@ func TestServiceStartMatchReturnsCreateRoomError(t *testing.T) {
 		MaxPlayers:  100,
 	})
 
-	first, err := svc.StartMatch(context.Background(), 7)
+	first, err := svc.StartMatch(context.Background(), 7, "")
 	if err != nil {
 		t.Fatalf("first StartMatch returned error: %v", err)
 	}
@@ -157,13 +167,13 @@ func TestServiceStartMatchReturnsCreateRoomError(t *testing.T) {
 		t.Fatalf("first status = %q, want %q", first.Status, MatchStatusWaiting)
 	}
 
-	_, err = svc.StartMatch(context.Background(), 8)
+	_, err = svc.StartMatch(context.Background(), 8, "")
 	if !errors.Is(err, wantErr) {
 		t.Fatalf("second StartMatch error = %v, want %v", err, wantErr)
 	}
 
 	battleRooms.createRoomErr = nil
-	third, err := svc.StartMatch(context.Background(), 7)
+	third, err := svc.StartMatch(context.Background(), 7, "")
 	if err != nil {
 		t.Fatalf("third StartMatch returned error: %v", err)
 	}
@@ -181,7 +191,7 @@ func TestServiceStartMatchDoesNotQueueSamePlayerTwice(t *testing.T) {
 		MaxPlayers:  100,
 	})
 
-	first, err := svc.StartMatch(context.Background(), 7)
+	first, err := svc.StartMatch(context.Background(), 7, "")
 	if err != nil {
 		t.Fatalf("first StartMatch returned error: %v", err)
 	}
@@ -189,7 +199,7 @@ func TestServiceStartMatchDoesNotQueueSamePlayerTwice(t *testing.T) {
 		t.Fatalf("first status = %q, want %q", first.Status, MatchStatusWaiting)
 	}
 
-	second, err := svc.StartMatch(context.Background(), 7)
+	second, err := svc.StartMatch(context.Background(), 7, "")
 	if err != nil {
 		t.Fatalf("second StartMatch returned error: %v", err)
 	}
@@ -197,7 +207,7 @@ func TestServiceStartMatchDoesNotQueueSamePlayerTwice(t *testing.T) {
 		t.Fatalf("second status = %q, want %q", second.Status, MatchStatusWaiting)
 	}
 
-	third, err := svc.StartMatch(context.Background(), 8)
+	third, err := svc.StartMatch(context.Background(), 8, "")
 	if err != nil {
 		t.Fatalf("third StartMatch returned error: %v", err)
 	}
@@ -215,19 +225,19 @@ func TestServiceStartMatchRejectsPlayerInGame(t *testing.T) {
 		MaxPlayers:  100,
 	})
 
-	if _, err := svc.StartMatch(context.Background(), 7); err != nil {
+	if _, err := svc.StartMatch(context.Background(), 7, ""); err != nil {
 		t.Fatalf("first StartMatch returned error: %v", err)
 	}
-	if _, err := svc.StartMatch(context.Background(), 8); err != nil {
+	if _, err := svc.StartMatch(context.Background(), 8, ""); err != nil {
 		t.Fatalf("second StartMatch returned error: %v", err)
 	}
 
-	_, err := svc.StartMatch(context.Background(), 7)
+	_, err := svc.StartMatch(context.Background(), 7, "")
 	if !errors.Is(err, ErrPlayerInGame) {
 		t.Fatalf("third StartMatch error = %v, want %v", err, ErrPlayerInGame)
 	}
 
-	result, err := svc.StartMatch(context.Background(), 9)
+	result, err := svc.StartMatch(context.Background(), 9, "")
 	if err != nil {
 		t.Fatalf("fourth StartMatch returned error after in-game rejection: %v", err)
 	}
@@ -245,10 +255,10 @@ func TestServiceFinishMatchAllowsPlayersToMatchAgain(t *testing.T) {
 		MaxPlayers:  100,
 	})
 
-	if _, err := svc.StartMatch(context.Background(), 7); err != nil {
+	if _, err := svc.StartMatch(context.Background(), 7, ""); err != nil {
 		t.Fatalf("first StartMatch returned error: %v", err)
 	}
-	matched, err := svc.StartMatch(context.Background(), 8)
+	matched, err := svc.StartMatch(context.Background(), 8, "")
 	if err != nil {
 		t.Fatalf("second StartMatch returned error: %v", err)
 	}
@@ -257,7 +267,7 @@ func TestServiceFinishMatchAllowsPlayersToMatchAgain(t *testing.T) {
 		t.Fatalf("FinishMatch returned error: %v", err)
 	}
 
-	result, err := svc.StartMatch(context.Background(), 7)
+	result, err := svc.StartMatch(context.Background(), 7, "")
 	if err != nil {
 		t.Fatalf("StartMatch after FinishMatch returned error: %v", err)
 	}
@@ -278,7 +288,7 @@ func TestServiceFinishMatchInvalidPlayer(t *testing.T) {
 func TestServiceStartMatchInvalidPlayer(t *testing.T) {
 	svc := newTestService()
 
-	_, err := svc.StartMatch(context.Background(), 0)
+	_, err := svc.StartMatch(context.Background(), 0, "")
 	if !errors.Is(err, ErrInvalidPlayerID) {
 		t.Fatalf("StartMatch error = %v, want %v", err, ErrInvalidPlayerID)
 	}
@@ -287,7 +297,7 @@ func TestServiceStartMatchInvalidPlayer(t *testing.T) {
 func TestServiceStartMatchWithoutBattleNode(t *testing.T) {
 	svc := newTestService()
 
-	_, err := svc.StartMatch(context.Background(), 7)
+	_, err := svc.StartMatch(context.Background(), 7, "")
 	if !errors.Is(err, ErrNoAvailableBattleNode) {
 		t.Fatalf("StartMatch error = %v, want %v", err, ErrNoAvailableBattleNode)
 	}
@@ -302,7 +312,7 @@ func TestServiceCancelMatchRemovesWaitingPlayer(t *testing.T) {
 		MaxPlayers:  100,
 	})
 
-	first, err := svc.StartMatch(context.Background(), 7)
+	first, err := svc.StartMatch(context.Background(), 7, "")
 	if err != nil {
 		t.Fatalf("first StartMatch returned error: %v", err)
 	}
@@ -314,7 +324,7 @@ func TestServiceCancelMatchRemovesWaitingPlayer(t *testing.T) {
 		t.Fatalf("CancelMatch returned error: %v", err)
 	}
 
-	second, err := svc.StartMatch(context.Background(), 8)
+	second, err := svc.StartMatch(context.Background(), 8, "")
 	if err != nil {
 		t.Fatalf("second StartMatch returned error: %v", err)
 	}

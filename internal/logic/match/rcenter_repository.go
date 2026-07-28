@@ -6,7 +6,7 @@ import (
 )
 
 type rCenterClient interface {
-	StartMatch(ctx context.Context, playerID int64) (*rcenter.MatchResult, error)
+	StartMatch(ctx context.Context, playerID int64, weapon string) (*rcenter.MatchResult, error)
 	CancelMatch(ctx context.Context, playerID int64) error
 }
 
@@ -21,8 +21,8 @@ func NewRCenterRepository(client rCenterClient) *RCenterRepository {
 }
 
 // StartMatch forwards match start requests to rcenter.
-func (r *RCenterRepository) StartMatch(ctx context.Context, playerID int64) (*rcenter.MatchResult, error) {
-	return r.client.StartMatch(ctx, playerID)
+func (r *RCenterRepository) StartMatch(ctx context.Context, playerID int64, weapon string) (*rcenter.MatchResult, error) {
+	return r.client.StartMatch(ctx, playerID, weapon)
 }
 
 // CancelMatch forwards match cancellation requests to rcenter.

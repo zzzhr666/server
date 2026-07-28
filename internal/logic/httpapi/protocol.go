@@ -34,7 +34,8 @@ type authSessionResponse struct {
 }
 
 type websocketMessage struct {
-	Type string `json:"type"`
+	Type   string `json:"type"`
+	Weapon string `json:"weapon,omitempty"`
 }
 
 const (

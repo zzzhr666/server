@@ -29,6 +29,7 @@ message MatchResult {
   string battle_node_name = 4;
   string battle_kcp_addr = 5;
   repeated int64 player_ids = 6;
+  repeated PlayerLoadout player_loadouts = 7;
 }
 
 message RegisterBattleNodeRequest {
@@ -45,6 +46,7 @@ message ListBattleNodesResponse {
 
 message StartMatchRequest {
   int64 player_id = 1;
+  string weapon = 2;
 }
 
 message StartMatchResponse {
@@ -62,3 +64,8 @@ message FinishMatchRequest {
 }
 
 message FinishMatchResponse {}
+
+message PlayerLoadout {
+  int64 player_id = 1;
+  string weapon = 2;
+}

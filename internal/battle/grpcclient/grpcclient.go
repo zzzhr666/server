@@ -7,9 +7,16 @@ import (
 
 // CreateRoomInput carries the room payload sent from rcenter to a battle node.
 type CreateRoomInput struct {
-	RoomName  string
-	Token     string
-	PlayerIDs []int64
+	RoomName       string
+	Token          string
+	PlayerIDs      []int64
+	PlayerLoadouts []PlayerLoadout
+}
+
+// PlayerLoadout carries one player's selected battle configuration.
+type PlayerLoadout struct {
+	PlayerID int64
+	Weapon   string
 }
 
 // CreateRoomStatus is the battle client status normalized for rcenter business code.
@@ -74,11 +81,20 @@ func NewClient(client battlepb.BattleControlServiceClient) *Client {
 
 // CreateRoom asks a battle node to reserve a room for matched players.
 func (c *Client) CreateRoom(ctx context.Context, input CreateRoomInput) (*CreateRoomResult, error) {
-	res, err := c.client.CreateRoom(ctx, &battlepb.CreateRoomRequest{
+	req := &battlepb.CreateRoomRequest{
 		RoomName:  input.RoomName,
 		Token:     input.Token,
 		PlayerIds: input.PlayerIDs,
-	})
+	}
+	req.PlayerLoadouts = make([]*battlepb.PlayerLoadout, 0, len(input.PlayerLoadouts))
+	for _, loadout := range input.PlayerLoadouts {
+		req.PlayerLoadouts = append(req.PlayerLoadouts, &battlepb.PlayerLoadout{
+			PlayerId: loadout.PlayerID,
+			Weapon:   loadout.Weapon,
+		})
+	}
+
+	res, err := c.client.CreateRoom(ctx, req)
 	if err != nil {
 		return nil, err
 	}

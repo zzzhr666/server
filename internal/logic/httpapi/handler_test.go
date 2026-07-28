@@ -815,7 +815,7 @@ func TestWebSocketMatchStartWritesMatchResult(t *testing.T) {
 	}()
 	waitPresenceCall(t, presences.onlineCalls)
 
-	if err := conn.Write(ctx, websocket.MessageText, []byte(`{"type":"match_start"}`)); err != nil {
+	if err := conn.Write(ctx, websocket.MessageText, []byte(`{"type":"match_start","weapon":"axe"}`)); err != nil {
 		t.Fatalf("write match start: %v", err)
 	}
 
@@ -825,6 +825,9 @@ func TestWebSocketMatchStartWritesMatchResult(t *testing.T) {
 	}
 	if matches.playerID != 7 {
 		t.Fatalf("match player id = %d, want 7", matches.playerID)
+	}
+	if matches.weapon != "axe" {
+		t.Fatalf("match weapon = %q, want axe", matches.weapon)
 	}
 	if result.Type != serverEventMatchResult {
 		t.Fatalf("message type = %q, want %q", result.Type, serverEventMatchResult)
@@ -1177,16 +1180,18 @@ var _ presence.Service = (*fakePresenceService)(nil)
 
 type fakeMatchService struct {
 	playerID         int64
+	weapon           string
 	canceledPlayerID int64
 	result           *rcenter.MatchResult
 	err              error
 }
 
-func (f *fakeMatchService) Start(ctx context.Context, playerID int64) (*rcenter.MatchResult, error) {
+func (f *fakeMatchService) Start(ctx context.Context, playerID int64, weapon string) (*rcenter.MatchResult, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, err
 	}
 	f.playerID = playerID
+	f.weapon = weapon
 	if f.err != nil {
 		return nil, f.err
 	}

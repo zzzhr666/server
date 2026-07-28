@@ -14,11 +14,16 @@ type BattleNodeController interface {
 	RegisterNode(ctx context.Context, node BattleNode) error
 }
 
+type waitingPlayer struct {
+	playerID int64
+	weapon   string
+}
+
 // GameCenterService keeps registered battle nodes and the in-memory match queue.
 type GameCenterService struct {
 	mu                   sync.Mutex
 	battleNodes          map[string]BattleNode
-	waitingPlayers       []int64
+	waitingPlayers       []waitingPlayer
 	battleNodeController BattleNodeController
 	inGamePlayers        map[int64]struct{}
 }
@@ -70,7 +75,7 @@ func (g *GameCenterService) ListBattleNodes() []BattleNode {
 }
 
 // StartMatch queues a player or pairs them with the oldest waiting player.
-func (g *GameCenterService) StartMatch(ctx context.Context, playerID int64) (*MatchResult, error) {
+func (g *GameCenterService) StartMatch(ctx context.Context, playerID int64, weapon string) (*MatchResult, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, err
 	}
@@ -96,19 +101,32 @@ func (g *GameCenterService) StartMatch(ctx context.Context, playerID int64) (*Ma
 		}, nil
 	}
 	if len(g.waitingPlayers) == 0 {
-		g.waitingPlayers = append(g.waitingPlayers, playerID)
+		g.waitingPlayers = append(g.waitingPlayers, waitingPlayer{
+			playerID: playerID,
+			weapon:   weapon,
+		})
 		g.mu.Unlock()
 		return &MatchResult{
 			Status: MatchStatusWaiting,
 		}, nil
 	}
 
-	waitingPlayerID := g.waitingPlayers[0]
+	waitingPlayer := g.waitingPlayers[0]
 	g.waitingPlayers = g.waitingPlayers[1:]
 
 	roomName := newRandomName("room")
 	token := newRandomName("token")
-	playerIDs := []int64{waitingPlayerID, playerID}
+	playerIDs := []int64{waitingPlayer.playerID, playerID}
+	playerLoadouts := []PlayerLoadout{
+		{
+			PlayerID: waitingPlayer.playerID,
+			Weapon:   waitingPlayer.weapon,
+		},
+		{
+			PlayerID: playerID,
+			Weapon:   weapon,
+		},
+	}
 
 	for _, inGamePlayerID := range playerIDs {
 		g.inGamePlayers[inGamePlayerID] = struct{}{}
@@ -116,9 +134,10 @@ func (g *GameCenterService) StartMatch(ctx context.Context, playerID int64) (*Ma
 	g.mu.Unlock()
 
 	if err := g.battleNodeController.CreateRoom(ctx, node.Name, CreateBattleRoomInput{
-		RoomName:  roomName,
-		Token:     token,
-		PlayerIDs: playerIDs,
+		RoomName:       roomName,
+		Token:          token,
+		PlayerIDs:      playerIDs,
+		PlayerLoadouts: playerLoadouts,
 	}); err != nil {
 		g.mu.Lock()
 		for _, id := range playerIDs {
@@ -135,6 +154,7 @@ func (g *GameCenterService) StartMatch(ctx context.Context, playerID int64) (*Ma
 		BattleNodeName: node.Name,
 		BattleKCPAddr:  node.KCPAddr,
 		PlayerIDs:      playerIDs,
+		PlayerLoadouts: playerLoadouts,
 	}, nil
 }
 
@@ -173,7 +193,7 @@ func (g *GameCenterService) selectBattleNode() (BattleNode, bool) {
 
 func (g *GameCenterService) isWaiting(playerID int64) bool {
 	for _, waitingPlayer := range g.waitingPlayers {
-		if playerID == waitingPlayer {
+		if playerID == waitingPlayer.playerID {
 			return true
 		}
 	}
@@ -190,8 +210,8 @@ func (g *GameCenterService) CancelMatch(ctx context.Context, playerID int64) err
 	}
 	g.mu.Lock()
 	defer g.mu.Unlock()
-	for i, id := range g.waitingPlayers {
-		if id == playerID {
+	for i, waitingPlayer := range g.waitingPlayers {
+		if waitingPlayer.playerID == playerID {
 			g.waitingPlayers = append(g.waitingPlayers[:i], g.waitingPlayers[i+1:]...)
 			return nil
 		}

@@ -21,9 +21,10 @@ func NewClient(client rcenterpb.RCenterServiceClient) *Client {
 }
 
 // StartMatch asks rcenter to queue or match one player.
-func (c *Client) StartMatch(ctx context.Context, playerID int64) (*rcenter.MatchResult, error) {
+func (c *Client) StartMatch(ctx context.Context, playerID int64, weapon string) (*rcenter.MatchResult, error) {
 	res, err := c.client.StartMatch(ctx, &rcenterpb.StartMatchRequest{
 		PlayerId: playerID,
+		Weapon:   weapon,
 	})
 	if err != nil {
 		return nil, mapGRPCError(err)

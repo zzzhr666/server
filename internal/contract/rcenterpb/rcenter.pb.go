@@ -113,6 +113,7 @@ type MatchResult struct {
 	BattleNodeName string                 `protobuf:"bytes,4,opt,name=battle_node_name,json=battleNodeName,proto3" json:"battle_node_name,omitempty"`
 	BattleKcpAddr  string                 `protobuf:"bytes,5,opt,name=battle_kcp_addr,json=battleKcpAddr,proto3" json:"battle_kcp_addr,omitempty"`
 	PlayerIds      []int64                `protobuf:"varint,6,rep,packed,name=player_ids,json=playerIds,proto3" json:"player_ids,omitempty"`
+	PlayerLoadouts []*PlayerLoadout       `protobuf:"bytes,7,rep,name=player_loadouts,json=playerLoadouts,proto3" json:"player_loadouts,omitempty"`
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
 }
@@ -185,6 +186,13 @@ func (x *MatchResult) GetBattleKcpAddr() string {
 func (x *MatchResult) GetPlayerIds() []int64 {
 	if x != nil {
 		return x.PlayerIds
+	}
+	return nil
+}
+
+func (x *MatchResult) GetPlayerLoadouts() []*PlayerLoadout {
+	if x != nil {
+		return x.PlayerLoadouts
 	}
 	return nil
 }
@@ -352,6 +360,7 @@ func (x *ListBattleNodesResponse) GetNodes() []*BattleNode {
 type StartMatchRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	PlayerId      int64                  `protobuf:"varint,1,opt,name=player_id,json=playerId,proto3" json:"player_id,omitempty"`
+	Weapon        string                 `protobuf:"bytes,2,opt,name=weapon,proto3" json:"weapon,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -391,6 +400,13 @@ func (x *StartMatchRequest) GetPlayerId() int64 {
 		return x.PlayerId
 	}
 	return 0
+}
+
+func (x *StartMatchRequest) GetWeapon() string {
+	if x != nil {
+		return x.Weapon
+	}
+	return ""
 }
 
 type StartMatchResponse struct {
@@ -597,6 +613,58 @@ func (*FinishMatchResponse) Descriptor() ([]byte, []int) {
 	return file_proto_rcenter_v1_rcenter_proto_rawDescGZIP(), []int{11}
 }
 
+type PlayerLoadout struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	PlayerId      int64                  `protobuf:"varint,1,opt,name=player_id,json=playerId,proto3" json:"player_id,omitempty"`
+	Weapon        string                 `protobuf:"bytes,2,opt,name=weapon,proto3" json:"weapon,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PlayerLoadout) Reset() {
+	*x = PlayerLoadout{}
+	mi := &file_proto_rcenter_v1_rcenter_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PlayerLoadout) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PlayerLoadout) ProtoMessage() {}
+
+func (x *PlayerLoadout) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_rcenter_v1_rcenter_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PlayerLoadout.ProtoReflect.Descriptor instead.
+func (*PlayerLoadout) Descriptor() ([]byte, []int) {
+	return file_proto_rcenter_v1_rcenter_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *PlayerLoadout) GetPlayerId() int64 {
+	if x != nil {
+		return x.PlayerId
+	}
+	return 0
+}
+
+func (x *PlayerLoadout) GetWeapon() string {
+	if x != nil {
+		return x.Weapon
+	}
+	return ""
+}
+
 var File_proto_rcenter_v1_rcenter_proto protoreflect.FileDescriptor
 
 const file_proto_rcenter_v1_rcenter_proto_rawDesc = "" +
@@ -611,7 +679,7 @@ const file_proto_rcenter_v1_rcenter_proto_rawDesc = "" +
 	"\vmax_players\x18\x04 \x01(\x05R\n" +
 	"maxPlayers\x12%\n" +
 	"\x0eactive_players\x18\x05 \x01(\x05R\ractivePlayers\x12$\n" +
-	"\x0elast_seen_unix\x18\x06 \x01(\x03R\flastSeenUnix\"\xc9\x01\n" +
+	"\x0elast_seen_unix\x18\x06 \x01(\x03R\flastSeenUnix\"\x8d\x02\n" +
 	"\vMatchResult\x12\x16\n" +
 	"\x06status\x18\x01 \x01(\tR\x06status\x12\x1b\n" +
 	"\troom_name\x18\x02 \x01(\tR\broomName\x12\x14\n" +
@@ -619,15 +687,17 @@ const file_proto_rcenter_v1_rcenter_proto_rawDesc = "" +
 	"\x10battle_node_name\x18\x04 \x01(\tR\x0ebattleNodeName\x12&\n" +
 	"\x0fbattle_kcp_addr\x18\x05 \x01(\tR\rbattleKcpAddr\x12\x1d\n" +
 	"\n" +
-	"player_ids\x18\x06 \x03(\x03R\tplayerIds\"G\n" +
+	"player_ids\x18\x06 \x03(\x03R\tplayerIds\x12B\n" +
+	"\x0fplayer_loadouts\x18\a \x03(\v2\x19.rcenter.v1.PlayerLoadoutR\x0eplayerLoadouts\"G\n" +
 	"\x19RegisterBattleNodeRequest\x12*\n" +
 	"\x04node\x18\x01 \x01(\v2\x16.rcenter.v1.BattleNodeR\x04node\"\x1c\n" +
 	"\x1aRegisterBattleNodeResponse\"\x18\n" +
 	"\x16ListBattleNodesRequest\"G\n" +
 	"\x17ListBattleNodesResponse\x12,\n" +
-	"\x05nodes\x18\x01 \x03(\v2\x16.rcenter.v1.BattleNodeR\x05nodes\"0\n" +
+	"\x05nodes\x18\x01 \x03(\v2\x16.rcenter.v1.BattleNodeR\x05nodes\"H\n" +
 	"\x11StartMatchRequest\x12\x1b\n" +
-	"\tplayer_id\x18\x01 \x01(\x03R\bplayerId\"E\n" +
+	"\tplayer_id\x18\x01 \x01(\x03R\bplayerId\x12\x16\n" +
+	"\x06weapon\x18\x02 \x01(\tR\x06weapon\"E\n" +
 	"\x12StartMatchResponse\x12/\n" +
 	"\x06result\x18\x01 \x01(\v2\x17.rcenter.v1.MatchResultR\x06result\"1\n" +
 	"\x12CancelMatchRequest\x12\x1b\n" +
@@ -636,7 +706,10 @@ const file_proto_rcenter_v1_rcenter_proto_rawDesc = "" +
 	"\x12FinishMatchRequest\x12\x1d\n" +
 	"\n" +
 	"player_ids\x18\x01 \x03(\x03R\tplayerIds\"\x15\n" +
-	"\x13FinishMatchResponse2\xbe\x03\n" +
+	"\x13FinishMatchResponse\"D\n" +
+	"\rPlayerLoadout\x12\x1b\n" +
+	"\tplayer_id\x18\x01 \x01(\x03R\bplayerId\x12\x16\n" +
+	"\x06weapon\x18\x02 \x01(\tR\x06weapon2\xbe\x03\n" +
 	"\x0eRCenterService\x12c\n" +
 	"\x12RegisterBattleNode\x12%.rcenter.v1.RegisterBattleNodeRequest\x1a&.rcenter.v1.RegisterBattleNodeResponse\x12Z\n" +
 	"\x0fListBattleNodes\x12\".rcenter.v1.ListBattleNodesRequest\x1a#.rcenter.v1.ListBattleNodesResponse\x12K\n" +
@@ -657,7 +730,7 @@ func file_proto_rcenter_v1_rcenter_proto_rawDescGZIP() []byte {
 	return file_proto_rcenter_v1_rcenter_proto_rawDescData
 }
 
-var file_proto_rcenter_v1_rcenter_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
+var file_proto_rcenter_v1_rcenter_proto_msgTypes = make([]protoimpl.MessageInfo, 13)
 var file_proto_rcenter_v1_rcenter_proto_goTypes = []any{
 	(*BattleNode)(nil),                 // 0: rcenter.v1.BattleNode
 	(*MatchResult)(nil),                // 1: rcenter.v1.MatchResult
@@ -671,26 +744,28 @@ var file_proto_rcenter_v1_rcenter_proto_goTypes = []any{
 	(*CancelMatchResponse)(nil),        // 9: rcenter.v1.CancelMatchResponse
 	(*FinishMatchRequest)(nil),         // 10: rcenter.v1.FinishMatchRequest
 	(*FinishMatchResponse)(nil),        // 11: rcenter.v1.FinishMatchResponse
+	(*PlayerLoadout)(nil),              // 12: rcenter.v1.PlayerLoadout
 }
 var file_proto_rcenter_v1_rcenter_proto_depIdxs = []int32{
-	0,  // 0: rcenter.v1.RegisterBattleNodeRequest.node:type_name -> rcenter.v1.BattleNode
-	0,  // 1: rcenter.v1.ListBattleNodesResponse.nodes:type_name -> rcenter.v1.BattleNode
-	1,  // 2: rcenter.v1.StartMatchResponse.result:type_name -> rcenter.v1.MatchResult
-	2,  // 3: rcenter.v1.RCenterService.RegisterBattleNode:input_type -> rcenter.v1.RegisterBattleNodeRequest
-	4,  // 4: rcenter.v1.RCenterService.ListBattleNodes:input_type -> rcenter.v1.ListBattleNodesRequest
-	6,  // 5: rcenter.v1.RCenterService.StartMatch:input_type -> rcenter.v1.StartMatchRequest
-	8,  // 6: rcenter.v1.RCenterService.CancelMatch:input_type -> rcenter.v1.CancelMatchRequest
-	10, // 7: rcenter.v1.RCenterService.FinishMatch:input_type -> rcenter.v1.FinishMatchRequest
-	3,  // 8: rcenter.v1.RCenterService.RegisterBattleNode:output_type -> rcenter.v1.RegisterBattleNodeResponse
-	5,  // 9: rcenter.v1.RCenterService.ListBattleNodes:output_type -> rcenter.v1.ListBattleNodesResponse
-	7,  // 10: rcenter.v1.RCenterService.StartMatch:output_type -> rcenter.v1.StartMatchResponse
-	9,  // 11: rcenter.v1.RCenterService.CancelMatch:output_type -> rcenter.v1.CancelMatchResponse
-	11, // 12: rcenter.v1.RCenterService.FinishMatch:output_type -> rcenter.v1.FinishMatchResponse
-	8,  // [8:13] is the sub-list for method output_type
-	3,  // [3:8] is the sub-list for method input_type
-	3,  // [3:3] is the sub-list for extension type_name
-	3,  // [3:3] is the sub-list for extension extendee
-	0,  // [0:3] is the sub-list for field type_name
+	12, // 0: rcenter.v1.MatchResult.player_loadouts:type_name -> rcenter.v1.PlayerLoadout
+	0,  // 1: rcenter.v1.RegisterBattleNodeRequest.node:type_name -> rcenter.v1.BattleNode
+	0,  // 2: rcenter.v1.ListBattleNodesResponse.nodes:type_name -> rcenter.v1.BattleNode
+	1,  // 3: rcenter.v1.StartMatchResponse.result:type_name -> rcenter.v1.MatchResult
+	2,  // 4: rcenter.v1.RCenterService.RegisterBattleNode:input_type -> rcenter.v1.RegisterBattleNodeRequest
+	4,  // 5: rcenter.v1.RCenterService.ListBattleNodes:input_type -> rcenter.v1.ListBattleNodesRequest
+	6,  // 6: rcenter.v1.RCenterService.StartMatch:input_type -> rcenter.v1.StartMatchRequest
+	8,  // 7: rcenter.v1.RCenterService.CancelMatch:input_type -> rcenter.v1.CancelMatchRequest
+	10, // 8: rcenter.v1.RCenterService.FinishMatch:input_type -> rcenter.v1.FinishMatchRequest
+	3,  // 9: rcenter.v1.RCenterService.RegisterBattleNode:output_type -> rcenter.v1.RegisterBattleNodeResponse
+	5,  // 10: rcenter.v1.RCenterService.ListBattleNodes:output_type -> rcenter.v1.ListBattleNodesResponse
+	7,  // 11: rcenter.v1.RCenterService.StartMatch:output_type -> rcenter.v1.StartMatchResponse
+	9,  // 12: rcenter.v1.RCenterService.CancelMatch:output_type -> rcenter.v1.CancelMatchResponse
+	11, // 13: rcenter.v1.RCenterService.FinishMatch:output_type -> rcenter.v1.FinishMatchResponse
+	9,  // [9:14] is the sub-list for method output_type
+	4,  // [4:9] is the sub-list for method input_type
+	4,  // [4:4] is the sub-list for extension type_name
+	4,  // [4:4] is the sub-list for extension extendee
+	0,  // [0:4] is the sub-list for field type_name
 }
 
 func init() { file_proto_rcenter_v1_rcenter_proto_init() }
@@ -704,7 +779,7 @@ func file_proto_rcenter_v1_rcenter_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_rcenter_v1_rcenter_proto_rawDesc), len(file_proto_rcenter_v1_rcenter_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   12,
+			NumMessages:   13,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

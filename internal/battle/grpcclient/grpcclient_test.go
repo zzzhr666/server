@@ -24,6 +24,10 @@ func TestClientCreateRoom(t *testing.T) {
 		RoomName:  "room-1",
 		Token:     "token-1",
 		PlayerIDs: []int64{7, 8},
+		PlayerLoadouts: []PlayerLoadout{
+			{PlayerID: 7, Weapon: "axe"},
+			{PlayerID: 8, Weapon: "dagger"},
+		},
 	})
 	if err != nil {
 		t.Fatalf("CreateRoom returned error: %v", err)
@@ -36,6 +40,11 @@ func TestClientCreateRoom(t *testing.T) {
 	}
 	if !reflect.DeepEqual(grpcBattle.createRoomRequest.GetPlayerIds(), []int64{7, 8}) {
 		t.Fatalf("player ids = %v, want [7 8]", grpcBattle.createRoomRequest.GetPlayerIds())
+	}
+	if got := grpcBattle.createRoomRequest.GetPlayerLoadouts(); len(got) != 2 ||
+		got[0].GetPlayerId() != 7 || got[0].GetWeapon() != "axe" ||
+		got[1].GetPlayerId() != 8 || got[1].GetWeapon() != "dagger" {
+		t.Fatalf("player loadouts = %+v, want player 7 axe and player 8 dagger", got)
 	}
 	if result.Status != CreateRoomStatusOK {
 		t.Fatalf("status = %q, want %q", result.Status, CreateRoomStatusOK)

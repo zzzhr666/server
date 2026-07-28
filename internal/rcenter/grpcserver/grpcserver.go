@@ -43,7 +43,7 @@ func (s *Server) ListBattleNodes(ctx context.Context, req *rcenterpb.ListBattleN
 
 // StartMatch handles player matchmaking requests.
 func (s *Server) StartMatch(ctx context.Context, req *rcenterpb.StartMatchRequest) (*rcenterpb.StartMatchResponse, error) {
-	res, err := s.center.StartMatch(ctx, req.GetPlayerId())
+	res, err := s.center.StartMatch(ctx, req.GetPlayerId(), req.GetWeapon())
 	if err != nil {
 		return nil, mapRCenterError(err)
 	}

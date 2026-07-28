@@ -7,13 +7,13 @@ import (
 
 // Repository defines the rcenter operations used by the logic match service.
 type Repository interface {
-	StartMatch(ctx context.Context, playerID int64) (*rcenter.MatchResult, error)
+	StartMatch(ctx context.Context, playerID int64, weapon string) (*rcenter.MatchResult, error)
 	CancelMatch(ctx context.Context, playerID int64) error
 }
 
 // Service defines matchmaking actions exposed to logic HTTP and WebSocket handlers.
 type Service interface {
-	Start(ctx context.Context, playerID int64) (*rcenter.MatchResult, error)
+	Start(ctx context.Context, playerID int64, weapon string) (*rcenter.MatchResult, error)
 	Cancel(ctx context.Context, playerID int64) error
 }
 
@@ -23,14 +23,17 @@ type GameMatchService struct {
 }
 
 // Start queues or matches a player through rcenter.
-func (g *GameMatchService) Start(ctx context.Context, playerID int64) (*rcenter.MatchResult, error) {
+func (g *GameMatchService) Start(ctx context.Context, playerID int64, weapon string) (*rcenter.MatchResult, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, err
 	}
 	if playerID <= 0 {
 		return nil, rcenter.ErrInvalidPlayerID
 	}
-	return g.matchRepo.StartMatch(ctx, playerID)
+	if weapon == "" {
+		weapon = "sword"
+	}
+	return g.matchRepo.StartMatch(ctx, playerID, weapon)
 }
 
 // Cancel removes a player from the rcenter waiting queue.

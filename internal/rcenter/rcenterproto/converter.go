@@ -32,7 +32,7 @@ func ToProtoBattleNode(node rcenter.BattleNode) *rcenterpb.BattleNode {
 
 // ToProtoMatchResult converts a domain match result to generated protobuf data.
 func ToProtoMatchResult(result *rcenter.MatchResult) *rcenterpb.MatchResult {
-	return &rcenterpb.MatchResult{
+	protoResult := &rcenterpb.MatchResult{
 		Status:         string(result.Status),
 		RoomName:       result.RoomName,
 		Token:          result.Token,
@@ -40,11 +40,19 @@ func ToProtoMatchResult(result *rcenter.MatchResult) *rcenterpb.MatchResult {
 		BattleKcpAddr:  result.BattleKCPAddr,
 		PlayerIds:      result.PlayerIDs,
 	}
+	protoResult.PlayerLoadouts = make([]*rcenterpb.PlayerLoadout, 0, len(result.PlayerLoadouts))
+	for _, loadout := range result.PlayerLoadouts {
+		protoResult.PlayerLoadouts = append(protoResult.PlayerLoadouts, &rcenterpb.PlayerLoadout{
+			PlayerId: loadout.PlayerID,
+			Weapon:   loadout.Weapon,
+		})
+	}
+	return protoResult
 }
 
 // FromProtoMatchResult converts generated protobuf data to a domain match result.
 func FromProtoMatchResult(result *rcenterpb.MatchResult) *rcenter.MatchResult {
-	return &rcenter.MatchResult{
+	matchResult := &rcenter.MatchResult{
 		Status:         mapStatus(result.GetStatus()),
 		RoomName:       result.GetRoomName(),
 		Token:          result.GetToken(),
@@ -52,6 +60,14 @@ func FromProtoMatchResult(result *rcenterpb.MatchResult) *rcenter.MatchResult {
 		BattleKCPAddr:  result.GetBattleKcpAddr(),
 		PlayerIDs:      result.GetPlayerIds(),
 	}
+	matchResult.PlayerLoadouts = make([]rcenter.PlayerLoadout, 0, len(result.GetPlayerLoadouts()))
+	for _, loadout := range result.GetPlayerLoadouts() {
+		matchResult.PlayerLoadouts = append(matchResult.PlayerLoadouts, rcenter.PlayerLoadout{
+			PlayerID: loadout.GetPlayerId(),
+			Weapon:   loadout.GetWeapon(),
+		})
+	}
+	return matchResult
 }
 
 func mapStatus(statusStr string) rcenter.MatchStatus {
