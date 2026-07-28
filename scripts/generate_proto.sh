@@ -22,7 +22,7 @@ battle_cpp_grpc_protos=(
 )
 
 battle_cpp_out="battle-server/generated"
-client_csharp_out="${CLIENT_CSHARP_OUT:-/mnt/c/Users/zhanghaoran1/GameClient/Assets/Scripts/Protocol/Generated}"
+client_csharp_out="${CLIENT_CSHARP_OUT:-/mnt/c/Users/zhanghaoran1/Client/Assets/scripts/Generated}"
 client_csharp_protos=(
 	proto/battle/v1/session.proto
 )
