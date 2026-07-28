@@ -18,12 +18,22 @@ int main() {
     battle::RoomManager room_manager{};
     battle::SessionManager session_manager{room_manager};
     battle::UdpServer udp_server{config.kcp_bind_addr, session_manager};
+    battle::RCenterClient rcenter_client{
+        grpc::CreateChannel(config.rcenter_addr, grpc::InsecureChannelCredentials())
+    };
     battle::BattleRuntime battle_runtime{
         room_manager,
         session_manager,
         [&udp_server](const battle::v1::ServerPacket& packet, const battle::UdpEndpoint& endpoint) {
             udp_server.send_packet(packet, endpoint);
         },
+        {},
+        [&rcenter_client](const std::vector<std::int64_t>& player_ids) {
+            auto res = rcenter_client.finish_match(player_ids);
+            if (!res.ok) {
+                std::cerr << "failed to finish match in rcenter: " << res.message << std::endl;
+            }
+        }
     };
     udp_server.set_runtime(battle_runtime);
 
@@ -51,9 +61,7 @@ int main() {
         << "\nnode = " << config.node_name
         << "\nkcp bind = " << config.kcp_bind_addr
         << "\nkcp public = " << config.kcp_addr << std::endl;
-    battle::RCenterClient rcenter_client{
-        grpc::CreateChannel(config.rcenter_addr, grpc::InsecureChannelCredentials())
-    };
+
     auto register_res = rcenter_client.register_battle_node(config, room_manager);
     if (!register_res.ok) {
         std::cerr << "failed to register battle node to rcenter " << config.rcenter_addr

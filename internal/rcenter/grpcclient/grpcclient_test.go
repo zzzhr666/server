@@ -102,6 +102,30 @@ func TestClientCancelMatchMapsPlayerNotWaiting(t *testing.T) {
 	}
 }
 
+func TestClientStartMatchMapsPlayerInGame(t *testing.T) {
+	client := NewClient(&fakeRCenterServiceClient{
+		err: status.Error(codes.FailedPrecondition, rcenter.ErrPlayerInGame.Error()),
+	})
+
+	_, err := client.StartMatch(context.Background(), 7)
+	if !errors.Is(err, rcenter.ErrPlayerInGame) {
+		t.Fatalf("StartMatch error = %v, want %v", err, rcenter.ErrPlayerInGame)
+	}
+}
+
+func TestClientFinishMatch(t *testing.T) {
+	grpcCenter := &fakeRCenterServiceClient{}
+	client := NewClient(grpcCenter)
+
+	err := client.FinishMatch(context.Background(), []int64{7, 8})
+	if err != nil {
+		t.Fatalf("FinishMatch returned error: %v", err)
+	}
+	if !reflect.DeepEqual(grpcCenter.finishMatchRequest.GetPlayerIds(), []int64{7, 8}) {
+		t.Fatalf("player ids = %v, want [7 8]", grpcCenter.finishMatchRequest.GetPlayerIds())
+	}
+}
+
 func TestClientRegisterBattleNode(t *testing.T) {
 	grpcCenter := &fakeRCenterServiceClient{}
 	client := NewClient(grpcCenter)
@@ -198,6 +222,7 @@ type fakeRCenterServiceClient struct {
 	startMatchRequest         *rcenterpb.StartMatchRequest
 	startMatchResponse        *rcenterpb.StartMatchResponse
 	cancelMatchRequest        *rcenterpb.CancelMatchRequest
+	finishMatchRequest        *rcenterpb.FinishMatchRequest
 }
 
 func (f *fakeRCenterServiceClient) RegisterBattleNode(ctx context.Context, in *rcenterpb.RegisterBattleNodeRequest, opts ...grpc.CallOption) (*rcenterpb.RegisterBattleNodeResponse, error) {
@@ -229,4 +254,12 @@ func (f *fakeRCenterServiceClient) CancelMatch(ctx context.Context, in *rcenterp
 		return nil, f.err
 	}
 	return &rcenterpb.CancelMatchResponse{}, nil
+}
+
+func (f *fakeRCenterServiceClient) FinishMatch(ctx context.Context, in *rcenterpb.FinishMatchRequest, opts ...grpc.CallOption) (*rcenterpb.FinishMatchResponse, error) {
+	f.finishMatchRequest = in
+	if f.err != nil {
+		return nil, f.err
+	}
+	return &rcenterpb.FinishMatchResponse{}, nil
 }

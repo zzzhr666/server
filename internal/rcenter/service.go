@@ -20,6 +20,7 @@ type GameCenterService struct {
 	battleNodes          map[string]BattleNode
 	waitingPlayers       []int64
 	battleNodeController BattleNodeController
+	inGamePlayers        map[int64]struct{}
 }
 
 // NewService creates an empty in-memory rcenter service.
@@ -27,6 +28,7 @@ func NewService(battleNodeController BattleNodeController) *GameCenterService {
 	return &GameCenterService{
 		battleNodes:          make(map[string]BattleNode),
 		battleNodeController: battleNodeController,
+		inGamePlayers:        make(map[int64]struct{}),
 	}
 }
 
@@ -75,7 +77,13 @@ func (g *GameCenterService) StartMatch(ctx context.Context, playerID int64) (*Ma
 	if playerID <= 0 {
 		return nil, ErrInvalidPlayerID
 	}
+
 	g.mu.Lock()
+	_, ok := g.inGamePlayers[playerID]
+	if ok {
+		g.mu.Unlock()
+		return nil, ErrPlayerInGame
+	}
 	node, ok := g.selectBattleNode()
 	if !ok {
 		g.mu.Unlock()
@@ -97,17 +105,26 @@ func (g *GameCenterService) StartMatch(ctx context.Context, playerID int64) (*Ma
 
 	waitingPlayerID := g.waitingPlayers[0]
 	g.waitingPlayers = g.waitingPlayers[1:]
-	g.mu.Unlock()
 
 	roomName := newRandomName("room")
 	token := newRandomName("token")
 	playerIDs := []int64{waitingPlayerID, playerID}
+
+	for _, inGamePlayerID := range playerIDs {
+		g.inGamePlayers[inGamePlayerID] = struct{}{}
+	}
+	g.mu.Unlock()
 
 	if err := g.battleNodeController.CreateRoom(ctx, node.Name, CreateBattleRoomInput{
 		RoomName:  roomName,
 		Token:     token,
 		PlayerIDs: playerIDs,
 	}); err != nil {
+		g.mu.Lock()
+		for _, id := range playerIDs {
+			delete(g.inGamePlayers, id)
+		}
+		g.mu.Unlock()
 		return nil, err
 	}
 
@@ -119,6 +136,24 @@ func (g *GameCenterService) StartMatch(ctx context.Context, playerID int64) (*Ma
 		BattleKCPAddr:  node.KCPAddr,
 		PlayerIDs:      playerIDs,
 	}, nil
+}
+
+// FinishMatch releases matched players so they can enter matchmaking again.
+func (g *GameCenterService) FinishMatch(ctx context.Context, playerIDs []int64) error {
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+	for _, playerID := range playerIDs {
+		if playerID <= 0 {
+			return ErrInvalidPlayerID
+		}
+	}
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	for _, playerID := range playerIDs {
+		delete(g.inGamePlayers, playerID)
+	}
+	return nil
 }
 
 func (g *GameCenterService) selectBattleNode() (BattleNode, bool) {

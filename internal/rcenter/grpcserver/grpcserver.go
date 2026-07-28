@@ -59,3 +59,11 @@ func (s *Server) CancelMatch(ctx context.Context, req *rcenterpb.CancelMatchRequ
 	}
 	return &rcenterpb.CancelMatchResponse{}, nil
 }
+
+// FinishMatch handles battle completion notifications from battle servers.
+func (s *Server) FinishMatch(ctx context.Context, request *rcenterpb.FinishMatchRequest) (*rcenterpb.FinishMatchResponse, error) {
+	if err := s.center.FinishMatch(ctx, request.GetPlayerIds()); err != nil {
+		return nil, mapRCenterError(err)
+	}
+	return &rcenterpb.FinishMatchResponse{}, nil
+}

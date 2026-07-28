@@ -45,9 +45,9 @@ namespace {
 }
 
 battle::BattleRuntime::BattleRuntime(RoomManager& room_manager, SessionManager& session_manager,
-                                     SendPacketCallback callback,BattleInstanceFactory factory)
+                                     SendPacketCallback send_packet_callback, BattleInstanceFactory factory, FinishMatchCallback finish_match_callback)
     : room_manager_(room_manager), session_manager_(session_manager),
-      send_packet_(std::move(callback)), running_(false),instance_factory_(std::move(factory)) {
+      send_packet_(std::move(send_packet_callback)), finish_match_callback_(std::move(finish_match_callback)), running_(false), instance_factory_(std::move(factory)) {
     if (!instance_factory_) {
         instance_factory_ = [](BattleInstanceConfig config) {
           return std::make_unique<BattleInstance>(std::move(config));
@@ -165,6 +165,7 @@ void battle::BattleRuntime::stop() {
 battle::EndRoomResult battle::BattleRuntime::end_room(const std::string& room_name, const std::string& reason) {
     v1::ServerPacket packet;
     std::vector<UdpEndpoint> endpoints;
+    std::vector<std::int64_t> player_ids;
     {
         std::lock_guard<std::mutex> lock(mutex_);
         auto it = instances_.find(room_name);
@@ -175,7 +176,7 @@ battle::EndRoomResult battle::BattleRuntime::end_room(const std::string& room_na
             };
         }
         auto sessions = session_manager_.sessions_in_room(room_name);
-        std::vector<std::int64_t> player_ids;
+
         player_ids.reserve(sessions.size());
         for (const auto& session : sessions) {
             player_ids.push_back(session->player_id());
@@ -187,8 +188,12 @@ battle::EndRoomResult battle::BattleRuntime::end_room(const std::string& room_na
     for (auto& endpoint : endpoints) {
         send_packet_(packet, endpoint);
     }
+
     session_manager_.remove_room(room_name);
     room_manager_.close_room(room_name);
+    if (finish_match_callback_) {
+        finish_match_callback_(player_ids);
+    }
     return {
         .status = EndRoomStatus::OK,
         .message = "room ended",

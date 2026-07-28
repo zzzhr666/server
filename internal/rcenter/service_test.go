@@ -161,6 +161,15 @@ func TestServiceStartMatchReturnsCreateRoomError(t *testing.T) {
 	if !errors.Is(err, wantErr) {
 		t.Fatalf("second StartMatch error = %v, want %v", err, wantErr)
 	}
+
+	battleRooms.createRoomErr = nil
+	third, err := svc.StartMatch(context.Background(), 7)
+	if err != nil {
+		t.Fatalf("third StartMatch returned error: %v", err)
+	}
+	if third.Status != MatchStatusWaiting {
+		t.Fatalf("third status = %q, want %q", third.Status, MatchStatusWaiting)
+	}
 }
 
 func TestServiceStartMatchDoesNotQueueSamePlayerTwice(t *testing.T) {
@@ -194,6 +203,75 @@ func TestServiceStartMatchDoesNotQueueSamePlayerTwice(t *testing.T) {
 	}
 	if third.Status != MatchStatusMatched {
 		t.Fatalf("third status = %q, want %q", third.Status, MatchStatusMatched)
+	}
+}
+
+func TestServiceStartMatchRejectsPlayerInGame(t *testing.T) {
+	svc := newTestService()
+	mustRegisterBattleNode(t, svc, BattleNode{
+		Name:        "battle-1",
+		KCPAddr:     "127.0.0.1:7001",
+		ControlAddr: "127.0.0.1:9101",
+		MaxPlayers:  100,
+	})
+
+	if _, err := svc.StartMatch(context.Background(), 7); err != nil {
+		t.Fatalf("first StartMatch returned error: %v", err)
+	}
+	if _, err := svc.StartMatch(context.Background(), 8); err != nil {
+		t.Fatalf("second StartMatch returned error: %v", err)
+	}
+
+	_, err := svc.StartMatch(context.Background(), 7)
+	if !errors.Is(err, ErrPlayerInGame) {
+		t.Fatalf("third StartMatch error = %v, want %v", err, ErrPlayerInGame)
+	}
+
+	result, err := svc.StartMatch(context.Background(), 9)
+	if err != nil {
+		t.Fatalf("fourth StartMatch returned error after in-game rejection: %v", err)
+	}
+	if result.Status != MatchStatusWaiting {
+		t.Fatalf("fourth status = %q, want %q", result.Status, MatchStatusWaiting)
+	}
+}
+
+func TestServiceFinishMatchAllowsPlayersToMatchAgain(t *testing.T) {
+	svc := newTestService()
+	mustRegisterBattleNode(t, svc, BattleNode{
+		Name:        "battle-1",
+		KCPAddr:     "127.0.0.1:7001",
+		ControlAddr: "127.0.0.1:9101",
+		MaxPlayers:  100,
+	})
+
+	if _, err := svc.StartMatch(context.Background(), 7); err != nil {
+		t.Fatalf("first StartMatch returned error: %v", err)
+	}
+	matched, err := svc.StartMatch(context.Background(), 8)
+	if err != nil {
+		t.Fatalf("second StartMatch returned error: %v", err)
+	}
+
+	if err := svc.FinishMatch(context.Background(), matched.PlayerIDs); err != nil {
+		t.Fatalf("FinishMatch returned error: %v", err)
+	}
+
+	result, err := svc.StartMatch(context.Background(), 7)
+	if err != nil {
+		t.Fatalf("StartMatch after FinishMatch returned error: %v", err)
+	}
+	if result.Status != MatchStatusWaiting {
+		t.Fatalf("status = %q, want %q", result.Status, MatchStatusWaiting)
+	}
+}
+
+func TestServiceFinishMatchInvalidPlayer(t *testing.T) {
+	svc := newTestService()
+
+	err := svc.FinishMatch(context.Background(), []int64{7, 0})
+	if !errors.Is(err, ErrInvalidPlayerID) {
+		t.Fatalf("FinishMatch error = %v, want %v", err, ErrInvalidPlayerID)
 	}
 }
 

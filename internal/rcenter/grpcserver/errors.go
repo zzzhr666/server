@@ -21,6 +21,9 @@ func mapRCenterError(err error) error {
 		return status.Error(codes.Unavailable, err.Error())
 	case errors.Is(err, rcenter.ErrPlayerNotWaiting):
 		return status.Error(codes.FailedPrecondition, err.Error())
+	case errors.Is(err, rcenter.ErrPlayerInGame):
+		return status.Error(codes.FailedPrecondition, err.Error())
+
 	default:
 		return status.Error(codes.Internal, err.Error())
 	}

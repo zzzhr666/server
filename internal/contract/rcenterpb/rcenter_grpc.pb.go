@@ -23,6 +23,7 @@ const (
 	RCenterService_ListBattleNodes_FullMethodName    = "/rcenter.v1.RCenterService/ListBattleNodes"
 	RCenterService_StartMatch_FullMethodName         = "/rcenter.v1.RCenterService/StartMatch"
 	RCenterService_CancelMatch_FullMethodName        = "/rcenter.v1.RCenterService/CancelMatch"
+	RCenterService_FinishMatch_FullMethodName        = "/rcenter.v1.RCenterService/FinishMatch"
 )
 
 // RCenterServiceClient is the client API for RCenterService service.
@@ -33,6 +34,7 @@ type RCenterServiceClient interface {
 	ListBattleNodes(ctx context.Context, in *ListBattleNodesRequest, opts ...grpc.CallOption) (*ListBattleNodesResponse, error)
 	StartMatch(ctx context.Context, in *StartMatchRequest, opts ...grpc.CallOption) (*StartMatchResponse, error)
 	CancelMatch(ctx context.Context, in *CancelMatchRequest, opts ...grpc.CallOption) (*CancelMatchResponse, error)
+	FinishMatch(ctx context.Context, in *FinishMatchRequest, opts ...grpc.CallOption) (*FinishMatchResponse, error)
 }
 
 type rCenterServiceClient struct {
@@ -83,6 +85,16 @@ func (c *rCenterServiceClient) CancelMatch(ctx context.Context, in *CancelMatchR
 	return out, nil
 }
 
+func (c *rCenterServiceClient) FinishMatch(ctx context.Context, in *FinishMatchRequest, opts ...grpc.CallOption) (*FinishMatchResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(FinishMatchResponse)
+	err := c.cc.Invoke(ctx, RCenterService_FinishMatch_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // RCenterServiceServer is the server API for RCenterService service.
 // All implementations must embed UnimplementedRCenterServiceServer
 // for forward compatibility.
@@ -91,6 +103,7 @@ type RCenterServiceServer interface {
 	ListBattleNodes(context.Context, *ListBattleNodesRequest) (*ListBattleNodesResponse, error)
 	StartMatch(context.Context, *StartMatchRequest) (*StartMatchResponse, error)
 	CancelMatch(context.Context, *CancelMatchRequest) (*CancelMatchResponse, error)
+	FinishMatch(context.Context, *FinishMatchRequest) (*FinishMatchResponse, error)
 	mustEmbedUnimplementedRCenterServiceServer()
 }
 
@@ -112,6 +125,9 @@ func (UnimplementedRCenterServiceServer) StartMatch(context.Context, *StartMatch
 }
 func (UnimplementedRCenterServiceServer) CancelMatch(context.Context, *CancelMatchRequest) (*CancelMatchResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method CancelMatch not implemented")
+}
+func (UnimplementedRCenterServiceServer) FinishMatch(context.Context, *FinishMatchRequest) (*FinishMatchResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method FinishMatch not implemented")
 }
 func (UnimplementedRCenterServiceServer) mustEmbedUnimplementedRCenterServiceServer() {}
 func (UnimplementedRCenterServiceServer) testEmbeddedByValue()                        {}
@@ -206,6 +222,24 @@ func _RCenterService_CancelMatch_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
+func _RCenterService_FinishMatch_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(FinishMatchRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RCenterServiceServer).FinishMatch(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: RCenterService_FinishMatch_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RCenterServiceServer).FinishMatch(ctx, req.(*FinishMatchRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // RCenterService_ServiceDesc is the grpc.ServiceDesc for RCenterService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -228,6 +262,10 @@ var RCenterService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CancelMatch",
 			Handler:    _RCenterService_CancelMatch_Handler,
+		},
+		{
+			MethodName: "FinishMatch",
+			Handler:    _RCenterService_FinishMatch_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

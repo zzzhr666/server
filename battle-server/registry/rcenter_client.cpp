@@ -25,3 +25,18 @@ battle::RegisterBattleNodeResult battle::RCenterClient::register_battle_node(
                ? RegisterBattleNodeResult{.ok = true, .message = "registered"}
                : RegisterBattleNodeResult{.ok = false, .message = status.error_message()};
 }
+
+battle::FinishMatchResult battle::RCenterClient::finish_match(const std::vector<std::int64_t>& player_ids) {
+    rcenter::v1::FinishMatchRequest request;
+    for (const auto& player_id : player_ids) {
+        request.add_player_ids(player_id);
+    }
+
+    grpc::ClientContext ctx;
+    rcenter::v1::FinishMatchResponse response;
+    grpc::Status status = stub_->FinishMatch(&ctx, request, &response);
+
+    return status.ok()
+               ? FinishMatchResult{.ok = true, .message = "finished"}
+               : FinishMatchResult{.ok = false, .message = status.error_message()};
+}

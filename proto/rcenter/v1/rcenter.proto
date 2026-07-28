@@ -10,6 +10,7 @@ service RCenterService {
   rpc ListBattleNodes(ListBattleNodesRequest) returns (ListBattleNodesResponse);
   rpc StartMatch(StartMatchRequest) returns (StartMatchResponse);
   rpc CancelMatch(CancelMatchRequest) returns (CancelMatchResponse);
+  rpc FinishMatch(FinishMatchRequest) returns (FinishMatchResponse);
 }
 
 message BattleNode {
@@ -55,3 +56,9 @@ message CancelMatchRequest {
 }
 
 message CancelMatchResponse {}
+
+message FinishMatchRequest {
+  repeated int64 player_ids = 1;
+}
+
+message FinishMatchResponse {}

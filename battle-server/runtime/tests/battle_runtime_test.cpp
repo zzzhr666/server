@@ -90,9 +90,14 @@ TEST(BattleRuntimeTest, EndRoomBroadcastsGameOverAndCleansRoom) {
     RoomManager room_manager;
     SessionManager session_manager(room_manager);
     std::vector<std::pair<v1::ServerPacket, UdpEndpoint>> sent_packets;
+    std::vector<std::int64_t> finished_player_ids;
     BattleRuntime runtime(room_manager, session_manager,
                           [&sent_packets](const v1::ServerPacket& packet, const UdpEndpoint& endpoint) {
                               sent_packets.emplace_back(packet, endpoint);
+                          },
+                          {},
+                          [&finished_player_ids](const std::vector<std::int64_t>& player_ids) {
+                              finished_player_ids = player_ids;
                           });
 
     ASSERT_EQ(room_manager.create_room({
@@ -139,6 +144,7 @@ TEST(BattleRuntimeTest, EndRoomBroadcastsGameOverAndCleansRoom) {
                                                }));
     EXPECT_EQ(session_manager.sessions_in_room("room-1").size(), 0);
     EXPECT_EQ(room_manager.active_rooms(), 0);
+    EXPECT_EQ(finished_player_ids, (std::vector<std::int64_t>{1001, 1002}));
 }
 
 TEST(BattleRuntimeTest, TickBroadcastsGameOverAndCleansRoomWhenInstanceEnds) {

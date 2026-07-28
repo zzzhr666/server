@@ -5,6 +5,7 @@
 #include <mutex>
 #include <string>
 #include <memory>
+#include <vector>
 #include <unordered_map>
 #include <unordered_set>
 #include <atomic>
@@ -30,7 +31,8 @@ namespace battle {
     class BattleRuntime {
     public:
         using BattleInstanceFactory = std::function<std::unique_ptr<BattleInstance>(BattleInstanceConfig)>;
-        BattleRuntime(RoomManager& room_manager, SessionManager& session_manager, SendPacketCallback callback,BattleInstanceFactory factory ={});
+        using FinishMatchCallback = std::function<void(const std::vector<std::int64_t>&)>;
+        BattleRuntime(RoomManager& room_manager, SessionManager& session_manager, SendPacketCallback send_packet_callback, BattleInstanceFactory factory = {}, FinishMatchCallback finish_match_callback = {});
         ~BattleRuntime();
 
         void start_room(const std::string& room_name);
@@ -49,6 +51,7 @@ namespace battle {
         RoomManager& room_manager_;
         SessionManager& session_manager_;
         SendPacketCallback send_packet_;
+        FinishMatchCallback finish_match_callback_;
         std::mutex mutex_;
         std::unordered_map<std::string, std::unique_ptr<BattleInstance>> instances_;
         std::unordered_set<std::string> starting_rooms_;

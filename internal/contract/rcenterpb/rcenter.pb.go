@@ -517,6 +517,86 @@ func (*CancelMatchResponse) Descriptor() ([]byte, []int) {
 	return file_proto_rcenter_v1_rcenter_proto_rawDescGZIP(), []int{9}
 }
 
+type FinishMatchRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	PlayerIds     []int64                `protobuf:"varint,1,rep,packed,name=player_ids,json=playerIds,proto3" json:"player_ids,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *FinishMatchRequest) Reset() {
+	*x = FinishMatchRequest{}
+	mi := &file_proto_rcenter_v1_rcenter_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *FinishMatchRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*FinishMatchRequest) ProtoMessage() {}
+
+func (x *FinishMatchRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_rcenter_v1_rcenter_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use FinishMatchRequest.ProtoReflect.Descriptor instead.
+func (*FinishMatchRequest) Descriptor() ([]byte, []int) {
+	return file_proto_rcenter_v1_rcenter_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *FinishMatchRequest) GetPlayerIds() []int64 {
+	if x != nil {
+		return x.PlayerIds
+	}
+	return nil
+}
+
+type FinishMatchResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *FinishMatchResponse) Reset() {
+	*x = FinishMatchResponse{}
+	mi := &file_proto_rcenter_v1_rcenter_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *FinishMatchResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*FinishMatchResponse) ProtoMessage() {}
+
+func (x *FinishMatchResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_rcenter_v1_rcenter_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use FinishMatchResponse.ProtoReflect.Descriptor instead.
+func (*FinishMatchResponse) Descriptor() ([]byte, []int) {
+	return file_proto_rcenter_v1_rcenter_proto_rawDescGZIP(), []int{11}
+}
+
 var File_proto_rcenter_v1_rcenter_proto protoreflect.FileDescriptor
 
 const file_proto_rcenter_v1_rcenter_proto_rawDesc = "" +
@@ -552,13 +632,18 @@ const file_proto_rcenter_v1_rcenter_proto_rawDesc = "" +
 	"\x06result\x18\x01 \x01(\v2\x17.rcenter.v1.MatchResultR\x06result\"1\n" +
 	"\x12CancelMatchRequest\x12\x1b\n" +
 	"\tplayer_id\x18\x01 \x01(\x03R\bplayerId\"\x15\n" +
-	"\x13CancelMatchResponse2\xee\x02\n" +
+	"\x13CancelMatchResponse\"3\n" +
+	"\x12FinishMatchRequest\x12\x1d\n" +
+	"\n" +
+	"player_ids\x18\x01 \x03(\x03R\tplayerIds\"\x15\n" +
+	"\x13FinishMatchResponse2\xbe\x03\n" +
 	"\x0eRCenterService\x12c\n" +
 	"\x12RegisterBattleNode\x12%.rcenter.v1.RegisterBattleNodeRequest\x1a&.rcenter.v1.RegisterBattleNodeResponse\x12Z\n" +
 	"\x0fListBattleNodes\x12\".rcenter.v1.ListBattleNodesRequest\x1a#.rcenter.v1.ListBattleNodesResponse\x12K\n" +
 	"\n" +
 	"StartMatch\x12\x1d.rcenter.v1.StartMatchRequest\x1a\x1e.rcenter.v1.StartMatchResponse\x12N\n" +
-	"\vCancelMatch\x12\x1e.rcenter.v1.CancelMatchRequest\x1a\x1f.rcenter.v1.CancelMatchResponseB.Z,server/internal/contract/rcenterpb;rcenterpbb\x06proto3"
+	"\vCancelMatch\x12\x1e.rcenter.v1.CancelMatchRequest\x1a\x1f.rcenter.v1.CancelMatchResponse\x12N\n" +
+	"\vFinishMatch\x12\x1e.rcenter.v1.FinishMatchRequest\x1a\x1f.rcenter.v1.FinishMatchResponseB.Z,server/internal/contract/rcenterpb;rcenterpbb\x06proto3"
 
 var (
 	file_proto_rcenter_v1_rcenter_proto_rawDescOnce sync.Once
@@ -572,7 +657,7 @@ func file_proto_rcenter_v1_rcenter_proto_rawDescGZIP() []byte {
 	return file_proto_rcenter_v1_rcenter_proto_rawDescData
 }
 
-var file_proto_rcenter_v1_rcenter_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
+var file_proto_rcenter_v1_rcenter_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
 var file_proto_rcenter_v1_rcenter_proto_goTypes = []any{
 	(*BattleNode)(nil),                 // 0: rcenter.v1.BattleNode
 	(*MatchResult)(nil),                // 1: rcenter.v1.MatchResult
@@ -584,24 +669,28 @@ var file_proto_rcenter_v1_rcenter_proto_goTypes = []any{
 	(*StartMatchResponse)(nil),         // 7: rcenter.v1.StartMatchResponse
 	(*CancelMatchRequest)(nil),         // 8: rcenter.v1.CancelMatchRequest
 	(*CancelMatchResponse)(nil),        // 9: rcenter.v1.CancelMatchResponse
+	(*FinishMatchRequest)(nil),         // 10: rcenter.v1.FinishMatchRequest
+	(*FinishMatchResponse)(nil),        // 11: rcenter.v1.FinishMatchResponse
 }
 var file_proto_rcenter_v1_rcenter_proto_depIdxs = []int32{
-	0, // 0: rcenter.v1.RegisterBattleNodeRequest.node:type_name -> rcenter.v1.BattleNode
-	0, // 1: rcenter.v1.ListBattleNodesResponse.nodes:type_name -> rcenter.v1.BattleNode
-	1, // 2: rcenter.v1.StartMatchResponse.result:type_name -> rcenter.v1.MatchResult
-	2, // 3: rcenter.v1.RCenterService.RegisterBattleNode:input_type -> rcenter.v1.RegisterBattleNodeRequest
-	4, // 4: rcenter.v1.RCenterService.ListBattleNodes:input_type -> rcenter.v1.ListBattleNodesRequest
-	6, // 5: rcenter.v1.RCenterService.StartMatch:input_type -> rcenter.v1.StartMatchRequest
-	8, // 6: rcenter.v1.RCenterService.CancelMatch:input_type -> rcenter.v1.CancelMatchRequest
-	3, // 7: rcenter.v1.RCenterService.RegisterBattleNode:output_type -> rcenter.v1.RegisterBattleNodeResponse
-	5, // 8: rcenter.v1.RCenterService.ListBattleNodes:output_type -> rcenter.v1.ListBattleNodesResponse
-	7, // 9: rcenter.v1.RCenterService.StartMatch:output_type -> rcenter.v1.StartMatchResponse
-	9, // 10: rcenter.v1.RCenterService.CancelMatch:output_type -> rcenter.v1.CancelMatchResponse
-	7, // [7:11] is the sub-list for method output_type
-	3, // [3:7] is the sub-list for method input_type
-	3, // [3:3] is the sub-list for extension type_name
-	3, // [3:3] is the sub-list for extension extendee
-	0, // [0:3] is the sub-list for field type_name
+	0,  // 0: rcenter.v1.RegisterBattleNodeRequest.node:type_name -> rcenter.v1.BattleNode
+	0,  // 1: rcenter.v1.ListBattleNodesResponse.nodes:type_name -> rcenter.v1.BattleNode
+	1,  // 2: rcenter.v1.StartMatchResponse.result:type_name -> rcenter.v1.MatchResult
+	2,  // 3: rcenter.v1.RCenterService.RegisterBattleNode:input_type -> rcenter.v1.RegisterBattleNodeRequest
+	4,  // 4: rcenter.v1.RCenterService.ListBattleNodes:input_type -> rcenter.v1.ListBattleNodesRequest
+	6,  // 5: rcenter.v1.RCenterService.StartMatch:input_type -> rcenter.v1.StartMatchRequest
+	8,  // 6: rcenter.v1.RCenterService.CancelMatch:input_type -> rcenter.v1.CancelMatchRequest
+	10, // 7: rcenter.v1.RCenterService.FinishMatch:input_type -> rcenter.v1.FinishMatchRequest
+	3,  // 8: rcenter.v1.RCenterService.RegisterBattleNode:output_type -> rcenter.v1.RegisterBattleNodeResponse
+	5,  // 9: rcenter.v1.RCenterService.ListBattleNodes:output_type -> rcenter.v1.ListBattleNodesResponse
+	7,  // 10: rcenter.v1.RCenterService.StartMatch:output_type -> rcenter.v1.StartMatchResponse
+	9,  // 11: rcenter.v1.RCenterService.CancelMatch:output_type -> rcenter.v1.CancelMatchResponse
+	11, // 12: rcenter.v1.RCenterService.FinishMatch:output_type -> rcenter.v1.FinishMatchResponse
+	8,  // [8:13] is the sub-list for method output_type
+	3,  // [3:8] is the sub-list for method input_type
+	3,  // [3:3] is the sub-list for extension type_name
+	3,  // [3:3] is the sub-list for extension extendee
+	0,  // [0:3] is the sub-list for field type_name
 }
 
 func init() { file_proto_rcenter_v1_rcenter_proto_init() }
@@ -615,7 +704,7 @@ func file_proto_rcenter_v1_rcenter_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_rcenter_v1_rcenter_proto_rawDesc), len(file_proto_rcenter_v1_rcenter_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   10,
+			NumMessages:   12,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

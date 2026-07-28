@@ -39,6 +39,14 @@ func (c *Client) CancelMatch(ctx context.Context, playerID int64) error {
 	return mapGRPCError(err)
 }
 
+// FinishMatch releases matched players through rcenter gRPC.
+func (c *Client) FinishMatch(ctx context.Context, playerIDs []int64) error {
+	_, err := c.client.FinishMatch(ctx, &rcenterpb.FinishMatchRequest{
+		PlayerIds: playerIDs,
+	})
+	return mapGRPCError(err)
+}
+
 // RegisterBattleNode registers a battle node through rcenter gRPC.
 func (c *Client) RegisterBattleNode(ctx context.Context, node rcenter.BattleNode) error {
 	_, err := c.client.RegisterBattleNode(ctx, &rcenterpb.RegisterBattleNodeRequest{
@@ -82,6 +90,8 @@ func mapGRPCError(err error) error {
 		switch st.Message() {
 		case rcenter.ErrPlayerNotWaiting.Error():
 			return rcenter.ErrPlayerNotWaiting
+		case rcenter.ErrPlayerInGame.Error():
+			return rcenter.ErrPlayerInGame
 		}
 
 	}

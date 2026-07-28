@@ -164,6 +164,45 @@ func TestCancelMatchNotWaitingMapsToFailedPrecondition(t *testing.T) {
 	}
 }
 
+func TestFinishMatchAllowsPlayersToMatchAgain(t *testing.T) {
+	server := NewServer(newTestCenterService())
+	mustRegisterBattleNode(t, server, &rcenterpb.BattleNode{
+		Name:        "battle-1",
+		KcpAddr:     "127.0.0.1:7001",
+		ControlAddr: "127.0.0.1:9101",
+		MaxPlayers:  100,
+	})
+
+	if _, err := server.StartMatch(context.Background(), &rcenterpb.StartMatchRequest{PlayerId: 7}); err != nil {
+		t.Fatalf("first StartMatch returned error: %v", err)
+	}
+	matched, err := server.StartMatch(context.Background(), &rcenterpb.StartMatchRequest{PlayerId: 8})
+	if err != nil {
+		t.Fatalf("second StartMatch returned error: %v", err)
+	}
+
+	if _, err := server.FinishMatch(context.Background(), &rcenterpb.FinishMatchRequest{PlayerIds: matched.GetResult().GetPlayerIds()}); err != nil {
+		t.Fatalf("FinishMatch returned error: %v", err)
+	}
+
+	result, err := server.StartMatch(context.Background(), &rcenterpb.StartMatchRequest{PlayerId: 7})
+	if err != nil {
+		t.Fatalf("StartMatch after FinishMatch returned error: %v", err)
+	}
+	if result.GetResult().GetStatus() != string(rcenter.MatchStatusWaiting) {
+		t.Fatalf("status = %q, want %q", result.GetResult().GetStatus(), rcenter.MatchStatusWaiting)
+	}
+}
+
+func TestFinishMatchInvalidPlayerMapsToInvalidArgument(t *testing.T) {
+	server := NewServer(newTestCenterService())
+
+	_, err := server.FinishMatch(context.Background(), &rcenterpb.FinishMatchRequest{PlayerIds: []int64{7, 0}})
+	if status.Code(err) != codes.InvalidArgument {
+		t.Fatalf("FinishMatch code = %v, want %v", status.Code(err), codes.InvalidArgument)
+	}
+}
+
 func mustRegisterBattleNode(t *testing.T, server *Server, node *rcenterpb.BattleNode) {
 	t.Helper()
 	if _, err := server.RegisterBattleNode(context.Background(), &rcenterpb.RegisterBattleNodeRequest{Node: node}); err != nil {

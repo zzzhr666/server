@@ -15,4 +15,6 @@ var (
 	ErrCreateBattleRoomFailed = errors.New("create BattleRoom failed")
 	// ErrBattleNodeNotRegistered means rcenter has no cached control client for the node.
 	ErrBattleNodeNotRegistered = errors.New("battle node not registered")
+	// ErrPlayerInGame means a player is already assigned to an active battle room.
+	ErrPlayerInGame = errors.New("player already in game")
 )
