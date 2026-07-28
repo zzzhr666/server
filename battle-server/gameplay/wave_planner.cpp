@@ -30,6 +30,7 @@ std::vector<battle::ecs::CreateMonsterConfig> battle::WavePlanner::plan_wave(con
         auto definition = monster_definition(kind);
         for (std::size_t i = 0; i < count; ++i, ++monster_index) {
             auto config = spawn_planner_.monster_spawn(monster_index, total_count);
+            config.kind = definition.kind;
             config.max_health = static_cast<int>(static_cast<float>(definition.base_health) * wave.health_multiplier);
             config.move_speed = definition.base_move_speed * wave.move_speed_multiplier;
             config.attack = definition.base_attack;

@@ -4,15 +4,16 @@
 
 #include "ecs/entity/entity.hpp"
 #include "ecs/time.hpp"
+#include "gameplay/monster_kind.hpp"
 
 namespace battle::ecs {
-
     struct PlayerCommand {
         float move_x;
         float move_y;
         bool attack_requested;
         bool dash_requested;
     };
+
     struct Position {
         float x;
         float y;
@@ -109,4 +110,13 @@ namespace battle::ecs {
         int base_damage;
     };
 
+    struct MonsterIdentity {
+        MonsterKind kind;
+    };
+
+    struct KillEvent {
+        Entity killer;
+        Entity victim;
+        MonsterKind monster_kind;
+    };
 }

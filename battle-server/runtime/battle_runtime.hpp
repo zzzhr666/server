@@ -27,12 +27,19 @@ namespace battle {
 
     using SendPacketCallback = std::function<void(const v1::ServerPacket&, const UdpEndpoint&)>;
 
+    struct FinishedBattle {
+        std::string room_name;
+        std::vector<std::int64_t> player_ids;
+        BattleSettlement settlement;
+    };
 
     class BattleRuntime {
     public:
         using BattleInstanceFactory = std::function<std::unique_ptr<BattleInstance>(BattleInstanceConfig)>;
-        using FinishMatchCallback = std::function<void(const std::vector<std::int64_t>&)>;
-        BattleRuntime(RoomManager& room_manager, SessionManager& session_manager, SendPacketCallback send_packet_callback, BattleInstanceFactory factory = {}, FinishMatchCallback finish_match_callback = {});
+        using FinishMatchCallback = std::function<void(const FinishedBattle&)>;
+        BattleRuntime(RoomManager& room_manager, SessionManager& session_manager,
+                      SendPacketCallback send_packet_callback, BattleInstanceFactory factory = {},
+                      FinishMatchCallback finish_match_callback = {});
         ~BattleRuntime();
 
         void start_room(const std::string& room_name);

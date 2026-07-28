@@ -182,6 +182,7 @@ battle::EndRoomResult battle::BattleRuntime::end_room(const std::string& room_na
     v1::ServerPacket packet;
     std::vector<UdpEndpoint> endpoints;
     std::vector<std::int64_t> player_ids;
+    BattleSettlement settlement;
     {
         std::lock_guard<std::mutex> lock(mutex_);
         auto it = instances_.find(room_name);
@@ -191,6 +192,7 @@ battle::EndRoomResult battle::BattleRuntime::end_room(const std::string& room_na
                 .message = "unable to find instance",
             };
         }
+        settlement = it->second->settlement();
         auto sessions = session_manager_.sessions_in_room(room_name);
 
         player_ids.reserve(sessions.size());
@@ -207,8 +209,13 @@ battle::EndRoomResult battle::BattleRuntime::end_room(const std::string& room_na
 
     session_manager_.remove_room(room_name);
     room_manager_.close_room(room_name);
+    FinishedBattle finished_battle{
+        .room_name = room_name,
+        .player_ids = player_ids,
+        .settlement = settlement,
+    };
     if (finish_match_callback_) {
-        finish_match_callback_(player_ids);
+        finish_match_callback_(finished_battle);
     }
     return {
         .status = EndRoomStatus::OK,

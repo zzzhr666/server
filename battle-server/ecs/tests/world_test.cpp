@@ -408,6 +408,55 @@ TEST(WorldTest, DamageEventDestroysTargetWhenDamageExceedsHealth) {
     EXPECT_TRUE(world.damage_events().empty());
 }
 
+TEST(WorldTest, DamageSystemAddsKillEventWhenPlayerKillsMonster) {
+    World world({damage_system});
+    auto player = world.create_player(default_player_config());
+    auto monster = world.create_monster(default_monster_config());
+
+    world.add_damage_event(DamageEvent{
+        .source = player,
+        .target = monster,
+        .base_damage = 50,
+    });
+    world.tick(DeltaTime{0.0f});
+
+    ASSERT_EQ(world.kill_events().size(), 1);
+    const auto& event = world.kill_events()[0];
+    EXPECT_EQ(event.killer, player);
+    EXPECT_EQ(event.victim, monster);
+    EXPECT_EQ(event.monster_kind, battle::MonsterKind::Melee);
+}
+
+TEST(WorldTest, DamageSystemDoesNotAddKillEventForNonLethalDamage) {
+    World world({damage_system});
+    auto player = world.create_player(default_player_config());
+    auto monster = world.create_monster(default_monster_config());
+
+    world.add_damage_event(DamageEvent{
+        .source = player,
+        .target = monster,
+        .base_damage = 10,
+    });
+    world.tick(DeltaTime{0.0f});
+
+    EXPECT_TRUE(world.kill_events().empty());
+}
+
+TEST(WorldTest, DamageSystemDoesNotAddKillEventForNegativeDamage) {
+    World world({damage_system});
+    auto player = world.create_player(default_player_config());
+    auto monster = world.create_monster(default_monster_config());
+
+    world.add_damage_event(DamageEvent{
+        .source = player,
+        .target = monster,
+        .base_damage = -10,
+    });
+    world.tick(DeltaTime{0.0f});
+
+    EXPECT_TRUE(world.kill_events().empty());
+}
+
 TEST(WorldTest, TickMovesPlayerByInputDirectionAndMoveSpeed) {
     World world;
     auto entity = world.create_player(default_player_config());
@@ -655,6 +704,8 @@ TEST(WorldTest, CreateMonsterReturnsLiveEntityWithInitialTransform) {
     EXPECT_FLOAT_EQ(transform.direction.y, 1.0f);
     EXPECT_FALSE(world.player_controllers().has(entity));
     EXPECT_TRUE(world.monster_controllers().has(entity));
+    ASSERT_TRUE(world.monster_identities().has(entity));
+    EXPECT_EQ(world.monster_identities().get(entity).kind, battle::MonsterKind::Melee);
 }
 
 TEST(WorldTest, CreateMonsterInitializesAttackComponentsFromConfig) {
@@ -985,6 +1036,7 @@ TEST(WorldTest, DestroyMonsterRemovesEntityComponents) {
     EXPECT_FALSE(world.has_entity(entity));
     EXPECT_FALSE(world.transforms().has(entity));
     EXPECT_FALSE(world.monster_controllers().has(entity));
+    EXPECT_FALSE(world.monster_identities().has(entity));
 }
 
 TEST(WorldTest, HasLivingMonstersReflectsMonsterControllerEntities) {

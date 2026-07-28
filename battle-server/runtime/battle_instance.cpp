@@ -1,5 +1,8 @@
 #include "battle_instance.hpp"
 
+#include <algorithm>
+#include <utility>
+
 
 battle::BattleInstance::BattleInstance(BattleInstanceConfig config)
     : room_name_(std::move(config.room_name)),
@@ -23,6 +26,7 @@ battle::BattleInstance::BattleInstance(BattleInstanceConfig config)
         auto entity = world_.create_player(spawn_config);
         player_entities_.emplace(config.player_ids[i], entity);
         entity_players_.emplace(entity, config.player_ids[i]);
+        player_battle_stats_.try_emplace(config.player_ids[i]);
     }
 }
 
@@ -34,6 +38,7 @@ void battle::BattleInstance::tick(ecs::DeltaTime delta_time) {
         spawn_next_wave_();
     }
     world_.tick(delta_time);
+    consume_kill_events_();
     if (!world_.has_living_players()) {
         end_battle_(BattleEndReason::Defeat);
         return;
@@ -78,6 +83,34 @@ battle::BattleWorldSnapshot battle::BattleInstance::snapshot() const {
     return battle_world_snapshot;
 }
 
+battle::BattleSettlement battle::BattleInstance::settlement() const {
+    BattleSettlement result{
+        .reason = end_reason_,
+    };
+    result.players.reserve(player_battle_stats_.size());
+    for (const auto& [player_id, stats] : player_battle_stats_) {
+        PlayerSettlement player{
+            .player_id = player_id,
+            .total_kills = stats.total_kills,
+        };
+        player.kills.reserve(stats.kills_by_kind.size());
+        for (const auto& [monster_kind, count] : stats.kills_by_kind) {
+            player.kills.push_back(MonsterKillCount{
+                .monster_kind = monster_kind,
+                .count = count,
+            });
+        }
+        std::sort(player.kills.begin(), player.kills.end(), [](const MonsterKillCount& lhs, const MonsterKillCount& rhs) {
+            return static_cast<int>(lhs.monster_kind) < static_cast<int>(rhs.monster_kind);
+        });
+        result.players.emplace_back(std::move(player));
+    }
+    std::sort(result.players.begin(), result.players.end(), [](const PlayerSettlement& lhs, const PlayerSettlement& rhs) {
+        return lhs.player_id < rhs.player_id;
+    });
+    return result;
+}
+
 void battle::BattleInstance::spawn_next_wave_() {
     if (current_wave_ >= wave_config_.waves.size()) {
         return;
@@ -92,4 +125,17 @@ void battle::BattleInstance::spawn_next_wave_() {
 void battle::BattleInstance::end_battle_(BattleEndReason reason) {
     state_ = BattleState::Ended;
     end_reason_ = reason;
+}
+
+void battle::BattleInstance::consume_kill_events_() {
+    for (const auto& event : world_.kill_events()) {
+        auto killer_it = entity_players_.find(event.killer);
+        if (killer_it == entity_players_.end()) {
+            continue;
+        }
+        auto& stats = player_battle_stats_[killer_it->second];
+        stats.total_kills++;
+        stats.kills_by_kind[event.monster_kind]++;
+    }
+    world_.clear_kill_events();
 }

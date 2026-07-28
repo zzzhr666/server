@@ -94,14 +94,14 @@ TEST(BattleRuntimeTest, EndRoomBroadcastsGameOverAndCleansRoom) {
     RoomManager room_manager;
     SessionManager session_manager(room_manager);
     std::vector<std::pair<v1::ServerPacket, UdpEndpoint>> sent_packets;
-    std::vector<std::int64_t> finished_player_ids;
+    std::vector<FinishedBattle> finished_battles;
     BattleRuntime runtime(room_manager, session_manager,
                           [&sent_packets](const v1::ServerPacket& packet, const UdpEndpoint& endpoint) {
                               sent_packets.emplace_back(packet, endpoint);
                           },
                           {},
-                          [&finished_player_ids](const std::vector<std::int64_t>& player_ids) {
-                              finished_player_ids = player_ids;
+                          [&finished_battles](const FinishedBattle& finished_battle) {
+                              finished_battles.emplace_back(finished_battle);
                           });
 
     ASSERT_EQ(room_manager.create_room({
@@ -148,13 +148,16 @@ TEST(BattleRuntimeTest, EndRoomBroadcastsGameOverAndCleansRoom) {
                                                }));
     EXPECT_EQ(session_manager.sessions_in_room("room-1").size(), 0);
     EXPECT_EQ(room_manager.active_rooms(), 0);
-    EXPECT_EQ(finished_player_ids, (std::vector<std::int64_t>{1001, 1002}));
+    ASSERT_EQ(finished_battles.size(), 1);
+    EXPECT_EQ(finished_battles[0].room_name, "room-1");
+    EXPECT_EQ(finished_battles[0].player_ids, (std::vector<std::int64_t>{1001, 1002}));
 }
 
 TEST(BattleRuntimeTest, TickBroadcastsGameOverAndCleansRoomWhenInstanceEnds) {
     RoomManager room_manager;
     SessionManager session_manager(room_manager);
     std::vector<std::pair<v1::ServerPacket, UdpEndpoint>> sent_packets;
+    std::vector<FinishedBattle> finished_battles;
     BattleRuntime runtime(
         room_manager, session_manager,
         [&sent_packets](const v1::ServerPacket& packet, const UdpEndpoint& endpoint) {
@@ -185,6 +188,9 @@ TEST(BattleRuntimeTest, TickBroadcastsGameOverAndCleansRoomWhenInstanceEnds) {
                 },
             };
             return std::make_unique<BattleInstance>(std::move(config));
+        },
+        [&finished_battles](const FinishedBattle& finished_battle) {
+            finished_battles.emplace_back(finished_battle);
         });
 
     ASSERT_EQ(room_manager.create_room({
@@ -222,6 +228,17 @@ TEST(BattleRuntimeTest, TickBroadcastsGameOverAndCleansRoomWhenInstanceEnds) {
                                                }));
     EXPECT_EQ(session_manager.sessions_in_room("room-1").size(), 0);
     EXPECT_EQ(room_manager.active_rooms(), 0);
+    ASSERT_EQ(finished_battles.size(), 1);
+    EXPECT_EQ(finished_battles[0].room_name, "room-1");
+    EXPECT_EQ(finished_battles[0].player_ids, (std::vector<std::int64_t>{1001}));
+    EXPECT_EQ(finished_battles[0].settlement.reason, BattleEndReason::Victory);
+    ASSERT_EQ(finished_battles[0].settlement.players.size(), 1);
+    const auto& player = finished_battles[0].settlement.players[0];
+    EXPECT_EQ(player.player_id, 1001);
+    EXPECT_EQ(player.total_kills, 1);
+    ASSERT_EQ(player.kills.size(), 1);
+    EXPECT_EQ(player.kills[0].monster_kind, MonsterKind::Melee);
+    EXPECT_EQ(player.kills[0].count, 1);
 }
 
 TEST(BattleRuntimeTest, EndRoomReturnsNotFoundForMissingRoom) {

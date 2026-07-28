@@ -28,8 +28,8 @@ int main() {
             udp_server.send_packet(packet, endpoint);
         },
         {},
-        [&rcenter_client](const std::vector<std::int64_t>& player_ids) {
-            auto res = rcenter_client.finish_match(player_ids);
+        [&rcenter_client](const battle::FinishedBattle& finished) {
+            auto res = rcenter_client.finish_match(finished.player_ids);
             if (!res.ok) {
                 std::cerr << "failed to finish match in rcenter: " << res.message << std::endl;
             }

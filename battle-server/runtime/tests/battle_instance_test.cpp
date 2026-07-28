@@ -202,6 +202,94 @@ TEST(BattleInstanceTest, TickSpawnsNextWaveAfterPlayerKillsCurrentWave) {
     EXPECT_EQ(snapshot.entities[1].max_health, 100);
 }
 
+TEST(BattleInstanceTest, TickRecordsPlayerKillsByMonsterKind) {
+    BattleInstance instance({
+        .room_name = "room-1",
+        .player_ids = {1001},
+        .wave_config = WaveConfig{
+            .waves = {
+                WaveDefinition{
+                    .groups = {
+                        WaveMonsterGroup{
+                            .kind = MonsterKind::Melee,
+                            .count = 1,
+                        },
+                    },
+                    .health_multiplier = 0.5f,
+                    .move_speed_multiplier = 1.0f,
+                },
+            },
+        },
+        .player_config_override = ecs::CreatePlayerConfig{
+            .max_health = 100,
+            .move_speed = 5.0f,
+            .attack = ecs::AttackDefinition{
+                .damage = 25,
+                .range = 20.0f,
+                .cooldown_seconds = ecs::DeltaTime{0.5f},
+            },
+        },
+    });
+
+    ASSERT_TRUE(instance.receive_input(1001, PlayerInput{
+                                                 .attack_requested = true,
+                                             }));
+    instance.tick(ecs::DeltaTime{0.0f});
+
+    const auto& player_stats = instance.player_battle_stats();
+    ASSERT_TRUE(player_stats.contains(1001));
+    const auto& stats = player_stats.at(1001);
+    EXPECT_EQ(stats.total_kills, 1);
+    ASSERT_TRUE(stats.kills_by_kind.contains(MonsterKind::Melee));
+    EXPECT_EQ(stats.kills_by_kind.at(MonsterKind::Melee), 1);
+}
+
+TEST(BattleInstanceTest, SettlementIncludesEndReasonAndPlayerStats) {
+    BattleInstance instance({
+        .room_name = "room-1",
+        .player_ids = {1001},
+        .wave_config = WaveConfig{
+            .waves = {
+                WaveDefinition{
+                    .groups = {
+                        WaveMonsterGroup{
+                            .kind = MonsterKind::Melee,
+                            .count = 1,
+                        },
+                    },
+                    .health_multiplier = 0.5f,
+                    .move_speed_multiplier = 1.0f,
+                },
+            },
+        },
+        .player_config_override = ecs::CreatePlayerConfig{
+            .max_health = 100,
+            .move_speed = 5.0f,
+            .attack = ecs::AttackDefinition{
+                .damage = 25,
+                .range = 20.0f,
+                .cooldown_seconds = ecs::DeltaTime{0.5f},
+            },
+        },
+    });
+
+    ASSERT_TRUE(instance.receive_input(1001, PlayerInput{
+                                                 .attack_requested = true,
+                                             }));
+    instance.tick(ecs::DeltaTime{0.0f});
+
+    const auto settlement = instance.settlement();
+
+    EXPECT_EQ(settlement.reason, BattleEndReason::Victory);
+    ASSERT_EQ(settlement.players.size(), 1);
+    const auto& player = settlement.players[0];
+    EXPECT_EQ(player.player_id, 1001);
+    EXPECT_EQ(player.total_kills, 1);
+    ASSERT_EQ(player.kills.size(), 1);
+    EXPECT_EQ(player.kills[0].monster_kind, MonsterKind::Melee);
+    EXPECT_EQ(player.kills[0].count, 1);
+}
+
 TEST(BattleInstanceTest, TickEndsWithVictoryWhenWaveConfigIsEmpty) {
     BattleInstance instance({
         .room_name = "room-1",

@@ -25,6 +25,7 @@ namespace battle::ecs {
     };
 
     struct CreateMonsterConfig {
+        battle::MonsterKind kind = battle::MonsterKind::Melee;
         float x_position{};
         float y_position{};
         int max_health{};
@@ -134,6 +135,14 @@ namespace battle::ecs {
             return monster_controllers_;
         }
 
+        [[nodiscard]] const ComponentPool<MonsterIdentity>& monster_identities() const {
+            return monster_identities_;
+        }
+
+        ComponentPool<MonsterIdentity>& monster_identities() {
+            return monster_identities_;
+        }
+
         [[nodiscard]] const ComponentPool<MoveRequest>& move_requests() const {
             return move_requests_;
         }
@@ -214,6 +223,15 @@ namespace battle::ecs {
         std::vector<DamageEvent>& damage_events() {
             return damage_events_;
         }
+        std::vector<KillEvent>& kill_events() {
+            return kill_events_;
+        }
+
+        void clear_kill_events() {
+            kill_events_.clear();
+        }
+
+        void add_kill_event(KillEvent event);
 
         void add_damage_event(DamageEvent event);
 
@@ -249,6 +267,8 @@ namespace battle::ecs {
         ComponentPool<Dash> dashes_;
         ComponentPool<AttackCooldown> attack_cooldowns_;
         ComponentPool<DashCooldown> dash_cooldowns_;
+        ComponentPool<MonsterIdentity> monster_identities_;
+        std::vector<KillEvent> kill_events_;
         std::vector<DamageEvent> damage_events_;
         SystemScheduler system_scheduler_;
         WorldBounds bounds_;

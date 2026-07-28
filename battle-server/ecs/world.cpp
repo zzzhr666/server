@@ -63,6 +63,7 @@ battle::ecs::Entity battle::ecs::World::create_monster(CreateMonsterConfig confi
     attack_definitions_.emplace(entity, config.attack.kind, config.attack.damage, config.attack.range,
                                 config.attack.cooldown_seconds, config.attack.projectile_speed);
     attack_cooldowns_.emplace(entity, DeltaTime{0.0f});
+    monster_identities_.emplace(entity, config.kind);
     return entity;
 }
 
@@ -114,6 +115,10 @@ void battle::ecs::World::tick(DeltaTime delta_time) {
     system_scheduler_.tick(*this, delta_time);
 }
 
+void battle::ecs::World::add_kill_event(KillEvent event) {
+    kill_events_.emplace_back(event);
+}
+
 void battle::ecs::World::add_damage_event(DamageEvent event) {
     damage_events_.emplace_back(event);
 }
@@ -158,5 +163,6 @@ bool battle::ecs::World::destroy_entity(Entity entity) {
     dash_intents_.remove(entity);
     dashes_.remove(entity);
     dash_cooldowns_.remove(entity);
+    monster_identities_.remove(entity);
     return true;
 }

@@ -52,6 +52,7 @@ TEST(WavePlannerTest, PlanWaveAppliesMonsterAttackDefinition) {
     });
 
     ASSERT_EQ(configs.size(), 1);
+    EXPECT_EQ(configs[0].kind, MonsterKind::Melee);
     EXPECT_EQ(configs[0].attack.kind, ecs::AttackKind::Melee);
     EXPECT_EQ(configs[0].attack.damage, 10);
     EXPECT_FLOAT_EQ(configs[0].attack.range, 1.0f);

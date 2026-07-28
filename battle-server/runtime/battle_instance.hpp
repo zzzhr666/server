@@ -10,6 +10,7 @@
 #include "ecs/world.hpp"
 #include "gameplay/spawn_planner.hpp"
 #include "gameplay/wave_planner.hpp"
+#include "gameplay/monster_kind.hpp"
 
 
 namespace battle {
@@ -31,7 +32,7 @@ namespace battle {
         Ended
     };
 
-    enum class BattleEndReason:std::uint8_t {
+    enum class BattleEndReason : std::uint8_t {
         None,
         Victory,
         Defeat,
@@ -53,6 +54,26 @@ namespace battle {
         std::vector<BattleEntitySnapshot> entities;
     };
 
+    struct PlayerBattleStats {
+        int total_kills = 0;
+        std::unordered_map<MonsterKind, int> kills_by_kind;
+    };
+
+    struct MonsterKillCount {
+        MonsterKind monster_kind;
+        int count = 0;
+    };
+
+    struct PlayerSettlement {
+        std::int64_t player_id = 0;
+        int total_kills = 0;
+        std::vector<MonsterKillCount> kills;
+    };
+
+    struct BattleSettlement {
+        std::vector<PlayerSettlement> players;
+        BattleEndReason reason = BattleEndReason::None;
+    };
 
     class BattleInstance {
     public:
@@ -80,10 +101,18 @@ namespace battle {
             return state_ == BattleState::Ended;
         }
 
+        [[nodiscard]] const std::unordered_map<std::int64_t, PlayerBattleStats>& player_battle_stats() const {
+            return player_battle_stats_;
+        }
+
+        [[nodiscard]] BattleSettlement settlement() const;
+
     private:
         void spawn_next_wave_();
 
         void end_battle_(BattleEndReason reason);
+
+        void consume_kill_events_();
 
     private:
         std::string room_name_;
@@ -91,6 +120,7 @@ namespace battle {
         SpawnPlanner spawn_planner_;
         std::unordered_map<std::int64_t, ecs::Entity> player_entities_;
         std::unordered_map<ecs::Entity, std::int64_t> entity_players_;
+        std::unordered_map<std::int64_t, PlayerBattleStats> player_battle_stats_;
         BattleState state_;
         BattleEndReason end_reason_;
         std::size_t current_wave_;

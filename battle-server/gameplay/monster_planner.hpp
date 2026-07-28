@@ -1,11 +1,9 @@
 #pragma once
 
 #include "ecs/component/components.hpp"
+#include "monster_kind.hpp"
 
 namespace battle {
-    enum class MonsterKind {
-        Melee,
-    };
     struct MonsterDefinition {
         MonsterKind kind;
         int base_health;
@@ -14,5 +12,4 @@ namespace battle {
     };
 
     MonsterDefinition monster_definition(MonsterKind kind);
-
 }
