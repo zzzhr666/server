@@ -21,6 +21,55 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+type EntityKind int32
+
+const (
+	EntityKind_ENTITY_KIND_UNSPECIFIED EntityKind = 0
+	EntityKind_ENTITY_KIND_PLAYER      EntityKind = 1
+	EntityKind_ENTITY_KIND_MONSTER     EntityKind = 2
+)
+
+// Enum value maps for EntityKind.
+var (
+	EntityKind_name = map[int32]string{
+		0: "ENTITY_KIND_UNSPECIFIED",
+		1: "ENTITY_KIND_PLAYER",
+		2: "ENTITY_KIND_MONSTER",
+	}
+	EntityKind_value = map[string]int32{
+		"ENTITY_KIND_UNSPECIFIED": 0,
+		"ENTITY_KIND_PLAYER":      1,
+		"ENTITY_KIND_MONSTER":     2,
+	}
+)
+
+func (x EntityKind) Enum() *EntityKind {
+	p := new(EntityKind)
+	*p = x
+	return p
+}
+
+func (x EntityKind) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (EntityKind) Descriptor() protoreflect.EnumDescriptor {
+	return file_proto_battle_v1_session_proto_enumTypes[0].Descriptor()
+}
+
+func (EntityKind) Type() protoreflect.EnumType {
+	return &file_proto_battle_v1_session_proto_enumTypes[0]
+}
+
+func (x EntityKind) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use EntityKind.Descriptor instead.
+func (EntityKind) EnumDescriptor() ([]byte, []int) {
+	return file_proto_battle_v1_session_proto_rawDescGZIP(), []int{0}
+}
+
 type ClientHello struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	RoomName      string                 `protobuf:"bytes,1,opt,name=room_name,json=roomName,proto3" json:"room_name,omitempty"`
@@ -602,6 +651,9 @@ type EntitySnapshot struct {
 	YDirection    float32                `protobuf:"fixed32,5,opt,name=y_direction,json=yDirection,proto3" json:"y_direction,omitempty"`
 	CurrentHealth int32                  `protobuf:"varint,6,opt,name=current_health,json=currentHealth,proto3" json:"current_health,omitempty"`
 	MaxHealth     int32                  `protobuf:"varint,7,opt,name=max_health,json=maxHealth,proto3" json:"max_health,omitempty"`
+	Kind          EntityKind             `protobuf:"varint,8,opt,name=kind,proto3,enum=battle.v1.EntityKind" json:"kind,omitempty"`
+	PlayerId      int64                  `protobuf:"varint,9,opt,name=player_id,json=playerId,proto3" json:"player_id,omitempty"`
+	MonsterKind   string                 `protobuf:"bytes,10,opt,name=monster_kind,json=monsterKind,proto3" json:"monster_kind,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -683,6 +735,27 @@ func (x *EntitySnapshot) GetMaxHealth() int32 {
 		return x.MaxHealth
 	}
 	return 0
+}
+
+func (x *EntitySnapshot) GetKind() EntityKind {
+	if x != nil {
+		return x.Kind
+	}
+	return EntityKind_ENTITY_KIND_UNSPECIFIED
+}
+
+func (x *EntitySnapshot) GetPlayerId() int64 {
+	if x != nil {
+		return x.PlayerId
+	}
+	return 0
+}
+
+func (x *EntitySnapshot) GetMonsterKind() string {
+	if x != nil {
+		return x.MonsterKind
+	}
+	return ""
 }
 
 type WorldSnapshot struct {
@@ -779,7 +852,7 @@ const file_proto_battle_v1_session_proto_rawDesc = "" +
 	"\x01x\x18\x03 \x01(\x02R\x01x\x12\f\n" +
 	"\x01y\x18\x04 \x01(\x02R\x01y\x12)\n" +
 	"\x10attack_requested\x18\x05 \x01(\bR\x0fattackRequested\x12%\n" +
-	"\x0edash_requested\x18\x06 \x01(\bR\rdashRequested\"\xee\x01\n" +
+	"\x0edash_requested\x18\x06 \x01(\bR\rdashRequested\"\xd9\x02\n" +
 	"\x0eEntitySnapshot\x12\x16\n" +
 	"\x06entity\x18\x01 \x01(\rR\x06entity\x12\x1d\n" +
 	"\n" +
@@ -792,10 +865,19 @@ const file_proto_battle_v1_session_proto_rawDesc = "" +
 	"yDirection\x12%\n" +
 	"\x0ecurrent_health\x18\x06 \x01(\x05R\rcurrentHealth\x12\x1d\n" +
 	"\n" +
-	"max_health\x18\a \x01(\x05R\tmaxHealth\"c\n" +
+	"max_health\x18\a \x01(\x05R\tmaxHealth\x12)\n" +
+	"\x04kind\x18\b \x01(\x0e2\x15.battle.v1.EntityKindR\x04kind\x12\x1b\n" +
+	"\tplayer_id\x18\t \x01(\x03R\bplayerId\x12!\n" +
+	"\fmonster_kind\x18\n" +
+	" \x01(\tR\vmonsterKind\"c\n" +
 	"\rWorldSnapshot\x12\x1b\n" +
 	"\troom_name\x18\x01 \x01(\tR\broomName\x125\n" +
-	"\bentities\x18\x02 \x03(\v2\x19.battle.v1.EntitySnapshotR\bentitiesB,Z*server/internal/contract/battlepb;battlepbb\x06proto3"
+	"\bentities\x18\x02 \x03(\v2\x19.battle.v1.EntitySnapshotR\bentities*Z\n" +
+	"\n" +
+	"EntityKind\x12\x1b\n" +
+	"\x17ENTITY_KIND_UNSPECIFIED\x10\x00\x12\x16\n" +
+	"\x12ENTITY_KIND_PLAYER\x10\x01\x12\x17\n" +
+	"\x13ENTITY_KIND_MONSTER\x10\x02B,Z*server/internal/contract/battlepb;battlepbb\x06proto3"
 
 var (
 	file_proto_battle_v1_session_proto_rawDescOnce sync.Once
@@ -809,33 +891,36 @@ func file_proto_battle_v1_session_proto_rawDescGZIP() []byte {
 	return file_proto_battle_v1_session_proto_rawDescData
 }
 
+var file_proto_battle_v1_session_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
 var file_proto_battle_v1_session_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
 var file_proto_battle_v1_session_proto_goTypes = []any{
-	(*ClientHello)(nil),    // 0: battle.v1.ClientHello
-	(*ServerHello)(nil),    // 1: battle.v1.ServerHello
-	(*GameStart)(nil),      // 2: battle.v1.GameStart
-	(*Error)(nil),          // 3: battle.v1.Error
-	(*ClientPacket)(nil),   // 4: battle.v1.ClientPacket
-	(*ServerPacket)(nil),   // 5: battle.v1.ServerPacket
-	(*GameOver)(nil),       // 6: battle.v1.GameOver
-	(*ClientInput)(nil),    // 7: battle.v1.ClientInput
-	(*EntitySnapshot)(nil), // 8: battle.v1.EntitySnapshot
-	(*WorldSnapshot)(nil),  // 9: battle.v1.WorldSnapshot
+	(EntityKind)(0),        // 0: battle.v1.EntityKind
+	(*ClientHello)(nil),    // 1: battle.v1.ClientHello
+	(*ServerHello)(nil),    // 2: battle.v1.ServerHello
+	(*GameStart)(nil),      // 3: battle.v1.GameStart
+	(*Error)(nil),          // 4: battle.v1.Error
+	(*ClientPacket)(nil),   // 5: battle.v1.ClientPacket
+	(*ServerPacket)(nil),   // 6: battle.v1.ServerPacket
+	(*GameOver)(nil),       // 7: battle.v1.GameOver
+	(*ClientInput)(nil),    // 8: battle.v1.ClientInput
+	(*EntitySnapshot)(nil), // 9: battle.v1.EntitySnapshot
+	(*WorldSnapshot)(nil),  // 10: battle.v1.WorldSnapshot
 }
 var file_proto_battle_v1_session_proto_depIdxs = []int32{
-	0, // 0: battle.v1.ClientPacket.hello:type_name -> battle.v1.ClientHello
-	7, // 1: battle.v1.ClientPacket.input:type_name -> battle.v1.ClientInput
-	1, // 2: battle.v1.ServerPacket.hello:type_name -> battle.v1.ServerHello
-	2, // 3: battle.v1.ServerPacket.game_start:type_name -> battle.v1.GameStart
-	3, // 4: battle.v1.ServerPacket.error:type_name -> battle.v1.Error
-	6, // 5: battle.v1.ServerPacket.game_over:type_name -> battle.v1.GameOver
-	9, // 6: battle.v1.ServerPacket.snapshot:type_name -> battle.v1.WorldSnapshot
-	8, // 7: battle.v1.WorldSnapshot.entities:type_name -> battle.v1.EntitySnapshot
-	8, // [8:8] is the sub-list for method output_type
-	8, // [8:8] is the sub-list for method input_type
-	8, // [8:8] is the sub-list for extension type_name
-	8, // [8:8] is the sub-list for extension extendee
-	0, // [0:8] is the sub-list for field type_name
+	1,  // 0: battle.v1.ClientPacket.hello:type_name -> battle.v1.ClientHello
+	8,  // 1: battle.v1.ClientPacket.input:type_name -> battle.v1.ClientInput
+	2,  // 2: battle.v1.ServerPacket.hello:type_name -> battle.v1.ServerHello
+	3,  // 3: battle.v1.ServerPacket.game_start:type_name -> battle.v1.GameStart
+	4,  // 4: battle.v1.ServerPacket.error:type_name -> battle.v1.Error
+	7,  // 5: battle.v1.ServerPacket.game_over:type_name -> battle.v1.GameOver
+	10, // 6: battle.v1.ServerPacket.snapshot:type_name -> battle.v1.WorldSnapshot
+	0,  // 7: battle.v1.EntitySnapshot.kind:type_name -> battle.v1.EntityKind
+	9,  // 8: battle.v1.WorldSnapshot.entities:type_name -> battle.v1.EntitySnapshot
+	9,  // [9:9] is the sub-list for method output_type
+	9,  // [9:9] is the sub-list for method input_type
+	9,  // [9:9] is the sub-list for extension type_name
+	9,  // [9:9] is the sub-list for extension extendee
+	0,  // [0:9] is the sub-list for field type_name
 }
 
 func init() { file_proto_battle_v1_session_proto_init() }
@@ -859,13 +944,14 @@ func file_proto_battle_v1_session_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_battle_v1_session_proto_rawDesc), len(file_proto_battle_v1_session_proto_rawDesc)),
-			NumEnums:      0,
+			NumEnums:      1,
 			NumMessages:   10,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
 		GoTypes:           file_proto_battle_v1_session_proto_goTypes,
 		DependencyIndexes: file_proto_battle_v1_session_proto_depIdxs,
+		EnumInfos:         file_proto_battle_v1_session_proto_enumTypes,
 		MessageInfos:      file_proto_battle_v1_session_proto_msgTypes,
 	}.Build()
 	File_proto_battle_v1_session_proto = out.File

@@ -12,7 +12,7 @@
 #include "system/move_resolve_system.hpp"
 #include "system/move_system.hpp"
 
-battle::ecs::World::World() {
+battle::ecs::World::World(WorldBounds bounds) : bounds_(bounds) {
     damage_events_.reserve(InitialDamageEventCount);
     system_scheduler_.add_system(move_resolve_system);
     system_scheduler_.add_system(monster_ai_system);
@@ -25,29 +25,28 @@ battle::ecs::World::World() {
     system_scheduler_.add_system(death_system);
 }
 
-battle::ecs::World::World(std::initializer_list<sysFunc> functions)
-    : system_scheduler_(functions) {}
+battle::ecs::World::World(std::initializer_list<sysFunc> functions, WorldBounds bounds)
+    : system_scheduler_(functions), bounds_(bounds) {}
 
 battle::ecs::Entity battle::ecs::World::create_player(CreatePlayerConfig config) {
-
     Entity entity = entity_manager_.create();
     transforms_.emplace(entity, Position{.x = config.position.x, .y = config.position.y},
                         Direction{.x = 0.0f, .y = 1.0f});
     velocities_.emplace(entity, 0.0f, 0.0f);
     move_requests_.emplace(entity, 0.0f, 0.0f);
     attack_requests_.emplace(entity, false);
-    dash_requests_.emplace(entity,false);
+    dash_requests_.emplace(entity, false);
     move_intents_.emplace(entity, 0.0f, 0.0f);
     health_.emplace(entity, config.max_health, config.max_health);
     character_stats_.emplace(entity, config.move_speed);
     player_controllers_.emplace(entity);
     attack_intents_.emplace(entity, false, AttackKind::Melee, 0, 0.0f, 0.0f);
-    dashes_.emplace(entity,DeltaTime{1.0f},5.0f);
-    dash_intents_.emplace(entity,false,0.0f);
+    dashes_.emplace(entity, DeltaTime{1.0f}, 5.0f);
+    dash_intents_.emplace(entity, false, 0.0f);
     attack_definitions_.emplace(entity, config.attack.kind, config.attack.damage, config.attack.range,
                                 config.attack.cooldown_seconds, config.attack.projectile_speed);
     attack_cooldowns_.emplace(entity, DeltaTime{0.0f});
-    dash_cooldowns_.emplace(entity,DeltaTime{0.0f});
+    dash_cooldowns_.emplace(entity, DeltaTime{0.0f});
     return entity;
 }
 
@@ -124,8 +123,14 @@ battle::ecs::WorldSnapshot battle::ecs::World::snapshot() const {
     for (const auto entity : entity_manager_.entities()) {
         auto* transform = transforms_.try_get(entity);
         auto* health = health_.try_get(entity);
+        auto kind = EntityKind::Unknown;
+        if (player_controllers_.has(entity)) {
+            kind = EntityKind::Player;
+        } else if (monster_controllers_.has(entity)) {
+            kind = EntityKind::Monster;
+        }
         if (transform && health) {
-            snap_shot.entities.emplace_back(entity, transform->position.x, transform->position.y,
+            snap_shot.entities.emplace_back(entity, kind, transform->position.x, transform->position.y,
                                             transform->direction.x, transform->direction.y,
                                             health->current_health, health->max_health);
         }

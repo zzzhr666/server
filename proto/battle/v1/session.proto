@@ -57,6 +57,12 @@ message ClientInput {
   bool dash_requested = 6;
 }
 
+enum EntityKind {
+  ENTITY_KIND_UNSPECIFIED = 0;
+  ENTITY_KIND_PLAYER = 1;
+  ENTITY_KIND_MONSTER = 2;
+}
+
 message EntitySnapshot{
   uint32 entity = 1;
   float x_position = 2;
@@ -65,6 +71,9 @@ message EntitySnapshot{
   float  y_direction = 5;
   int32 current_health = 6;
   int32 max_health = 7;
+  EntityKind kind = 8;
+  int64 player_id = 9;
+  string monster_kind = 10;
 }
 
 message WorldSnapshot {

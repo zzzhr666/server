@@ -65,8 +65,12 @@ TEST(BattleRuntimeTest, ReceiveInputAndTickBroadcastsMovedSnapshot) {
         ASSERT_EQ(packet.payload_case(), v1::ServerPacket::kSnapshot);
         EXPECT_EQ(packet.snapshot().room_name(), "room-1");
         ASSERT_GE(packet.snapshot().entities_size(), 2);
+        EXPECT_EQ(packet.snapshot().entities(0).kind(), v1::ENTITY_KIND_PLAYER);
+        EXPECT_EQ(packet.snapshot().entities(0).player_id(), 1001);
         EXPECT_FLOAT_EQ(packet.snapshot().entities(0).x_position(), -2.0f);
         EXPECT_FLOAT_EQ(packet.snapshot().entities(0).y_position(), 0.0f);
+        EXPECT_EQ(packet.snapshot().entities(1).kind(), v1::ENTITY_KIND_PLAYER);
+        EXPECT_EQ(packet.snapshot().entities(1).player_id(), 1002);
         EXPECT_FLOAT_EQ(packet.snapshot().entities(1).x_position(), 7.0f);
         EXPECT_FLOAT_EQ(packet.snapshot().entities(1).y_position(), 0.0f);
         EXPECT_FLOAT_EQ(packet.snapshot().entities(1).x_direction(), 1.0f);

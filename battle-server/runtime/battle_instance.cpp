@@ -3,6 +3,7 @@
 
 battle::BattleInstance::BattleInstance(BattleInstanceConfig config)
     : room_name_(std::move(config.room_name)),
+      world_(config.world_bounds),
       state_(BattleState::Running),
       end_reason_(BattleEndReason::None),
       current_wave_(0),
@@ -21,6 +22,7 @@ battle::BattleInstance::BattleInstance(BattleInstanceConfig config)
         }
         auto entity = world_.create_player(spawn_config);
         player_entities_.emplace(config.player_ids[i], entity);
+        entity_players_.emplace(entity, config.player_ids[i]);
     }
 }
 
@@ -58,8 +60,22 @@ bool battle::BattleInstance::receive_input(std::int64_t player_id, PlayerInput i
                                      });
 }
 
-battle::ecs::WorldSnapshot battle::BattleInstance::snapshot() const {
-    return world_.snapshot();
+battle::BattleWorldSnapshot battle::BattleInstance::snapshot() const {
+    auto world_snapshot = world_.snapshot();
+
+    BattleWorldSnapshot battle_world_snapshot;
+    for (auto& snapshot : world_snapshot.entities) {
+        std::int64_t player_id = 0;
+        if (snapshot.kind == ecs::EntityKind::Player) {
+            if (auto it = entity_players_.find(snapshot.entity); it != entity_players_.end()) {
+                player_id = it->second;
+            }
+        }
+        battle_world_snapshot.entities.emplace_back(snapshot.entity, snapshot.kind, player_id, snapshot.x_position,
+                                                    snapshot.y_position, snapshot.x_direction, snapshot.y_direction,
+                                                    snapshot.current_health, snapshot.max_health);
+    }
+    return battle_world_snapshot;
 }
 
 void battle::BattleInstance::spawn_next_wave_() {

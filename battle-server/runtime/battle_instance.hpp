@@ -17,7 +17,13 @@ namespace battle {
         std::string room_name;
         std::vector<std::int64_t> player_ids;
         WaveConfig wave_config = default_wave_config();
-        std::optional<ecs::CreatePlayerConfig> player_config_override; //
+        std::optional<ecs::CreatePlayerConfig> player_config_override;
+        ecs::WorldBounds world_bounds = ecs::WorldBounds{
+            .min_x = -20.0f,
+            .max_x = 20.0f,
+            .min_y = -20.0f,
+            .max_y = 20.0f,
+        };
     };
 
     enum class BattleState : std::uint8_t {
@@ -31,6 +37,21 @@ namespace battle {
         Defeat,
     };
 
+    struct BattleEntitySnapshot {
+        ecs::Entity entity;
+        ecs::EntityKind kind;
+        std::int64_t player_id;
+        float x_position;
+        float y_position;
+        float x_direction;
+        float y_direction;
+        int current_health;
+        int max_health;
+    };
+
+    struct BattleWorldSnapshot {
+        std::vector<BattleEntitySnapshot> entities;
+    };
 
 
     class BattleInstance {
@@ -41,7 +62,7 @@ namespace battle {
 
         bool receive_input(std::int64_t player_id, PlayerInput input);
 
-        [[nodiscard]] ecs::WorldSnapshot snapshot() const;
+        [[nodiscard]] BattleWorldSnapshot snapshot() const;
 
         [[nodiscard]] std::size_t current_wave() const {
             return current_wave_;
@@ -54,9 +75,11 @@ namespace battle {
         [[nodiscard]] BattleEndReason end_reason() const {
             return end_reason_;
         }
+
         [[nodiscard]] bool ended() const {
             return state_ == BattleState::Ended;
         }
+
     private:
         void spawn_next_wave_();
 
@@ -67,6 +90,7 @@ namespace battle {
         ecs::World world_;
         SpawnPlanner spawn_planner_;
         std::unordered_map<std::int64_t, ecs::Entity> player_entities_;
+        std::unordered_map<ecs::Entity, std::int64_t> entity_players_;
         BattleState state_;
         BattleEndReason end_reason_;
         std::size_t current_wave_;

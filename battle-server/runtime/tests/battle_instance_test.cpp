@@ -58,6 +58,32 @@ TEST(BattleInstanceTest, ReceiveInputAndTickMovesOnlyTargetPlayer) {
     EXPECT_FLOAT_EQ(snapshot.entities[1].y_direction, 0.0f);
 }
 
+TEST(BattleInstanceTest, TickClampsPlayerToConfiguredWorldBounds) {
+    BattleInstance instance({
+        .room_name = "room-1",
+        .player_ids = {1001},
+        .wave_config = WaveConfig{},
+        .world_bounds = ecs::WorldBounds{
+            .min_x = -1.0f,
+            .max_x = 1.0f,
+            .min_y = -1.0f,
+            .max_y = 1.0f,
+        },
+    });
+
+    ASSERT_TRUE(instance.receive_input(1001, PlayerInput{
+                                                 .move_x = 1.0f,
+                                                 .move_y = 0.0f,
+                                             }));
+    instance.tick(ecs::DeltaTime{1.0f});
+
+    auto snapshot = instance.snapshot();
+
+    ASSERT_EQ(snapshot.entities.size(), 1);
+    EXPECT_FLOAT_EQ(snapshot.entities[0].x_position, 1.0f);
+    EXPECT_FLOAT_EQ(snapshot.entities[0].y_position, 0.0f);
+}
+
 TEST(BattleInstanceTest, FirstTickSpawnsFirstConfiguredWave) {
     BattleInstance instance({
         .room_name = "room-1",

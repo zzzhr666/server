@@ -25,10 +25,10 @@ namespace battle::ecs {
     };
 
     struct CreateMonsterConfig {
-        float x_position;
-        float y_position;
-        int max_health;
-        float move_speed;
+        float x_position{};
+        float y_position{};
+        int max_health{};
+        float move_speed{};
         AttackDefinition attack{
             .kind = AttackKind::Melee,
             .damage = 10,
@@ -38,8 +38,30 @@ namespace battle::ecs {
         };
     };
 
+    struct WorldBounds {
+        float min_x;
+        float max_x;
+        float min_y;
+        float max_y;
+    };
+
+    constexpr WorldBounds DefaultWorldBounds{
+        .min_x = -1000.0f,
+        .max_x = 1000.0f,
+        .min_y = -1000.0f,
+        .max_y = 1000.0f,
+    };
+
+
+    enum class EntityKind {
+        Unknown,
+        Player,
+        Monster,
+    };
+
     struct EntitySnapshot {
         Entity entity;
+        EntityKind kind;
         float x_position;
         float y_position;
         float x_direction;
@@ -54,9 +76,9 @@ namespace battle::ecs {
 
     class World {
     public:
-        World();
+        explicit World(WorldBounds bounds = DefaultWorldBounds);
 
-        World(std::initializer_list<sysFunc> functions);
+        World(std::initializer_list<sysFunc> functions, WorldBounds bounds = DefaultWorldBounds);
 
         Entity create_player(CreatePlayerConfig config);
 
@@ -199,6 +221,10 @@ namespace battle::ecs {
 
         bool destroy_entity(Entity entity);
 
+        [[nodiscard]] const WorldBounds& world_bounds() const {
+            return bounds_;
+        }
+
     private:
         bool set_move_request_(Entity entity, float x, float y);
 
@@ -225,5 +251,6 @@ namespace battle::ecs {
         ComponentPool<DashCooldown> dash_cooldowns_;
         std::vector<DamageEvent> damage_events_;
         SystemScheduler system_scheduler_;
+        WorldBounds bounds_;
     };
 }

@@ -427,6 +427,34 @@ TEST(WorldTest, TickMovesPlayerByInputDirectionAndMoveSpeed) {
     EXPECT_FLOAT_EQ(transform.direction.y, 0.0f);
 }
 
+TEST(WorldTest, TickClampsPlayerPositionToWorldBounds) {
+    World world(WorldBounds{
+        .min_x = -1.0f,
+        .max_x = 1.0f,
+        .min_y = -1.0f,
+        .max_y = 1.0f,
+    });
+    auto entity = world.create_player(CreatePlayerConfig{
+        .position = Position{.x = 0.0f, .y = 0.0f},
+        .max_health = 100,
+        .move_speed = 5.0f,
+    });
+
+    ASSERT_TRUE(world.set_player_command(entity, PlayerCommand{
+                                                     .move_x = 1.0f,
+                                                     .move_y = 0.0f,
+                                                     .attack_requested = false,
+                                                     .dash_requested = false,
+                                                 }));
+    world.tick(DeltaTime{1.0f});
+
+    const auto& transform = world.transforms().get(entity);
+    EXPECT_FLOAT_EQ(transform.position.x, 1.0f);
+    EXPECT_FLOAT_EQ(transform.position.y, 0.0f);
+    EXPECT_FLOAT_EQ(transform.direction.x, 1.0f);
+    EXPECT_FLOAT_EQ(transform.direction.y, 0.0f);
+}
+
 TEST(WorldTest, TickDashMovesPlayerWithDashSpeedMultiplierOnce) {
     World world;
     auto entity = world.create_player(default_player_config());
@@ -835,6 +863,34 @@ TEST(WorldTest, TickMovesMonsterTowardPlayerUsingMonsterMoveSpeed) {
     EXPECT_FLOAT_EQ(transform.direction.y, 0.0f);
 }
 
+TEST(WorldTest, TickClampsMonsterPositionToWorldBounds) {
+    World world(WorldBounds{
+        .min_x = -1.0f,
+        .max_x = 1.0f,
+        .min_y = -1.0f,
+        .max_y = 1.0f,
+    });
+    world.create_player(CreatePlayerConfig{
+        .position = Position{.x = 10.0f, .y = 0.0f},
+        .max_health = 100,
+        .move_speed = 5.0f,
+    });
+    auto monster = world.create_monster(CreateMonsterConfig{
+        .x_position = 0.0f,
+        .y_position = 0.0f,
+        .max_health = 50,
+        .move_speed = 5.0f,
+    });
+
+    world.tick(DeltaTime{1.0f});
+
+    const auto& transform = world.transforms().get(monster);
+    EXPECT_FLOAT_EQ(transform.position.x, 1.0f);
+    EXPECT_FLOAT_EQ(transform.position.y, 0.0f);
+    EXPECT_FLOAT_EQ(transform.direction.x, 1.0f);
+    EXPECT_FLOAT_EQ(transform.direction.y, 0.0f);
+}
+
 TEST(WorldTest, TickMovesMonsterTowardNearestPlayer) {
     World world;
     world.create_player(CreatePlayerConfig{
@@ -968,6 +1024,7 @@ TEST(WorldTest, SnapshotIncludesMovedPlayerTransformAndHealth) {
     ASSERT_EQ(snapshot.entities.size(), 1);
     const auto& entity_snapshot = snapshot.entities[0];
     EXPECT_EQ(entity_snapshot.entity, entity);
+    EXPECT_EQ(entity_snapshot.kind, EntityKind::Player);
     EXPECT_FLOAT_EQ(entity_snapshot.x_position, 15.0f);
     EXPECT_FLOAT_EQ(entity_snapshot.y_position, 20.0f);
     EXPECT_FLOAT_EQ(entity_snapshot.x_direction, 1.0f);
@@ -986,6 +1043,14 @@ TEST(WorldTest, SnapshotIncludesPlayersAndMonsters) {
     ASSERT_EQ(snapshot.entities.size(), 2);
     EXPECT_TRUE((snapshot.entities[0].entity == player && snapshot.entities[1].entity == monster) ||
                 (snapshot.entities[0].entity == monster && snapshot.entities[1].entity == player));
+    for (const auto& entity_snapshot : snapshot.entities) {
+        if (entity_snapshot.entity == player) {
+            EXPECT_EQ(entity_snapshot.kind, EntityKind::Player);
+        }
+        if (entity_snapshot.entity == monster) {
+            EXPECT_EQ(entity_snapshot.kind, EntityKind::Monster);
+        }
+    }
 }
 
 TEST(WorldTest, SnapshotExcludesDestroyedEntities) {

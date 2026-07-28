@@ -1,8 +1,12 @@
 #include "move_system.hpp"
-#include "ecs/world.hpp"
+
+#include <algorithm>
 #include <cmath>
 
+#include "ecs/world.hpp"
+
 void battle::ecs::move_system(World& world, DeltaTime delta_time) {
+    const auto& bounds = world.world_bounds();
     const float delta_seconds = delta_time.count();
     for (auto entity : world.velocities().entities()) {
         auto velocity = world.velocities().try_get(entity);
@@ -12,6 +16,8 @@ void battle::ecs::move_system(World& world, DeltaTime delta_time) {
         }
         transform->position.x += velocity->x * delta_seconds;
         transform->position.y += velocity->y * delta_seconds;
+        transform->position.x = std::clamp(transform->position.x, bounds.min_x, bounds.max_x);
+        transform->position.y = std::clamp(transform->position.y, bounds.min_y, bounds.max_y);
         float len = std::sqrt(velocity->x * velocity->x + velocity->y * velocity->y);
         if (len < 0.0001f) {
             continue;

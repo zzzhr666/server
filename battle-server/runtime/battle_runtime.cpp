@@ -12,13 +12,27 @@
 #include "session/session_manager.hpp"
 
 namespace {
-    battle::v1::ServerPacket make_snapshot(const std::string& room_name, const battle::ecs::WorldSnapshot& snapshot) {
+    battle::v1::EntityKind to_proto_entity_kind(battle::ecs::EntityKind entity_kind) {
+        switch (entity_kind) {
+        case battle::ecs::EntityKind::Player:
+            return battle::v1::ENTITY_KIND_PLAYER;
+        case battle::ecs::EntityKind::Monster:
+            return battle::v1::ENTITY_KIND_MONSTER;
+        case battle::ecs::EntityKind::Unknown:
+        default:
+            return battle::v1::ENTITY_KIND_UNSPECIFIED;
+        }
+    }
+
+    battle::v1::ServerPacket make_snapshot(const std::string& room_name, const battle::BattleWorldSnapshot& snapshot) {
         battle::v1::ServerPacket packet;
         auto send_pkg = packet.mutable_snapshot();
         send_pkg->set_room_name(room_name);
         for (auto& entity : snapshot.entities) {
             auto entity_snapshot = send_pkg->add_entities();
             entity_snapshot->set_entity(entity.entity);
+            entity_snapshot->set_kind(to_proto_entity_kind(entity.kind));
+            entity_snapshot->set_player_id(entity.player_id);
             entity_snapshot->set_x_position(entity.x_position);
             entity_snapshot->set_y_position(entity.y_position);
             entity_snapshot->set_x_direction(entity.x_direction);
@@ -45,12 +59,14 @@ namespace {
 }
 
 battle::BattleRuntime::BattleRuntime(RoomManager& room_manager, SessionManager& session_manager,
-                                     SendPacketCallback send_packet_callback, BattleInstanceFactory factory, FinishMatchCallback finish_match_callback)
+                                     SendPacketCallback send_packet_callback, BattleInstanceFactory factory,
+                                     FinishMatchCallback finish_match_callback)
     : room_manager_(room_manager), session_manager_(session_manager),
-      send_packet_(std::move(send_packet_callback)), finish_match_callback_(std::move(finish_match_callback)), running_(false), instance_factory_(std::move(factory)) {
+      send_packet_(std::move(send_packet_callback)), finish_match_callback_(std::move(finish_match_callback)),
+      running_(false), instance_factory_(std::move(factory)) {
     if (!instance_factory_) {
         instance_factory_ = [](BattleInstanceConfig config) {
-          return std::make_unique<BattleInstance>(std::move(config));
+            return std::make_unique<BattleInstance>(std::move(config));
         };
     }
 }
@@ -77,7 +93,7 @@ void battle::BattleRuntime::start_room(const std::string& room_name) {
     }
 
     auto instance = instance_factory_(BattleInstanceConfig{
-        .room_name =  room_name,
+        .room_name = room_name,
         .player_ids = player_ids,
     });
 
