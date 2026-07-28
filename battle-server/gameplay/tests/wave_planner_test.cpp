@@ -39,6 +39,26 @@ TEST(WavePlannerTest, PlanWaveAppliesHealthAndMoveSpeedMultipliers) {
     EXPECT_FLOAT_EQ(configs[0].move_speed, 4.5f);
 }
 
+TEST(WavePlannerTest, PlanWaveAppliesMonsterAttackDefinition) {
+    WavePlanner planner;
+
+    auto configs = planner.plan_wave(WaveDefinition{
+        .groups = {
+            WaveMonsterGroup{
+                .kind = MonsterKind::Melee,
+                .count = 1,
+            },
+        },
+    });
+
+    ASSERT_EQ(configs.size(), 1);
+    EXPECT_EQ(configs[0].attack.kind, ecs::AttackKind::Melee);
+    EXPECT_EQ(configs[0].attack.damage, 10);
+    EXPECT_FLOAT_EQ(configs[0].attack.range, 1.0f);
+    EXPECT_FLOAT_EQ(configs[0].attack.cooldown_seconds.count(), 1.0f);
+    EXPECT_FLOAT_EQ(configs[0].attack.projectile_speed, 0.0f);
+}
+
 TEST(WavePlannerTest, DefaultWaveConfigCreatesTenIncreasingWaves) {
     auto config = default_wave_config();
 

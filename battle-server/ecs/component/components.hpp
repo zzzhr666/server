@@ -64,10 +64,17 @@ namespace battle::ecs {
         int max_health;
     };
 
+    enum class AttackKind {
+        Melee,
+        Projectile,
+    };
+
     struct AttackIntent {
         bool active;
+        AttackKind kind;
         int damage;
         float range;
+        float projectile_speed;
     };
 
     struct DashIntent {
@@ -75,10 +82,12 @@ namespace battle::ecs {
         float dash_speed_multiplier;
     };
 
-    struct MeleeAttack {
+    struct AttackDefinition {
+        AttackKind kind;
         int damage;
         float range;
         DeltaTime cooldown_seconds;
+        float projectile_speed;
     };
 
     struct Dash {

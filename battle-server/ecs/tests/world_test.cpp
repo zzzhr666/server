@@ -1,4 +1,6 @@
 #include "ecs/world.hpp"
+#include "ecs/system/damage_system.hpp"
+#include "ecs/system/hit_resolve_system.hpp"
 
 #include <cmath>
 
@@ -58,7 +60,7 @@ TEST(WorldTest, CreatePlayerInitializesAttackComponentsFromConfig) {
         .position = Position{.x = 10.0f, .y = 20.0f},
         .max_health = 100,
         .move_speed = 5.0f,
-        .melee_attack = MeleeAttack{
+        .attack = AttackDefinition{
             .damage = 30,
             .range = 2.0f,
             .cooldown_seconds = DeltaTime{0.75f},
@@ -67,19 +69,20 @@ TEST(WorldTest, CreatePlayerInitializesAttackComponentsFromConfig) {
 
     ASSERT_TRUE(world.attack_intents().has(entity));
     ASSERT_TRUE(world.attack_requests().has(entity));
-    ASSERT_TRUE(world.melee_attacks().has(entity));
+    ASSERT_TRUE(world.attack_definitions().has(entity));
     ASSERT_TRUE(world.attack_cooldowns().has(entity));
 
     const auto& attack_intent = world.attack_intents().get(entity);
-    const auto& melee_attack = world.melee_attacks().get(entity);
+    const auto& attack = world.attack_definitions().get(entity);
     const auto& cooldown = world.attack_cooldowns().get(entity);
     EXPECT_FALSE(attack_intent.active);
     EXPECT_EQ(attack_intent.damage, 0);
     EXPECT_FLOAT_EQ(attack_intent.range, 0.0f);
     EXPECT_FALSE(world.attack_requests().get(entity).requested);
-    EXPECT_EQ(melee_attack.damage, 30);
-    EXPECT_FLOAT_EQ(melee_attack.range, 2.0f);
-    EXPECT_FLOAT_EQ(melee_attack.cooldown_seconds.count(), 0.75f);
+    EXPECT_EQ(attack.kind, AttackKind::Melee);
+    EXPECT_EQ(attack.damage, 30);
+    EXPECT_FLOAT_EQ(attack.range, 2.0f);
+    EXPECT_FLOAT_EQ(attack.cooldown_seconds.count(), 0.75f);
     EXPECT_FLOAT_EQ(cooldown.remaining_seconds.count(), 0.0f);
 }
 
@@ -129,7 +132,7 @@ TEST(WorldTest, TickResolvesAttackRequestIntoAttackIntent) {
         .position = Position{.x = 10.0f, .y = 20.0f},
         .max_health = 100,
         .move_speed = 5.0f,
-        .melee_attack = MeleeAttack{
+        .attack = AttackDefinition{
             .damage = 30,
             .range = 2.0f,
             .cooldown_seconds = DeltaTime{0.75f},
@@ -158,7 +161,7 @@ TEST(WorldTest, TickDoesNotResolveAttackRequestDuringCooldown) {
         .position = Position{.x = 10.0f, .y = 20.0f},
         .max_health = 100,
         .move_speed = 5.0f,
-        .melee_attack = MeleeAttack{
+        .attack = AttackDefinition{
             .damage = 30,
             .range = 2.0f,
             .cooldown_seconds = DeltaTime{0.75f},
@@ -195,7 +198,7 @@ TEST(WorldTest, TickAllowsAttackAfterCooldownExpires) {
         .position = Position{.x = 10.0f, .y = 20.0f},
         .max_health = 100,
         .move_speed = 5.0f,
-        .melee_attack = MeleeAttack{
+        .attack = AttackDefinition{
             .damage = 30,
             .range = 2.0f,
             .cooldown_seconds = DeltaTime{0.75f},
@@ -231,7 +234,7 @@ TEST(WorldTest, TickDamagesMonsterInsideAttackRange) {
         .position = Position{.x = 0.0f, .y = 0.0f},
         .max_health = 100,
         .move_speed = 5.0f,
-        .melee_attack = MeleeAttack{
+        .attack = AttackDefinition{
             .damage = 20,
             .range = 2.0f,
             .cooldown_seconds = DeltaTime{0.5f},
@@ -263,7 +266,7 @@ TEST(WorldTest, TickDoesNotDamageMonsterOutsideAttackRange) {
         .position = Position{.x = 0.0f, .y = 0.0f},
         .max_health = 100,
         .move_speed = 5.0f,
-        .melee_attack = MeleeAttack{
+        .attack = AttackDefinition{
             .damage = 20,
             .range = 2.0f,
             .cooldown_seconds = DeltaTime{0.5f},
@@ -294,7 +297,7 @@ TEST(WorldTest, TickDoesNotDamageOtherPlayers) {
         .position = Position{.x = 0.0f, .y = 0.0f},
         .max_health = 100,
         .move_speed = 5.0f,
-        .melee_attack = MeleeAttack{
+        .attack = AttackDefinition{
             .damage = 20,
             .range = 2.0f,
             .cooldown_seconds = DeltaTime{0.5f},
@@ -304,7 +307,7 @@ TEST(WorldTest, TickDoesNotDamageOtherPlayers) {
         .position = Position{.x = 1.0f, .y = 0.0f},
         .max_health = 100,
         .move_speed = 5.0f,
-        .melee_attack = MeleeAttack{
+        .attack = AttackDefinition{
             .damage = 20,
             .range = 2.0f,
             .cooldown_seconds = DeltaTime{0.5f},
@@ -328,7 +331,7 @@ TEST(WorldTest, TickDestroysMonsterWhenHealthReachesZero) {
         .position = Position{.x = 0.0f, .y = 0.0f},
         .max_health = 100,
         .move_speed = 5.0f,
-        .melee_attack = MeleeAttack{
+        .attack = AttackDefinition{
             .damage = 50,
             .range = 2.0f,
             .cooldown_seconds = DeltaTime{0.5f},
@@ -567,7 +570,7 @@ TEST(WorldTest, DestroyPlayerRemovesEntityAndPlayerComponents) {
     EXPECT_FALSE(world.player_controllers().has(entity));
     EXPECT_FALSE(world.attack_intents().has(entity));
     EXPECT_FALSE(world.attack_requests().has(entity));
-    EXPECT_FALSE(world.melee_attacks().has(entity));
+    EXPECT_FALSE(world.attack_definitions().has(entity));
     EXPECT_FALSE(world.attack_cooldowns().has(entity));
     EXPECT_FALSE(world.move_requests().has(entity));
     EXPECT_FALSE(world.move_intents().has(entity));
@@ -626,6 +629,38 @@ TEST(WorldTest, CreateMonsterReturnsLiveEntityWithInitialTransform) {
     EXPECT_TRUE(world.monster_controllers().has(entity));
 }
 
+TEST(WorldTest, CreateMonsterInitializesAttackComponentsFromConfig) {
+    World world;
+
+    auto entity = world.create_monster(CreateMonsterConfig{
+        .x_position = 30.0f,
+        .y_position = 40.0f,
+        .max_health = 50,
+        .move_speed = 3.0f,
+        .attack = AttackDefinition{
+            .kind = AttackKind::Melee,
+            .damage = 12,
+            .range = 1.25f,
+            .cooldown_seconds = DeltaTime{1.5f},
+            .projectile_speed = 0.0f,
+        },
+    });
+
+    ASSERT_TRUE(world.attack_intents().has(entity));
+    ASSERT_TRUE(world.attack_requests().has(entity));
+    ASSERT_TRUE(world.attack_definitions().has(entity));
+    ASSERT_TRUE(world.attack_cooldowns().has(entity));
+
+    const auto& attack = world.attack_definitions().get(entity);
+    EXPECT_FALSE(world.attack_requests().get(entity).requested);
+    EXPECT_FALSE(world.attack_intents().get(entity).active);
+    EXPECT_EQ(attack.kind, AttackKind::Melee);
+    EXPECT_EQ(attack.damage, 12);
+    EXPECT_FLOAT_EQ(attack.range, 1.25f);
+    EXPECT_FLOAT_EQ(attack.cooldown_seconds.count(), 1.5f);
+    EXPECT_FLOAT_EQ(world.attack_cooldowns().get(entity).remaining_seconds.count(), 0.0f);
+}
+
 TEST(WorldTest, MonsterDoesNotHavePlayerCommand) {
     World world;
     auto entity = world.create_monster(default_monster_config());
@@ -641,6 +676,140 @@ TEST(WorldTest, MonsterDoesNotHavePlayerCommand) {
     const auto& transform = world.transforms().get(entity);
     EXPECT_FLOAT_EQ(transform.position.x, 30.0f);
     EXPECT_FLOAT_EQ(transform.position.y, 40.0f);
+}
+
+TEST(WorldTest, TickMonsterDamagesPlayerInsideAttackRange) {
+    World world;
+    auto player = world.create_player(CreatePlayerConfig{
+        .position = Position{.x = 0.5f, .y = 0.0f},
+        .max_health = 100,
+        .move_speed = 5.0f,
+    });
+    world.create_monster(CreateMonsterConfig{
+        .x_position = 0.0f,
+        .y_position = 0.0f,
+        .max_health = 50,
+        .move_speed = 3.0f,
+        .attack = AttackDefinition{
+            .kind = AttackKind::Melee,
+            .damage = 15,
+            .range = 1.0f,
+            .cooldown_seconds = DeltaTime{1.0f},
+            .projectile_speed = 0.0f,
+        },
+    });
+
+    world.tick(DeltaTime{0.0f});
+
+    ASSERT_TRUE(world.has_entity(player));
+    EXPECT_EQ(world.health().get(player).current_health, 85);
+    EXPECT_TRUE(world.damage_events().empty());
+}
+
+TEST(WorldTest, TickMonsterDoesNotDamagePlayerOutsideAttackRange) {
+    World world;
+    auto player = world.create_player(CreatePlayerConfig{
+        .position = Position{.x = 5.0f, .y = 0.0f},
+        .max_health = 100,
+        .move_speed = 5.0f,
+    });
+    auto monster = world.create_monster(CreateMonsterConfig{
+        .x_position = 0.0f,
+        .y_position = 0.0f,
+        .max_health = 50,
+        .move_speed = 1.0f,
+        .attack = AttackDefinition{
+            .kind = AttackKind::Melee,
+            .damage = 15,
+            .range = 1.0f,
+            .cooldown_seconds = DeltaTime{1.0f},
+            .projectile_speed = 0.0f,
+        },
+    });
+
+    world.tick(DeltaTime{1.0f});
+
+    EXPECT_EQ(world.health().get(player).current_health, 100);
+    EXPECT_FLOAT_EQ(world.transforms().get(monster).position.x, 1.0f);
+    EXPECT_FALSE(world.attack_requests().get(monster).requested);
+}
+
+TEST(WorldTest, TickMonsterAttackUsesCooldown) {
+    World world;
+    auto player = world.create_player(CreatePlayerConfig{
+        .position = Position{.x = 0.5f, .y = 0.0f},
+        .max_health = 100,
+        .move_speed = 5.0f,
+    });
+    auto monster = world.create_monster(CreateMonsterConfig{
+        .x_position = 0.0f,
+        .y_position = 0.0f,
+        .max_health = 50,
+        .move_speed = 3.0f,
+        .attack = AttackDefinition{
+            .kind = AttackKind::Melee,
+            .damage = 15,
+            .range = 1.0f,
+            .cooldown_seconds = DeltaTime{1.0f},
+            .projectile_speed = 0.0f,
+        },
+    });
+
+    world.tick(DeltaTime{0.0f});
+    ASSERT_EQ(world.health().get(player).current_health, 85);
+    EXPECT_FLOAT_EQ(world.attack_cooldowns().get(monster).remaining_seconds.count(), 1.0f);
+
+    world.tick(DeltaTime{0.5f});
+
+    EXPECT_EQ(world.health().get(player).current_health, 85);
+    EXPECT_FLOAT_EQ(world.attack_cooldowns().get(monster).remaining_seconds.count(), 0.5f);
+}
+
+TEST(WorldTest, TickMonsterDoesNotDamageOtherMonsters) {
+    World world;
+    world.create_player(CreatePlayerConfig{
+        .position = Position{.x = 10.0f, .y = 0.0f},
+        .max_health = 100,
+        .move_speed = 5.0f,
+    });
+    auto attacker = world.create_monster(CreateMonsterConfig{
+        .x_position = 0.0f,
+        .y_position = 0.0f,
+        .max_health = 50,
+        .move_speed = 3.0f,
+        .attack = AttackDefinition{
+            .kind = AttackKind::Melee,
+            .damage = 15,
+            .range = 1.0f,
+            .cooldown_seconds = DeltaTime{1.0f},
+            .projectile_speed = 0.0f,
+        },
+    });
+    auto other_monster = world.create_monster(CreateMonsterConfig{
+        .x_position = 0.5f,
+        .y_position = 0.0f,
+        .max_health = 50,
+        .move_speed = 3.0f,
+        .attack = AttackDefinition{
+            .kind = AttackKind::Melee,
+            .damage = 15,
+            .range = 1.0f,
+            .cooldown_seconds = DeltaTime{1.0f},
+            .projectile_speed = 0.0f,
+        },
+    });
+    world.attack_intents().get(attacker) = AttackIntent{
+        .active = true,
+        .kind = AttackKind::Melee,
+        .damage = 15,
+        .range = 1.0f,
+        .projectile_speed = 0.0f,
+    };
+
+    hit_resolve_system(world, DeltaTime{0.0f});
+    damage_system(world, DeltaTime{0.0f});
+
+    EXPECT_EQ(world.health().get(other_monster).current_health, 50);
 }
 
 TEST(WorldTest, TickMovesMonsterTowardPlayerUsingMonsterMoveSpeed) {

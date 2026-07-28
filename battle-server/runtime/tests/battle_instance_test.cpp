@@ -157,7 +157,7 @@ TEST(BattleInstanceTest, TickSpawnsNextWaveAfterPlayerKillsCurrentWave) {
         .player_config_override = ecs::CreatePlayerConfig{
             .max_health = 100,
             .move_speed = 5.0f,
-            .melee_attack = ecs::MeleeAttack{
+            .attack = ecs::AttackDefinition{
                 .damage = 25,
                 .range = 20.0f,
                 .cooldown_seconds = ecs::DeltaTime{0.5f},
@@ -210,7 +210,7 @@ TEST(BattleInstanceTest, TickEndsWithVictoryAfterPlayerKillsFinalWave) {
         .player_config_override = ecs::CreatePlayerConfig{
             .max_health = 100,
             .move_speed = 5.0f,
-            .melee_attack = ecs::MeleeAttack{
+            .attack = ecs::AttackDefinition{
                 .damage = 25,
                 .range = 20.0f,
                 .cooldown_seconds = ecs::DeltaTime{0.5f},

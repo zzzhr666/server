@@ -6,14 +6,17 @@
 #include "ecs/world.hpp"
 
 void battle::ecs::monster_ai_system(World& world, DeltaTime) {
-    constexpr float stop_distance = 0.6f;
-
     for (auto entity : world.monster_controllers().entities()) {
         const auto* transform = world.transforms().try_get(entity);
         auto* velocity = world.velocities().try_get(entity);
         const auto* stats = world.character_stats().try_get(entity);
+        const auto* attack = world.attack_definitions().try_get(entity);
+        auto* attack_request = world.attack_requests().try_get(entity);
         if (!transform || !velocity || !stats) {
             continue;
+        }
+        if (attack_request) {
+            attack_request->requested = false;
         }
 
         const auto x = transform->position.x;
@@ -45,7 +48,14 @@ void battle::ecs::monster_ai_system(World& world, DeltaTime) {
         const auto delta_x = target_position.x - x;
         const auto delta_y = target_position.y - y;
         const auto distance = std::sqrt(delta_x * delta_x + delta_y * delta_y);
-        if (distance <= stop_distance) {
+        const float attack_range = attack ? attack->range : 0.0f;
+        if (attack_request && distance <= attack_range) {
+            velocity->x = 0.0f;
+            velocity->y = 0.0f;
+            attack_request->requested = true;
+            continue;
+        }
+        if (distance == 0.0f) {
             velocity->x = 0.0f;
             velocity->y = 0.0f;
             continue;

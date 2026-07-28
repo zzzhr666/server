@@ -29,6 +29,9 @@ void battle::ecs::hit_resolve_system(World& world, DeltaTime) {
         if (!intent->active) {
             continue;
         }
+        if (intent->kind != battle::ecs::AttackKind::Melee) {
+            continue;
+        }
         for (auto target_entity : world.health().entities()) {
             if (attacker_entity == target_entity) {
                 continue;

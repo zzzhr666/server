@@ -1,5 +1,7 @@
 #pragma once
 
+#include "ecs/component/components.hpp"
+
 namespace battle {
     enum class MonsterKind {
         Melee,
@@ -8,6 +10,7 @@ namespace battle {
         MonsterKind kind;
         int base_health;
         float base_move_speed;
+        ecs::AttackDefinition base_attack;
     };
 
     MonsterDefinition monster_definition(MonsterKind kind);

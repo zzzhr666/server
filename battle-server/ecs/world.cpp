@@ -41,11 +41,11 @@ battle::ecs::Entity battle::ecs::World::create_player(CreatePlayerConfig config)
     health_.emplace(entity, config.max_health, config.max_health);
     character_stats_.emplace(entity, config.move_speed);
     player_controllers_.emplace(entity);
-    attack_intents_.emplace(entity, false, 0, 0.0f);
+    attack_intents_.emplace(entity, false, AttackKind::Melee, 0, 0.0f, 0.0f);
     dashes_.emplace(entity,DeltaTime{1.0f},5.0f);
     dash_intents_.emplace(entity,false,0.0f);
-    melee_attacks_.emplace(entity, config.melee_attack.damage, config.melee_attack.range,
-                           config.melee_attack.cooldown_seconds);
+    attack_definitions_.emplace(entity, config.attack.kind, config.attack.damage, config.attack.range,
+                                config.attack.cooldown_seconds, config.attack.projectile_speed);
     attack_cooldowns_.emplace(entity, DeltaTime{0.0f});
     dash_cooldowns_.emplace(entity,DeltaTime{0.0f});
     return entity;
@@ -59,6 +59,11 @@ battle::ecs::Entity battle::ecs::World::create_monster(CreateMonsterConfig confi
     health_.emplace(entity, config.max_health, config.max_health);
     character_stats_.emplace(entity, config.move_speed);
     monster_controllers_.emplace(entity);
+    attack_requests_.emplace(entity, false);
+    attack_intents_.emplace(entity, false, AttackKind::Melee, 0, 0.0f, 0.0f);
+    attack_definitions_.emplace(entity, config.attack.kind, config.attack.damage, config.attack.range,
+                                config.attack.cooldown_seconds, config.attack.projectile_speed);
+    attack_cooldowns_.emplace(entity, DeltaTime{0.0f});
     return entity;
 }
 
@@ -68,6 +73,9 @@ bool battle::ecs::World::has_entity(Entity entity) const {
 
 
 bool battle::ecs::World::set_player_command(Entity entity, PlayerCommand command) {
+    if (!player_controllers_.has(entity)) {
+        return false;
+    }
     const bool move_set = set_move_request_(entity, command.move_x, command.move_y);
     const bool attack_set = set_attack_request_(entity, command.attack_requested);
     const bool dash_set = set_dash_request_(entity, command.dash_requested);
@@ -140,7 +148,7 @@ bool battle::ecs::World::destroy_entity(Entity entity) {
     monster_controllers_.remove(entity);
     attack_cooldowns_.remove(entity);
     attack_intents_.remove(entity);
-    melee_attacks_.remove(entity);
+    attack_definitions_.remove(entity);
     dash_requests_.remove(entity);
     dash_intents_.remove(entity);
     dashes_.remove(entity);

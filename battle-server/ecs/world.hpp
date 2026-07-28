@@ -15,10 +15,12 @@ namespace battle::ecs {
         Position position{.x = 0.0f, .y = 0.0f};
         int max_health = 100;
         float move_speed = 5.0f;
-        MeleeAttack melee_attack{
+        AttackDefinition attack{
+            .kind = AttackKind::Melee,
             .damage = 25,
             .range = 1.5f,
             .cooldown_seconds = DeltaTime{0.5f},
+            .projectile_speed = 0.0f,
         };
     };
 
@@ -27,6 +29,13 @@ namespace battle::ecs {
         float y_position;
         int max_health;
         float move_speed;
+        AttackDefinition attack{
+            .kind = AttackKind::Melee,
+            .damage = 10,
+            .range = 1.0f,
+            .cooldown_seconds = DeltaTime{1.0f},
+            .projectile_speed = 0.0f,
+        };
     };
 
     struct EntitySnapshot {
@@ -139,8 +148,12 @@ namespace battle::ecs {
             return character_stats_;
         }
 
-        [[nodiscard]] const ComponentPool<MeleeAttack>& melee_attacks() const {
-            return melee_attacks_;
+        [[nodiscard]] const ComponentPool<AttackDefinition>& attack_definitions() const {
+            return attack_definitions_;
+        }
+
+        ComponentPool<AttackDefinition>& attack_definitions() {
+            return attack_definitions_;
         }
 
         [[nodiscard]] const ComponentPool<Dash>& dashes() const {
@@ -206,7 +219,7 @@ namespace battle::ecs {
         ComponentPool<MonsterController> monster_controllers_;
         ComponentPool<AttackIntent> attack_intents_;
         ComponentPool<DashIntent> dash_intents_;
-        ComponentPool<MeleeAttack> melee_attacks_;
+        ComponentPool<AttackDefinition> attack_definitions_;
         ComponentPool<Dash> dashes_;
         ComponentPool<AttackCooldown> attack_cooldowns_;
         ComponentPool<DashCooldown> dash_cooldowns_;
