@@ -85,7 +85,7 @@ sequenceDiagram
 flowchart LR
     udp["UDP packets<br/>hello / move_input"]
     session["SessionManager"]
-    runtime["BattleRuntime<br/>30 tick/s"]
+    runtime["BattleRuntime<br/>60 tick/s"]
     world["ECS World"]
     systems["Systems<br/>monster AI / move / attack / hit / damage / death"]
     snapshot["WorldSnapshot"]

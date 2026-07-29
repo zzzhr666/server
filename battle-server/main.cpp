@@ -33,7 +33,8 @@ int main() {
             if (!res.ok) {
                 std::cerr << "failed to finish match in rcenter: " << res.message << std::endl;
             }
-        }
+        },
+        config.tick_rate
     };
     udp_server.set_runtime(battle_runtime);
 
@@ -60,7 +61,8 @@ int main() {
     std::cerr << "battle control server listening on: " << config.control_addr
         << "\nnode = " << config.node_name
         << "\nkcp bind = " << config.kcp_bind_addr
-        << "\nkcp public = " << config.kcp_addr << std::endl;
+        << "\nkcp public = " << config.kcp_addr
+        << "\ntick rate = " << config.tick_rate << std::endl;
 
     auto register_res = rcenter_client.register_battle_node(config, room_manager);
     if (!register_res.ok) {

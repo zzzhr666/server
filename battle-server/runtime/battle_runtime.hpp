@@ -9,6 +9,7 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <atomic>
+#include <chrono>
 #include <thread>
 
 
@@ -39,7 +40,7 @@ namespace battle {
         using FinishMatchCallback = std::function<void(const FinishedBattle&)>;
         BattleRuntime(RoomManager& room_manager, SessionManager& session_manager,
                       SendPacketCallback send_packet_callback, BattleInstanceFactory factory = {},
-                      FinishMatchCallback finish_match_callback = {});
+                      FinishMatchCallback finish_match_callback = {}, int tick_rate = 60);
         ~BattleRuntime();
 
         void start_room(const std::string& room_name);
@@ -67,5 +68,6 @@ namespace battle {
         std::atomic<bool> running_;
         std::thread tick_thread_;
         BattleInstanceFactory instance_factory_;
+        std::chrono::steady_clock::duration tick_interval_;
     };
 }

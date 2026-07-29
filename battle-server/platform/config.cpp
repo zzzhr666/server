@@ -97,7 +97,7 @@ battle::Config battle::DefaultConfig() {
         .kcp_bind_addr = default_bind_kcp_addr(),
         .kcp_addr = default_public_kcp_addr(),
         .max_players = 100,
-        .tick_rate = 30,
+        .tick_rate = 60,
         .rcenter_addr = "127.0.0.1:9002",
     };
 }

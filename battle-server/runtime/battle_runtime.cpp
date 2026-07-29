@@ -144,14 +144,21 @@ namespace {
         }
         return packet;
     }
+
+    std::chrono::steady_clock::duration tick_interval_from_rate(int tick_rate) {
+        constexpr int DefaultTickRate = 60;
+        const auto effective_tick_rate = tick_rate > 0 ? tick_rate : DefaultTickRate;
+        return std::chrono::duration_cast<std::chrono::steady_clock::duration>(
+            std::chrono::duration<double>(1.0 / static_cast<double>(effective_tick_rate)));
+    }
 }
 
 battle::BattleRuntime::BattleRuntime(RoomManager& room_manager, SessionManager& session_manager,
                                      SendPacketCallback send_packet_callback, BattleInstanceFactory factory,
-                                     FinishMatchCallback finish_match_callback)
+                                     FinishMatchCallback finish_match_callback, int tick_rate)
     : room_manager_(room_manager), session_manager_(session_manager),
       send_packet_(std::move(send_packet_callback)), finish_match_callback_(std::move(finish_match_callback)),
-      running_(false), instance_factory_(std::move(factory)) {
+      running_(false), instance_factory_(std::move(factory)), tick_interval_(tick_interval_from_rate(tick_rate)) {
     if (!instance_factory_) {
         instance_factory_ = [](BattleInstanceConfig config) {
             return std::make_unique<BattleInstance>(std::move(config));
@@ -263,15 +270,19 @@ void battle::BattleRuntime::start() {
     }
     tick_thread_ = std::thread([this]() {
         using clock = std::chrono::steady_clock;
-        constexpr auto tick_interval = std::chrono::milliseconds(50);
         auto last_tick = clock::now();
+        auto next_tick = last_tick;
         while (running_) {
             auto now = clock::now();
             const ecs::DeltaTime delta = now - last_tick;
             last_tick = now;
             tick(delta);
 
-            std::this_thread::sleep_for(tick_interval);
+            next_tick += tick_interval_;
+            std::this_thread::sleep_until(next_tick);
+            if (clock::now() > next_tick + tick_interval_) {
+                next_tick = clock::now();
+            }
         }
     });
 }
