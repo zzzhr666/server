@@ -47,6 +47,7 @@ battle::ecs::Entity battle::ecs::World::create_player(CreatePlayerConfig config)
                                 config.attack.cooldown_seconds, config.attack.projectile_speed);
     attack_cooldowns_.emplace(entity, DeltaTime{0.0f});
     dash_cooldowns_.emplace(entity, DeltaTime{0.0f});
+    player_progress_.emplace(entity, 1, 0, 100, 0);
     return entity;
 }
 
@@ -110,6 +111,27 @@ bool battle::ecs::World::set_dash_request_(Entity entity, bool requested) {
     return true;
 }
 
+void battle::ecs::World::clear_components_(Entity entity) {
+    transforms_.remove(entity);
+    velocities_.remove(entity);
+    character_stats_.remove(entity);
+    move_requests_.remove(entity);
+    attack_requests_.remove(entity);
+    move_intents_.remove(entity);
+    health_.remove(entity);
+    player_controllers_.remove(entity);
+    monster_controllers_.remove(entity);
+    attack_cooldowns_.remove(entity);
+    attack_intents_.remove(entity);
+    attack_definitions_.remove(entity);
+    dash_requests_.remove(entity);
+    dash_intents_.remove(entity);
+    dashes_.remove(entity);
+    dash_cooldowns_.remove(entity);
+    monster_identities_.remove(entity);
+    player_progress_.remove(entity);
+}
+
 
 void battle::ecs::World::tick(DeltaTime delta_time) {
     system_scheduler_.tick(*this, delta_time);
@@ -147,22 +169,6 @@ bool battle::ecs::World::destroy_entity(Entity entity) {
     if (!entity_manager_.destroy(entity)) {
         return false;
     }
-    transforms_.remove(entity);
-    velocities_.remove(entity);
-    character_stats_.remove(entity);
-    move_requests_.remove(entity);
-    attack_requests_.remove(entity);
-    move_intents_.remove(entity);
-    health_.remove(entity);
-    player_controllers_.remove(entity);
-    monster_controllers_.remove(entity);
-    attack_cooldowns_.remove(entity);
-    attack_intents_.remove(entity);
-    attack_definitions_.remove(entity);
-    dash_requests_.remove(entity);
-    dash_intents_.remove(entity);
-    dashes_.remove(entity);
-    dash_cooldowns_.remove(entity);
-    monster_identities_.remove(entity);
+    clear_components_(entity);
     return true;
 }

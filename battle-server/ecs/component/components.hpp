@@ -124,6 +124,7 @@ namespace battle::ecs {
         int level;
         int experience;
         int experience_to_next_level;
+        int pending_upgrade_choices;
     };
 
 }

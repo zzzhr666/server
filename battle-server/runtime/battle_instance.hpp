@@ -1,82 +1,18 @@
 #pragma once
 
 #include <string>
-#include <vector>
 #include <cstdint>
 #include <unordered_map>
 #include <optional>
 
+#include "battle_instance_types.hpp"
 #include "player_input.hpp"
 #include "ecs/world.hpp"
 #include "gameplay/spawn_planner.hpp"
 #include "gameplay/wave_planner.hpp"
 #include "gameplay/monster_kind.hpp"
-#include "gameplay/weapon.hpp"
-
 
 namespace battle {
-    struct BattleInstanceConfig {
-        std::string room_name;
-        std::vector<std::int64_t> player_ids;
-        WaveConfig wave_config = default_wave_config();
-        std::unordered_map<std::int64_t, WeaponKind> player_weapons;
-        std::optional<ecs::CreatePlayerConfig> player_config_override;
-        ecs::WorldBounds world_bounds = ecs::WorldBounds{
-            .min_x = -20.0f,
-            .max_x = 20.0f,
-            .min_y = -20.0f,
-            .max_y = 20.0f,
-        };
-    };
-
-    enum class BattleState : std::uint8_t {
-        Running,
-        Ended
-    };
-
-    enum class BattleEndReason : std::uint8_t {
-        None,
-        Victory,
-        Defeat,
-    };
-
-    struct BattleEntitySnapshot {
-        ecs::Entity entity;
-        ecs::EntityKind kind;
-        std::int64_t player_id;
-        float x_position;
-        float y_position;
-        float x_direction;
-        float y_direction;
-        int current_health;
-        int max_health;
-    };
-
-    struct BattleWorldSnapshot {
-        std::vector<BattleEntitySnapshot> entities;
-    };
-
-    struct PlayerBattleStats {
-        int total_kills = 0;
-        std::unordered_map<MonsterKind, int> kills_by_kind;
-    };
-
-    struct MonsterKillCount {
-        MonsterKind monster_kind;
-        int count = 0;
-    };
-
-    struct PlayerSettlement {
-        std::int64_t player_id = 0;
-        int total_kills = 0;
-        std::vector<MonsterKillCount> kills;
-    };
-
-    struct BattleSettlement {
-        std::vector<PlayerSettlement> players;
-        BattleEndReason reason = BattleEndReason::None;
-    };
-
     class BattleInstance {
     public:
         explicit BattleInstance(BattleInstanceConfig config);
@@ -109,12 +45,46 @@ namespace battle {
 
         [[nodiscard]] BattleSettlement settlement() const;
 
+        [[nodiscard]] BattlePhase phase() const {
+            return phase_;
+        }
+
+        [[nodiscard]] ecs::DeltaTime reward_selection_remaining() const {
+            return reward_selection_.remaining_seconds;
+        }
+
+        [[nodiscard]] std::optional<ecs::PlayerProgress> player_progress(std::int64_t player_id) const;
+
+        [[nodiscard]] std::optional<PlayerBlessingState> player_blessing_state(std::int64_t player_id) const;
+
+        bool choose_blessing(std::int64_t player_id, int option_id);
+
     private:
         void spawn_next_wave_();
 
         void end_battle_(BattleEndReason reason);
 
         void consume_kill_events_();
+
+        void tick_fighting_(ecs::DeltaTime delta_time);
+
+        void tick_reward_selection_(ecs::DeltaTime delta_time);
+
+        void start_reward_selection_();
+
+        void apply_default_upgrade_choices_();
+
+        void start_next_wave_or_end_();
+
+        void grant_experience_(std::int64_t player_id, int experience);
+
+        [[nodiscard]] int experience_for_monster_kind_(MonsterKind kind) const;
+
+        [[nodiscard]] int experience_to_next_level_(int level) const;
+
+        std::vector<BlessingOption> generate_blessing_options_(std::int64_t player_id) const;
+
+        void add_or_level_up_blessing_(PlayerBlessingState& blessing_state, BlessingID blessing_id);
 
     private:
         std::string room_name_;
@@ -128,5 +98,9 @@ namespace battle {
         std::size_t current_wave_;
         WaveConfig wave_config_;
         WavePlanner wave_planner_;
+        BattlePhase phase_;
+        RewardSelectionState reward_selection_;
+        ProgressionConfig progression_config_;
+        std::unordered_map<std::int64_t, PlayerBlessingState> player_blessings_;
     };
 }

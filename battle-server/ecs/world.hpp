@@ -266,6 +266,8 @@ namespace battle::ecs {
 
         bool set_dash_request_(Entity entity, bool requested);
 
+        void clear_components_(Entity entity);
+
         EntityManager entity_manager_;
         ComponentPool<Transform> transforms_;
         ComponentPool<Velocity> velocities_;
