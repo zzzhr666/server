@@ -50,6 +50,14 @@ add_library(battle_ecs
         ecs/system/dash_system.hpp
         ecs/system/dash_resolve_system.cpp
         ecs/system/dash_resolve_system.hpp
+        ecs/system/blessing_helpers.cpp
+        ecs/system/blessing_helpers.hpp
+        ecs/system/damage_modify_system.cpp
+        ecs/system/damage_modify_system.hpp
+        ecs/system/blessing_trigger_system.cpp
+        ecs/system/blessing_trigger_system.hpp
+        ecs/system/status_effect_system.cpp
+        ecs/system/status_effect_system.hpp
 )
 add_library(battle_game
         game/room.cpp

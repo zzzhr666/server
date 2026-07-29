@@ -1,6 +1,10 @@
 #include "ecs/world.hpp"
+#include "ecs/system/blessing_config.hpp"
+#include "ecs/system/blessing_trigger_system.hpp"
+#include "ecs/system/damage_modify_system.hpp"
 #include "ecs/system/damage_system.hpp"
 #include "ecs/system/hit_resolve_system.hpp"
+#include "ecs/system/status_effect_system.hpp"
 
 #include <cmath>
 
@@ -52,6 +56,38 @@ TEST(WorldTest, CreatePlayerAllowsMultiplePlayerControlledEntities) {
     EXPECT_NE(first, second);
     EXPECT_TRUE(world.player_controllers().has(first));
     EXPECT_TRUE(world.player_controllers().has(second));
+}
+
+TEST(WorldTest, CreatePlayerInitializesBlessingInventory) {
+    World world;
+
+    auto entity = world.create_player(default_player_config());
+
+    ASSERT_TRUE(world.blessing_inventories().has(entity));
+    EXPECT_TRUE(world.blessing_inventories().get(entity).blessings.empty());
+}
+
+TEST(WorldTest, CreatePlayerInitializesStatusEffects) {
+    World world;
+
+    auto entity = world.create_player(default_player_config());
+
+    ASSERT_TRUE(world.status_effects().has(entity));
+    EXPECT_TRUE(world.status_effects().get(entity).burns.empty());
+    EXPECT_FALSE(world.status_effects().get(entity).freeze.has_value());
+}
+
+TEST(WorldTest, BlessingConfigScalesEffectValuesWithLevel) {
+    EXPECT_EQ(life_steal_percent(1), 50);
+    EXPECT_EQ(life_steal_percent(2), 60);
+    EXPECT_EQ(critical_strike_percent(1), 25);
+    EXPECT_EQ(critical_strike_percent(3), 35);
+    EXPECT_EQ(burn_damage_per_tick(1), 5);
+    EXPECT_EQ(burn_damage_per_tick(2), 8);
+    EXPECT_FLOAT_EQ(burn_duration_seconds(2).count(), 3.5f);
+    EXPECT_EQ(freeze_percent(1), 50);
+    EXPECT_EQ(freeze_percent(2), 60);
+    EXPECT_FLOAT_EQ(freeze_duration_seconds(2).count(), 2.25f);
 }
 
 TEST(WorldTest, CreatePlayerInitializesAttackComponentsFromConfig) {
@@ -367,11 +403,304 @@ TEST(WorldTest, DamageEventReducesHealthAndIsCleared) {
         .source = player,
         .target = monster,
         .base_damage = 15,
+        .modified_damage = 15,
     });
     world.tick(DeltaTime{0.0f});
 
     ASSERT_TRUE(world.has_entity(monster));
     EXPECT_EQ(world.health().get(monster).current_health, 35);
+    EXPECT_TRUE(world.damage_events().empty());
+}
+
+TEST(WorldTest, DamageEventUsesModifiedDamage) {
+    World world;
+    auto player = world.create_player(default_player_config());
+    auto monster = world.create_monster(default_monster_config());
+
+    world.add_damage_event(DamageEvent{
+        .source = player,
+        .target = monster,
+        .base_damage = 15,
+        .modified_damage = 30,
+    });
+    world.tick(DeltaTime{0.0f});
+
+    ASSERT_TRUE(world.has_entity(monster));
+    EXPECT_EQ(world.health().get(monster).current_health, 20);
+    EXPECT_TRUE(world.damage_events().empty());
+}
+
+TEST(WorldTest, DamageSystemAddsDamageAppliedEventWithActualAmount) {
+    World world({damage_system});
+    auto player = world.create_player(default_player_config());
+    auto monster = world.create_monster(CreateMonsterConfig{
+        .x_position = 30.0f,
+        .y_position = 40.0f,
+        .max_health = 10,
+        .move_speed = 3.0f,
+    });
+
+    world.add_damage_event(DamageEvent{
+        .source = player,
+        .target = monster,
+        .base_damage = 50,
+        .modified_damage = 50,
+        .source_kind = DamageSourceKind::Attack,
+    });
+    world.tick(DeltaTime{0.0f});
+
+    ASSERT_EQ(world.damage_applied_events().size(), 1);
+    const auto& event = world.damage_applied_events()[0];
+    EXPECT_EQ(event.source, player);
+    EXPECT_EQ(event.target, monster);
+    EXPECT_EQ(event.amount, 10);
+    EXPECT_EQ(event.source_kind, DamageSourceKind::Attack);
+}
+
+TEST(WorldTest, LifeStealHealsSourceFromAppliedAttackDamage) {
+    World world({blessing_trigger_system});
+    auto player = world.create_player(default_player_config());
+    auto monster = world.create_monster(default_monster_config());
+    world.health().get(player).current_health = 40;
+    world.blessing_inventories().get(player).blessings.emplace_back(BlessingStack{
+        .blessing_id = BlessingID::LifeSteal,
+        .level = 1,
+    });
+
+    world.add_damage_applied_event(DamageAppliedEvent{
+        .source = player,
+        .target = monster,
+        .amount = 20,
+        .source_kind = DamageSourceKind::Attack,
+    });
+    world.tick(DeltaTime{0.0f});
+
+    EXPECT_EQ(world.health().get(player).current_health, 50);
+    EXPECT_TRUE(world.damage_applied_events().empty());
+}
+
+TEST(WorldTest, LifeStealDoesNotTriggerForNonAttackDamage) {
+    World world({blessing_trigger_system});
+    auto player = world.create_player(default_player_config());
+    auto monster = world.create_monster(default_monster_config());
+    world.health().get(player).current_health = 40;
+    world.blessing_inventories().get(player).blessings.emplace_back(BlessingStack{
+        .blessing_id = BlessingID::LifeSteal,
+        .level = 1,
+    });
+
+    world.add_damage_applied_event(DamageAppliedEvent{
+        .source = player,
+        .target = monster,
+        .amount = 20,
+        .source_kind = DamageSourceKind::Burn,
+    });
+    world.tick(DeltaTime{0.0f});
+
+    EXPECT_EQ(world.health().get(player).current_health, 40);
+    EXPECT_TRUE(world.damage_applied_events().empty());
+}
+
+TEST(WorldTest, LifeStealClampsHealingToMaxHealth) {
+    World world({blessing_trigger_system});
+    auto player = world.create_player(default_player_config());
+    auto monster = world.create_monster(default_monster_config());
+    world.health().get(player).current_health = DefaultPlayerMaxHealth - 5;
+    world.blessing_inventories().get(player).blessings.emplace_back(BlessingStack{
+        .blessing_id = BlessingID::LifeSteal,
+        .level = 1,
+    });
+
+    world.add_damage_applied_event(DamageAppliedEvent{
+        .source = player,
+        .target = monster,
+        .amount = 20,
+        .source_kind = DamageSourceKind::Attack,
+    });
+    world.tick(DeltaTime{0.0f});
+
+    EXPECT_EQ(world.health().get(player).current_health, DefaultPlayerMaxHealth);
+    EXPECT_TRUE(world.damage_applied_events().empty());
+}
+
+TEST(WorldTest, BurnOnHitAddsBurnStatusToTarget) {
+    World world({blessing_trigger_system});
+    auto player = world.create_player(default_player_config());
+    auto monster = world.create_monster(default_monster_config());
+    world.blessing_inventories().get(player).blessings.emplace_back(BlessingStack{
+        .blessing_id = BlessingID::BurnOnHit,
+        .level = 1,
+    });
+
+    world.add_damage_applied_event(DamageAppliedEvent{
+        .source = player,
+        .target = monster,
+        .amount = 20,
+        .source_kind = DamageSourceKind::Attack,
+    });
+    world.tick(DeltaTime{0.0f});
+
+    EXPECT_TRUE(world.status_effects().get(player).burns.empty());
+    const auto& burns = world.status_effects().get(monster).burns;
+    ASSERT_EQ(burns.size(), 1);
+    EXPECT_EQ(burns[0].source, player);
+    EXPECT_FLOAT_EQ(burns[0].remaining_seconds.count(), burn_duration_seconds(1).count());
+    EXPECT_FLOAT_EQ(burns[0].tick_interval_seconds.count(), BurnOnHitConfig::TickIntervalSeconds.count());
+    EXPECT_FLOAT_EQ(burns[0].tick_timer_seconds.count(), 0.0f);
+    EXPECT_EQ(burns[0].damage_per_tick, burn_damage_per_tick(1));
+    EXPECT_TRUE(world.damage_applied_events().empty());
+}
+
+TEST(WorldTest, FreezeOnHitAddsFreezeStatusToTarget) {
+    World world({blessing_trigger_system}, DefaultWorldBounds, 5);
+    auto player = world.create_player(default_player_config());
+    auto monster = world.create_monster(default_monster_config());
+    world.blessing_inventories().get(player).blessings.emplace_back(BlessingStack{
+        .blessing_id = BlessingID::FreezeOnHit,
+        .level = 1,
+    });
+
+    world.add_damage_applied_event(DamageAppliedEvent{
+        .source = player,
+        .target = monster,
+        .amount = 20,
+        .source_kind = DamageSourceKind::Attack,
+    });
+    world.tick(DeltaTime{0.0f});
+
+    EXPECT_FALSE(world.status_effects().get(player).freeze.has_value());
+    const auto& freeze = world.status_effects().get(monster).freeze;
+    ASSERT_TRUE(freeze.has_value());
+    EXPECT_FLOAT_EQ(freeze->remaining_seconds.count(), freeze_duration_seconds(1).count());
+    EXPECT_TRUE(world.status_effects().get(monster).burns.empty());
+    EXPECT_TRUE(world.damage_applied_events().empty());
+}
+
+TEST(WorldTest, BlessingTriggerDoesNotAddStatusWithoutMatchingBlessing) {
+    World world({blessing_trigger_system});
+    auto player = world.create_player(default_player_config());
+    auto monster = world.create_monster(default_monster_config());
+
+    world.add_damage_applied_event(DamageAppliedEvent{
+        .source = player,
+        .target = monster,
+        .amount = 20,
+        .source_kind = DamageSourceKind::Attack,
+    });
+    world.tick(DeltaTime{0.0f});
+
+    EXPECT_TRUE(world.status_effects().get(monster).burns.empty());
+    EXPECT_FALSE(world.status_effects().get(monster).freeze.has_value());
+    EXPECT_TRUE(world.damage_applied_events().empty());
+}
+
+TEST(WorldTest, FreezeOnHitKeepsLongerExistingDuration) {
+    World world({blessing_trigger_system}, DefaultWorldBounds, 5);
+    auto player = world.create_player(default_player_config());
+    auto monster = world.create_monster(default_monster_config());
+    world.blessing_inventories().get(player).blessings.emplace_back(BlessingStack{
+        .blessing_id = BlessingID::FreezeOnHit,
+        .level = 1,
+    });
+    world.status_effects().get(monster).freeze = FreezeStatus{
+        .remaining_seconds = DeltaTime{5.0f},
+    };
+
+    world.add_damage_applied_event(DamageAppliedEvent{
+        .source = player,
+        .target = monster,
+        .amount = 20,
+        .source_kind = DamageSourceKind::Attack,
+    });
+    world.tick(DeltaTime{0.0f});
+
+    ASSERT_TRUE(world.status_effects().get(monster).freeze.has_value());
+    EXPECT_FLOAT_EQ(world.status_effects().get(monster).freeze->remaining_seconds.count(), 5.0f);
+    EXPECT_TRUE(world.damage_applied_events().empty());
+}
+
+TEST(WorldTest, BurnStatusAddsDamageEventAfterTickInterval) {
+    World world({status_effect_system});
+    auto player = world.create_player(default_player_config());
+    auto monster = world.create_monster(default_monster_config());
+    world.status_effects().get(monster).burns.emplace_back(BurnStatus{
+        .source = player,
+        .remaining_seconds = DeltaTime{3.0f},
+        .tick_interval_seconds = DeltaTime{1.0f},
+        .tick_timer_seconds = DeltaTime{0.0f},
+        .damage_per_tick = 5,
+    });
+
+    world.tick(DeltaTime{0.5f});
+
+    EXPECT_TRUE(world.damage_events().empty());
+    ASSERT_EQ(world.status_effects().get(monster).burns.size(), 1);
+    EXPECT_FLOAT_EQ(world.status_effects().get(monster).burns[0].remaining_seconds.count(), 2.5f);
+    EXPECT_FLOAT_EQ(world.status_effects().get(monster).burns[0].tick_timer_seconds.count(), 0.5f);
+
+    world.tick(DeltaTime{0.5f});
+
+    ASSERT_EQ(world.damage_events().size(), 1);
+    const auto& event = world.damage_events()[0];
+    EXPECT_EQ(event.source, player);
+    EXPECT_EQ(event.target, monster);
+    EXPECT_EQ(event.base_damage, 5);
+    EXPECT_EQ(event.modified_damage, 5);
+    EXPECT_EQ(event.source_kind, DamageSourceKind::Burn);
+    ASSERT_EQ(world.status_effects().get(monster).burns.size(), 1);
+    EXPECT_FLOAT_EQ(world.status_effects().get(monster).burns[0].tick_timer_seconds.count(), 0.0f);
+}
+
+TEST(WorldTest, BurnStatusExpiresAndIsRemoved) {
+    World world({status_effect_system});
+    auto player = world.create_player(default_player_config());
+    auto monster = world.create_monster(default_monster_config());
+    world.status_effects().get(monster).burns.emplace_back(BurnStatus{
+        .source = player,
+        .remaining_seconds = DeltaTime{0.25f},
+        .tick_interval_seconds = DeltaTime{1.0f},
+        .tick_timer_seconds = DeltaTime{0.0f},
+        .damage_per_tick = 5,
+    });
+
+    world.tick(DeltaTime{0.25f});
+
+    EXPECT_TRUE(world.status_effects().get(monster).burns.empty());
+    EXPECT_TRUE(world.damage_events().empty());
+}
+
+TEST(WorldTest, FreezeStatusExpiresAndIsRemoved) {
+    World world({status_effect_system});
+    auto monster = world.create_monster(default_monster_config());
+    world.status_effects().get(monster).freeze = FreezeStatus{
+        .remaining_seconds = DeltaTime{0.25f},
+    };
+
+    world.tick(DeltaTime{0.25f});
+
+    EXPECT_FALSE(world.status_effects().get(monster).freeze.has_value());
+}
+
+TEST(WorldTest, CriticalStrikeCanDoubleAttackDamage) {
+    World world({damage_modify_system, damage_system}, DefaultWorldBounds, 5);
+    auto player = world.create_player(default_player_config());
+    auto monster = world.create_monster(default_monster_config());
+    world.blessing_inventories().get(player).blessings.emplace_back(BlessingStack{
+        .blessing_id = BlessingID::CriticalStrike,
+        .level = 1,
+    });
+
+    world.add_damage_event(DamageEvent{
+        .source = player,
+        .target = monster,
+        .base_damage = 15,
+        .modified_damage = 15,
+        .source_kind = DamageSourceKind::Attack,
+    });
+    world.tick(DeltaTime{0.0f});
+
+    ASSERT_TRUE(world.has_entity(monster));
+    EXPECT_EQ(world.health().get(monster).current_health, 20);
     EXPECT_TRUE(world.damage_events().empty());
 }
 
@@ -384,12 +713,14 @@ TEST(WorldTest, DamageEventWithNegativeDamageDoesNotChangeHealth) {
         .source = player,
         .target = monster,
         .base_damage = -10,
+        .modified_damage = -10,
     });
     world.tick(DeltaTime{0.0f});
 
     ASSERT_TRUE(world.has_entity(monster));
     EXPECT_EQ(world.health().get(monster).current_health, 50);
     EXPECT_TRUE(world.damage_events().empty());
+    EXPECT_TRUE(world.damage_applied_events().empty());
 }
 
 TEST(WorldTest, DamageEventDestroysTargetWhenDamageExceedsHealth) {
@@ -401,6 +732,7 @@ TEST(WorldTest, DamageEventDestroysTargetWhenDamageExceedsHealth) {
         .source = player,
         .target = monster,
         .base_damage = 999,
+        .modified_damage = 999,
     });
     world.tick(DeltaTime{0.0f});
 
@@ -417,6 +749,7 @@ TEST(WorldTest, DamageSystemAddsKillEventWhenPlayerKillsMonster) {
         .source = player,
         .target = monster,
         .base_damage = 50,
+        .modified_damage = 50,
     });
     world.tick(DeltaTime{0.0f});
 
@@ -436,6 +769,7 @@ TEST(WorldTest, DamageSystemDoesNotAddKillEventForNonLethalDamage) {
         .source = player,
         .target = monster,
         .base_damage = 10,
+        .modified_damage = 10,
     });
     world.tick(DeltaTime{0.0f});
 
@@ -451,6 +785,7 @@ TEST(WorldTest, DamageSystemDoesNotAddKillEventForNegativeDamage) {
         .source = player,
         .target = monster,
         .base_damage = -10,
+        .modified_damage = -10,
     });
     world.tick(DeltaTime{0.0f});
 
@@ -470,7 +805,7 @@ TEST(WorldTest, TickMovesPlayerByInputDirectionAndMoveSpeed) {
     world.tick(DeltaTime{1.0f});
 
     const auto& transform = world.transforms().get(entity);
-    EXPECT_FLOAT_EQ(transform.position.x, 17.5f);
+    EXPECT_FLOAT_EQ(transform.position.x, 22.0f);
     EXPECT_FLOAT_EQ(transform.position.y, 20.0f);
     EXPECT_FLOAT_EQ(transform.direction.x, 1.0f);
     EXPECT_FLOAT_EQ(transform.direction.y, 0.0f);
@@ -517,7 +852,7 @@ TEST(WorldTest, TickDashMovesPlayerWithDashSpeedMultiplierOnce) {
     world.tick(DeltaTime{1.0f});
 
     const auto& transform = world.transforms().get(entity);
-    EXPECT_FLOAT_EQ(transform.position.x, 85.0f);
+    EXPECT_FLOAT_EQ(transform.position.x, 130.0f);
     EXPECT_FLOAT_EQ(transform.position.y, 20.0f);
     EXPECT_FLOAT_EQ(transform.direction.x, 1.0f);
     EXPECT_FLOAT_EQ(transform.direction.y, 0.0f);
@@ -546,7 +881,7 @@ TEST(WorldTest, TickDoesNotDashAgainDuringCooldown) {
     world.tick(DeltaTime{0.5f});
 
     const auto& transform = world.transforms().get(entity);
-    EXPECT_FLOAT_EQ(transform.position.x, 88.75f);
+    EXPECT_FLOAT_EQ(transform.position.x, 136.0f);
     EXPECT_FLOAT_EQ(transform.position.y, 20.0f);
     EXPECT_FALSE(world.dash_requests().get(entity).requested);
     EXPECT_FLOAT_EQ(world.dash_cooldowns().get(entity).remaining_seconds.count(), 0.5f);
@@ -565,7 +900,7 @@ TEST(WorldTest, TickUsesDeltaSecondsOnce) {
     world.tick(DeltaTime{0.5f});
 
     const auto& transform = world.transforms().get(entity);
-    EXPECT_FLOAT_EQ(transform.position.x, 13.75f);
+    EXPECT_FLOAT_EQ(transform.position.x, 16.0f);
     EXPECT_FLOAT_EQ(transform.position.y, 20.0f);
 }
 
@@ -582,7 +917,7 @@ TEST(WorldTest, TickMovesPlayerInNegativeInputDirection) {
     world.tick(DeltaTime{1.0f});
 
     const auto& transform = world.transforms().get(entity);
-    EXPECT_FLOAT_EQ(transform.position.x, 2.5f);
+    EXPECT_FLOAT_EQ(transform.position.x, -2.0f);
     EXPECT_FLOAT_EQ(transform.position.y, 20.0f);
     EXPECT_FLOAT_EQ(transform.direction.x, -1.0f);
     EXPECT_FLOAT_EQ(transform.direction.y, 0.0f);
@@ -628,7 +963,7 @@ TEST(WorldTest, TickWithZeroMoveIntentDoesNotMoveOrChangeDirection) {
     world.tick(DeltaTime{1.0f});
 
     const auto& transform = world.transforms().get(entity);
-    EXPECT_FLOAT_EQ(transform.position.x, 17.5f);
+    EXPECT_FLOAT_EQ(transform.position.x, 22.0f);
     EXPECT_FLOAT_EQ(transform.position.y, 20.0f);
     EXPECT_FLOAT_EQ(transform.direction.x, 1.0f);
     EXPECT_FLOAT_EQ(transform.direction.y, 0.0f);
@@ -655,11 +990,14 @@ TEST(WorldTest, DestroyPlayerRemovesEntityAndPlayerComponents) {
     EXPECT_FALSE(world.dash_intents().has(entity));
     EXPECT_FALSE(world.dashes().has(entity));
     EXPECT_FALSE(world.dash_cooldowns().has(entity));
+    EXPECT_FALSE(world.player_progress().has(entity));
+    EXPECT_FALSE(world.blessing_inventories().has(entity));
+    EXPECT_FALSE(world.status_effects().has(entity));
     EXPECT_FALSE(world.set_player_command(entity, PlayerCommand{
                                                       .move_x = 1.0f,
                                                       .move_y = 0.0f,
                                                       .attack_requested = false,
-                                                     .dash_requested = false,
+                                                      .dash_requested = false,
                                                   }));
 }
 
@@ -706,6 +1044,16 @@ TEST(WorldTest, CreateMonsterReturnsLiveEntityWithInitialTransform) {
     EXPECT_TRUE(world.monster_controllers().has(entity));
     ASSERT_TRUE(world.monster_identities().has(entity));
     EXPECT_EQ(world.monster_identities().get(entity).kind, battle::MonsterKind::Melee);
+}
+
+TEST(WorldTest, CreateMonsterInitializesStatusEffects) {
+    World world;
+
+    auto entity = world.create_monster(default_monster_config());
+
+    ASSERT_TRUE(world.status_effects().has(entity));
+    EXPECT_TRUE(world.status_effects().get(entity).burns.empty());
+    EXPECT_FALSE(world.status_effects().get(entity).freeze.has_value());
 }
 
 TEST(WorldTest, CreateMonsterInitializesAttackComponentsFromConfig) {
@@ -914,6 +1262,89 @@ TEST(WorldTest, TickMovesMonsterTowardPlayerUsingMonsterMoveSpeed) {
     EXPECT_FLOAT_EQ(transform.direction.y, 0.0f);
 }
 
+TEST(WorldTest, TickFrozenMonsterDoesNotMoveTowardPlayer) {
+    World world;
+    world.create_player(CreatePlayerConfig{
+        .position = Position{.x = 10.0f, .y = 0.0f},
+        .max_health = 100,
+        .move_speed = 5.0f,
+    });
+    auto monster = world.create_monster(CreateMonsterConfig{
+        .x_position = 0.0f,
+        .y_position = 0.0f,
+        .max_health = 50,
+        .move_speed = 3.0f,
+    });
+    world.status_effects().get(monster).freeze = FreezeStatus{
+        .remaining_seconds = DeltaTime{2.0f},
+    };
+
+    world.tick(DeltaTime{1.0f});
+
+    const auto& transform = world.transforms().get(monster);
+    EXPECT_FLOAT_EQ(transform.position.x, 0.0f);
+    EXPECT_FLOAT_EQ(transform.position.y, 0.0f);
+    EXPECT_FLOAT_EQ(world.velocities().get(monster).x, 0.0f);
+    EXPECT_FLOAT_EQ(world.velocities().get(monster).y, 0.0f);
+    ASSERT_TRUE(world.status_effects().get(monster).freeze.has_value());
+    EXPECT_FLOAT_EQ(world.status_effects().get(monster).freeze->remaining_seconds.count(), 1.0f);
+}
+
+TEST(WorldTest, TickFrozenMonsterDoesNotDamagePlayerInsideAttackRange) {
+    World world;
+    auto player = world.create_player(CreatePlayerConfig{
+        .position = Position{.x = 0.5f, .y = 0.0f},
+        .max_health = 100,
+        .move_speed = 5.0f,
+    });
+    auto monster = world.create_monster(CreateMonsterConfig{
+        .x_position = 0.0f,
+        .y_position = 0.0f,
+        .max_health = 50,
+        .move_speed = 3.0f,
+        .attack = AttackDefinition{
+            .kind = AttackKind::Melee,
+            .damage = 15,
+            .range = 1.0f,
+            .cooldown_seconds = DeltaTime{1.0f},
+            .projectile_speed = 0.0f,
+        },
+    });
+    world.status_effects().get(monster).freeze = FreezeStatus{
+        .remaining_seconds = DeltaTime{2.0f},
+    };
+
+    world.tick(DeltaTime{0.0f});
+
+    EXPECT_EQ(world.health().get(player).current_health, 100);
+    EXPECT_FALSE(world.attack_requests().get(monster).requested);
+    EXPECT_FALSE(world.attack_intents().get(monster).active);
+}
+
+TEST(WorldTest, TickMonsterMovesAfterFreezeExpires) {
+    World world;
+    world.create_player(CreatePlayerConfig{
+        .position = Position{.x = 10.0f, .y = 0.0f},
+        .max_health = 100,
+        .move_speed = 5.0f,
+    });
+    auto monster = world.create_monster(CreateMonsterConfig{
+        .x_position = 0.0f,
+        .y_position = 0.0f,
+        .max_health = 50,
+        .move_speed = 3.0f,
+    });
+    world.status_effects().get(monster).freeze = FreezeStatus{
+        .remaining_seconds = DeltaTime{0.5f},
+    };
+
+    world.tick(DeltaTime{1.0f});
+
+    EXPECT_FALSE(world.status_effects().get(monster).freeze.has_value());
+    EXPECT_FLOAT_EQ(world.transforms().get(monster).position.x, 3.0f);
+    EXPECT_FLOAT_EQ(world.transforms().get(monster).position.y, 0.0f);
+}
+
 TEST(WorldTest, TickClampsMonsterPositionToWorldBounds) {
     World world(WorldBounds{
         .min_x = -1.0f,
@@ -1037,6 +1468,7 @@ TEST(WorldTest, DestroyMonsterRemovesEntityComponents) {
     EXPECT_FALSE(world.transforms().has(entity));
     EXPECT_FALSE(world.monster_controllers().has(entity));
     EXPECT_FALSE(world.monster_identities().has(entity));
+    EXPECT_FALSE(world.status_effects().has(entity));
 }
 
 TEST(WorldTest, HasLivingMonstersReflectsMonsterControllerEntities) {
@@ -1077,12 +1509,12 @@ TEST(WorldTest, SnapshotIncludesMovedPlayerTransformAndHealth) {
     const auto& entity_snapshot = snapshot.entities[0];
     EXPECT_EQ(entity_snapshot.entity, entity);
     EXPECT_EQ(entity_snapshot.kind, EntityKind::Player);
-    EXPECT_FLOAT_EQ(entity_snapshot.x_position, 17.5f);
+    EXPECT_FLOAT_EQ(entity_snapshot.x_position, 22.0f);
     EXPECT_FLOAT_EQ(entity_snapshot.y_position, 20.0f);
     EXPECT_FLOAT_EQ(entity_snapshot.x_direction, 1.0f);
     EXPECT_FLOAT_EQ(entity_snapshot.y_direction, 0.0f);
-    EXPECT_EQ(entity_snapshot.current_health, 100);
-    EXPECT_EQ(entity_snapshot.max_health, 100);
+    EXPECT_EQ(entity_snapshot.current_health, DefaultPlayerMaxHealth);
+    EXPECT_EQ(entity_snapshot.max_health, DefaultPlayerMaxHealth);
 }
 
 TEST(WorldTest, SnapshotIncludesPlayersAndMonsters) {

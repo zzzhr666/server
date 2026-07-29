@@ -18,6 +18,12 @@ void battle::ecs::monster_ai_system(World& world, DeltaTime) {
         if (attack_request) {
             attack_request->requested = false;
         }
+        const auto status_effects = world.status_effects().try_get(entity);
+        if (status_effects && status_effects->freeze.has_value()) {
+            velocity->x = 0.0f;
+            velocity->y = 0.0f;
+            continue;
+        }
 
         const auto x = transform->position.x;
         const auto y = transform->position.y;

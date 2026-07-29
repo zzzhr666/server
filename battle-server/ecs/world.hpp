@@ -1,5 +1,7 @@
 #pragma once
 
+#include <random>
+
 #include "component/component_pool.hpp"
 #include "entity/entity.hpp"
 #include "component/components.hpp"
@@ -10,11 +12,11 @@
 
 namespace battle::ecs {
     constexpr std::size_t InitialDamageEventCount = 256;
-    constexpr int DefaultPlayerMaxHealth = 100;
-    constexpr float DefaultPlayerMoveSpeed = 7.5f;
-    constexpr int DefaultPlayerAttackDamage = 30;
-    constexpr float DefaultPlayerAttackRange = 1.5f;
-    constexpr DeltaTime DefaultPlayerAttackCooldown{0.4f};
+    constexpr int DefaultPlayerMaxHealth = 1000;
+    constexpr float DefaultPlayerMoveSpeed = 12.0f;
+    constexpr int DefaultPlayerAttackDamage = 150;
+    constexpr float DefaultPlayerAttackRange = 3.0f;
+    constexpr DeltaTime DefaultPlayerAttackCooldown{0.15f};
     constexpr float DefaultPlayerDashSpeedMultiplier = 10.0f;
     constexpr DeltaTime DefaultPlayerDashCooldown{1.0f};
 
@@ -84,13 +86,18 @@ namespace battle::ecs {
 
     class World {
     public:
-        explicit World(WorldBounds bounds = DefaultWorldBounds);
+        explicit World(WorldBounds bounds = DefaultWorldBounds, std::uint32_t random_seed = std::random_device{}());
 
-        World(std::initializer_list<sysFunc> functions, WorldBounds bounds = DefaultWorldBounds);
+        World(std::initializer_list<sysFunc> functions, WorldBounds bounds = DefaultWorldBounds,
+              std::uint32_t random_seed = std::random_device{}());
 
         Entity create_player(CreatePlayerConfig config);
 
         Entity create_monster(CreateMonsterConfig config);
+
+        int random_percent() {
+            return percent_distribution_(random_engine_);
+        }
 
         [[nodiscard]] bool has_entity(Entity entity) const;
 
@@ -235,6 +242,14 @@ namespace battle::ecs {
             return player_progress_;
         }
 
+        [[nodiscard]] const ComponentPool<BlessingInventory>& blessing_inventories() const {
+            return blessings_inventories_;
+        }
+
+        ComponentPool<BlessingInventory>& blessing_inventories() {
+            return blessings_inventories_;
+        }
+
         std::vector<DamageEvent>& damage_events() {
             return damage_events_;
         }
@@ -243,13 +258,27 @@ namespace battle::ecs {
             return kill_events_;
         }
 
+        std::vector<DamageAppliedEvent>& damage_applied_events() {
+            return damage_applied_events_;
+        }
+
         void clear_kill_events() {
             kill_events_.clear();
+        }
+
+        void clear_damage_applied_events() {
+            damage_applied_events_.clear();
+        }
+
+        void clear_damage_events() {
+            damage_events_.clear();
         }
 
         void add_kill_event(KillEvent event);
 
         void add_damage_event(DamageEvent event);
+
+        void add_damage_applied_event(DamageAppliedEvent event);
 
         [[nodiscard]] WorldSnapshot snapshot() const;
 
@@ -257,6 +286,14 @@ namespace battle::ecs {
 
         [[nodiscard]] const WorldBounds& world_bounds() const {
             return bounds_;
+        }
+
+        ComponentPool<StatusEffects>& status_effects() {
+            return status_effects_;
+        }
+
+        [[nodiscard]] const ComponentPool<StatusEffects>& status_effects() const {
+            return status_effects_;
         }
 
     private:
@@ -269,6 +306,7 @@ namespace battle::ecs {
         void clear_components_(Entity entity);
 
         EntityManager entity_manager_;
+
         ComponentPool<Transform> transforms_;
         ComponentPool<Velocity> velocities_;
         ComponentPool<Health> health_;
@@ -287,9 +325,16 @@ namespace battle::ecs {
         ComponentPool<DashCooldown> dash_cooldowns_;
         ComponentPool<MonsterIdentity> monster_identities_;
         ComponentPool<PlayerProgress> player_progress_;
+        ComponentPool<BlessingInventory> blessings_inventories_;
+        ComponentPool<StatusEffects> status_effects_;
+
         std::vector<KillEvent> kill_events_;
         std::vector<DamageEvent> damage_events_;
+        std::vector<DamageAppliedEvent> damage_applied_events_;
+
         SystemScheduler system_scheduler_;
         WorldBounds bounds_;
+        std::mt19937 random_engine_;
+        std::uniform_int_distribution<int> percent_distribution_;
     };
 }

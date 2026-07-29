@@ -3,6 +3,8 @@
 #include <cmath>
 
 #include "system/attack_resolve_system.hpp"
+#include "system/blessing_trigger_system.hpp"
+#include "system/damage_modify_system.hpp"
 #include "system/damage_system.hpp"
 #include "system/dash_resolve_system.hpp"
 #include "system/dash_system.hpp"
@@ -11,22 +13,27 @@
 #include "system/monster_ai_system.hpp"
 #include "system/move_resolve_system.hpp"
 #include "system/move_system.hpp"
+#include "system/status_effect_system.hpp"
 
-battle::ecs::World::World(WorldBounds bounds) : bounds_(bounds) {
+battle::ecs::World::World(WorldBounds bounds, std::uint32_t random_seed)
+    : bounds_(bounds), random_engine_(random_seed), percent_distribution_(1, 100) {
     damage_events_.reserve(InitialDamageEventCount);
     system_scheduler_.add_system(move_resolve_system);
+    system_scheduler_.add_system(status_effect_system);
     system_scheduler_.add_system(monster_ai_system);
     system_scheduler_.add_system(dash_resolve_system);
     system_scheduler_.add_system(dash_system);
     system_scheduler_.add_system(move_system);
     system_scheduler_.add_system(attack_resolve_system);
     system_scheduler_.add_system(hit_resolve_system);
+    system_scheduler_.add_system(damage_modify_system);
     system_scheduler_.add_system(damage_system);
+    system_scheduler_.add_system(blessing_trigger_system);
     system_scheduler_.add_system(death_system);
 }
 
-battle::ecs::World::World(std::initializer_list<sysFunc> functions, WorldBounds bounds)
-    : system_scheduler_(functions), bounds_(bounds) {}
+battle::ecs::World::World(std::initializer_list<sysFunc> functions, WorldBounds bounds, std::uint32_t random_seed)
+    : system_scheduler_(functions), bounds_(bounds), random_engine_(random_seed), percent_distribution_(1, 100) {}
 
 battle::ecs::Entity battle::ecs::World::create_player(CreatePlayerConfig config) {
     Entity entity = entity_manager_.create();
@@ -48,6 +55,8 @@ battle::ecs::Entity battle::ecs::World::create_player(CreatePlayerConfig config)
     attack_cooldowns_.emplace(entity, DeltaTime{0.0f});
     dash_cooldowns_.emplace(entity, DeltaTime{0.0f});
     player_progress_.emplace(entity, 1, 0, 100, 0);
+    blessings_inventories_.emplace(entity);
+    status_effects_.emplace(entity);
     return entity;
 }
 
@@ -65,6 +74,7 @@ battle::ecs::Entity battle::ecs::World::create_monster(CreateMonsterConfig confi
                                 config.attack.cooldown_seconds, config.attack.projectile_speed);
     attack_cooldowns_.emplace(entity, DeltaTime{0.0f});
     monster_identities_.emplace(entity, config.kind);
+    status_effects_.emplace(entity);
     return entity;
 }
 
@@ -130,6 +140,8 @@ void battle::ecs::World::clear_components_(Entity entity) {
     dash_cooldowns_.remove(entity);
     monster_identities_.remove(entity);
     player_progress_.remove(entity);
+    blessings_inventories_.remove(entity);
+    status_effects_.remove(entity);
 }
 
 
@@ -143,6 +155,10 @@ void battle::ecs::World::add_kill_event(KillEvent event) {
 
 void battle::ecs::World::add_damage_event(DamageEvent event) {
     damage_events_.emplace_back(event);
+}
+
+void battle::ecs::World::add_damage_applied_event(DamageAppliedEvent event) {
+    damage_applied_events().emplace_back(event);
 }
 
 battle::ecs::WorldSnapshot battle::ecs::World::snapshot() const {

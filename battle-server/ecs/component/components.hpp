@@ -1,9 +1,12 @@
 #pragma once
 
 #include <cstdint>
+#include <optional>
+#include <vector>
 
 #include "ecs/entity/entity.hpp"
 #include "ecs/time.hpp"
+#include "gameplay/blessing.hpp"
 #include "gameplay/monster_kind.hpp"
 
 namespace battle::ecs {
@@ -104,10 +107,18 @@ namespace battle::ecs {
         DeltaTime remaining_seconds;
     };
 
+    enum class DamageSourceKind {
+        Attack,
+        Burn,
+        ChainLightning,
+    };
+
     struct DamageEvent {
-        Entity source;
-        Entity target;
-        int base_damage;
+        Entity source{};
+        Entity target{};
+        int base_damage{};
+        int modified_damage{};
+        DamageSourceKind source_kind{DamageSourceKind::Attack};
     };
 
     struct MonsterIdentity {
@@ -127,4 +138,36 @@ namespace battle::ecs {
         int pending_upgrade_choices;
     };
 
+    struct BlessingStack {
+        BlessingID blessing_id = BlessingID::BurnOnHit;
+        int level = 1;
+    };
+
+    struct BlessingInventory {
+        std::vector<BlessingStack> blessings;
+    };
+
+    struct DamageAppliedEvent {
+        Entity source{};
+        Entity target{};
+        int amount{};
+        DamageSourceKind source_kind{DamageSourceKind::Attack};
+    };
+
+    struct BurnStatus {
+        Entity source{};
+        DeltaTime remaining_seconds{0.0f};
+        DeltaTime tick_interval_seconds{1.0f};
+        DeltaTime tick_timer_seconds{0.0f};
+        int damage_per_tick{};
+    };
+
+    struct FreezeStatus {
+        DeltaTime remaining_seconds{0.0f};
+    };
+
+    struct StatusEffects {
+        std::vector<BurnStatus> burns;
+        std::optional<FreezeStatus> freeze;
+    };
 }

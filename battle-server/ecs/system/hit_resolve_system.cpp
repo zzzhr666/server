@@ -54,6 +54,7 @@ void battle::ecs::hit_resolve_system(World& world, DeltaTime) {
                 .source = attacker_entity,
                 .target = target_entity,
                 .base_damage = intent->damage,
+                .modified_damage = intent->damage,
             });
         }
     }
