@@ -42,8 +42,8 @@ TEST(SpawnPlannerTest, PlayerSpawnUsesDefaultStats) {
 
     EXPECT_EQ(spawn.max_health, ecs::DefaultPlayerMaxHealth);
     EXPECT_FLOAT_EQ(spawn.move_speed, ecs::DefaultPlayerMoveSpeed);
-    EXPECT_EQ(spawn.attack.damage, 150);
-    EXPECT_FLOAT_EQ(spawn.attack.cooldown_seconds.count(), 0.15f);
+    EXPECT_EQ(spawn.attack.damage, ecs::DefaultPlayerAttackDamage);
+    EXPECT_FLOAT_EQ(spawn.attack.cooldown_seconds.count(), ecs::DefaultPlayerAttackCooldown.count());
 }
 
 TEST(SpawnPlannerTest, MonsterSpawnPlacesMonstersOnCircle) {

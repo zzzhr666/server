@@ -234,6 +234,16 @@ TEST(BattleRuntimeTest, TickBroadcastsGameOverAndCleansRoomWhenInstanceEnds) {
                         .health_multiplier = 0.5f,
                         .move_speed_multiplier = 1.0f,
                     },
+                    WaveDefinition{
+                        .groups = {
+                            WaveMonsterGroup{
+                                .kind = MonsterKind::Melee,
+                                .count = 1,
+                            },
+                        },
+                        .health_multiplier = 0.5f,
+                        .move_speed_multiplier = 1.0f,
+                    },
                 },
             };
             config.player_config_override = ecs::CreatePlayerConfig{
@@ -321,6 +331,17 @@ TEST(BattleRuntimeTest, TickBroadcastsGameOverAndCleansRoomWhenInstanceEnds) {
     runtime.tick(SelectionTime);
 
     ASSERT_EQ(sent_packets.size(), 1);
+    ASSERT_EQ(sent_packets[0].first.payload_case(), v1::ServerPacket::kSnapshot);
+    EXPECT_EQ(sent_packets[0].first.snapshot().current_wave(), 2);
+    EXPECT_EQ(sent_packets[0].first.snapshot().phase(), v1::BATTLE_PHASE_FIGHTING);
+
+    ASSERT_TRUE(runtime.receive_input("room-1", 1001, PlayerInput{
+                                                   .attack_requested = true,
+                                               }));
+    sent_packets.clear();
+    runtime.tick(ecs::DeltaTime{0.5f});
+
+    ASSERT_EQ(sent_packets.size(), 1);
     const auto& packet = sent_packets[0].first;
     ASSERT_EQ(packet.payload_case(), v1::ServerPacket::kGameOver);
     EXPECT_EQ(packet.game_over().room_name(), "room-1");
@@ -329,10 +350,10 @@ TEST(BattleRuntimeTest, TickBroadcastsGameOverAndCleansRoomWhenInstanceEnds) {
     EXPECT_EQ(packet.game_over().player_ids(0), 1001);
     ASSERT_EQ(packet.game_over().player_stats_size(), 1);
     EXPECT_EQ(packet.game_over().player_stats(0).player_id(), 1001);
-    EXPECT_EQ(packet.game_over().player_stats(0).total_kills(), 1);
+    EXPECT_EQ(packet.game_over().player_stats(0).total_kills(), 2);
     ASSERT_EQ(packet.game_over().player_stats(0).kills_size(), 1);
     EXPECT_EQ(packet.game_over().player_stats(0).kills(0).monster_kind(), "melee");
-    EXPECT_EQ(packet.game_over().player_stats(0).kills(0).count(), 1);
+    EXPECT_EQ(packet.game_over().player_stats(0).kills(0).count(), 2);
     EXPECT_FALSE(runtime.receive_input("room-1", 1001, PlayerInput{
                                                    .move_x = 1.0f,
                                                    .move_y = 0.0f,
@@ -346,10 +367,10 @@ TEST(BattleRuntimeTest, TickBroadcastsGameOverAndCleansRoomWhenInstanceEnds) {
     ASSERT_EQ(finished_battles[0].settlement.players.size(), 1);
     const auto& player = finished_battles[0].settlement.players[0];
     EXPECT_EQ(player.player_id, 1001);
-    EXPECT_EQ(player.total_kills, 1);
+    EXPECT_EQ(player.total_kills, 2);
     ASSERT_EQ(player.kills.size(), 1);
     EXPECT_EQ(player.kills[0].monster_kind, MonsterKind::Melee);
-    EXPECT_EQ(player.kills[0].count, 1);
+    EXPECT_EQ(player.kills[0].count, 2);
 }
 
 TEST(BattleRuntimeTest, EndRoomReturnsNotFoundForMissingRoom) {

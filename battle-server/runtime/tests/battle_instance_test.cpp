@@ -23,6 +23,33 @@ void expect_three_unique_blessing_options(const std::vector<BlessingOption>& opt
     }
 }
 
+WaveConfig reward_selection_test_wave_config() {
+    return WaveConfig{
+        .waves = {
+            WaveDefinition{
+                .groups = {
+                    WaveMonsterGroup{
+                        .kind = MonsterKind::Melee,
+                        .count = 1,
+                    },
+                },
+                .health_multiplier = 0.5f,
+                .move_speed_multiplier = 1.0f,
+            },
+            WaveDefinition{
+                .groups = {
+                    WaveMonsterGroup{
+                        .kind = MonsterKind::Melee,
+                        .count = 1,
+                    },
+                },
+                .health_multiplier = 1.0f,
+                .move_speed_multiplier = 1.0f,
+            },
+        },
+    };
+}
+
 TEST(BattleInstanceTest, ConstructorCreatesPlayersAtPlannedSpawns) {
     BattleInstance instance({
         .room_name = "room-1",
@@ -115,7 +142,7 @@ TEST(BattleInstanceTest, ConstructorAppliesConfiguredPlayerWeapon) {
                             .count = 1,
                         },
                     },
-                    .health_multiplier = 1.0f,
+                    .health_multiplier = 0.8f,
                     .move_speed_multiplier = 1.0f,
                 },
             },
@@ -131,11 +158,6 @@ TEST(BattleInstanceTest, ConstructorAppliesConfiguredPlayerWeapon) {
                                                  .attack_requested = true,
                                              }));
     instance.tick(ecs::DeltaTime{0.0f});
-
-    EXPECT_EQ(instance.phase(), BattlePhase::RewardSelection);
-    EXPECT_FALSE(instance.ended());
-
-    instance.tick(SelectionTime);
 
     EXPECT_TRUE(instance.ended());
     EXPECT_EQ(instance.end_reason(), BattleEndReason::Victory);
@@ -268,20 +290,7 @@ TEST(BattleInstanceTest, TickRecordsPlayerKillsByMonsterKind) {
     BattleInstance instance({
         .room_name = "room-1",
         .player_ids = {1001},
-        .wave_config = WaveConfig{
-            .waves = {
-                WaveDefinition{
-                    .groups = {
-                        WaveMonsterGroup{
-                            .kind = MonsterKind::Melee,
-                            .count = 1,
-                        },
-                    },
-                    .health_multiplier = 0.5f,
-                    .move_speed_multiplier = 1.0f,
-                },
-            },
-        },
+        .wave_config = reward_selection_test_wave_config(),
         .player_config_override = ecs::CreatePlayerConfig{
             .max_health = 100,
             .move_speed = 5.0f,
@@ -311,20 +320,7 @@ TEST(BattleInstanceTest, TickGrantsExperienceForPlayerKill) {
     BattleInstance instance({
         .room_name = "room-1",
         .player_ids = {1001},
-        .wave_config = WaveConfig{
-            .waves = {
-                WaveDefinition{
-                    .groups = {
-                        WaveMonsterGroup{
-                            .kind = MonsterKind::Melee,
-                            .count = 1,
-                        },
-                    },
-                    .health_multiplier = 0.5f,
-                    .move_speed_multiplier = 1.0f,
-                },
-            },
-        },
+        .wave_config = reward_selection_test_wave_config(),
         .player_config_override = ecs::CreatePlayerConfig{
             .max_health = 100,
             .move_speed = 5.0f,
@@ -353,20 +349,7 @@ TEST(BattleInstanceTest, TickLevelsUpAndKeepsOverflowExperience) {
     BattleInstance instance({
         .room_name = "room-1",
         .player_ids = {1001},
-        .wave_config = WaveConfig{
-            .waves = {
-                WaveDefinition{
-                    .groups = {
-                        WaveMonsterGroup{
-                            .kind = MonsterKind::Melee,
-                            .count = 1,
-                        },
-                    },
-                    .health_multiplier = 0.5f,
-                    .move_speed_multiplier = 1.0f,
-                },
-            },
-        },
+        .wave_config = reward_selection_test_wave_config(),
         .player_config_override = ecs::CreatePlayerConfig{
             .max_health = 100,
             .move_speed = 5.0f,
@@ -400,20 +383,7 @@ TEST(BattleInstanceTest, TickCanGrantMultiplePendingUpgradeChoices) {
     BattleInstance instance({
         .room_name = "room-1",
         .player_ids = {1001},
-        .wave_config = WaveConfig{
-            .waves = {
-                WaveDefinition{
-                    .groups = {
-                        WaveMonsterGroup{
-                            .kind = MonsterKind::Melee,
-                            .count = 1,
-                        },
-                    },
-                    .health_multiplier = 0.5f,
-                    .move_speed_multiplier = 1.0f,
-                },
-            },
-        },
+        .wave_config = reward_selection_test_wave_config(),
         .player_config_override = ecs::CreatePlayerConfig{
             .max_health = 100,
             .move_speed = 5.0f,
@@ -447,20 +417,7 @@ TEST(BattleInstanceTest, SnapshotIncludesProgressAndBlessingState) {
     BattleInstance instance({
         .room_name = "room-1",
         .player_ids = {1002, 1001},
-        .wave_config = WaveConfig{
-            .waves = {
-                WaveDefinition{
-                    .groups = {
-                        WaveMonsterGroup{
-                            .kind = MonsterKind::Melee,
-                            .count = 1,
-                        },
-                    },
-                    .health_multiplier = 0.5f,
-                    .move_speed_multiplier = 1.0f,
-                },
-            },
-        },
+        .wave_config = reward_selection_test_wave_config(),
         .player_config_override = ecs::CreatePlayerConfig{
             .max_health = 100,
             .move_speed = 5.0f,
@@ -509,20 +466,7 @@ TEST(BattleInstanceTest, RewardSelectionGeneratesBlessingOptionsForPlayersWithPe
     BattleInstance instance({
         .room_name = "room-1",
         .player_ids = {1001},
-        .wave_config = WaveConfig{
-            .waves = {
-                WaveDefinition{
-                    .groups = {
-                        WaveMonsterGroup{
-                            .kind = MonsterKind::Melee,
-                            .count = 1,
-                        },
-                    },
-                    .health_multiplier = 0.5f,
-                    .move_speed_multiplier = 1.0f,
-                },
-            },
-        },
+        .wave_config = reward_selection_test_wave_config(),
         .player_config_override = ecs::CreatePlayerConfig{
             .max_health = 100,
             .move_speed = 5.0f,
@@ -587,20 +531,7 @@ TEST(BattleInstanceTest, ChooseBlessingReturnsFalseForInvalidOption) {
     BattleInstance instance({
         .room_name = "room-1",
         .player_ids = {1001},
-        .wave_config = WaveConfig{
-            .waves = {
-                WaveDefinition{
-                    .groups = {
-                        WaveMonsterGroup{
-                            .kind = MonsterKind::Melee,
-                            .count = 1,
-                        },
-                    },
-                    .health_multiplier = 0.5f,
-                    .move_speed_multiplier = 1.0f,
-                },
-            },
-        },
+        .wave_config = reward_selection_test_wave_config(),
         .player_config_override = ecs::CreatePlayerConfig{
             .max_health = 100,
             .move_speed = 5.0f,
@@ -638,20 +569,7 @@ TEST(BattleInstanceTest, ChooseBlessingAddsOwnedBlessingAndClearsOptions) {
     BattleInstance instance({
         .room_name = "room-1",
         .player_ids = {1001},
-        .wave_config = WaveConfig{
-            .waves = {
-                WaveDefinition{
-                    .groups = {
-                        WaveMonsterGroup{
-                            .kind = MonsterKind::Melee,
-                            .count = 1,
-                        },
-                    },
-                    .health_multiplier = 0.5f,
-                    .move_speed_multiplier = 1.0f,
-                },
-            },
-        },
+        .wave_config = reward_selection_test_wave_config(),
         .player_config_override = ecs::CreatePlayerConfig{
             .max_health = 100,
             .move_speed = 5.0f,
@@ -696,20 +614,7 @@ TEST(BattleInstanceTest, ChooseBlessingRegeneratesOptionsWhenMoreChoicesRemain) 
     BattleInstance instance({
         .room_name = "room-1",
         .player_ids = {1001},
-        .wave_config = WaveConfig{
-            .waves = {
-                WaveDefinition{
-                    .groups = {
-                        WaveMonsterGroup{
-                            .kind = MonsterKind::Melee,
-                            .count = 1,
-                        },
-                    },
-                    .health_multiplier = 0.5f,
-                    .move_speed_multiplier = 1.0f,
-                },
-            },
-        },
+        .wave_config = reward_selection_test_wave_config(),
         .player_config_override = ecs::CreatePlayerConfig{
             .max_health = 100,
             .move_speed = 5.0f,
@@ -754,20 +659,7 @@ TEST(BattleInstanceTest, ChooseBlessingLevelsExistingBlessing) {
     BattleInstance instance({
         .room_name = "room-1",
         .player_ids = {1001},
-        .wave_config = WaveConfig{
-            .waves = {
-                WaveDefinition{
-                    .groups = {
-                        WaveMonsterGroup{
-                            .kind = MonsterKind::Melee,
-                            .count = 1,
-                        },
-                    },
-                    .health_multiplier = 0.5f,
-                    .move_speed_multiplier = 1.0f,
-                },
-            },
-        },
+        .wave_config = reward_selection_test_wave_config(),
         .player_config_override = ecs::CreatePlayerConfig{
             .max_health = 100,
             .move_speed = 5.0f,
@@ -818,20 +710,7 @@ TEST(BattleInstanceTest, RewardSelectionTimeoutChoosesFirstOptionByDefault) {
     BattleInstance instance({
         .room_name = "room-1",
         .player_ids = {1001},
-        .wave_config = WaveConfig{
-            .waves = {
-                WaveDefinition{
-                    .groups = {
-                        WaveMonsterGroup{
-                            .kind = MonsterKind::Melee,
-                            .count = 1,
-                        },
-                    },
-                    .health_multiplier = 0.5f,
-                    .move_speed_multiplier = 1.0f,
-                },
-            },
-        },
+        .wave_config = reward_selection_test_wave_config(),
         .player_config_override = ecs::CreatePlayerConfig{
             .max_health = 100,
             .move_speed = 5.0f,
@@ -875,20 +754,7 @@ TEST(BattleInstanceTest, RewardSelectionTimeoutChoosesDefaultsForAllPendingChoic
     BattleInstance instance({
         .room_name = "room-1",
         .player_ids = {1001},
-        .wave_config = WaveConfig{
-            .waves = {
-                WaveDefinition{
-                    .groups = {
-                        WaveMonsterGroup{
-                            .kind = MonsterKind::Melee,
-                            .count = 1,
-                        },
-                    },
-                    .health_multiplier = 0.5f,
-                    .move_speed_multiplier = 1.0f,
-                },
-            },
-        },
+        .wave_config = reward_selection_test_wave_config(),
         .player_config_override = ecs::CreatePlayerConfig{
             .max_health = 100,
             .move_speed = 5.0f,
@@ -933,20 +799,7 @@ TEST(BattleInstanceTest, RewardSelectionTimeoutDoesNotChooseAgainAfterManualChoi
     BattleInstance instance({
         .room_name = "room-1",
         .player_ids = {1001},
-        .wave_config = WaveConfig{
-            .waves = {
-                WaveDefinition{
-                    .groups = {
-                        WaveMonsterGroup{
-                            .kind = MonsterKind::Melee,
-                            .count = 1,
-                        },
-                    },
-                    .health_multiplier = 0.5f,
-                    .move_speed_multiplier = 1.0f,
-                },
-            },
-        },
+        .wave_config = reward_selection_test_wave_config(),
         .player_config_override = ecs::CreatePlayerConfig{
             .max_health = 100,
             .move_speed = 5.0f,
@@ -1020,8 +873,6 @@ TEST(BattleInstanceTest, SettlementIncludesEndReasonAndPlayerStats) {
                                              }));
     instance.tick(ecs::DeltaTime{0.0f});
 
-    instance.tick(SelectionTime);
-
     const auto settlement = instance.settlement();
 
     EXPECT_EQ(settlement.reason, BattleEndReason::Victory);
@@ -1081,9 +932,6 @@ TEST(BattleInstanceTest, TickEndsWithVictoryAfterPlayerKillsFinalWave) {
                                                  .attack_requested = true,
                                              }));
     instance.tick(ecs::DeltaTime{0.0f});
-    EXPECT_EQ(instance.phase(), BattlePhase::RewardSelection);
-
-    instance.tick(SelectionTime);
 
     EXPECT_EQ(instance.state(), BattleState::Ended);
     EXPECT_EQ(instance.end_reason(), BattleEndReason::Victory);

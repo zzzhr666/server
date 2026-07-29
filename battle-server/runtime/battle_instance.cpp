@@ -256,6 +256,10 @@ void battle::BattleInstance::tick_fighting_(ecs::DeltaTime delta_time) {
         return;
     }
     if (!world_.has_living_monsters()) {
+        if (current_wave_ >= wave_config_.waves.size()) {
+            end_battle_(BattleEndReason::Victory);
+            return;
+        }
         start_reward_selection_();
     }
 }

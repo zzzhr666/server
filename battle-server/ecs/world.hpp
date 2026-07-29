@@ -14,9 +14,9 @@ namespace battle::ecs {
     constexpr std::size_t InitialDamageEventCount = 256;
     constexpr int DefaultPlayerMaxHealth = 1000;
     constexpr float DefaultPlayerMoveSpeed = 12.0f;
-    constexpr int DefaultPlayerAttackDamage = 150;
+    constexpr int DefaultPlayerAttackDamage = 25;
     constexpr float DefaultPlayerAttackRange = 3.0f;
-    constexpr DeltaTime DefaultPlayerAttackCooldown{0.15f};
+    constexpr DeltaTime DefaultPlayerAttackCooldown{0.22f};
     constexpr float DefaultPlayerDashSpeedMultiplier = 10.0f;
     constexpr DeltaTime DefaultPlayerDashCooldown{1.0f};
 
