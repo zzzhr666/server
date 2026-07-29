@@ -804,17 +804,19 @@ const char descriptor_table_protodef_proto_2fbattle_2fv1_2fsession_2eproto[] ABS
     "NTITY_KIND_MONSTER\020\002*i\n\013BattlePhase\022\034\n\030B"
     "ATTLE_PHASE_UNSPECIFIED\020\000\022\031\n\025BATTLE_PHAS"
     "E_FIGHTING\020\001\022!\n\035BATTLE_PHASE_REWARD_SELE"
-    "CTION\020\002*\201\001\n\nBlessingId\022\033\n\027BLESSING_ID_UN"
+    "CTION\020\002*\303\001\n\nBlessingId\022\033\n\027BLESSING_ID_UN"
     "SPECIFIED\020\000\022\033\n\027BLESSING_ID_BURN_ON_HIT\020\001"
     "\022\032\n\026BLESSING_ID_LIFE_STEAL\020\002\022\035\n\031BLESSING"
-    "_ID_FREEZE_ON_HIT\020\003B,Z*server/internal/c"
-    "ontract/battlepb;battlepbb\006proto3"
+    "_ID_FREEZE_ON_HIT\020\003\022\037\n\033BLESSING_ID_CRITI"
+    "CAL_STRIKE\020\004\022\037\n\033BLESSING_ID_CHAIN_LIGHTN"
+    "ING\020\005B,Z*server/internal/contract/battle"
+    "pb;battlepbb\006proto3"
 };
 static ::absl::once_flag descriptor_table_proto_2fbattle_2fv1_2fsession_2eproto_once;
 PROTOBUF_CONSTINIT const ::_pbi::DescriptorTable descriptor_table_proto_2fbattle_2fv1_2fsession_2eproto = {
     false,
     false,
-    2553,
+    2619,
     descriptor_table_protodef_proto_2fbattle_2fv1_2fsession_2eproto,
     "proto/battle/v1/session.proto",
     &descriptor_table_proto_2fbattle_2fv1_2fsession_2eproto_once,
@@ -846,7 +848,7 @@ const ::google::protobuf::EnumDescriptor* PROTOBUF_NONNULL BlessingId_descriptor
   return file_level_enum_descriptors_proto_2fbattle_2fv1_2fsession_2eproto[2];
 }
 PROTOBUF_CONSTINIT const uint32_t BlessingId_internal_data_[] = {
-    262144u, 0u, };
+    393216u, 0u, };
 // ===================================================================
 
 class ClientHello::_Internal {

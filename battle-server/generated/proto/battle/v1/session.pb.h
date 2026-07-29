@@ -226,6 +226,8 @@ enum BlessingId : int {
   BLESSING_ID_BURN_ON_HIT = 1,
   BLESSING_ID_LIFE_STEAL = 2,
   BLESSING_ID_FREEZE_ON_HIT = 3,
+  BLESSING_ID_CRITICAL_STRIKE = 4,
+  BLESSING_ID_CHAIN_LIGHTNING = 5,
   BlessingId_INT_MIN_SENTINEL_DO_NOT_USE_ =
       ::std::numeric_limits<::int32_t>::min(),
   BlessingId_INT_MAX_SENTINEL_DO_NOT_USE_ =
@@ -236,11 +238,11 @@ extern const uint32_t BlessingId_internal_data_[];
 inline constexpr BlessingId BlessingId_MIN =
     static_cast<BlessingId>(0);
 inline constexpr BlessingId BlessingId_MAX =
-    static_cast<BlessingId>(3);
+    static_cast<BlessingId>(5);
 inline bool BlessingId_IsValid(int value) {
-  return 0 <= value && value <= 3;
+  return 0 <= value && value <= 5;
 }
-inline constexpr int BlessingId_ARRAYSIZE = 3 + 1;
+inline constexpr int BlessingId_ARRAYSIZE = 5 + 1;
 const ::google::protobuf::EnumDescriptor* PROTOBUF_NONNULL BlessingId_descriptor();
 template <typename T>
 const ::std::string& BlessingId_Name(T value) {
@@ -251,7 +253,7 @@ const ::std::string& BlessingId_Name(T value) {
 }
 template <>
 inline const ::std::string& BlessingId_Name(BlessingId value) {
-  return ::google::protobuf::internal::NameOfDenseEnum<BlessingId_descriptor, 0, 3>(
+  return ::google::protobuf::internal::NameOfDenseEnum<BlessingId_descriptor, 0, 5>(
       static_cast<int>(value));
 }
 inline bool BlessingId_Parse(

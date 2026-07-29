@@ -122,10 +122,12 @@ func (BattlePhase) EnumDescriptor() ([]byte, []int) {
 type BlessingId int32
 
 const (
-	BlessingId_BLESSING_ID_UNSPECIFIED   BlessingId = 0
-	BlessingId_BLESSING_ID_BURN_ON_HIT   BlessingId = 1
-	BlessingId_BLESSING_ID_LIFE_STEAL    BlessingId = 2
-	BlessingId_BLESSING_ID_FREEZE_ON_HIT BlessingId = 3
+	BlessingId_BLESSING_ID_UNSPECIFIED     BlessingId = 0
+	BlessingId_BLESSING_ID_BURN_ON_HIT     BlessingId = 1
+	BlessingId_BLESSING_ID_LIFE_STEAL      BlessingId = 2
+	BlessingId_BLESSING_ID_FREEZE_ON_HIT   BlessingId = 3
+	BlessingId_BLESSING_ID_CRITICAL_STRIKE BlessingId = 4
+	BlessingId_BLESSING_ID_CHAIN_LIGHTNING BlessingId = 5
 )
 
 // Enum value maps for BlessingId.
@@ -135,12 +137,16 @@ var (
 		1: "BLESSING_ID_BURN_ON_HIT",
 		2: "BLESSING_ID_LIFE_STEAL",
 		3: "BLESSING_ID_FREEZE_ON_HIT",
+		4: "BLESSING_ID_CRITICAL_STRIKE",
+		5: "BLESSING_ID_CHAIN_LIGHTNING",
 	}
 	BlessingId_value = map[string]int32{
-		"BLESSING_ID_UNSPECIFIED":   0,
-		"BLESSING_ID_BURN_ON_HIT":   1,
-		"BLESSING_ID_LIFE_STEAL":    2,
-		"BLESSING_ID_FREEZE_ON_HIT": 3,
+		"BLESSING_ID_UNSPECIFIED":     0,
+		"BLESSING_ID_BURN_ON_HIT":     1,
+		"BLESSING_ID_LIFE_STEAL":      2,
+		"BLESSING_ID_FREEZE_ON_HIT":   3,
+		"BLESSING_ID_CRITICAL_STRIKE": 4,
+		"BLESSING_ID_CHAIN_LIGHTNING": 5,
 	}
 )
 
@@ -1497,13 +1503,15 @@ const file_proto_battle_v1_session_proto_rawDesc = "" +
 	"\vBattlePhase\x12\x1c\n" +
 	"\x18BATTLE_PHASE_UNSPECIFIED\x10\x00\x12\x19\n" +
 	"\x15BATTLE_PHASE_FIGHTING\x10\x01\x12!\n" +
-	"\x1dBATTLE_PHASE_REWARD_SELECTION\x10\x02*\x81\x01\n" +
+	"\x1dBATTLE_PHASE_REWARD_SELECTION\x10\x02*\xc3\x01\n" +
 	"\n" +
 	"BlessingId\x12\x1b\n" +
 	"\x17BLESSING_ID_UNSPECIFIED\x10\x00\x12\x1b\n" +
 	"\x17BLESSING_ID_BURN_ON_HIT\x10\x01\x12\x1a\n" +
 	"\x16BLESSING_ID_LIFE_STEAL\x10\x02\x12\x1d\n" +
-	"\x19BLESSING_ID_FREEZE_ON_HIT\x10\x03B,Z*server/internal/contract/battlepb;battlepbb\x06proto3"
+	"\x19BLESSING_ID_FREEZE_ON_HIT\x10\x03\x12\x1f\n" +
+	"\x1bBLESSING_ID_CRITICAL_STRIKE\x10\x04\x12\x1f\n" +
+	"\x1bBLESSING_ID_CHAIN_LIGHTNING\x10\x05B,Z*server/internal/contract/battlepb;battlepbb\x06proto3"
 
 var (
 	file_proto_battle_v1_session_proto_rawDescOnce sync.Once
