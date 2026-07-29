@@ -234,6 +234,11 @@ TEST(BattleRuntimeTest, TickBroadcastsGameOverAndCleansRoomWhenInstanceEnds) {
                     .cooldown_seconds = ecs::DeltaTime{0.5f},
                 },
             };
+            config.progression_config = ProgressionConfig{
+                .base_experience_to_next_level = 30,
+                .experience_to_next_level_growth = 10,
+                .melee_experience = 35,
+            };
             return std::make_unique<BattleInstance>(std::move(config));
         },
         [&finished_battles](const FinishedBattle& finished_battle) {
@@ -261,6 +266,49 @@ TEST(BattleRuntimeTest, TickBroadcastsGameOverAndCleansRoomWhenInstanceEnds) {
                                                    .attack_requested = true,
                                                }));
     runtime.tick(ecs::DeltaTime{0.0f});
+
+    ASSERT_EQ(sent_packets.size(), 1);
+    EXPECT_EQ(sent_packets[0].first.payload_case(), v1::ServerPacket::kSnapshot);
+    const auto& snapshot = sent_packets[0].first.snapshot();
+    EXPECT_EQ(snapshot.current_wave(), 1);
+    EXPECT_EQ(snapshot.phase(), v1::BATTLE_PHASE_REWARD_SELECTION);
+    EXPECT_FLOAT_EQ(snapshot.reward_selection_remaining_seconds(), SelectionTime.count());
+    ASSERT_EQ(snapshot.player_progress_size(), 1);
+    EXPECT_EQ(snapshot.player_progress(0).player_id(), 1001);
+    EXPECT_EQ(snapshot.player_progress(0).level(), 2);
+    EXPECT_EQ(snapshot.player_progress(0).experience(), 5);
+    EXPECT_EQ(snapshot.player_progress(0).experience_to_next_level(), 40);
+    EXPECT_EQ(snapshot.player_progress(0).pending_upgrade_choices(), 1);
+    ASSERT_EQ(snapshot.player_blessings_size(), 1);
+    EXPECT_EQ(snapshot.player_blessings(0).player_id(), 1001);
+    ASSERT_EQ(snapshot.player_blessings(0).current_options_size(), 3);
+    EXPECT_EQ(snapshot.player_blessings(0).current_options(0).option_id(), 0);
+    EXPECT_EQ(snapshot.player_blessings(0).current_options(0).blessing_id(), v1::BLESSING_ID_BURN_ON_HIT);
+
+    ASSERT_TRUE(runtime.choose_blessing("room-1", 1001, 1));
+    sent_packets.clear();
+    runtime.tick(ecs::DeltaTime{0.0f});
+
+    ASSERT_EQ(sent_packets.size(), 1);
+    ASSERT_EQ(sent_packets[0].first.payload_case(), v1::ServerPacket::kSnapshot);
+    const auto& chosen_snapshot = sent_packets[0].first.snapshot();
+    ASSERT_EQ(chosen_snapshot.player_progress_size(), 1);
+    EXPECT_EQ(chosen_snapshot.player_progress(0).pending_upgrade_choices(), 0);
+    ASSERT_EQ(chosen_snapshot.player_blessings_size(), 1);
+    ASSERT_EQ(chosen_snapshot.player_blessings(0).blessings_size(), 1);
+    EXPECT_EQ(chosen_snapshot.player_blessings(0).blessings(0).blessing_id(), v1::BLESSING_ID_LIFE_STEAL);
+    EXPECT_EQ(chosen_snapshot.player_blessings(0).blessings(0).level(), 1);
+    EXPECT_EQ(chosen_snapshot.player_blessings(0).current_options_size(), 0);
+
+    EXPECT_TRUE(runtime.receive_input("room-1", 1001, PlayerInput{
+                                                   .move_x = 1.0f,
+                                                   .move_y = 0.0f,
+                                               }));
+    EXPECT_EQ(session_manager.sessions_in_room("room-1").size(), 1);
+    EXPECT_EQ(room_manager.active_rooms(), 1);
+
+    sent_packets.clear();
+    runtime.tick(SelectionTime);
 
     ASSERT_EQ(sent_packets.size(), 1);
     const auto& packet = sent_packets[0].first;

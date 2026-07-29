@@ -48,6 +48,8 @@ namespace battle {
 
         bool receive_input(const std::string& room_name, std::int64_t player_id, PlayerInput input);
 
+        bool choose_blessing(const std::string& room_name, std::int64_t player_id, int option_id);
+
         void start();
 
         void stop();

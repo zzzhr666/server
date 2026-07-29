@@ -25,24 +25,6 @@ namespace {
         }
     }
 
-    battle::v1::ServerPacket make_snapshot(const std::string& room_name, const battle::BattleWorldSnapshot& snapshot) {
-        battle::v1::ServerPacket packet;
-        auto send_pkg = packet.mutable_snapshot();
-        send_pkg->set_room_name(room_name);
-        for (auto& entity : snapshot.entities) {
-            auto entity_snapshot = send_pkg->add_entities();
-            entity_snapshot->set_entity(entity.entity);
-            entity_snapshot->set_kind(to_proto_entity_kind(entity.kind));
-            entity_snapshot->set_player_id(entity.player_id);
-            entity_snapshot->set_x_position(entity.x_position);
-            entity_snapshot->set_y_position(entity.y_position);
-            entity_snapshot->set_x_direction(entity.x_direction);
-            entity_snapshot->set_y_direction(entity.y_direction);
-            entity_snapshot->set_current_health(entity.current_health);
-            entity_snapshot->set_max_health(entity.max_health);
-        }
-        return packet;
-    }
 
     std::string battle_end_reason_to_string(battle::BattleEndReason reason) {
         switch (reason) {
@@ -76,6 +58,85 @@ namespace {
             result.emplace_back(std::move(player_stat));
         }
         return result;
+    }
+
+    battle::v1::BattlePhase to_proto_battle_phase(battle::BattlePhase phase) {
+        switch (phase) {
+        case battle::BattlePhase::Fighting: {
+            return battle::v1::BattlePhase::BATTLE_PHASE_FIGHTING;
+        }
+        case battle::BattlePhase::RewardSelection: {
+            return battle::v1::BattlePhase::BATTLE_PHASE_REWARD_SELECTION;
+        }
+        default: {
+            return battle::v1::BattlePhase::BATTLE_PHASE_UNSPECIFIED;
+        }
+        }
+    }
+
+    battle::v1::BlessingId to_proto_blessing_id(battle::BlessingID blessing_id) {
+        switch (blessing_id) {
+        case battle::BlessingID::BurnOnHit: {
+            return battle::v1::BLESSING_ID_BURN_ON_HIT;
+        }
+        case battle::BlessingID::LifeSteal: {
+            return battle::v1::BLESSING_ID_LIFE_STEAL;
+        }
+        case battle::BlessingID::FreezeOnHit: {
+            return battle::v1::BLESSING_ID_FREEZE_ON_HIT;
+        }
+        default: {
+            return battle::v1::BLESSING_ID_UNSPECIFIED;
+        }
+        }
+    }
+
+
+    battle::v1::ServerPacket make_snapshot(const std::string& room_name, const battle::BattleWorldSnapshot& snapshot) {
+        battle::v1::ServerPacket packet;
+        auto send_pkg = packet.mutable_snapshot();
+        send_pkg->set_room_name(room_name);
+        send_pkg->set_current_wave(static_cast<std::int32_t>(snapshot.current_wave));
+        send_pkg->set_phase(to_proto_battle_phase(snapshot.phase));
+        send_pkg->set_reward_selection_remaining_seconds(snapshot.reward_selection_remaining.count());
+        for (const auto& entity : snapshot.entities) {
+            auto entity_snapshot = send_pkg->add_entities();
+            entity_snapshot->set_entity(entity.entity);
+            entity_snapshot->set_kind(to_proto_entity_kind(entity.kind));
+            entity_snapshot->set_player_id(entity.player_id);
+            entity_snapshot->set_x_position(entity.x_position);
+            entity_snapshot->set_y_position(entity.y_position);
+            entity_snapshot->set_x_direction(entity.x_direction);
+            entity_snapshot->set_y_direction(entity.y_direction);
+            entity_snapshot->set_current_health(entity.current_health);
+            entity_snapshot->set_max_health(entity.max_health);
+        }
+
+        for (const auto& progress : snapshot.player_progress) {
+            auto proto_progress = send_pkg->add_player_progress();
+            proto_progress->set_player_id(progress.player_id);
+            proto_progress->set_experience(progress.experience);
+            proto_progress->set_level(progress.level);
+            proto_progress->set_experience_to_next_level(progress.experience_to_next_level);
+            proto_progress->set_pending_upgrade_choices(progress.pending_upgrade_choices);
+        }
+
+        for (const auto& player_blessing : snapshot.player_blessings) {
+            auto proto_blessings = send_pkg->add_player_blessings();
+            proto_blessings->set_player_id(player_blessing.player_id);
+            for (const auto& blessing : player_blessing.blessings) {
+                auto proto_blessing = proto_blessings->add_blessings();
+                proto_blessing->set_level(blessing.level);
+                proto_blessing->set_blessing_id(to_proto_blessing_id(blessing.blessing_id));
+            }
+
+            for (const auto& option : player_blessing.current_options) {
+                auto proto_option = proto_blessings->add_current_options();
+                proto_option->set_option_id(option.option_id);
+                proto_option->set_blessing_id(to_proto_blessing_id(option.blessing_id));
+            }
+        }
+        return packet;
     }
 }
 
@@ -181,6 +242,12 @@ bool battle::BattleRuntime::receive_input(const std::string& room_name, std::int
         return false;
     }
     return it->second->receive_input(player_id, input);
+}
+
+bool battle::BattleRuntime::choose_blessing(const std::string& room_name, std::int64_t player_id, int option_id) {
+    std::lock_guard<std::mutex> lock(mutex_);
+    auto it = instances_.find(room_name);
+    return it == instances_.end() ? false : it->second->choose_blessing(player_id, option_id);
 }
 
 void battle::BattleRuntime::start() {

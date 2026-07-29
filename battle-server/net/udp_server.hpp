@@ -39,8 +39,11 @@ namespace battle {
 
         void handle_hello_(const v1::ClientPacket& packet, const sockaddr_in& remote_addr, socklen_t remote_addr_len);
 
-        void handle_move_input(const v1::ClientPacket& packet, const sockaddr_in& remote_addr,
-                               socklen_t remote_addr_len);
+        void handle_move_input_(const v1::ClientPacket& packet, const sockaddr_in& remote_addr,
+                                socklen_t remote_addr_len);
+
+        void handle_choose_blessing_(const v1::ClientPacket& packet, const sockaddr_in& remote_addr,
+                                     socklen_t remote_addr_len);
 
     private:
         std::string listen_addr_;

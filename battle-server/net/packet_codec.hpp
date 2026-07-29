@@ -11,7 +11,7 @@
 
 namespace battle {
     struct PacketMonsterKillCount {
-        MonsterKind monster_kind;
+        MonsterKind monster_kind {};
         int count = 0;
     };
 

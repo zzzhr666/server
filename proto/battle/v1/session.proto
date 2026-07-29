@@ -29,6 +29,7 @@ message ClientPacket {
   oneof payload {
     ClientHello hello = 1;
     ClientInput input = 2;
+    ChooseBlessing choose_blessing = 3;
   }
 }
 
@@ -88,8 +89,56 @@ message EntitySnapshot{
   string monster_kind = 10;
 }
 
+enum BattlePhase {
+  BATTLE_PHASE_UNSPECIFIED = 0;
+  BATTLE_PHASE_FIGHTING = 1;
+  BATTLE_PHASE_REWARD_SELECTION = 2;
+}
+
+enum BlessingId {
+  BLESSING_ID_UNSPECIFIED = 0;
+  BLESSING_ID_BURN_ON_HIT = 1;
+  BLESSING_ID_LIFE_STEAL = 2;
+  BLESSING_ID_FREEZE_ON_HIT = 3;
+}
+
+message PlayerProgressSnapshot {
+  int64 player_id = 1;
+  int32 level = 2;
+  int32 experience = 3;
+  int32 experience_to_next_level = 4;
+  int32 pending_upgrade_choices = 5;
+}
+
+message BlessingOptionSnapshot {
+  int32 option_id = 1;
+  BlessingId blessing_id = 2;
+}
+
+message PlayerBlessingSnapshot {
+  BlessingId blessing_id = 1;
+  int32 level = 2;
+}
+
+message PlayerBlessingStateSnapshot {
+  int64 player_id = 1;
+  repeated PlayerBlessingSnapshot blessings = 2;
+  repeated BlessingOptionSnapshot current_options = 3;
+}
+
 message WorldSnapshot {
   string room_name = 1;
   repeated EntitySnapshot entities = 2;
+  int32 current_wave = 3;
+  BattlePhase phase = 4;
+  float reward_selection_remaining_seconds = 5;
+  repeated PlayerProgressSnapshot player_progress = 6;
+  repeated PlayerBlessingStateSnapshot player_blessings = 7;
+}
+
+message ChooseBlessing {
+  string room_name = 1;
+  int64 player_id = 2;
+  int32 option_id = 3;
 }
 

@@ -84,7 +84,12 @@ void battle::UdpServer::run_loop_() {
         }
 
         case v1::ClientPacket::kInput: {
-            handle_move_input(packet.value(), remote_addr, len);
+            handle_move_input_(packet.value(), remote_addr, len);
+            break;
+        }
+
+        case v1::ClientPacket::kChooseBlessing: {
+            handle_choose_blessing_(packet.value(), remote_addr, len);
             break;
         }
 
@@ -168,9 +173,9 @@ void battle::UdpServer::handle_hello_(const v1::ClientPacket& packet, const sock
     }
 }
 
-void battle::UdpServer::handle_move_input(const v1::ClientPacket& packet,
-                                          const sockaddr_in& remote_addr,
-                                          socklen_t remote_addr_len) {
+void battle::UdpServer::handle_move_input_(const v1::ClientPacket& packet,
+                                           const sockaddr_in& remote_addr,
+                                           socklen_t remote_addr_len) {
     const auto& input = packet.input();
     if (input.room_name().empty() || input.player_id() <= 0) {
         send_packet_(make_error("invalid_request", "invalid move input"), remote_addr, remote_addr_len);
@@ -189,6 +194,24 @@ void battle::UdpServer::handle_move_input(const v1::ClientPacket& packet,
 
                                         })) {
         send_packet_(make_error("internal_error", "unable to locate instance or entity"), remote_addr, remote_addr_len);
+    }
+}
+
+void battle::UdpServer::handle_choose_blessing_(const v1::ClientPacket& packet, const sockaddr_in& remote_addr,
+                                                socklen_t remote_addr_len) {
+    const auto& choose_blessing = packet.choose_blessing();
+    if (choose_blessing.room_name().empty() || choose_blessing.player_id() <= 0 || choose_blessing.option_id() < 0) {
+        send_packet_(make_error("invalid_request", "invalid choose blessing"), remote_addr, remote_addr_len);
+        return;
+    }
+    if (!battle_runtime_) {
+        send_packet_(make_error("runtime_unavailable", "battle runtime is not attached"), remote_addr,
+                     remote_addr_len);
+        return;
+    }
+    if (!battle_runtime_->choose_blessing(choose_blessing.room_name(), choose_blessing.player_id(),
+                                          choose_blessing.option_id())) {
+        send_packet_(make_error("internal_error", "unable to choose blessing"), remote_addr, remote_addr_len);
     }
 }
 

@@ -55,8 +55,20 @@ extern const ::google::protobuf::internal::DescriptorTable descriptor_table_prot
 }  // extern "C"
 namespace battle {
 namespace v1 {
+enum BattlePhase : int;
+extern const uint32_t BattlePhase_internal_data_[];
+enum BlessingId : int;
+extern const uint32_t BlessingId_internal_data_[];
 enum EntityKind : int;
 extern const uint32_t EntityKind_internal_data_[];
+class BlessingOptionSnapshot;
+struct BlessingOptionSnapshotDefaultTypeInternal;
+extern BlessingOptionSnapshotDefaultTypeInternal _BlessingOptionSnapshot_default_instance_;
+extern const ::google::protobuf::internal::ClassDataFull BlessingOptionSnapshot_class_data_;
+class ChooseBlessing;
+struct ChooseBlessingDefaultTypeInternal;
+extern ChooseBlessingDefaultTypeInternal _ChooseBlessing_default_instance_;
+extern const ::google::protobuf::internal::ClassDataFull ChooseBlessing_class_data_;
 class ClientHello;
 struct ClientHelloDefaultTypeInternal;
 extern ClientHelloDefaultTypeInternal _ClientHello_default_instance_;
@@ -93,6 +105,18 @@ class PlayerBattleStats;
 struct PlayerBattleStatsDefaultTypeInternal;
 extern PlayerBattleStatsDefaultTypeInternal _PlayerBattleStats_default_instance_;
 extern const ::google::protobuf::internal::ClassDataFull PlayerBattleStats_class_data_;
+class PlayerBlessingSnapshot;
+struct PlayerBlessingSnapshotDefaultTypeInternal;
+extern PlayerBlessingSnapshotDefaultTypeInternal _PlayerBlessingSnapshot_default_instance_;
+extern const ::google::protobuf::internal::ClassDataFull PlayerBlessingSnapshot_class_data_;
+class PlayerBlessingStateSnapshot;
+struct PlayerBlessingStateSnapshotDefaultTypeInternal;
+extern PlayerBlessingStateSnapshotDefaultTypeInternal _PlayerBlessingStateSnapshot_default_instance_;
+extern const ::google::protobuf::internal::ClassDataFull PlayerBlessingStateSnapshot_class_data_;
+class PlayerProgressSnapshot;
+struct PlayerProgressSnapshotDefaultTypeInternal;
+extern PlayerProgressSnapshotDefaultTypeInternal _PlayerProgressSnapshot_default_instance_;
+extern const ::google::protobuf::internal::ClassDataFull PlayerProgressSnapshot_class_data_;
 class ServerHello;
 struct ServerHelloDefaultTypeInternal;
 extern ServerHelloDefaultTypeInternal _ServerHello_default_instance_;
@@ -109,6 +133,12 @@ extern const ::google::protobuf::internal::ClassDataFull WorldSnapshot_class_dat
 }  // namespace battle
 namespace google {
 namespace protobuf {
+template <>
+internal::EnumTraitsT<::battle::v1::BattlePhase_internal_data_>
+    internal::EnumTraitsImpl::value<::battle::v1::BattlePhase>;
+template <>
+internal::EnumTraitsT<::battle::v1::BlessingId_internal_data_>
+    internal::EnumTraitsImpl::value<::battle::v1::BlessingId>;
 template <>
 internal::EnumTraitsT<::battle::v1::EntityKind_internal_data_>
     internal::EnumTraitsImpl::value<::battle::v1::EntityKind>;
@@ -152,6 +182,81 @@ inline const ::std::string& EntityKind_Name(EntityKind value) {
 inline bool EntityKind_Parse(
     ::absl::string_view name, EntityKind* PROTOBUF_NONNULL value) {
   return ::google::protobuf::internal::ParseNamedEnum<EntityKind>(EntityKind_descriptor(), name,
+                                           value);
+}
+enum BattlePhase : int {
+  BATTLE_PHASE_UNSPECIFIED = 0,
+  BATTLE_PHASE_FIGHTING = 1,
+  BATTLE_PHASE_REWARD_SELECTION = 2,
+  BattlePhase_INT_MIN_SENTINEL_DO_NOT_USE_ =
+      ::std::numeric_limits<::int32_t>::min(),
+  BattlePhase_INT_MAX_SENTINEL_DO_NOT_USE_ =
+      ::std::numeric_limits<::int32_t>::max(),
+};
+
+extern const uint32_t BattlePhase_internal_data_[];
+inline constexpr BattlePhase BattlePhase_MIN =
+    static_cast<BattlePhase>(0);
+inline constexpr BattlePhase BattlePhase_MAX =
+    static_cast<BattlePhase>(2);
+inline bool BattlePhase_IsValid(int value) {
+  return 0 <= value && value <= 2;
+}
+inline constexpr int BattlePhase_ARRAYSIZE = 2 + 1;
+const ::google::protobuf::EnumDescriptor* PROTOBUF_NONNULL BattlePhase_descriptor();
+template <typename T>
+const ::std::string& BattlePhase_Name(T value) {
+  static_assert(::std::is_same<T, BattlePhase>::value ||
+                    ::std::is_integral<T>::value,
+                "Incorrect type passed to BattlePhase_Name().");
+  return BattlePhase_Name(static_cast<BattlePhase>(value));
+}
+template <>
+inline const ::std::string& BattlePhase_Name(BattlePhase value) {
+  return ::google::protobuf::internal::NameOfDenseEnum<BattlePhase_descriptor, 0, 2>(
+      static_cast<int>(value));
+}
+inline bool BattlePhase_Parse(
+    ::absl::string_view name, BattlePhase* PROTOBUF_NONNULL value) {
+  return ::google::protobuf::internal::ParseNamedEnum<BattlePhase>(BattlePhase_descriptor(), name,
+                                           value);
+}
+enum BlessingId : int {
+  BLESSING_ID_UNSPECIFIED = 0,
+  BLESSING_ID_BURN_ON_HIT = 1,
+  BLESSING_ID_LIFE_STEAL = 2,
+  BLESSING_ID_FREEZE_ON_HIT = 3,
+  BlessingId_INT_MIN_SENTINEL_DO_NOT_USE_ =
+      ::std::numeric_limits<::int32_t>::min(),
+  BlessingId_INT_MAX_SENTINEL_DO_NOT_USE_ =
+      ::std::numeric_limits<::int32_t>::max(),
+};
+
+extern const uint32_t BlessingId_internal_data_[];
+inline constexpr BlessingId BlessingId_MIN =
+    static_cast<BlessingId>(0);
+inline constexpr BlessingId BlessingId_MAX =
+    static_cast<BlessingId>(3);
+inline bool BlessingId_IsValid(int value) {
+  return 0 <= value && value <= 3;
+}
+inline constexpr int BlessingId_ARRAYSIZE = 3 + 1;
+const ::google::protobuf::EnumDescriptor* PROTOBUF_NONNULL BlessingId_descriptor();
+template <typename T>
+const ::std::string& BlessingId_Name(T value) {
+  static_assert(::std::is_same<T, BlessingId>::value ||
+                    ::std::is_integral<T>::value,
+                "Incorrect type passed to BlessingId_Name().");
+  return BlessingId_Name(static_cast<BlessingId>(value));
+}
+template <>
+inline const ::std::string& BlessingId_Name(BlessingId value) {
+  return ::google::protobuf::internal::NameOfDenseEnum<BlessingId_descriptor, 0, 3>(
+      static_cast<int>(value));
+}
+inline bool BlessingId_Parse(
+    ::absl::string_view name, BlessingId* PROTOBUF_NONNULL value) {
+  return ::google::protobuf::internal::ParseNamedEnum<BlessingId>(BlessingId_descriptor(), name,
                                            value);
 }
 
@@ -366,6 +471,448 @@ class ServerHello final : public ::google::protobuf::Message
 };
 
 extern const ::google::protobuf::internal::ClassDataFull ServerHello_class_data_;
+// -------------------------------------------------------------------
+
+class PlayerProgressSnapshot final : public ::google::protobuf::Message
+/* @@protoc_insertion_point(class_definition:battle.v1.PlayerProgressSnapshot) */ {
+ public:
+  inline PlayerProgressSnapshot() : PlayerProgressSnapshot(nullptr) {}
+  ~PlayerProgressSnapshot() PROTOBUF_FINAL;
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+  void operator delete(PlayerProgressSnapshot* PROTOBUF_NONNULL msg, std::destroying_delete_t) {
+    SharedDtor(*msg);
+    ::google::protobuf::internal::SizedDelete(msg, sizeof(PlayerProgressSnapshot));
+  }
+#endif
+
+  template <typename = void>
+  explicit PROTOBUF_CONSTEXPR PlayerProgressSnapshot(::google::protobuf::internal::ConstantInitialized);
+
+  inline PlayerProgressSnapshot(const PlayerProgressSnapshot& from) : PlayerProgressSnapshot(nullptr, from) {}
+  inline PlayerProgressSnapshot(PlayerProgressSnapshot&& from) noexcept
+      : PlayerProgressSnapshot(nullptr, ::std::move(from)) {}
+  inline PlayerProgressSnapshot& operator=(const PlayerProgressSnapshot& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline PlayerProgressSnapshot& operator=(PlayerProgressSnapshot&& from) noexcept {
+    if (this == &from) return *this;
+    if (::google::protobuf::internal::CanMoveWithInternalSwap(GetArena(), from.GetArena())) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance);
+  }
+  inline ::google::protobuf::UnknownFieldSet* PROTOBUF_NONNULL mutable_unknown_fields()
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.mutable_unknown_fields<::google::protobuf::UnknownFieldSet>();
+  }
+
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL descriptor() {
+    return GetDescriptor();
+  }
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::google::protobuf::Reflection* PROTOBUF_NONNULL GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const PlayerProgressSnapshot& default_instance() {
+    return *reinterpret_cast<const PlayerProgressSnapshot*>(
+        &_PlayerProgressSnapshot_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages = 11;
+  friend void swap(PlayerProgressSnapshot& a, PlayerProgressSnapshot& b) { a.Swap(&b); }
+  inline void Swap(PlayerProgressSnapshot* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    if (::google::protobuf::internal::CanUseInternalSwap(GetArena(), other->GetArena())) {
+      InternalSwap(other);
+    } else {
+      ::google::protobuf::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(PlayerProgressSnapshot* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    ABSL_DCHECK(GetArena() == other->GetArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  PlayerProgressSnapshot* PROTOBUF_NONNULL New(::google::protobuf::Arena* PROTOBUF_NULLABLE arena = nullptr) const {
+    return ::google::protobuf::Message::DefaultConstruct<PlayerProgressSnapshot>(arena);
+  }
+  using ::google::protobuf::Message::CopyFrom;
+  void CopyFrom(const PlayerProgressSnapshot& from);
+  using ::google::protobuf::Message::MergeFrom;
+  void MergeFrom(const PlayerProgressSnapshot& from) { PlayerProgressSnapshot::MergeImpl(*this, from); }
+
+  private:
+  static void MergeImpl(::google::protobuf::MessageLite& to_msg,
+                        const ::google::protobuf::MessageLite& from_msg);
+
+  public:
+  bool IsInitialized() const {
+    return true;
+  }
+  ABSL_ATTRIBUTE_REINITIALIZES void Clear() PROTOBUF_FINAL;
+  #if defined(PROTOBUF_CUSTOM_VTABLE)
+  private:
+  static ::size_t ByteSizeLong(const ::google::protobuf::MessageLite& msg);
+  static ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      const ::google::protobuf::MessageLite& msg, ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream);
+
+  public:
+  ::size_t ByteSizeLong() const { return ByteSizeLong(*this); }
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+    return _InternalSerialize(*this, target, stream);
+  }
+  #else   // PROTOBUF_CUSTOM_VTABLE
+  ::size_t ByteSizeLong() const final;
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const final;
+  #endif  // PROTOBUF_CUSTOM_VTABLE
+  int GetCachedSize() const { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static void SharedDtor(MessageLite& self);
+  void InternalSwap(PlayerProgressSnapshot* PROTOBUF_NONNULL other);
+ private:
+  template <typename T>
+  friend ::absl::string_view(::google::protobuf::internal::GetAnyMessageName)();
+  static ::absl::string_view FullMessageName() { return "battle.v1.PlayerProgressSnapshot"; }
+
+ protected:
+  explicit PlayerProgressSnapshot(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  PlayerProgressSnapshot(::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const PlayerProgressSnapshot& from);
+  PlayerProgressSnapshot(
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, PlayerProgressSnapshot&& from) noexcept
+      : PlayerProgressSnapshot(arena) {
+    *this = ::std::move(from);
+  }
+  const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL GetClassData() const PROTOBUF_FINAL;
+  static void* PROTOBUF_NONNULL PlacementNew_(
+      const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static constexpr auto InternalNewImpl_();
+
+ public:
+  static constexpr auto InternalGenerateClassData_();
+
+  ::google::protobuf::Metadata GetMetadata() const;
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+  enum : int {
+    kPlayerIdFieldNumber = 1,
+    kLevelFieldNumber = 2,
+    kExperienceFieldNumber = 3,
+    kExperienceToNextLevelFieldNumber = 4,
+    kPendingUpgradeChoicesFieldNumber = 5,
+  };
+  // int64 player_id = 1;
+  void clear_player_id() ;
+  ::int64_t player_id() const;
+  void set_player_id(::int64_t value);
+
+  private:
+  ::int64_t _internal_player_id() const;
+  void _internal_set_player_id(::int64_t value);
+
+  public:
+  // int32 level = 2;
+  void clear_level() ;
+  ::int32_t level() const;
+  void set_level(::int32_t value);
+
+  private:
+  ::int32_t _internal_level() const;
+  void _internal_set_level(::int32_t value);
+
+  public:
+  // int32 experience = 3;
+  void clear_experience() ;
+  ::int32_t experience() const;
+  void set_experience(::int32_t value);
+
+  private:
+  ::int32_t _internal_experience() const;
+  void _internal_set_experience(::int32_t value);
+
+  public:
+  // int32 experience_to_next_level = 4;
+  void clear_experience_to_next_level() ;
+  ::int32_t experience_to_next_level() const;
+  void set_experience_to_next_level(::int32_t value);
+
+  private:
+  ::int32_t _internal_experience_to_next_level() const;
+  void _internal_set_experience_to_next_level(::int32_t value);
+
+  public:
+  // int32 pending_upgrade_choices = 5;
+  void clear_pending_upgrade_choices() ;
+  ::int32_t pending_upgrade_choices() const;
+  void set_pending_upgrade_choices(::int32_t value);
+
+  private:
+  ::int32_t _internal_pending_upgrade_choices() const;
+  void _internal_set_pending_upgrade_choices(::int32_t value);
+
+  public:
+  // @@protoc_insertion_point(class_scope:battle.v1.PlayerProgressSnapshot)
+ private:
+  class _Internal;
+  friend class ::google::protobuf::internal::TcParser;
+  static const ::google::protobuf::internal::TcParseTable<3, 5,
+                                   0, 0,
+                                   2>
+      _table_;
+
+  friend class ::google::protobuf::MessageLite;
+  friend class ::google::protobuf::Arena;
+  template <typename T>
+  friend class ::google::protobuf::Arena::InternalHelper;
+  using InternalArenaConstructable_ = void;
+  using DestructorSkippable_ = void;
+  struct Impl_ {
+    inline explicit constexpr Impl_(::google::protobuf::internal::ConstantInitialized) noexcept;
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
+        const PlayerProgressSnapshot& from_msg);
+    ::google::protobuf::internal::HasBits<1> _has_bits_;
+    ::google::protobuf::internal::CachedSize _cached_size_;
+    ::int64_t player_id_;
+    ::int32_t level_;
+    ::int32_t experience_;
+    ::int32_t experience_to_next_level_;
+    ::int32_t pending_upgrade_choices_;
+    PROTOBUF_TSAN_DECLARE_MEMBER
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_proto_2fbattle_2fv1_2fsession_2eproto;
+};
+
+extern const ::google::protobuf::internal::ClassDataFull PlayerProgressSnapshot_class_data_;
+// -------------------------------------------------------------------
+
+class PlayerBlessingSnapshot final : public ::google::protobuf::Message
+/* @@protoc_insertion_point(class_definition:battle.v1.PlayerBlessingSnapshot) */ {
+ public:
+  inline PlayerBlessingSnapshot() : PlayerBlessingSnapshot(nullptr) {}
+  ~PlayerBlessingSnapshot() PROTOBUF_FINAL;
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+  void operator delete(PlayerBlessingSnapshot* PROTOBUF_NONNULL msg, std::destroying_delete_t) {
+    SharedDtor(*msg);
+    ::google::protobuf::internal::SizedDelete(msg, sizeof(PlayerBlessingSnapshot));
+  }
+#endif
+
+  template <typename = void>
+  explicit PROTOBUF_CONSTEXPR PlayerBlessingSnapshot(::google::protobuf::internal::ConstantInitialized);
+
+  inline PlayerBlessingSnapshot(const PlayerBlessingSnapshot& from) : PlayerBlessingSnapshot(nullptr, from) {}
+  inline PlayerBlessingSnapshot(PlayerBlessingSnapshot&& from) noexcept
+      : PlayerBlessingSnapshot(nullptr, ::std::move(from)) {}
+  inline PlayerBlessingSnapshot& operator=(const PlayerBlessingSnapshot& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline PlayerBlessingSnapshot& operator=(PlayerBlessingSnapshot&& from) noexcept {
+    if (this == &from) return *this;
+    if (::google::protobuf::internal::CanMoveWithInternalSwap(GetArena(), from.GetArena())) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance);
+  }
+  inline ::google::protobuf::UnknownFieldSet* PROTOBUF_NONNULL mutable_unknown_fields()
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.mutable_unknown_fields<::google::protobuf::UnknownFieldSet>();
+  }
+
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL descriptor() {
+    return GetDescriptor();
+  }
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::google::protobuf::Reflection* PROTOBUF_NONNULL GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const PlayerBlessingSnapshot& default_instance() {
+    return *reinterpret_cast<const PlayerBlessingSnapshot*>(
+        &_PlayerBlessingSnapshot_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages = 13;
+  friend void swap(PlayerBlessingSnapshot& a, PlayerBlessingSnapshot& b) { a.Swap(&b); }
+  inline void Swap(PlayerBlessingSnapshot* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    if (::google::protobuf::internal::CanUseInternalSwap(GetArena(), other->GetArena())) {
+      InternalSwap(other);
+    } else {
+      ::google::protobuf::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(PlayerBlessingSnapshot* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    ABSL_DCHECK(GetArena() == other->GetArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  PlayerBlessingSnapshot* PROTOBUF_NONNULL New(::google::protobuf::Arena* PROTOBUF_NULLABLE arena = nullptr) const {
+    return ::google::protobuf::Message::DefaultConstruct<PlayerBlessingSnapshot>(arena);
+  }
+  using ::google::protobuf::Message::CopyFrom;
+  void CopyFrom(const PlayerBlessingSnapshot& from);
+  using ::google::protobuf::Message::MergeFrom;
+  void MergeFrom(const PlayerBlessingSnapshot& from) { PlayerBlessingSnapshot::MergeImpl(*this, from); }
+
+  private:
+  static void MergeImpl(::google::protobuf::MessageLite& to_msg,
+                        const ::google::protobuf::MessageLite& from_msg);
+
+  public:
+  bool IsInitialized() const {
+    return true;
+  }
+  ABSL_ATTRIBUTE_REINITIALIZES void Clear() PROTOBUF_FINAL;
+  #if defined(PROTOBUF_CUSTOM_VTABLE)
+  private:
+  static ::size_t ByteSizeLong(const ::google::protobuf::MessageLite& msg);
+  static ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      const ::google::protobuf::MessageLite& msg, ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream);
+
+  public:
+  ::size_t ByteSizeLong() const { return ByteSizeLong(*this); }
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+    return _InternalSerialize(*this, target, stream);
+  }
+  #else   // PROTOBUF_CUSTOM_VTABLE
+  ::size_t ByteSizeLong() const final;
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const final;
+  #endif  // PROTOBUF_CUSTOM_VTABLE
+  int GetCachedSize() const { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static void SharedDtor(MessageLite& self);
+  void InternalSwap(PlayerBlessingSnapshot* PROTOBUF_NONNULL other);
+ private:
+  template <typename T>
+  friend ::absl::string_view(::google::protobuf::internal::GetAnyMessageName)();
+  static ::absl::string_view FullMessageName() { return "battle.v1.PlayerBlessingSnapshot"; }
+
+ protected:
+  explicit PlayerBlessingSnapshot(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  PlayerBlessingSnapshot(::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const PlayerBlessingSnapshot& from);
+  PlayerBlessingSnapshot(
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, PlayerBlessingSnapshot&& from) noexcept
+      : PlayerBlessingSnapshot(arena) {
+    *this = ::std::move(from);
+  }
+  const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL GetClassData() const PROTOBUF_FINAL;
+  static void* PROTOBUF_NONNULL PlacementNew_(
+      const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static constexpr auto InternalNewImpl_();
+
+ public:
+  static constexpr auto InternalGenerateClassData_();
+
+  ::google::protobuf::Metadata GetMetadata() const;
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+  enum : int {
+    kBlessingIdFieldNumber = 1,
+    kLevelFieldNumber = 2,
+  };
+  // .battle.v1.BlessingId blessing_id = 1;
+  void clear_blessing_id() ;
+  ::battle::v1::BlessingId blessing_id() const;
+  void set_blessing_id(::battle::v1::BlessingId value);
+
+  private:
+  ::battle::v1::BlessingId _internal_blessing_id() const;
+  void _internal_set_blessing_id(::battle::v1::BlessingId value);
+
+  public:
+  // int32 level = 2;
+  void clear_level() ;
+  ::int32_t level() const;
+  void set_level(::int32_t value);
+
+  private:
+  ::int32_t _internal_level() const;
+  void _internal_set_level(::int32_t value);
+
+  public:
+  // @@protoc_insertion_point(class_scope:battle.v1.PlayerBlessingSnapshot)
+ private:
+  class _Internal;
+  friend class ::google::protobuf::internal::TcParser;
+  static const ::google::protobuf::internal::TcParseTable<1, 2,
+                                   0, 0,
+                                   2>
+      _table_;
+
+  friend class ::google::protobuf::MessageLite;
+  friend class ::google::protobuf::Arena;
+  template <typename T>
+  friend class ::google::protobuf::Arena::InternalHelper;
+  using InternalArenaConstructable_ = void;
+  using DestructorSkippable_ = void;
+  struct Impl_ {
+    inline explicit constexpr Impl_(::google::protobuf::internal::ConstantInitialized) noexcept;
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
+        const PlayerBlessingSnapshot& from_msg);
+    ::google::protobuf::internal::HasBits<1> _has_bits_;
+    ::google::protobuf::internal::CachedSize _cached_size_;
+    int blessing_id_;
+    ::int32_t level_;
+    PROTOBUF_TSAN_DECLARE_MEMBER
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_proto_2fbattle_2fv1_2fsession_2eproto;
+};
+
+extern const ::google::protobuf::internal::ClassDataFull PlayerBlessingSnapshot_class_data_;
 // -------------------------------------------------------------------
 
 class MonsterKillCount final : public ::google::protobuf::Message
@@ -1791,30 +2338,30 @@ class ClientHello final : public ::google::protobuf::Message
 extern const ::google::protobuf::internal::ClassDataFull ClientHello_class_data_;
 // -------------------------------------------------------------------
 
-class WorldSnapshot final : public ::google::protobuf::Message
-/* @@protoc_insertion_point(class_definition:battle.v1.WorldSnapshot) */ {
+class ChooseBlessing final : public ::google::protobuf::Message
+/* @@protoc_insertion_point(class_definition:battle.v1.ChooseBlessing) */ {
  public:
-  inline WorldSnapshot() : WorldSnapshot(nullptr) {}
-  ~WorldSnapshot() PROTOBUF_FINAL;
+  inline ChooseBlessing() : ChooseBlessing(nullptr) {}
+  ~ChooseBlessing() PROTOBUF_FINAL;
 
 #if defined(PROTOBUF_CUSTOM_VTABLE)
-  void operator delete(WorldSnapshot* PROTOBUF_NONNULL msg, std::destroying_delete_t) {
+  void operator delete(ChooseBlessing* PROTOBUF_NONNULL msg, std::destroying_delete_t) {
     SharedDtor(*msg);
-    ::google::protobuf::internal::SizedDelete(msg, sizeof(WorldSnapshot));
+    ::google::protobuf::internal::SizedDelete(msg, sizeof(ChooseBlessing));
   }
 #endif
 
   template <typename = void>
-  explicit PROTOBUF_CONSTEXPR WorldSnapshot(::google::protobuf::internal::ConstantInitialized);
+  explicit PROTOBUF_CONSTEXPR ChooseBlessing(::google::protobuf::internal::ConstantInitialized);
 
-  inline WorldSnapshot(const WorldSnapshot& from) : WorldSnapshot(nullptr, from) {}
-  inline WorldSnapshot(WorldSnapshot&& from) noexcept
-      : WorldSnapshot(nullptr, ::std::move(from)) {}
-  inline WorldSnapshot& operator=(const WorldSnapshot& from) {
+  inline ChooseBlessing(const ChooseBlessing& from) : ChooseBlessing(nullptr, from) {}
+  inline ChooseBlessing(ChooseBlessing&& from) noexcept
+      : ChooseBlessing(nullptr, ::std::move(from)) {}
+  inline ChooseBlessing& operator=(const ChooseBlessing& from) {
     CopyFrom(from);
     return *this;
   }
-  inline WorldSnapshot& operator=(WorldSnapshot&& from) noexcept {
+  inline ChooseBlessing& operator=(ChooseBlessing&& from) noexcept {
     if (this == &from) return *this;
     if (::google::protobuf::internal::CanMoveWithInternalSwap(GetArena(), from.GetArena())) {
       InternalSwap(&from);
@@ -1842,13 +2389,13 @@ class WorldSnapshot final : public ::google::protobuf::Message
   static const ::google::protobuf::Reflection* PROTOBUF_NONNULL GetReflection() {
     return default_instance().GetMetadata().reflection;
   }
-  static const WorldSnapshot& default_instance() {
-    return *reinterpret_cast<const WorldSnapshot*>(
-        &_WorldSnapshot_default_instance_);
+  static const ChooseBlessing& default_instance() {
+    return *reinterpret_cast<const ChooseBlessing*>(
+        &_ChooseBlessing_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 11;
-  friend void swap(WorldSnapshot& a, WorldSnapshot& b) { a.Swap(&b); }
-  inline void Swap(WorldSnapshot* PROTOBUF_NONNULL other) {
+  static constexpr int kIndexInFileMessages = 16;
+  friend void swap(ChooseBlessing& a, ChooseBlessing& b) { a.Swap(&b); }
+  inline void Swap(ChooseBlessing* PROTOBUF_NONNULL other) {
     if (other == this) return;
     if (::google::protobuf::internal::CanUseInternalSwap(GetArena(), other->GetArena())) {
       InternalSwap(other);
@@ -1856,7 +2403,7 @@ class WorldSnapshot final : public ::google::protobuf::Message
       ::google::protobuf::internal::GenericSwap(this, other);
     }
   }
-  void UnsafeArenaSwap(WorldSnapshot* PROTOBUF_NONNULL other) {
+  void UnsafeArenaSwap(ChooseBlessing* PROTOBUF_NONNULL other) {
     if (other == this) return;
     ABSL_DCHECK(GetArena() == other->GetArena());
     InternalSwap(other);
@@ -1864,13 +2411,13 @@ class WorldSnapshot final : public ::google::protobuf::Message
 
   // implements Message ----------------------------------------------
 
-  WorldSnapshot* PROTOBUF_NONNULL New(::google::protobuf::Arena* PROTOBUF_NULLABLE arena = nullptr) const {
-    return ::google::protobuf::Message::DefaultConstruct<WorldSnapshot>(arena);
+  ChooseBlessing* PROTOBUF_NONNULL New(::google::protobuf::Arena* PROTOBUF_NULLABLE arena = nullptr) const {
+    return ::google::protobuf::Message::DefaultConstruct<ChooseBlessing>(arena);
   }
   using ::google::protobuf::Message::CopyFrom;
-  void CopyFrom(const WorldSnapshot& from);
+  void CopyFrom(const ChooseBlessing& from);
   using ::google::protobuf::Message::MergeFrom;
-  void MergeFrom(const WorldSnapshot& from) { WorldSnapshot::MergeImpl(*this, from); }
+  void MergeFrom(const ChooseBlessing& from) { ChooseBlessing::MergeImpl(*this, from); }
 
   private:
   static void MergeImpl(::google::protobuf::MessageLite& to_msg,
@@ -1906,18 +2453,18 @@ class WorldSnapshot final : public ::google::protobuf::Message
   private:
   void SharedCtor(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
   static void SharedDtor(MessageLite& self);
-  void InternalSwap(WorldSnapshot* PROTOBUF_NONNULL other);
+  void InternalSwap(ChooseBlessing* PROTOBUF_NONNULL other);
  private:
   template <typename T>
   friend ::absl::string_view(::google::protobuf::internal::GetAnyMessageName)();
-  static ::absl::string_view FullMessageName() { return "battle.v1.WorldSnapshot"; }
+  static ::absl::string_view FullMessageName() { return "battle.v1.ChooseBlessing"; }
 
  protected:
-  explicit WorldSnapshot(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
-  WorldSnapshot(::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const WorldSnapshot& from);
-  WorldSnapshot(
-      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, WorldSnapshot&& from) noexcept
-      : WorldSnapshot(arena) {
+  explicit ChooseBlessing(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  ChooseBlessing(::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const ChooseBlessing& from);
+  ChooseBlessing(
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, ChooseBlessing&& from) noexcept
+      : ChooseBlessing(arena) {
     *this = ::std::move(from);
   }
   const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL GetClassData() const PROTOBUF_FINAL;
@@ -1934,26 +2481,10 @@ class WorldSnapshot final : public ::google::protobuf::Message
 
   // accessors -------------------------------------------------------
   enum : int {
-    kEntitiesFieldNumber = 2,
     kRoomNameFieldNumber = 1,
+    kPlayerIdFieldNumber = 2,
+    kOptionIdFieldNumber = 3,
   };
-  // repeated .battle.v1.EntitySnapshot entities = 2;
-  int entities_size() const;
-  private:
-  int _internal_entities_size() const;
-
-  public:
-  void clear_entities() ;
-  ::battle::v1::EntitySnapshot* PROTOBUF_NONNULL mutable_entities(int index);
-  ::google::protobuf::RepeatedPtrField<::battle::v1::EntitySnapshot>* PROTOBUF_NONNULL mutable_entities();
-
-  private:
-  const ::google::protobuf::RepeatedPtrField<::battle::v1::EntitySnapshot>& _internal_entities() const;
-  ::google::protobuf::RepeatedPtrField<::battle::v1::EntitySnapshot>* PROTOBUF_NONNULL _internal_mutable_entities();
-  public:
-  const ::battle::v1::EntitySnapshot& entities(int index) const;
-  ::battle::v1::EntitySnapshot* PROTOBUF_NONNULL add_entities();
-  const ::google::protobuf::RepeatedPtrField<::battle::v1::EntitySnapshot>& entities() const;
   // string room_name = 1;
   void clear_room_name() ;
   const ::std::string& room_name() const;
@@ -1969,12 +2500,32 @@ class WorldSnapshot final : public ::google::protobuf::Message
   ::std::string* PROTOBUF_NONNULL _internal_mutable_room_name();
 
   public:
-  // @@protoc_insertion_point(class_scope:battle.v1.WorldSnapshot)
+  // int64 player_id = 2;
+  void clear_player_id() ;
+  ::int64_t player_id() const;
+  void set_player_id(::int64_t value);
+
+  private:
+  ::int64_t _internal_player_id() const;
+  void _internal_set_player_id(::int64_t value);
+
+  public:
+  // int32 option_id = 3;
+  void clear_option_id() ;
+  ::int32_t option_id() const;
+  void set_option_id(::int32_t value);
+
+  private:
+  ::int32_t _internal_option_id() const;
+  void _internal_set_option_id(::int32_t value);
+
+  public:
+  // @@protoc_insertion_point(class_scope:battle.v1.ChooseBlessing)
  private:
   class _Internal;
   friend class ::google::protobuf::internal::TcParser;
-  static const ::google::protobuf::internal::TcParseTable<1, 2,
-                                   1, 41,
+  static const ::google::protobuf::internal::TcParseTable<2, 3,
+                                   0, 42,
                                    2>
       _table_;
 
@@ -1992,18 +2543,451 @@ class WorldSnapshot final : public ::google::protobuf::Message
     inline explicit Impl_(
         ::google::protobuf::internal::InternalVisibility visibility,
         ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
-        const WorldSnapshot& from_msg);
+        const ChooseBlessing& from_msg);
     ::google::protobuf::internal::HasBits<1> _has_bits_;
     ::google::protobuf::internal::CachedSize _cached_size_;
-    ::google::protobuf::RepeatedPtrField< ::battle::v1::EntitySnapshot > entities_;
     ::google::protobuf::internal::ArenaStringPtr room_name_;
+    ::int64_t player_id_;
+    ::int32_t option_id_;
     PROTOBUF_TSAN_DECLARE_MEMBER
   };
   union { Impl_ _impl_; };
   friend struct ::TableStruct_proto_2fbattle_2fv1_2fsession_2eproto;
 };
 
-extern const ::google::protobuf::internal::ClassDataFull WorldSnapshot_class_data_;
+extern const ::google::protobuf::internal::ClassDataFull ChooseBlessing_class_data_;
+// -------------------------------------------------------------------
+
+class BlessingOptionSnapshot final : public ::google::protobuf::Message
+/* @@protoc_insertion_point(class_definition:battle.v1.BlessingOptionSnapshot) */ {
+ public:
+  inline BlessingOptionSnapshot() : BlessingOptionSnapshot(nullptr) {}
+  ~BlessingOptionSnapshot() PROTOBUF_FINAL;
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+  void operator delete(BlessingOptionSnapshot* PROTOBUF_NONNULL msg, std::destroying_delete_t) {
+    SharedDtor(*msg);
+    ::google::protobuf::internal::SizedDelete(msg, sizeof(BlessingOptionSnapshot));
+  }
+#endif
+
+  template <typename = void>
+  explicit PROTOBUF_CONSTEXPR BlessingOptionSnapshot(::google::protobuf::internal::ConstantInitialized);
+
+  inline BlessingOptionSnapshot(const BlessingOptionSnapshot& from) : BlessingOptionSnapshot(nullptr, from) {}
+  inline BlessingOptionSnapshot(BlessingOptionSnapshot&& from) noexcept
+      : BlessingOptionSnapshot(nullptr, ::std::move(from)) {}
+  inline BlessingOptionSnapshot& operator=(const BlessingOptionSnapshot& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline BlessingOptionSnapshot& operator=(BlessingOptionSnapshot&& from) noexcept {
+    if (this == &from) return *this;
+    if (::google::protobuf::internal::CanMoveWithInternalSwap(GetArena(), from.GetArena())) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance);
+  }
+  inline ::google::protobuf::UnknownFieldSet* PROTOBUF_NONNULL mutable_unknown_fields()
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.mutable_unknown_fields<::google::protobuf::UnknownFieldSet>();
+  }
+
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL descriptor() {
+    return GetDescriptor();
+  }
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::google::protobuf::Reflection* PROTOBUF_NONNULL GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const BlessingOptionSnapshot& default_instance() {
+    return *reinterpret_cast<const BlessingOptionSnapshot*>(
+        &_BlessingOptionSnapshot_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages = 12;
+  friend void swap(BlessingOptionSnapshot& a, BlessingOptionSnapshot& b) { a.Swap(&b); }
+  inline void Swap(BlessingOptionSnapshot* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    if (::google::protobuf::internal::CanUseInternalSwap(GetArena(), other->GetArena())) {
+      InternalSwap(other);
+    } else {
+      ::google::protobuf::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(BlessingOptionSnapshot* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    ABSL_DCHECK(GetArena() == other->GetArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  BlessingOptionSnapshot* PROTOBUF_NONNULL New(::google::protobuf::Arena* PROTOBUF_NULLABLE arena = nullptr) const {
+    return ::google::protobuf::Message::DefaultConstruct<BlessingOptionSnapshot>(arena);
+  }
+  using ::google::protobuf::Message::CopyFrom;
+  void CopyFrom(const BlessingOptionSnapshot& from);
+  using ::google::protobuf::Message::MergeFrom;
+  void MergeFrom(const BlessingOptionSnapshot& from) { BlessingOptionSnapshot::MergeImpl(*this, from); }
+
+  private:
+  static void MergeImpl(::google::protobuf::MessageLite& to_msg,
+                        const ::google::protobuf::MessageLite& from_msg);
+
+  public:
+  bool IsInitialized() const {
+    return true;
+  }
+  ABSL_ATTRIBUTE_REINITIALIZES void Clear() PROTOBUF_FINAL;
+  #if defined(PROTOBUF_CUSTOM_VTABLE)
+  private:
+  static ::size_t ByteSizeLong(const ::google::protobuf::MessageLite& msg);
+  static ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      const ::google::protobuf::MessageLite& msg, ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream);
+
+  public:
+  ::size_t ByteSizeLong() const { return ByteSizeLong(*this); }
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+    return _InternalSerialize(*this, target, stream);
+  }
+  #else   // PROTOBUF_CUSTOM_VTABLE
+  ::size_t ByteSizeLong() const final;
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const final;
+  #endif  // PROTOBUF_CUSTOM_VTABLE
+  int GetCachedSize() const { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static void SharedDtor(MessageLite& self);
+  void InternalSwap(BlessingOptionSnapshot* PROTOBUF_NONNULL other);
+ private:
+  template <typename T>
+  friend ::absl::string_view(::google::protobuf::internal::GetAnyMessageName)();
+  static ::absl::string_view FullMessageName() { return "battle.v1.BlessingOptionSnapshot"; }
+
+ protected:
+  explicit BlessingOptionSnapshot(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  BlessingOptionSnapshot(::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const BlessingOptionSnapshot& from);
+  BlessingOptionSnapshot(
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, BlessingOptionSnapshot&& from) noexcept
+      : BlessingOptionSnapshot(arena) {
+    *this = ::std::move(from);
+  }
+  const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL GetClassData() const PROTOBUF_FINAL;
+  static void* PROTOBUF_NONNULL PlacementNew_(
+      const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static constexpr auto InternalNewImpl_();
+
+ public:
+  static constexpr auto InternalGenerateClassData_();
+
+  ::google::protobuf::Metadata GetMetadata() const;
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+  enum : int {
+    kOptionIdFieldNumber = 1,
+    kBlessingIdFieldNumber = 2,
+  };
+  // int32 option_id = 1;
+  void clear_option_id() ;
+  ::int32_t option_id() const;
+  void set_option_id(::int32_t value);
+
+  private:
+  ::int32_t _internal_option_id() const;
+  void _internal_set_option_id(::int32_t value);
+
+  public:
+  // .battle.v1.BlessingId blessing_id = 2;
+  void clear_blessing_id() ;
+  ::battle::v1::BlessingId blessing_id() const;
+  void set_blessing_id(::battle::v1::BlessingId value);
+
+  private:
+  ::battle::v1::BlessingId _internal_blessing_id() const;
+  void _internal_set_blessing_id(::battle::v1::BlessingId value);
+
+  public:
+  // @@protoc_insertion_point(class_scope:battle.v1.BlessingOptionSnapshot)
+ private:
+  class _Internal;
+  friend class ::google::protobuf::internal::TcParser;
+  static const ::google::protobuf::internal::TcParseTable<1, 2,
+                                   0, 0,
+                                   2>
+      _table_;
+
+  friend class ::google::protobuf::MessageLite;
+  friend class ::google::protobuf::Arena;
+  template <typename T>
+  friend class ::google::protobuf::Arena::InternalHelper;
+  using InternalArenaConstructable_ = void;
+  using DestructorSkippable_ = void;
+  struct Impl_ {
+    inline explicit constexpr Impl_(::google::protobuf::internal::ConstantInitialized) noexcept;
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
+        const BlessingOptionSnapshot& from_msg);
+    ::google::protobuf::internal::HasBits<1> _has_bits_;
+    ::google::protobuf::internal::CachedSize _cached_size_;
+    ::int32_t option_id_;
+    int blessing_id_;
+    PROTOBUF_TSAN_DECLARE_MEMBER
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_proto_2fbattle_2fv1_2fsession_2eproto;
+};
+
+extern const ::google::protobuf::internal::ClassDataFull BlessingOptionSnapshot_class_data_;
+// -------------------------------------------------------------------
+
+class PlayerBlessingStateSnapshot final : public ::google::protobuf::Message
+/* @@protoc_insertion_point(class_definition:battle.v1.PlayerBlessingStateSnapshot) */ {
+ public:
+  inline PlayerBlessingStateSnapshot() : PlayerBlessingStateSnapshot(nullptr) {}
+  ~PlayerBlessingStateSnapshot() PROTOBUF_FINAL;
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+  void operator delete(PlayerBlessingStateSnapshot* PROTOBUF_NONNULL msg, std::destroying_delete_t) {
+    SharedDtor(*msg);
+    ::google::protobuf::internal::SizedDelete(msg, sizeof(PlayerBlessingStateSnapshot));
+  }
+#endif
+
+  template <typename = void>
+  explicit PROTOBUF_CONSTEXPR PlayerBlessingStateSnapshot(::google::protobuf::internal::ConstantInitialized);
+
+  inline PlayerBlessingStateSnapshot(const PlayerBlessingStateSnapshot& from) : PlayerBlessingStateSnapshot(nullptr, from) {}
+  inline PlayerBlessingStateSnapshot(PlayerBlessingStateSnapshot&& from) noexcept
+      : PlayerBlessingStateSnapshot(nullptr, ::std::move(from)) {}
+  inline PlayerBlessingStateSnapshot& operator=(const PlayerBlessingStateSnapshot& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline PlayerBlessingStateSnapshot& operator=(PlayerBlessingStateSnapshot&& from) noexcept {
+    if (this == &from) return *this;
+    if (::google::protobuf::internal::CanMoveWithInternalSwap(GetArena(), from.GetArena())) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance);
+  }
+  inline ::google::protobuf::UnknownFieldSet* PROTOBUF_NONNULL mutable_unknown_fields()
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.mutable_unknown_fields<::google::protobuf::UnknownFieldSet>();
+  }
+
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL descriptor() {
+    return GetDescriptor();
+  }
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::google::protobuf::Reflection* PROTOBUF_NONNULL GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const PlayerBlessingStateSnapshot& default_instance() {
+    return *reinterpret_cast<const PlayerBlessingStateSnapshot*>(
+        &_PlayerBlessingStateSnapshot_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages = 14;
+  friend void swap(PlayerBlessingStateSnapshot& a, PlayerBlessingStateSnapshot& b) { a.Swap(&b); }
+  inline void Swap(PlayerBlessingStateSnapshot* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    if (::google::protobuf::internal::CanUseInternalSwap(GetArena(), other->GetArena())) {
+      InternalSwap(other);
+    } else {
+      ::google::protobuf::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(PlayerBlessingStateSnapshot* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    ABSL_DCHECK(GetArena() == other->GetArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  PlayerBlessingStateSnapshot* PROTOBUF_NONNULL New(::google::protobuf::Arena* PROTOBUF_NULLABLE arena = nullptr) const {
+    return ::google::protobuf::Message::DefaultConstruct<PlayerBlessingStateSnapshot>(arena);
+  }
+  using ::google::protobuf::Message::CopyFrom;
+  void CopyFrom(const PlayerBlessingStateSnapshot& from);
+  using ::google::protobuf::Message::MergeFrom;
+  void MergeFrom(const PlayerBlessingStateSnapshot& from) { PlayerBlessingStateSnapshot::MergeImpl(*this, from); }
+
+  private:
+  static void MergeImpl(::google::protobuf::MessageLite& to_msg,
+                        const ::google::protobuf::MessageLite& from_msg);
+
+  public:
+  bool IsInitialized() const {
+    return true;
+  }
+  ABSL_ATTRIBUTE_REINITIALIZES void Clear() PROTOBUF_FINAL;
+  #if defined(PROTOBUF_CUSTOM_VTABLE)
+  private:
+  static ::size_t ByteSizeLong(const ::google::protobuf::MessageLite& msg);
+  static ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      const ::google::protobuf::MessageLite& msg, ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream);
+
+  public:
+  ::size_t ByteSizeLong() const { return ByteSizeLong(*this); }
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+    return _InternalSerialize(*this, target, stream);
+  }
+  #else   // PROTOBUF_CUSTOM_VTABLE
+  ::size_t ByteSizeLong() const final;
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const final;
+  #endif  // PROTOBUF_CUSTOM_VTABLE
+  int GetCachedSize() const { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static void SharedDtor(MessageLite& self);
+  void InternalSwap(PlayerBlessingStateSnapshot* PROTOBUF_NONNULL other);
+ private:
+  template <typename T>
+  friend ::absl::string_view(::google::protobuf::internal::GetAnyMessageName)();
+  static ::absl::string_view FullMessageName() { return "battle.v1.PlayerBlessingStateSnapshot"; }
+
+ protected:
+  explicit PlayerBlessingStateSnapshot(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  PlayerBlessingStateSnapshot(::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const PlayerBlessingStateSnapshot& from);
+  PlayerBlessingStateSnapshot(
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, PlayerBlessingStateSnapshot&& from) noexcept
+      : PlayerBlessingStateSnapshot(arena) {
+    *this = ::std::move(from);
+  }
+  const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL GetClassData() const PROTOBUF_FINAL;
+  static void* PROTOBUF_NONNULL PlacementNew_(
+      const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static constexpr auto InternalNewImpl_();
+
+ public:
+  static constexpr auto InternalGenerateClassData_();
+
+  ::google::protobuf::Metadata GetMetadata() const;
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+  enum : int {
+    kBlessingsFieldNumber = 2,
+    kCurrentOptionsFieldNumber = 3,
+    kPlayerIdFieldNumber = 1,
+  };
+  // repeated .battle.v1.PlayerBlessingSnapshot blessings = 2;
+  int blessings_size() const;
+  private:
+  int _internal_blessings_size() const;
+
+  public:
+  void clear_blessings() ;
+  ::battle::v1::PlayerBlessingSnapshot* PROTOBUF_NONNULL mutable_blessings(int index);
+  ::google::protobuf::RepeatedPtrField<::battle::v1::PlayerBlessingSnapshot>* PROTOBUF_NONNULL mutable_blessings();
+
+  private:
+  const ::google::protobuf::RepeatedPtrField<::battle::v1::PlayerBlessingSnapshot>& _internal_blessings() const;
+  ::google::protobuf::RepeatedPtrField<::battle::v1::PlayerBlessingSnapshot>* PROTOBUF_NONNULL _internal_mutable_blessings();
+  public:
+  const ::battle::v1::PlayerBlessingSnapshot& blessings(int index) const;
+  ::battle::v1::PlayerBlessingSnapshot* PROTOBUF_NONNULL add_blessings();
+  const ::google::protobuf::RepeatedPtrField<::battle::v1::PlayerBlessingSnapshot>& blessings() const;
+  // repeated .battle.v1.BlessingOptionSnapshot current_options = 3;
+  int current_options_size() const;
+  private:
+  int _internal_current_options_size() const;
+
+  public:
+  void clear_current_options() ;
+  ::battle::v1::BlessingOptionSnapshot* PROTOBUF_NONNULL mutable_current_options(int index);
+  ::google::protobuf::RepeatedPtrField<::battle::v1::BlessingOptionSnapshot>* PROTOBUF_NONNULL mutable_current_options();
+
+  private:
+  const ::google::protobuf::RepeatedPtrField<::battle::v1::BlessingOptionSnapshot>& _internal_current_options() const;
+  ::google::protobuf::RepeatedPtrField<::battle::v1::BlessingOptionSnapshot>* PROTOBUF_NONNULL _internal_mutable_current_options();
+  public:
+  const ::battle::v1::BlessingOptionSnapshot& current_options(int index) const;
+  ::battle::v1::BlessingOptionSnapshot* PROTOBUF_NONNULL add_current_options();
+  const ::google::protobuf::RepeatedPtrField<::battle::v1::BlessingOptionSnapshot>& current_options() const;
+  // int64 player_id = 1;
+  void clear_player_id() ;
+  ::int64_t player_id() const;
+  void set_player_id(::int64_t value);
+
+  private:
+  ::int64_t _internal_player_id() const;
+  void _internal_set_player_id(::int64_t value);
+
+  public:
+  // @@protoc_insertion_point(class_scope:battle.v1.PlayerBlessingStateSnapshot)
+ private:
+  class _Internal;
+  friend class ::google::protobuf::internal::TcParser;
+  static const ::google::protobuf::internal::TcParseTable<2, 3,
+                                   2, 0,
+                                   2>
+      _table_;
+
+  friend class ::google::protobuf::MessageLite;
+  friend class ::google::protobuf::Arena;
+  template <typename T>
+  friend class ::google::protobuf::Arena::InternalHelper;
+  using InternalArenaConstructable_ = void;
+  using DestructorSkippable_ = void;
+  struct Impl_ {
+    inline explicit constexpr Impl_(::google::protobuf::internal::ConstantInitialized) noexcept;
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
+        const PlayerBlessingStateSnapshot& from_msg);
+    ::google::protobuf::internal::HasBits<1> _has_bits_;
+    ::google::protobuf::internal::CachedSize _cached_size_;
+    ::google::protobuf::RepeatedPtrField< ::battle::v1::PlayerBlessingSnapshot > blessings_;
+    ::google::protobuf::RepeatedPtrField< ::battle::v1::BlessingOptionSnapshot > current_options_;
+    ::int64_t player_id_;
+    PROTOBUF_TSAN_DECLARE_MEMBER
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_proto_2fbattle_2fv1_2fsession_2eproto;
+};
+
+extern const ::google::protobuf::internal::ClassDataFull PlayerBlessingStateSnapshot_class_data_;
 // -------------------------------------------------------------------
 
 class PlayerBattleStats final : public ::google::protobuf::Message
@@ -2286,6 +3270,7 @@ class ClientPacket final : public ::google::protobuf::Message
   enum PayloadCase {
     kHello = 1,
     kInput = 2,
+    kChooseBlessing = 3,
     PAYLOAD_NOT_SET = 0,
   };
   static constexpr int kIndexInFileMessages = 4;
@@ -2378,6 +3363,7 @@ class ClientPacket final : public ::google::protobuf::Message
   enum : int {
     kHelloFieldNumber = 1,
     kInputFieldNumber = 2,
+    kChooseBlessingFieldNumber = 3,
   };
   // .battle.v1.ClientHello hello = 1;
   bool has_hello() const;
@@ -2417,6 +3403,25 @@ class ClientPacket final : public ::google::protobuf::Message
   ::battle::v1::ClientInput* PROTOBUF_NONNULL _internal_mutable_input();
 
   public:
+  // .battle.v1.ChooseBlessing choose_blessing = 3;
+  bool has_choose_blessing() const;
+  private:
+  bool _internal_has_choose_blessing() const;
+
+  public:
+  void clear_choose_blessing() ;
+  const ::battle::v1::ChooseBlessing& choose_blessing() const;
+  [[nodiscard]] ::battle::v1::ChooseBlessing* PROTOBUF_NULLABLE release_choose_blessing();
+  ::battle::v1::ChooseBlessing* PROTOBUF_NONNULL mutable_choose_blessing();
+  void set_allocated_choose_blessing(::battle::v1::ChooseBlessing* PROTOBUF_NULLABLE value);
+  void unsafe_arena_set_allocated_choose_blessing(::battle::v1::ChooseBlessing* PROTOBUF_NULLABLE value);
+  ::battle::v1::ChooseBlessing* PROTOBUF_NULLABLE unsafe_arena_release_choose_blessing();
+
+  private:
+  const ::battle::v1::ChooseBlessing& _internal_choose_blessing() const;
+  ::battle::v1::ChooseBlessing* PROTOBUF_NONNULL _internal_mutable_choose_blessing();
+
+  public:
   void clear_payload();
   PayloadCase payload_case() const;
   // @@protoc_insertion_point(class_scope:battle.v1.ClientPacket)
@@ -2424,11 +3429,12 @@ class ClientPacket final : public ::google::protobuf::Message
   class _Internal;
   void set_has_hello();
   void set_has_input();
+  void set_has_choose_blessing();
   inline bool has_payload() const;
   inline void clear_has_payload();
   friend class ::google::protobuf::internal::TcParser;
-  static const ::google::protobuf::internal::TcParseTable<0, 2,
-                                   2, 0,
+  static const ::google::protobuf::internal::TcParseTable<0, 3,
+                                   3, 0,
                                    2>
       _table_;
 
@@ -2450,8 +3456,9 @@ class ClientPacket final : public ::google::protobuf::Message
     union PayloadUnion {
       constexpr PayloadUnion() : _constinit_{} {}
       ::google::protobuf::internal::ConstantInitialized _constinit_;
-      ::battle::v1::ClientHello* PROTOBUF_NULLABLE hello_;
-      ::battle::v1::ClientInput* PROTOBUF_NULLABLE input_;
+      ::google::protobuf::Message* PROTOBUF_NULLABLE hello_;
+      ::google::protobuf::Message* PROTOBUF_NULLABLE input_;
+      ::google::protobuf::Message* PROTOBUF_NULLABLE choose_blessing_;
     } payload_;
     ::google::protobuf::internal::CachedSize _cached_size_;
     ::uint32_t _oneof_case_[1];
@@ -2462,6 +3469,295 @@ class ClientPacket final : public ::google::protobuf::Message
 };
 
 extern const ::google::protobuf::internal::ClassDataFull ClientPacket_class_data_;
+// -------------------------------------------------------------------
+
+class WorldSnapshot final : public ::google::protobuf::Message
+/* @@protoc_insertion_point(class_definition:battle.v1.WorldSnapshot) */ {
+ public:
+  inline WorldSnapshot() : WorldSnapshot(nullptr) {}
+  ~WorldSnapshot() PROTOBUF_FINAL;
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+  void operator delete(WorldSnapshot* PROTOBUF_NONNULL msg, std::destroying_delete_t) {
+    SharedDtor(*msg);
+    ::google::protobuf::internal::SizedDelete(msg, sizeof(WorldSnapshot));
+  }
+#endif
+
+  template <typename = void>
+  explicit PROTOBUF_CONSTEXPR WorldSnapshot(::google::protobuf::internal::ConstantInitialized);
+
+  inline WorldSnapshot(const WorldSnapshot& from) : WorldSnapshot(nullptr, from) {}
+  inline WorldSnapshot(WorldSnapshot&& from) noexcept
+      : WorldSnapshot(nullptr, ::std::move(from)) {}
+  inline WorldSnapshot& operator=(const WorldSnapshot& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline WorldSnapshot& operator=(WorldSnapshot&& from) noexcept {
+    if (this == &from) return *this;
+    if (::google::protobuf::internal::CanMoveWithInternalSwap(GetArena(), from.GetArena())) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance);
+  }
+  inline ::google::protobuf::UnknownFieldSet* PROTOBUF_NONNULL mutable_unknown_fields()
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.mutable_unknown_fields<::google::protobuf::UnknownFieldSet>();
+  }
+
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL descriptor() {
+    return GetDescriptor();
+  }
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::google::protobuf::Reflection* PROTOBUF_NONNULL GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const WorldSnapshot& default_instance() {
+    return *reinterpret_cast<const WorldSnapshot*>(
+        &_WorldSnapshot_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages = 15;
+  friend void swap(WorldSnapshot& a, WorldSnapshot& b) { a.Swap(&b); }
+  inline void Swap(WorldSnapshot* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    if (::google::protobuf::internal::CanUseInternalSwap(GetArena(), other->GetArena())) {
+      InternalSwap(other);
+    } else {
+      ::google::protobuf::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(WorldSnapshot* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    ABSL_DCHECK(GetArena() == other->GetArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  WorldSnapshot* PROTOBUF_NONNULL New(::google::protobuf::Arena* PROTOBUF_NULLABLE arena = nullptr) const {
+    return ::google::protobuf::Message::DefaultConstruct<WorldSnapshot>(arena);
+  }
+  using ::google::protobuf::Message::CopyFrom;
+  void CopyFrom(const WorldSnapshot& from);
+  using ::google::protobuf::Message::MergeFrom;
+  void MergeFrom(const WorldSnapshot& from) { WorldSnapshot::MergeImpl(*this, from); }
+
+  private:
+  static void MergeImpl(::google::protobuf::MessageLite& to_msg,
+                        const ::google::protobuf::MessageLite& from_msg);
+
+  public:
+  bool IsInitialized() const {
+    return true;
+  }
+  ABSL_ATTRIBUTE_REINITIALIZES void Clear() PROTOBUF_FINAL;
+  #if defined(PROTOBUF_CUSTOM_VTABLE)
+  private:
+  static ::size_t ByteSizeLong(const ::google::protobuf::MessageLite& msg);
+  static ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      const ::google::protobuf::MessageLite& msg, ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream);
+
+  public:
+  ::size_t ByteSizeLong() const { return ByteSizeLong(*this); }
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+    return _InternalSerialize(*this, target, stream);
+  }
+  #else   // PROTOBUF_CUSTOM_VTABLE
+  ::size_t ByteSizeLong() const final;
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const final;
+  #endif  // PROTOBUF_CUSTOM_VTABLE
+  int GetCachedSize() const { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static void SharedDtor(MessageLite& self);
+  void InternalSwap(WorldSnapshot* PROTOBUF_NONNULL other);
+ private:
+  template <typename T>
+  friend ::absl::string_view(::google::protobuf::internal::GetAnyMessageName)();
+  static ::absl::string_view FullMessageName() { return "battle.v1.WorldSnapshot"; }
+
+ protected:
+  explicit WorldSnapshot(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  WorldSnapshot(::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const WorldSnapshot& from);
+  WorldSnapshot(
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, WorldSnapshot&& from) noexcept
+      : WorldSnapshot(arena) {
+    *this = ::std::move(from);
+  }
+  const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL GetClassData() const PROTOBUF_FINAL;
+  static void* PROTOBUF_NONNULL PlacementNew_(
+      const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static constexpr auto InternalNewImpl_();
+
+ public:
+  static constexpr auto InternalGenerateClassData_();
+
+  ::google::protobuf::Metadata GetMetadata() const;
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+  enum : int {
+    kEntitiesFieldNumber = 2,
+    kPlayerProgressFieldNumber = 6,
+    kPlayerBlessingsFieldNumber = 7,
+    kRoomNameFieldNumber = 1,
+    kCurrentWaveFieldNumber = 3,
+    kPhaseFieldNumber = 4,
+    kRewardSelectionRemainingSecondsFieldNumber = 5,
+  };
+  // repeated .battle.v1.EntitySnapshot entities = 2;
+  int entities_size() const;
+  private:
+  int _internal_entities_size() const;
+
+  public:
+  void clear_entities() ;
+  ::battle::v1::EntitySnapshot* PROTOBUF_NONNULL mutable_entities(int index);
+  ::google::protobuf::RepeatedPtrField<::battle::v1::EntitySnapshot>* PROTOBUF_NONNULL mutable_entities();
+
+  private:
+  const ::google::protobuf::RepeatedPtrField<::battle::v1::EntitySnapshot>& _internal_entities() const;
+  ::google::protobuf::RepeatedPtrField<::battle::v1::EntitySnapshot>* PROTOBUF_NONNULL _internal_mutable_entities();
+  public:
+  const ::battle::v1::EntitySnapshot& entities(int index) const;
+  ::battle::v1::EntitySnapshot* PROTOBUF_NONNULL add_entities();
+  const ::google::protobuf::RepeatedPtrField<::battle::v1::EntitySnapshot>& entities() const;
+  // repeated .battle.v1.PlayerProgressSnapshot player_progress = 6;
+  int player_progress_size() const;
+  private:
+  int _internal_player_progress_size() const;
+
+  public:
+  void clear_player_progress() ;
+  ::battle::v1::PlayerProgressSnapshot* PROTOBUF_NONNULL mutable_player_progress(int index);
+  ::google::protobuf::RepeatedPtrField<::battle::v1::PlayerProgressSnapshot>* PROTOBUF_NONNULL mutable_player_progress();
+
+  private:
+  const ::google::protobuf::RepeatedPtrField<::battle::v1::PlayerProgressSnapshot>& _internal_player_progress() const;
+  ::google::protobuf::RepeatedPtrField<::battle::v1::PlayerProgressSnapshot>* PROTOBUF_NONNULL _internal_mutable_player_progress();
+  public:
+  const ::battle::v1::PlayerProgressSnapshot& player_progress(int index) const;
+  ::battle::v1::PlayerProgressSnapshot* PROTOBUF_NONNULL add_player_progress();
+  const ::google::protobuf::RepeatedPtrField<::battle::v1::PlayerProgressSnapshot>& player_progress() const;
+  // repeated .battle.v1.PlayerBlessingStateSnapshot player_blessings = 7;
+  int player_blessings_size() const;
+  private:
+  int _internal_player_blessings_size() const;
+
+  public:
+  void clear_player_blessings() ;
+  ::battle::v1::PlayerBlessingStateSnapshot* PROTOBUF_NONNULL mutable_player_blessings(int index);
+  ::google::protobuf::RepeatedPtrField<::battle::v1::PlayerBlessingStateSnapshot>* PROTOBUF_NONNULL mutable_player_blessings();
+
+  private:
+  const ::google::protobuf::RepeatedPtrField<::battle::v1::PlayerBlessingStateSnapshot>& _internal_player_blessings() const;
+  ::google::protobuf::RepeatedPtrField<::battle::v1::PlayerBlessingStateSnapshot>* PROTOBUF_NONNULL _internal_mutable_player_blessings();
+  public:
+  const ::battle::v1::PlayerBlessingStateSnapshot& player_blessings(int index) const;
+  ::battle::v1::PlayerBlessingStateSnapshot* PROTOBUF_NONNULL add_player_blessings();
+  const ::google::protobuf::RepeatedPtrField<::battle::v1::PlayerBlessingStateSnapshot>& player_blessings() const;
+  // string room_name = 1;
+  void clear_room_name() ;
+  const ::std::string& room_name() const;
+  template <typename Arg_ = const ::std::string&, typename... Args_>
+  void set_room_name(Arg_&& arg, Args_... args);
+  ::std::string* PROTOBUF_NONNULL mutable_room_name();
+  [[nodiscard]] ::std::string* PROTOBUF_NULLABLE release_room_name();
+  void set_allocated_room_name(::std::string* PROTOBUF_NULLABLE value);
+
+  private:
+  const ::std::string& _internal_room_name() const;
+  PROTOBUF_ALWAYS_INLINE void _internal_set_room_name(const ::std::string& value);
+  ::std::string* PROTOBUF_NONNULL _internal_mutable_room_name();
+
+  public:
+  // int32 current_wave = 3;
+  void clear_current_wave() ;
+  ::int32_t current_wave() const;
+  void set_current_wave(::int32_t value);
+
+  private:
+  ::int32_t _internal_current_wave() const;
+  void _internal_set_current_wave(::int32_t value);
+
+  public:
+  // .battle.v1.BattlePhase phase = 4;
+  void clear_phase() ;
+  ::battle::v1::BattlePhase phase() const;
+  void set_phase(::battle::v1::BattlePhase value);
+
+  private:
+  ::battle::v1::BattlePhase _internal_phase() const;
+  void _internal_set_phase(::battle::v1::BattlePhase value);
+
+  public:
+  // float reward_selection_remaining_seconds = 5;
+  void clear_reward_selection_remaining_seconds() ;
+  float reward_selection_remaining_seconds() const;
+  void set_reward_selection_remaining_seconds(float value);
+
+  private:
+  float _internal_reward_selection_remaining_seconds() const;
+  void _internal_set_reward_selection_remaining_seconds(float value);
+
+  public:
+  // @@protoc_insertion_point(class_scope:battle.v1.WorldSnapshot)
+ private:
+  class _Internal;
+  friend class ::google::protobuf::internal::TcParser;
+  static const ::google::protobuf::internal::TcParseTable<3, 7,
+                                   3, 41,
+                                   2>
+      _table_;
+
+  friend class ::google::protobuf::MessageLite;
+  friend class ::google::protobuf::Arena;
+  template <typename T>
+  friend class ::google::protobuf::Arena::InternalHelper;
+  using InternalArenaConstructable_ = void;
+  using DestructorSkippable_ = void;
+  struct Impl_ {
+    inline explicit constexpr Impl_(::google::protobuf::internal::ConstantInitialized) noexcept;
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
+        const WorldSnapshot& from_msg);
+    ::google::protobuf::internal::HasBits<1> _has_bits_;
+    ::google::protobuf::internal::CachedSize _cached_size_;
+    ::google::protobuf::RepeatedPtrField< ::battle::v1::EntitySnapshot > entities_;
+    ::google::protobuf::RepeatedPtrField< ::battle::v1::PlayerProgressSnapshot > player_progress_;
+    ::google::protobuf::RepeatedPtrField< ::battle::v1::PlayerBlessingStateSnapshot > player_blessings_;
+    ::google::protobuf::internal::ArenaStringPtr room_name_;
+    ::int32_t current_wave_;
+    int phase_;
+    float reward_selection_remaining_seconds_;
+    PROTOBUF_TSAN_DECLARE_MEMBER
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_proto_2fbattle_2fv1_2fsession_2eproto;
+};
+
+extern const ::google::protobuf::internal::ClassDataFull WorldSnapshot_class_data_;
 // -------------------------------------------------------------------
 
 class GameOver final : public ::google::protobuf::Message
@@ -3562,7 +4858,7 @@ inline ::battle::v1::ClientHello* PROTOBUF_NULLABLE ClientPacket::release_hello(
   // @@protoc_insertion_point(field_release:battle.v1.ClientPacket.hello)
   if (payload_case() == kHello) {
     clear_has_payload();
-    auto* temp = _impl_.payload_.hello_;
+    auto* temp = reinterpret_cast<::battle::v1::ClientHello*>(_impl_.payload_.hello_);
     if (GetArena() != nullptr) {
       temp = ::google::protobuf::internal::DuplicateIfNonNull(temp);
     }
@@ -3573,7 +4869,7 @@ inline ::battle::v1::ClientHello* PROTOBUF_NULLABLE ClientPacket::release_hello(
   }
 }
 inline const ::battle::v1::ClientHello& ClientPacket::_internal_hello() const {
-  return payload_case() == kHello ? *_impl_.payload_.hello_ : reinterpret_cast<::battle::v1::ClientHello&>(::battle::v1::_ClientHello_default_instance_);
+  return payload_case() == kHello ? *reinterpret_cast<::battle::v1::ClientHello*>(_impl_.payload_.hello_) : reinterpret_cast<::battle::v1::ClientHello&>(::battle::v1::_ClientHello_default_instance_);
 }
 inline const ::battle::v1::ClientHello& ClientPacket::hello() const ABSL_ATTRIBUTE_LIFETIME_BOUND {
   // @@protoc_insertion_point(field_get:battle.v1.ClientPacket.hello)
@@ -3583,7 +4879,7 @@ inline ::battle::v1::ClientHello* PROTOBUF_NULLABLE ClientPacket::unsafe_arena_r
   // @@protoc_insertion_point(field_unsafe_arena_release:battle.v1.ClientPacket.hello)
   if (payload_case() == kHello) {
     clear_has_payload();
-    auto* temp = _impl_.payload_.hello_;
+    auto* temp = reinterpret_cast<::battle::v1::ClientHello*>(_impl_.payload_.hello_);
     _impl_.payload_.hello_ = nullptr;
     return temp;
   } else {
@@ -3598,7 +4894,7 @@ inline void ClientPacket::unsafe_arena_set_allocated_hello(
   clear_payload();
   if (value) {
     set_has_hello();
-    _impl_.payload_.hello_ = value;
+    _impl_.payload_.hello_ = reinterpret_cast<::google::protobuf::Message*>(value);
   }
   // @@protoc_insertion_point(field_unsafe_arena_set_allocated:battle.v1.ClientPacket.hello)
 }
@@ -3606,10 +4902,10 @@ inline ::battle::v1::ClientHello* PROTOBUF_NONNULL ClientPacket::_internal_mutab
   if (payload_case() != kHello) {
     clear_payload();
     set_has_hello();
-    _impl_.payload_.hello_ = 
-        ::google::protobuf::Message::DefaultConstruct<::battle::v1::ClientHello>(GetArena());
+    _impl_.payload_.hello_ = reinterpret_cast<::google::protobuf::Message*>(
+        ::google::protobuf::Message::DefaultConstruct<::battle::v1::ClientHello>(GetArena()));
   }
-  return _impl_.payload_.hello_;
+  return reinterpret_cast<::battle::v1::ClientHello*>(_impl_.payload_.hello_);
 }
 inline ::battle::v1::ClientHello* PROTOBUF_NONNULL ClientPacket::mutable_hello()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
@@ -3643,7 +4939,7 @@ inline ::battle::v1::ClientInput* PROTOBUF_NULLABLE ClientPacket::release_input(
   // @@protoc_insertion_point(field_release:battle.v1.ClientPacket.input)
   if (payload_case() == kInput) {
     clear_has_payload();
-    auto* temp = _impl_.payload_.input_;
+    auto* temp = reinterpret_cast<::battle::v1::ClientInput*>(_impl_.payload_.input_);
     if (GetArena() != nullptr) {
       temp = ::google::protobuf::internal::DuplicateIfNonNull(temp);
     }
@@ -3654,7 +4950,7 @@ inline ::battle::v1::ClientInput* PROTOBUF_NULLABLE ClientPacket::release_input(
   }
 }
 inline const ::battle::v1::ClientInput& ClientPacket::_internal_input() const {
-  return payload_case() == kInput ? *_impl_.payload_.input_ : reinterpret_cast<::battle::v1::ClientInput&>(::battle::v1::_ClientInput_default_instance_);
+  return payload_case() == kInput ? *reinterpret_cast<::battle::v1::ClientInput*>(_impl_.payload_.input_) : reinterpret_cast<::battle::v1::ClientInput&>(::battle::v1::_ClientInput_default_instance_);
 }
 inline const ::battle::v1::ClientInput& ClientPacket::input() const ABSL_ATTRIBUTE_LIFETIME_BOUND {
   // @@protoc_insertion_point(field_get:battle.v1.ClientPacket.input)
@@ -3664,7 +4960,7 @@ inline ::battle::v1::ClientInput* PROTOBUF_NULLABLE ClientPacket::unsafe_arena_r
   // @@protoc_insertion_point(field_unsafe_arena_release:battle.v1.ClientPacket.input)
   if (payload_case() == kInput) {
     clear_has_payload();
-    auto* temp = _impl_.payload_.input_;
+    auto* temp = reinterpret_cast<::battle::v1::ClientInput*>(_impl_.payload_.input_);
     _impl_.payload_.input_ = nullptr;
     return temp;
   } else {
@@ -3679,7 +4975,7 @@ inline void ClientPacket::unsafe_arena_set_allocated_input(
   clear_payload();
   if (value) {
     set_has_input();
-    _impl_.payload_.input_ = value;
+    _impl_.payload_.input_ = reinterpret_cast<::google::protobuf::Message*>(value);
   }
   // @@protoc_insertion_point(field_unsafe_arena_set_allocated:battle.v1.ClientPacket.input)
 }
@@ -3687,15 +4983,96 @@ inline ::battle::v1::ClientInput* PROTOBUF_NONNULL ClientPacket::_internal_mutab
   if (payload_case() != kInput) {
     clear_payload();
     set_has_input();
-    _impl_.payload_.input_ = 
-        ::google::protobuf::Message::DefaultConstruct<::battle::v1::ClientInput>(GetArena());
+    _impl_.payload_.input_ = reinterpret_cast<::google::protobuf::Message*>(
+        ::google::protobuf::Message::DefaultConstruct<::battle::v1::ClientInput>(GetArena()));
   }
-  return _impl_.payload_.input_;
+  return reinterpret_cast<::battle::v1::ClientInput*>(_impl_.payload_.input_);
 }
 inline ::battle::v1::ClientInput* PROTOBUF_NONNULL ClientPacket::mutable_input()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   ::battle::v1::ClientInput* _msg = _internal_mutable_input();
   // @@protoc_insertion_point(field_mutable:battle.v1.ClientPacket.input)
+  return _msg;
+}
+
+// .battle.v1.ChooseBlessing choose_blessing = 3;
+inline bool ClientPacket::has_choose_blessing() const {
+  return payload_case() == kChooseBlessing;
+}
+inline bool ClientPacket::_internal_has_choose_blessing() const {
+  return payload_case() == kChooseBlessing;
+}
+inline void ClientPacket::set_has_choose_blessing() {
+  _impl_._oneof_case_[0] = kChooseBlessing;
+}
+inline void ClientPacket::clear_choose_blessing() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (payload_case() == kChooseBlessing) {
+    if (GetArena() == nullptr) {
+      delete _impl_.payload_.choose_blessing_;
+    } else if (::google::protobuf::internal::DebugHardenClearOneofMessageOnArena()) {
+      ::google::protobuf::internal::MaybePoisonAfterClear(_impl_.payload_.choose_blessing_);
+    }
+    clear_has_payload();
+  }
+}
+inline ::battle::v1::ChooseBlessing* PROTOBUF_NULLABLE ClientPacket::release_choose_blessing() {
+  // @@protoc_insertion_point(field_release:battle.v1.ClientPacket.choose_blessing)
+  if (payload_case() == kChooseBlessing) {
+    clear_has_payload();
+    auto* temp = reinterpret_cast<::battle::v1::ChooseBlessing*>(_impl_.payload_.choose_blessing_);
+    if (GetArena() != nullptr) {
+      temp = ::google::protobuf::internal::DuplicateIfNonNull(temp);
+    }
+    _impl_.payload_.choose_blessing_ = nullptr;
+    return temp;
+  } else {
+    return nullptr;
+  }
+}
+inline const ::battle::v1::ChooseBlessing& ClientPacket::_internal_choose_blessing() const {
+  return payload_case() == kChooseBlessing ? *reinterpret_cast<::battle::v1::ChooseBlessing*>(_impl_.payload_.choose_blessing_) : reinterpret_cast<::battle::v1::ChooseBlessing&>(::battle::v1::_ChooseBlessing_default_instance_);
+}
+inline const ::battle::v1::ChooseBlessing& ClientPacket::choose_blessing() const ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:battle.v1.ClientPacket.choose_blessing)
+  return _internal_choose_blessing();
+}
+inline ::battle::v1::ChooseBlessing* PROTOBUF_NULLABLE ClientPacket::unsafe_arena_release_choose_blessing() {
+  // @@protoc_insertion_point(field_unsafe_arena_release:battle.v1.ClientPacket.choose_blessing)
+  if (payload_case() == kChooseBlessing) {
+    clear_has_payload();
+    auto* temp = reinterpret_cast<::battle::v1::ChooseBlessing*>(_impl_.payload_.choose_blessing_);
+    _impl_.payload_.choose_blessing_ = nullptr;
+    return temp;
+  } else {
+    return nullptr;
+  }
+}
+inline void ClientPacket::unsafe_arena_set_allocated_choose_blessing(
+    ::battle::v1::ChooseBlessing* PROTOBUF_NULLABLE value) {
+  // We rely on the oneof clear method to free the earlier contents
+  // of this oneof. We can directly use the pointer we're given to
+  // set the new value.
+  clear_payload();
+  if (value) {
+    set_has_choose_blessing();
+    _impl_.payload_.choose_blessing_ = reinterpret_cast<::google::protobuf::Message*>(value);
+  }
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:battle.v1.ClientPacket.choose_blessing)
+}
+inline ::battle::v1::ChooseBlessing* PROTOBUF_NONNULL ClientPacket::_internal_mutable_choose_blessing() {
+  if (payload_case() != kChooseBlessing) {
+    clear_payload();
+    set_has_choose_blessing();
+    _impl_.payload_.choose_blessing_ = reinterpret_cast<::google::protobuf::Message*>(
+        ::google::protobuf::Message::DefaultConstruct<::battle::v1::ChooseBlessing>(GetArena()));
+  }
+  return reinterpret_cast<::battle::v1::ChooseBlessing*>(_impl_.payload_.choose_blessing_);
+}
+inline ::battle::v1::ChooseBlessing* PROTOBUF_NONNULL ClientPacket::mutable_choose_blessing()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  ::battle::v1::ChooseBlessing* _msg = _internal_mutable_choose_blessing();
+  // @@protoc_insertion_point(field_mutable:battle.v1.ClientPacket.choose_blessing)
   return _msg;
 }
 
@@ -5027,6 +6404,362 @@ inline void EntitySnapshot::set_allocated_monster_kind(::std::string* PROTOBUF_N
 
 // -------------------------------------------------------------------
 
+// PlayerProgressSnapshot
+
+// int64 player_id = 1;
+inline void PlayerProgressSnapshot::clear_player_id() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.player_id_ = ::int64_t{0};
+  _impl_._has_bits_[0] &= ~0x00000001u;
+}
+inline ::int64_t PlayerProgressSnapshot::player_id() const {
+  // @@protoc_insertion_point(field_get:battle.v1.PlayerProgressSnapshot.player_id)
+  return _internal_player_id();
+}
+inline void PlayerProgressSnapshot::set_player_id(::int64_t value) {
+  _internal_set_player_id(value);
+  _impl_._has_bits_[0] |= 0x00000001u;
+  // @@protoc_insertion_point(field_set:battle.v1.PlayerProgressSnapshot.player_id)
+}
+inline ::int64_t PlayerProgressSnapshot::_internal_player_id() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.player_id_;
+}
+inline void PlayerProgressSnapshot::_internal_set_player_id(::int64_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.player_id_ = value;
+}
+
+// int32 level = 2;
+inline void PlayerProgressSnapshot::clear_level() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.level_ = 0;
+  _impl_._has_bits_[0] &= ~0x00000002u;
+}
+inline ::int32_t PlayerProgressSnapshot::level() const {
+  // @@protoc_insertion_point(field_get:battle.v1.PlayerProgressSnapshot.level)
+  return _internal_level();
+}
+inline void PlayerProgressSnapshot::set_level(::int32_t value) {
+  _internal_set_level(value);
+  _impl_._has_bits_[0] |= 0x00000002u;
+  // @@protoc_insertion_point(field_set:battle.v1.PlayerProgressSnapshot.level)
+}
+inline ::int32_t PlayerProgressSnapshot::_internal_level() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.level_;
+}
+inline void PlayerProgressSnapshot::_internal_set_level(::int32_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.level_ = value;
+}
+
+// int32 experience = 3;
+inline void PlayerProgressSnapshot::clear_experience() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.experience_ = 0;
+  _impl_._has_bits_[0] &= ~0x00000004u;
+}
+inline ::int32_t PlayerProgressSnapshot::experience() const {
+  // @@protoc_insertion_point(field_get:battle.v1.PlayerProgressSnapshot.experience)
+  return _internal_experience();
+}
+inline void PlayerProgressSnapshot::set_experience(::int32_t value) {
+  _internal_set_experience(value);
+  _impl_._has_bits_[0] |= 0x00000004u;
+  // @@protoc_insertion_point(field_set:battle.v1.PlayerProgressSnapshot.experience)
+}
+inline ::int32_t PlayerProgressSnapshot::_internal_experience() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.experience_;
+}
+inline void PlayerProgressSnapshot::_internal_set_experience(::int32_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.experience_ = value;
+}
+
+// int32 experience_to_next_level = 4;
+inline void PlayerProgressSnapshot::clear_experience_to_next_level() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.experience_to_next_level_ = 0;
+  _impl_._has_bits_[0] &= ~0x00000008u;
+}
+inline ::int32_t PlayerProgressSnapshot::experience_to_next_level() const {
+  // @@protoc_insertion_point(field_get:battle.v1.PlayerProgressSnapshot.experience_to_next_level)
+  return _internal_experience_to_next_level();
+}
+inline void PlayerProgressSnapshot::set_experience_to_next_level(::int32_t value) {
+  _internal_set_experience_to_next_level(value);
+  _impl_._has_bits_[0] |= 0x00000008u;
+  // @@protoc_insertion_point(field_set:battle.v1.PlayerProgressSnapshot.experience_to_next_level)
+}
+inline ::int32_t PlayerProgressSnapshot::_internal_experience_to_next_level() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.experience_to_next_level_;
+}
+inline void PlayerProgressSnapshot::_internal_set_experience_to_next_level(::int32_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.experience_to_next_level_ = value;
+}
+
+// int32 pending_upgrade_choices = 5;
+inline void PlayerProgressSnapshot::clear_pending_upgrade_choices() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.pending_upgrade_choices_ = 0;
+  _impl_._has_bits_[0] &= ~0x00000010u;
+}
+inline ::int32_t PlayerProgressSnapshot::pending_upgrade_choices() const {
+  // @@protoc_insertion_point(field_get:battle.v1.PlayerProgressSnapshot.pending_upgrade_choices)
+  return _internal_pending_upgrade_choices();
+}
+inline void PlayerProgressSnapshot::set_pending_upgrade_choices(::int32_t value) {
+  _internal_set_pending_upgrade_choices(value);
+  _impl_._has_bits_[0] |= 0x00000010u;
+  // @@protoc_insertion_point(field_set:battle.v1.PlayerProgressSnapshot.pending_upgrade_choices)
+}
+inline ::int32_t PlayerProgressSnapshot::_internal_pending_upgrade_choices() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.pending_upgrade_choices_;
+}
+inline void PlayerProgressSnapshot::_internal_set_pending_upgrade_choices(::int32_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.pending_upgrade_choices_ = value;
+}
+
+// -------------------------------------------------------------------
+
+// BlessingOptionSnapshot
+
+// int32 option_id = 1;
+inline void BlessingOptionSnapshot::clear_option_id() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.option_id_ = 0;
+  _impl_._has_bits_[0] &= ~0x00000001u;
+}
+inline ::int32_t BlessingOptionSnapshot::option_id() const {
+  // @@protoc_insertion_point(field_get:battle.v1.BlessingOptionSnapshot.option_id)
+  return _internal_option_id();
+}
+inline void BlessingOptionSnapshot::set_option_id(::int32_t value) {
+  _internal_set_option_id(value);
+  _impl_._has_bits_[0] |= 0x00000001u;
+  // @@protoc_insertion_point(field_set:battle.v1.BlessingOptionSnapshot.option_id)
+}
+inline ::int32_t BlessingOptionSnapshot::_internal_option_id() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.option_id_;
+}
+inline void BlessingOptionSnapshot::_internal_set_option_id(::int32_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.option_id_ = value;
+}
+
+// .battle.v1.BlessingId blessing_id = 2;
+inline void BlessingOptionSnapshot::clear_blessing_id() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.blessing_id_ = 0;
+  _impl_._has_bits_[0] &= ~0x00000002u;
+}
+inline ::battle::v1::BlessingId BlessingOptionSnapshot::blessing_id() const {
+  // @@protoc_insertion_point(field_get:battle.v1.BlessingOptionSnapshot.blessing_id)
+  return _internal_blessing_id();
+}
+inline void BlessingOptionSnapshot::set_blessing_id(::battle::v1::BlessingId value) {
+  _internal_set_blessing_id(value);
+  _impl_._has_bits_[0] |= 0x00000002u;
+  // @@protoc_insertion_point(field_set:battle.v1.BlessingOptionSnapshot.blessing_id)
+}
+inline ::battle::v1::BlessingId BlessingOptionSnapshot::_internal_blessing_id() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return static_cast<::battle::v1::BlessingId>(_impl_.blessing_id_);
+}
+inline void BlessingOptionSnapshot::_internal_set_blessing_id(::battle::v1::BlessingId value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.blessing_id_ = value;
+}
+
+// -------------------------------------------------------------------
+
+// PlayerBlessingSnapshot
+
+// .battle.v1.BlessingId blessing_id = 1;
+inline void PlayerBlessingSnapshot::clear_blessing_id() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.blessing_id_ = 0;
+  _impl_._has_bits_[0] &= ~0x00000001u;
+}
+inline ::battle::v1::BlessingId PlayerBlessingSnapshot::blessing_id() const {
+  // @@protoc_insertion_point(field_get:battle.v1.PlayerBlessingSnapshot.blessing_id)
+  return _internal_blessing_id();
+}
+inline void PlayerBlessingSnapshot::set_blessing_id(::battle::v1::BlessingId value) {
+  _internal_set_blessing_id(value);
+  _impl_._has_bits_[0] |= 0x00000001u;
+  // @@protoc_insertion_point(field_set:battle.v1.PlayerBlessingSnapshot.blessing_id)
+}
+inline ::battle::v1::BlessingId PlayerBlessingSnapshot::_internal_blessing_id() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return static_cast<::battle::v1::BlessingId>(_impl_.blessing_id_);
+}
+inline void PlayerBlessingSnapshot::_internal_set_blessing_id(::battle::v1::BlessingId value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.blessing_id_ = value;
+}
+
+// int32 level = 2;
+inline void PlayerBlessingSnapshot::clear_level() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.level_ = 0;
+  _impl_._has_bits_[0] &= ~0x00000002u;
+}
+inline ::int32_t PlayerBlessingSnapshot::level() const {
+  // @@protoc_insertion_point(field_get:battle.v1.PlayerBlessingSnapshot.level)
+  return _internal_level();
+}
+inline void PlayerBlessingSnapshot::set_level(::int32_t value) {
+  _internal_set_level(value);
+  _impl_._has_bits_[0] |= 0x00000002u;
+  // @@protoc_insertion_point(field_set:battle.v1.PlayerBlessingSnapshot.level)
+}
+inline ::int32_t PlayerBlessingSnapshot::_internal_level() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.level_;
+}
+inline void PlayerBlessingSnapshot::_internal_set_level(::int32_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.level_ = value;
+}
+
+// -------------------------------------------------------------------
+
+// PlayerBlessingStateSnapshot
+
+// int64 player_id = 1;
+inline void PlayerBlessingStateSnapshot::clear_player_id() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.player_id_ = ::int64_t{0};
+  _impl_._has_bits_[0] &= ~0x00000001u;
+}
+inline ::int64_t PlayerBlessingStateSnapshot::player_id() const {
+  // @@protoc_insertion_point(field_get:battle.v1.PlayerBlessingStateSnapshot.player_id)
+  return _internal_player_id();
+}
+inline void PlayerBlessingStateSnapshot::set_player_id(::int64_t value) {
+  _internal_set_player_id(value);
+  _impl_._has_bits_[0] |= 0x00000001u;
+  // @@protoc_insertion_point(field_set:battle.v1.PlayerBlessingStateSnapshot.player_id)
+}
+inline ::int64_t PlayerBlessingStateSnapshot::_internal_player_id() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.player_id_;
+}
+inline void PlayerBlessingStateSnapshot::_internal_set_player_id(::int64_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.player_id_ = value;
+}
+
+// repeated .battle.v1.PlayerBlessingSnapshot blessings = 2;
+inline int PlayerBlessingStateSnapshot::_internal_blessings_size() const {
+  return _internal_blessings().size();
+}
+inline int PlayerBlessingStateSnapshot::blessings_size() const {
+  return _internal_blessings_size();
+}
+inline void PlayerBlessingStateSnapshot::clear_blessings() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.blessings_.Clear();
+}
+inline ::battle::v1::PlayerBlessingSnapshot* PROTOBUF_NONNULL PlayerBlessingStateSnapshot::mutable_blessings(int index)
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_mutable:battle.v1.PlayerBlessingStateSnapshot.blessings)
+  return _internal_mutable_blessings()->Mutable(index);
+}
+inline ::google::protobuf::RepeatedPtrField<::battle::v1::PlayerBlessingSnapshot>* PROTOBUF_NONNULL PlayerBlessingStateSnapshot::mutable_blessings()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_mutable_list:battle.v1.PlayerBlessingStateSnapshot.blessings)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  return _internal_mutable_blessings();
+}
+inline const ::battle::v1::PlayerBlessingSnapshot& PlayerBlessingStateSnapshot::blessings(int index) const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:battle.v1.PlayerBlessingStateSnapshot.blessings)
+  return _internal_blessings().Get(index);
+}
+inline ::battle::v1::PlayerBlessingSnapshot* PROTOBUF_NONNULL PlayerBlessingStateSnapshot::add_blessings()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  ::battle::v1::PlayerBlessingSnapshot* _add = _internal_mutable_blessings()->Add();
+  // @@protoc_insertion_point(field_add:battle.v1.PlayerBlessingStateSnapshot.blessings)
+  return _add;
+}
+inline const ::google::protobuf::RepeatedPtrField<::battle::v1::PlayerBlessingSnapshot>& PlayerBlessingStateSnapshot::blessings() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_list:battle.v1.PlayerBlessingStateSnapshot.blessings)
+  return _internal_blessings();
+}
+inline const ::google::protobuf::RepeatedPtrField<::battle::v1::PlayerBlessingSnapshot>&
+PlayerBlessingStateSnapshot::_internal_blessings() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.blessings_;
+}
+inline ::google::protobuf::RepeatedPtrField<::battle::v1::PlayerBlessingSnapshot>* PROTOBUF_NONNULL
+PlayerBlessingStateSnapshot::_internal_mutable_blessings() {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return &_impl_.blessings_;
+}
+
+// repeated .battle.v1.BlessingOptionSnapshot current_options = 3;
+inline int PlayerBlessingStateSnapshot::_internal_current_options_size() const {
+  return _internal_current_options().size();
+}
+inline int PlayerBlessingStateSnapshot::current_options_size() const {
+  return _internal_current_options_size();
+}
+inline void PlayerBlessingStateSnapshot::clear_current_options() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.current_options_.Clear();
+}
+inline ::battle::v1::BlessingOptionSnapshot* PROTOBUF_NONNULL PlayerBlessingStateSnapshot::mutable_current_options(int index)
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_mutable:battle.v1.PlayerBlessingStateSnapshot.current_options)
+  return _internal_mutable_current_options()->Mutable(index);
+}
+inline ::google::protobuf::RepeatedPtrField<::battle::v1::BlessingOptionSnapshot>* PROTOBUF_NONNULL PlayerBlessingStateSnapshot::mutable_current_options()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_mutable_list:battle.v1.PlayerBlessingStateSnapshot.current_options)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  return _internal_mutable_current_options();
+}
+inline const ::battle::v1::BlessingOptionSnapshot& PlayerBlessingStateSnapshot::current_options(int index) const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:battle.v1.PlayerBlessingStateSnapshot.current_options)
+  return _internal_current_options().Get(index);
+}
+inline ::battle::v1::BlessingOptionSnapshot* PROTOBUF_NONNULL PlayerBlessingStateSnapshot::add_current_options()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  ::battle::v1::BlessingOptionSnapshot* _add = _internal_mutable_current_options()->Add();
+  // @@protoc_insertion_point(field_add:battle.v1.PlayerBlessingStateSnapshot.current_options)
+  return _add;
+}
+inline const ::google::protobuf::RepeatedPtrField<::battle::v1::BlessingOptionSnapshot>& PlayerBlessingStateSnapshot::current_options() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_list:battle.v1.PlayerBlessingStateSnapshot.current_options)
+  return _internal_current_options();
+}
+inline const ::google::protobuf::RepeatedPtrField<::battle::v1::BlessingOptionSnapshot>&
+PlayerBlessingStateSnapshot::_internal_current_options() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.current_options_;
+}
+inline ::google::protobuf::RepeatedPtrField<::battle::v1::BlessingOptionSnapshot>* PROTOBUF_NONNULL
+PlayerBlessingStateSnapshot::_internal_mutable_current_options() {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return &_impl_.current_options_;
+}
+
+// -------------------------------------------------------------------
+
 // WorldSnapshot
 
 // string room_name = 1;
@@ -5144,6 +6877,295 @@ WorldSnapshot::_internal_mutable_entities() {
   return &_impl_.entities_;
 }
 
+// int32 current_wave = 3;
+inline void WorldSnapshot::clear_current_wave() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.current_wave_ = 0;
+  _impl_._has_bits_[0] &= ~0x00000002u;
+}
+inline ::int32_t WorldSnapshot::current_wave() const {
+  // @@protoc_insertion_point(field_get:battle.v1.WorldSnapshot.current_wave)
+  return _internal_current_wave();
+}
+inline void WorldSnapshot::set_current_wave(::int32_t value) {
+  _internal_set_current_wave(value);
+  _impl_._has_bits_[0] |= 0x00000002u;
+  // @@protoc_insertion_point(field_set:battle.v1.WorldSnapshot.current_wave)
+}
+inline ::int32_t WorldSnapshot::_internal_current_wave() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.current_wave_;
+}
+inline void WorldSnapshot::_internal_set_current_wave(::int32_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.current_wave_ = value;
+}
+
+// .battle.v1.BattlePhase phase = 4;
+inline void WorldSnapshot::clear_phase() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.phase_ = 0;
+  _impl_._has_bits_[0] &= ~0x00000004u;
+}
+inline ::battle::v1::BattlePhase WorldSnapshot::phase() const {
+  // @@protoc_insertion_point(field_get:battle.v1.WorldSnapshot.phase)
+  return _internal_phase();
+}
+inline void WorldSnapshot::set_phase(::battle::v1::BattlePhase value) {
+  _internal_set_phase(value);
+  _impl_._has_bits_[0] |= 0x00000004u;
+  // @@protoc_insertion_point(field_set:battle.v1.WorldSnapshot.phase)
+}
+inline ::battle::v1::BattlePhase WorldSnapshot::_internal_phase() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return static_cast<::battle::v1::BattlePhase>(_impl_.phase_);
+}
+inline void WorldSnapshot::_internal_set_phase(::battle::v1::BattlePhase value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.phase_ = value;
+}
+
+// float reward_selection_remaining_seconds = 5;
+inline void WorldSnapshot::clear_reward_selection_remaining_seconds() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.reward_selection_remaining_seconds_ = 0;
+  _impl_._has_bits_[0] &= ~0x00000008u;
+}
+inline float WorldSnapshot::reward_selection_remaining_seconds() const {
+  // @@protoc_insertion_point(field_get:battle.v1.WorldSnapshot.reward_selection_remaining_seconds)
+  return _internal_reward_selection_remaining_seconds();
+}
+inline void WorldSnapshot::set_reward_selection_remaining_seconds(float value) {
+  _internal_set_reward_selection_remaining_seconds(value);
+  _impl_._has_bits_[0] |= 0x00000008u;
+  // @@protoc_insertion_point(field_set:battle.v1.WorldSnapshot.reward_selection_remaining_seconds)
+}
+inline float WorldSnapshot::_internal_reward_selection_remaining_seconds() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.reward_selection_remaining_seconds_;
+}
+inline void WorldSnapshot::_internal_set_reward_selection_remaining_seconds(float value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.reward_selection_remaining_seconds_ = value;
+}
+
+// repeated .battle.v1.PlayerProgressSnapshot player_progress = 6;
+inline int WorldSnapshot::_internal_player_progress_size() const {
+  return _internal_player_progress().size();
+}
+inline int WorldSnapshot::player_progress_size() const {
+  return _internal_player_progress_size();
+}
+inline void WorldSnapshot::clear_player_progress() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.player_progress_.Clear();
+}
+inline ::battle::v1::PlayerProgressSnapshot* PROTOBUF_NONNULL WorldSnapshot::mutable_player_progress(int index)
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_mutable:battle.v1.WorldSnapshot.player_progress)
+  return _internal_mutable_player_progress()->Mutable(index);
+}
+inline ::google::protobuf::RepeatedPtrField<::battle::v1::PlayerProgressSnapshot>* PROTOBUF_NONNULL WorldSnapshot::mutable_player_progress()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_mutable_list:battle.v1.WorldSnapshot.player_progress)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  return _internal_mutable_player_progress();
+}
+inline const ::battle::v1::PlayerProgressSnapshot& WorldSnapshot::player_progress(int index) const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:battle.v1.WorldSnapshot.player_progress)
+  return _internal_player_progress().Get(index);
+}
+inline ::battle::v1::PlayerProgressSnapshot* PROTOBUF_NONNULL WorldSnapshot::add_player_progress()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  ::battle::v1::PlayerProgressSnapshot* _add = _internal_mutable_player_progress()->Add();
+  // @@protoc_insertion_point(field_add:battle.v1.WorldSnapshot.player_progress)
+  return _add;
+}
+inline const ::google::protobuf::RepeatedPtrField<::battle::v1::PlayerProgressSnapshot>& WorldSnapshot::player_progress() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_list:battle.v1.WorldSnapshot.player_progress)
+  return _internal_player_progress();
+}
+inline const ::google::protobuf::RepeatedPtrField<::battle::v1::PlayerProgressSnapshot>&
+WorldSnapshot::_internal_player_progress() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.player_progress_;
+}
+inline ::google::protobuf::RepeatedPtrField<::battle::v1::PlayerProgressSnapshot>* PROTOBUF_NONNULL
+WorldSnapshot::_internal_mutable_player_progress() {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return &_impl_.player_progress_;
+}
+
+// repeated .battle.v1.PlayerBlessingStateSnapshot player_blessings = 7;
+inline int WorldSnapshot::_internal_player_blessings_size() const {
+  return _internal_player_blessings().size();
+}
+inline int WorldSnapshot::player_blessings_size() const {
+  return _internal_player_blessings_size();
+}
+inline void WorldSnapshot::clear_player_blessings() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.player_blessings_.Clear();
+}
+inline ::battle::v1::PlayerBlessingStateSnapshot* PROTOBUF_NONNULL WorldSnapshot::mutable_player_blessings(int index)
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_mutable:battle.v1.WorldSnapshot.player_blessings)
+  return _internal_mutable_player_blessings()->Mutable(index);
+}
+inline ::google::protobuf::RepeatedPtrField<::battle::v1::PlayerBlessingStateSnapshot>* PROTOBUF_NONNULL WorldSnapshot::mutable_player_blessings()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_mutable_list:battle.v1.WorldSnapshot.player_blessings)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  return _internal_mutable_player_blessings();
+}
+inline const ::battle::v1::PlayerBlessingStateSnapshot& WorldSnapshot::player_blessings(int index) const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:battle.v1.WorldSnapshot.player_blessings)
+  return _internal_player_blessings().Get(index);
+}
+inline ::battle::v1::PlayerBlessingStateSnapshot* PROTOBUF_NONNULL WorldSnapshot::add_player_blessings()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  ::battle::v1::PlayerBlessingStateSnapshot* _add = _internal_mutable_player_blessings()->Add();
+  // @@protoc_insertion_point(field_add:battle.v1.WorldSnapshot.player_blessings)
+  return _add;
+}
+inline const ::google::protobuf::RepeatedPtrField<::battle::v1::PlayerBlessingStateSnapshot>& WorldSnapshot::player_blessings() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_list:battle.v1.WorldSnapshot.player_blessings)
+  return _internal_player_blessings();
+}
+inline const ::google::protobuf::RepeatedPtrField<::battle::v1::PlayerBlessingStateSnapshot>&
+WorldSnapshot::_internal_player_blessings() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.player_blessings_;
+}
+inline ::google::protobuf::RepeatedPtrField<::battle::v1::PlayerBlessingStateSnapshot>* PROTOBUF_NONNULL
+WorldSnapshot::_internal_mutable_player_blessings() {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return &_impl_.player_blessings_;
+}
+
+// -------------------------------------------------------------------
+
+// ChooseBlessing
+
+// string room_name = 1;
+inline void ChooseBlessing::clear_room_name() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.room_name_.ClearToEmpty();
+  _impl_._has_bits_[0] &= ~0x00000001u;
+}
+inline const ::std::string& ChooseBlessing::room_name() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:battle.v1.ChooseBlessing.room_name)
+  return _internal_room_name();
+}
+template <typename Arg_, typename... Args_>
+PROTOBUF_ALWAYS_INLINE void ChooseBlessing::set_room_name(Arg_&& arg, Args_... args) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_._has_bits_[0] |= 0x00000001u;
+  _impl_.room_name_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
+  // @@protoc_insertion_point(field_set:battle.v1.ChooseBlessing.room_name)
+}
+inline ::std::string* PROTOBUF_NONNULL ChooseBlessing::mutable_room_name()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  ::std::string* _s = _internal_mutable_room_name();
+  // @@protoc_insertion_point(field_mutable:battle.v1.ChooseBlessing.room_name)
+  return _s;
+}
+inline const ::std::string& ChooseBlessing::_internal_room_name() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.room_name_.Get();
+}
+inline void ChooseBlessing::_internal_set_room_name(const ::std::string& value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_._has_bits_[0] |= 0x00000001u;
+  _impl_.room_name_.Set(value, GetArena());
+}
+inline ::std::string* PROTOBUF_NONNULL ChooseBlessing::_internal_mutable_room_name() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_._has_bits_[0] |= 0x00000001u;
+  return _impl_.room_name_.Mutable( GetArena());
+}
+inline ::std::string* PROTOBUF_NULLABLE ChooseBlessing::release_room_name() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  // @@protoc_insertion_point(field_release:battle.v1.ChooseBlessing.room_name)
+  if ((_impl_._has_bits_[0] & 0x00000001u) == 0) {
+    return nullptr;
+  }
+  _impl_._has_bits_[0] &= ~0x00000001u;
+  auto* released = _impl_.room_name_.Release();
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString()) {
+    _impl_.room_name_.Set("", GetArena());
+  }
+  return released;
+}
+inline void ChooseBlessing::set_allocated_room_name(::std::string* PROTOBUF_NULLABLE value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (value != nullptr) {
+    _impl_._has_bits_[0] |= 0x00000001u;
+  } else {
+    _impl_._has_bits_[0] &= ~0x00000001u;
+  }
+  _impl_.room_name_.SetAllocated(value, GetArena());
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.room_name_.IsDefault()) {
+    _impl_.room_name_.Set("", GetArena());
+  }
+  // @@protoc_insertion_point(field_set_allocated:battle.v1.ChooseBlessing.room_name)
+}
+
+// int64 player_id = 2;
+inline void ChooseBlessing::clear_player_id() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.player_id_ = ::int64_t{0};
+  _impl_._has_bits_[0] &= ~0x00000002u;
+}
+inline ::int64_t ChooseBlessing::player_id() const {
+  // @@protoc_insertion_point(field_get:battle.v1.ChooseBlessing.player_id)
+  return _internal_player_id();
+}
+inline void ChooseBlessing::set_player_id(::int64_t value) {
+  _internal_set_player_id(value);
+  _impl_._has_bits_[0] |= 0x00000002u;
+  // @@protoc_insertion_point(field_set:battle.v1.ChooseBlessing.player_id)
+}
+inline ::int64_t ChooseBlessing::_internal_player_id() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.player_id_;
+}
+inline void ChooseBlessing::_internal_set_player_id(::int64_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.player_id_ = value;
+}
+
+// int32 option_id = 3;
+inline void ChooseBlessing::clear_option_id() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.option_id_ = 0;
+  _impl_._has_bits_[0] &= ~0x00000004u;
+}
+inline ::int32_t ChooseBlessing::option_id() const {
+  // @@protoc_insertion_point(field_get:battle.v1.ChooseBlessing.option_id)
+  return _internal_option_id();
+}
+inline void ChooseBlessing::set_option_id(::int32_t value) {
+  _internal_set_option_id(value);
+  _impl_._has_bits_[0] |= 0x00000004u;
+  // @@protoc_insertion_point(field_set:battle.v1.ChooseBlessing.option_id)
+}
+inline ::int32_t ChooseBlessing::_internal_option_id() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.option_id_;
+}
+inline void ChooseBlessing::_internal_set_option_id(::int32_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.option_id_ = value;
+}
+
 #ifdef __GNUC__
 #pragma GCC diagnostic pop
 #endif  // __GNUC__
@@ -5161,6 +7183,18 @@ struct is_proto_enum<::battle::v1::EntityKind> : std::true_type {};
 template <>
 inline const EnumDescriptor* PROTOBUF_NONNULL GetEnumDescriptor<::battle::v1::EntityKind>() {
   return ::battle::v1::EntityKind_descriptor();
+}
+template <>
+struct is_proto_enum<::battle::v1::BattlePhase> : std::true_type {};
+template <>
+inline const EnumDescriptor* PROTOBUF_NONNULL GetEnumDescriptor<::battle::v1::BattlePhase>() {
+  return ::battle::v1::BattlePhase_descriptor();
+}
+template <>
+struct is_proto_enum<::battle::v1::BlessingId> : std::true_type {};
+template <>
+inline const EnumDescriptor* PROTOBUF_NONNULL GetEnumDescriptor<::battle::v1::BlessingId>() {
+  return ::battle::v1::BlessingId_descriptor();
 }
 
 }  // namespace protobuf
