@@ -12,6 +12,17 @@
 namespace battle {
 namespace {
 
+void expect_three_proto_blessing_options(const v1::PlayerBlessingStateSnapshot& blessing_state) {
+    ASSERT_EQ(blessing_state.current_options_size(), 3);
+    for (int i = 0; i < blessing_state.current_options_size(); ++i) {
+        EXPECT_EQ(blessing_state.current_options(i).option_id(), i);
+        for (int j = i + 1; j < blessing_state.current_options_size(); ++j) {
+            EXPECT_NE(blessing_state.current_options(i).blessing_id(),
+                      blessing_state.current_options(j).blessing_id());
+        }
+    }
+}
+
 UdpEndpoint endpoint_with_port(std::uint16_t port) {
     UdpEndpoint endpoint;
     endpoint.addr.sin_family = AF_INET;
@@ -72,7 +83,7 @@ TEST(BattleRuntimeTest, ReceiveInputAndTickBroadcastsMovedSnapshot) {
         EXPECT_FLOAT_EQ(packet.snapshot().entities(0).y_position(), 0.0f);
         EXPECT_EQ(packet.snapshot().entities(1).kind(), v1::ENTITY_KIND_PLAYER);
         EXPECT_EQ(packet.snapshot().entities(1).player_id(), 1002);
-        EXPECT_FLOAT_EQ(packet.snapshot().entities(1).x_position(), 9.5f);
+        EXPECT_FLOAT_EQ(packet.snapshot().entities(1).x_position(), 2.0f + ecs::DefaultPlayerMoveSpeed);
         EXPECT_FLOAT_EQ(packet.snapshot().entities(1).y_position(), 0.0f);
         EXPECT_FLOAT_EQ(packet.snapshot().entities(1).x_direction(), 1.0f);
         EXPECT_FLOAT_EQ(packet.snapshot().entities(1).y_direction(), 0.0f);
@@ -281,11 +292,10 @@ TEST(BattleRuntimeTest, TickBroadcastsGameOverAndCleansRoomWhenInstanceEnds) {
     EXPECT_EQ(snapshot.player_progress(0).pending_upgrade_choices(), 1);
     ASSERT_EQ(snapshot.player_blessings_size(), 1);
     EXPECT_EQ(snapshot.player_blessings(0).player_id(), 1001);
-    ASSERT_EQ(snapshot.player_blessings(0).current_options_size(), 3);
-    EXPECT_EQ(snapshot.player_blessings(0).current_options(0).option_id(), 0);
-    EXPECT_EQ(snapshot.player_blessings(0).current_options(0).blessing_id(), v1::BLESSING_ID_BURN_ON_HIT);
+    expect_three_proto_blessing_options(snapshot.player_blessings(0));
+    const auto selected_blessing_id = snapshot.player_blessings(0).current_options(0).blessing_id();
 
-    ASSERT_TRUE(runtime.choose_blessing("room-1", 1001, 1));
+    ASSERT_TRUE(runtime.choose_blessing("room-1", 1001, snapshot.player_blessings(0).current_options(0).option_id()));
     sent_packets.clear();
     runtime.tick(ecs::DeltaTime{0.0f});
 
@@ -296,7 +306,7 @@ TEST(BattleRuntimeTest, TickBroadcastsGameOverAndCleansRoomWhenInstanceEnds) {
     EXPECT_EQ(chosen_snapshot.player_progress(0).pending_upgrade_choices(), 0);
     ASSERT_EQ(chosen_snapshot.player_blessings_size(), 1);
     ASSERT_EQ(chosen_snapshot.player_blessings(0).blessings_size(), 1);
-    EXPECT_EQ(chosen_snapshot.player_blessings(0).blessings(0).blessing_id(), v1::BLESSING_ID_LIFE_STEAL);
+    EXPECT_EQ(chosen_snapshot.player_blessings(0).blessings(0).blessing_id(), selected_blessing_id);
     EXPECT_EQ(chosen_snapshot.player_blessings(0).blessings(0).level(), 1);
     EXPECT_EQ(chosen_snapshot.player_blessings(0).current_options_size(), 0);
 

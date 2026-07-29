@@ -5,6 +5,24 @@
 namespace battle {
 namespace {
 
+void expect_three_unique_blessing_options(const std::vector<BlessingOption>& options) {
+    ASSERT_EQ(options.size(), 3);
+    for (std::size_t i = 0; i < options.size(); ++i) {
+        EXPECT_EQ(options[i].option_id, static_cast<int>(i));
+        switch (options[i].blessing_id) {
+        case BlessingID::BurnOnHit:
+        case BlessingID::LifeSteal:
+        case BlessingID::FreezeOnHit:
+        case BlessingID::CriticalStrike:
+        case BlessingID::ChainLightning:
+            break;
+        }
+        for (std::size_t j = i + 1; j < options.size(); ++j) {
+            EXPECT_NE(options[i].blessing_id, options[j].blessing_id);
+        }
+    }
+}
+
 TEST(BattleInstanceTest, ConstructorCreatesPlayersAtPlannedSpawns) {
     BattleInstance instance({
         .room_name = "room-1",
@@ -52,7 +70,7 @@ TEST(BattleInstanceTest, ReceiveInputAndTickMovesOnlyTargetPlayer) {
     ASSERT_EQ(snapshot.entities.size(), 2);
     EXPECT_FLOAT_EQ(snapshot.entities[0].x_position, -2.0f);
     EXPECT_FLOAT_EQ(snapshot.entities[0].y_position, 0.0f);
-    EXPECT_FLOAT_EQ(snapshot.entities[1].x_position, 9.5f);
+    EXPECT_FLOAT_EQ(snapshot.entities[1].x_position, 2.0f + ecs::DefaultPlayerMoveSpeed);
     EXPECT_FLOAT_EQ(snapshot.entities[1].y_position, 0.0f);
     EXPECT_FLOAT_EQ(snapshot.entities[1].x_direction, 1.0f);
     EXPECT_FLOAT_EQ(snapshot.entities[1].y_direction, 0.0f);
@@ -482,9 +500,7 @@ TEST(BattleInstanceTest, SnapshotIncludesProgressAndBlessingState) {
 
     ASSERT_EQ(snapshot.player_blessings.size(), 2);
     EXPECT_EQ(snapshot.player_blessings[0].player_id, 1001);
-    ASSERT_EQ(snapshot.player_blessings[0].current_options.size(), 3);
-    EXPECT_EQ(snapshot.player_blessings[0].current_options[0].option_id, 0);
-    EXPECT_EQ(snapshot.player_blessings[0].current_options[0].blessing_id, BlessingID::BurnOnHit);
+    expect_three_unique_blessing_options(snapshot.player_blessings[0].current_options);
     EXPECT_EQ(snapshot.player_blessings[1].player_id, 1002);
     EXPECT_TRUE(snapshot.player_blessings[1].current_options.empty());
 }
@@ -530,13 +546,7 @@ TEST(BattleInstanceTest, RewardSelectionGeneratesBlessingOptionsForPlayersWithPe
 
     const auto blessing_state = instance.player_blessing_state(1001);
     ASSERT_TRUE(blessing_state.has_value());
-    ASSERT_EQ(blessing_state->current_options.size(), 3);
-    EXPECT_EQ(blessing_state->current_options[0].option_id, 0);
-    EXPECT_EQ(blessing_state->current_options[0].blessing_id, BlessingID::BurnOnHit);
-    EXPECT_EQ(blessing_state->current_options[1].option_id, 1);
-    EXPECT_EQ(blessing_state->current_options[1].blessing_id, BlessingID::LifeSteal);
-    EXPECT_EQ(blessing_state->current_options[2].option_id, 2);
-    EXPECT_EQ(blessing_state->current_options[2].blessing_id, BlessingID::FreezeOnHit);
+    expect_three_unique_blessing_options(blessing_state->current_options);
 }
 
 TEST(BattleInstanceTest, RewardSelectionClearsBlessingOptionsForPlayersWithoutPendingChoices) {
@@ -621,7 +631,7 @@ TEST(BattleInstanceTest, ChooseBlessingReturnsFalseForInvalidOption) {
     const auto blessing_state = instance.player_blessing_state(1001);
     ASSERT_TRUE(blessing_state.has_value());
     EXPECT_TRUE(blessing_state->blessings.empty());
-    EXPECT_EQ(blessing_state->current_options.size(), 3);
+    expect_three_unique_blessing_options(blessing_state->current_options);
 }
 
 TEST(BattleInstanceTest, ChooseBlessingAddsOwnedBlessingAndClearsOptions) {
@@ -663,7 +673,12 @@ TEST(BattleInstanceTest, ChooseBlessingAddsOwnedBlessingAndClearsOptions) {
                                              }));
     instance.tick(ecs::DeltaTime{0.0f});
 
-    ASSERT_TRUE(instance.choose_blessing(1001, 1));
+    auto options_before_choice = instance.player_blessing_state(1001);
+    ASSERT_TRUE(options_before_choice.has_value());
+    expect_three_unique_blessing_options(options_before_choice->current_options);
+    const auto selected_blessing_id = options_before_choice->current_options[0].blessing_id;
+
+    ASSERT_TRUE(instance.choose_blessing(1001, options_before_choice->current_options[0].option_id));
 
     const auto progress = instance.player_progress(1001);
     ASSERT_TRUE(progress.has_value());
@@ -672,7 +687,7 @@ TEST(BattleInstanceTest, ChooseBlessingAddsOwnedBlessingAndClearsOptions) {
     const auto blessing_state = instance.player_blessing_state(1001);
     ASSERT_TRUE(blessing_state.has_value());
     ASSERT_EQ(blessing_state->blessings.size(), 1);
-    EXPECT_EQ(blessing_state->blessings[0].blessing_id, BlessingID::LifeSteal);
+    EXPECT_EQ(blessing_state->blessings[0].blessing_id, selected_blessing_id);
     EXPECT_EQ(blessing_state->blessings[0].level, 1);
     EXPECT_TRUE(blessing_state->current_options.empty());
 }
@@ -716,7 +731,12 @@ TEST(BattleInstanceTest, ChooseBlessingRegeneratesOptionsWhenMoreChoicesRemain) 
                                              }));
     instance.tick(ecs::DeltaTime{0.0f});
 
-    ASSERT_TRUE(instance.choose_blessing(1001, 2));
+    auto options_before_choice = instance.player_blessing_state(1001);
+    ASSERT_TRUE(options_before_choice.has_value());
+    expect_three_unique_blessing_options(options_before_choice->current_options);
+    const auto selected_blessing_id = options_before_choice->current_options[0].blessing_id;
+
+    ASSERT_TRUE(instance.choose_blessing(1001, options_before_choice->current_options[0].option_id));
 
     const auto progress = instance.player_progress(1001);
     ASSERT_TRUE(progress.has_value());
@@ -725,8 +745,9 @@ TEST(BattleInstanceTest, ChooseBlessingRegeneratesOptionsWhenMoreChoicesRemain) 
     const auto blessing_state = instance.player_blessing_state(1001);
     ASSERT_TRUE(blessing_state.has_value());
     ASSERT_EQ(blessing_state->blessings.size(), 1);
-    EXPECT_EQ(blessing_state->blessings[0].blessing_id, BlessingID::FreezeOnHit);
-    EXPECT_EQ(blessing_state->current_options.size(), 3);
+    EXPECT_EQ(blessing_state->blessings[0].blessing_id, selected_blessing_id);
+    expect_three_unique_blessing_options(blessing_state->current_options);
+    EXPECT_EQ(blessing_state->current_options[0].blessing_id, selected_blessing_id);
 }
 
 TEST(BattleInstanceTest, ChooseBlessingLevelsExistingBlessing) {
@@ -768,8 +789,18 @@ TEST(BattleInstanceTest, ChooseBlessingLevelsExistingBlessing) {
                                              }));
     instance.tick(ecs::DeltaTime{0.0f});
 
-    ASSERT_TRUE(instance.choose_blessing(1001, 0));
-    ASSERT_TRUE(instance.choose_blessing(1001, 0));
+    auto first_options = instance.player_blessing_state(1001);
+    ASSERT_TRUE(first_options.has_value());
+    expect_three_unique_blessing_options(first_options->current_options);
+    const auto selected_blessing_id = first_options->current_options[0].blessing_id;
+
+    ASSERT_TRUE(instance.choose_blessing(1001, first_options->current_options[0].option_id));
+
+    auto second_options = instance.player_blessing_state(1001);
+    ASSERT_TRUE(second_options.has_value());
+    expect_three_unique_blessing_options(second_options->current_options);
+    EXPECT_EQ(second_options->current_options[0].blessing_id, selected_blessing_id);
+    ASSERT_TRUE(instance.choose_blessing(1001, second_options->current_options[0].option_id));
 
     const auto progress = instance.player_progress(1001);
     ASSERT_TRUE(progress.has_value());
@@ -778,7 +809,7 @@ TEST(BattleInstanceTest, ChooseBlessingLevelsExistingBlessing) {
     const auto blessing_state = instance.player_blessing_state(1001);
     ASSERT_TRUE(blessing_state.has_value());
     ASSERT_EQ(blessing_state->blessings.size(), 1);
-    EXPECT_EQ(blessing_state->blessings[0].blessing_id, BlessingID::BurnOnHit);
+    EXPECT_EQ(blessing_state->blessings[0].blessing_id, selected_blessing_id);
     EXPECT_EQ(blessing_state->blessings[0].level, 2);
     EXPECT_TRUE(blessing_state->current_options.empty());
 }
@@ -822,6 +853,11 @@ TEST(BattleInstanceTest, RewardSelectionTimeoutChoosesFirstOptionByDefault) {
                                              }));
     instance.tick(ecs::DeltaTime{0.0f});
 
+    auto options_before_timeout = instance.player_blessing_state(1001);
+    ASSERT_TRUE(options_before_timeout.has_value());
+    expect_three_unique_blessing_options(options_before_timeout->current_options);
+    const auto default_blessing_id = options_before_timeout->current_options[0].blessing_id;
+
     instance.tick(SelectionTime);
 
     const auto progress = instance.player_progress(1001);
@@ -831,7 +867,7 @@ TEST(BattleInstanceTest, RewardSelectionTimeoutChoosesFirstOptionByDefault) {
     const auto blessing_state = instance.player_blessing_state(1001);
     ASSERT_TRUE(blessing_state.has_value());
     ASSERT_EQ(blessing_state->blessings.size(), 1);
-    EXPECT_EQ(blessing_state->blessings[0].blessing_id, BlessingID::BurnOnHit);
+    EXPECT_EQ(blessing_state->blessings[0].blessing_id, default_blessing_id);
     EXPECT_TRUE(blessing_state->current_options.empty());
 }
 
@@ -874,6 +910,11 @@ TEST(BattleInstanceTest, RewardSelectionTimeoutChoosesDefaultsForAllPendingChoic
                                              }));
     instance.tick(ecs::DeltaTime{0.0f});
 
+    auto options_before_timeout = instance.player_blessing_state(1001);
+    ASSERT_TRUE(options_before_timeout.has_value());
+    expect_three_unique_blessing_options(options_before_timeout->current_options);
+    const auto default_blessing_id = options_before_timeout->current_options[0].blessing_id;
+
     instance.tick(SelectionTime);
 
     const auto progress = instance.player_progress(1001);
@@ -883,7 +924,7 @@ TEST(BattleInstanceTest, RewardSelectionTimeoutChoosesDefaultsForAllPendingChoic
     const auto blessing_state = instance.player_blessing_state(1001);
     ASSERT_TRUE(blessing_state.has_value());
     ASSERT_EQ(blessing_state->blessings.size(), 1);
-    EXPECT_EQ(blessing_state->blessings[0].blessing_id, BlessingID::BurnOnHit);
+    EXPECT_EQ(blessing_state->blessings[0].blessing_id, default_blessing_id);
     EXPECT_EQ(blessing_state->blessings[0].level, 2);
     EXPECT_TRUE(blessing_state->current_options.empty());
 }
@@ -926,7 +967,11 @@ TEST(BattleInstanceTest, RewardSelectionTimeoutDoesNotChooseAgainAfterManualChoi
                                                  .attack_requested = true,
                                              }));
     instance.tick(ecs::DeltaTime{0.0f});
-    ASSERT_TRUE(instance.choose_blessing(1001, 1));
+    auto options_before_choice = instance.player_blessing_state(1001);
+    ASSERT_TRUE(options_before_choice.has_value());
+    expect_three_unique_blessing_options(options_before_choice->current_options);
+    const auto selected_blessing_id = options_before_choice->current_options[0].blessing_id;
+    ASSERT_TRUE(instance.choose_blessing(1001, options_before_choice->current_options[0].option_id));
 
     instance.tick(SelectionTime);
 
@@ -937,7 +982,7 @@ TEST(BattleInstanceTest, RewardSelectionTimeoutDoesNotChooseAgainAfterManualChoi
     const auto blessing_state = instance.player_blessing_state(1001);
     ASSERT_TRUE(blessing_state.has_value());
     ASSERT_EQ(blessing_state->blessings.size(), 1);
-    EXPECT_EQ(blessing_state->blessings[0].blessing_id, BlessingID::LifeSteal);
+    EXPECT_EQ(blessing_state->blessings[0].blessing_id, selected_blessing_id);
     EXPECT_TRUE(blessing_state->current_options.empty());
 }
 

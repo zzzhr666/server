@@ -2,6 +2,7 @@
 
 #include <string>
 #include <cstdint>
+#include <random>
 #include <unordered_map>
 #include <optional>
 
@@ -82,9 +83,10 @@ namespace battle {
 
         [[nodiscard]] int experience_to_next_level_(int level) const;
 
-        std::vector<BlessingOption> generate_blessing_options_(std::int64_t player_id) const;
+        std::vector<BlessingOption> generate_blessing_options_(std::int64_t player_id);
 
-        void add_or_level_up_blessing_(PlayerBlessingState& blessing_state, BlessingID blessing_id);
+        void add_or_level_up_blessing_(ecs::Entity player_entity, PlayerBlessingState& blessing_state,
+                                       BlessingID blessing_id);
 
     private:
         std::string room_name_;
@@ -102,5 +104,6 @@ namespace battle {
         RewardSelectionState reward_selection_;
         ProgressionConfig progression_config_;
         std::unordered_map<std::int64_t, PlayerBlessingState> player_blessings_;
+        std::mt19937 reward_random_engine_;
     };
 }

@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "ecs/world.hpp"
+#include "gameplay/blessing.hpp"
 #include "gameplay/monster_kind.hpp"
 #include "gameplay/wave_planner.hpp"
 #include "gameplay/weapon.hpp"
@@ -18,21 +19,14 @@ namespace battle {
         int melee_experience = 35;
     };
 
-    enum class BlessingID : std::uint8_t {
-        BurnOnHit = 0,
-        LifeSteal,
-        FreezeOnHit
-    };
+
 
     struct BlessingOption {
         int option_id = 0;
         BlessingID blessing_id = BlessingID::BurnOnHit;
     };
 
-    struct PlayerBlessing {
-        BlessingID blessing_id = BlessingID::BurnOnHit;
-        int level = 1;
-    };
+
 
     struct PlayerBlessingState {
         std::int64_t player_id = 0;
@@ -46,6 +40,7 @@ namespace battle {
         WaveConfig wave_config = default_wave_config();
         std::unordered_map<std::int64_t, WeaponKind> player_weapons;
         std::optional<ecs::CreatePlayerConfig> player_config_override;
+        std::optional<std::uint32_t> reward_random_seed;
         ecs::WorldBounds world_bounds = ecs::WorldBounds{
             .min_x = -20.0f,
             .max_x = 20.0f,

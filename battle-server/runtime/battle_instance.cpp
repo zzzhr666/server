@@ -1,9 +1,26 @@
 #include "battle_instance.hpp"
 
 #include <algorithm>
+#include <array>
+#include <random>
 #include <ranges>
 #include <utility>
 
+namespace {
+constexpr std::size_t RewardOptionCount = 3;
+
+constexpr std::array<battle::BlessingID, 5> AllBlessingIDs{
+    battle::BlessingID::BurnOnHit,
+    battle::BlessingID::LifeSteal,
+    battle::BlessingID::FreezeOnHit,
+    battle::BlessingID::CriticalStrike,
+    battle::BlessingID::ChainLightning,
+};
+
+bool contains_blessing(const std::vector<battle::BlessingID>& blessings, battle::BlessingID blessing_id) {
+    return std::ranges::find(blessings, blessing_id) != blessings.end();
+}
+}
 
 battle::BattleInstance::BattleInstance(BattleInstanceConfig config)
     : room_name_(std::move(config.room_name)),
@@ -15,7 +32,8 @@ battle::BattleInstance::BattleInstance(BattleInstanceConfig config)
       wave_planner_(),
       phase_(BattlePhase::Fighting),
       reward_selection_(SelectionTime),
-      progression_config_(config.progression_config) {
+      progression_config_(config.progression_config),
+      reward_random_engine_(config.reward_random_seed.value_or(std::random_device{}())) {
     for (std::size_t i = 0; i < config.player_ids.size(); ++i) {
         if (player_entities_.contains(config.player_ids[i])) {
             continue;
@@ -184,7 +202,7 @@ bool battle::BattleInstance::choose_blessing(std::int64_t player_id, int option_
         return false;
     }
 
-    add_or_level_up_blessing_(blessing_state, option_it->blessing_id);
+    add_or_level_up_blessing_(entity_it->second, blessing_state, option_it->blessing_id);
 
     progress->pending_upgrade_choices--;
     if (progress->pending_upgrade_choices > 0) {
@@ -335,36 +353,76 @@ int battle::BattleInstance::experience_to_next_level_(int level) const {
         (level - 1) * progression_config_.experience_to_next_level_growth;
 }
 
-std::vector<battle::BlessingOption> battle::BattleInstance::generate_blessing_options_(std::int64_t player_id) const {
-    (void)player_id;
+std::vector<battle::BlessingOption> battle::BattleInstance::generate_blessing_options_(std::int64_t player_id) {
+    std::vector<BlessingID> selected;
+    selected.reserve(RewardOptionCount);
 
-    return {
-        BlessingOption{
-            .option_id = 0,
-            .blessing_id = BlessingID::BurnOnHit,
-        },
-        BlessingOption{
-            .option_id = 1,
-            .blessing_id = BlessingID::LifeSteal,
-        },
-        BlessingOption{
-            .option_id = 2,
-            .blessing_id = BlessingID::FreezeOnHit,
-        },
-    };
+    if (const auto blessing_state_it = player_blessings_.find(player_id); blessing_state_it != player_blessings_.end()) {
+        for (const auto& blessing : blessing_state_it->second.blessings) {
+            if (selected.size() >= RewardOptionCount) {
+                break;
+            }
+            if (!contains_blessing(selected, blessing.blessing_id)) {
+                selected.emplace_back(blessing.blessing_id);
+            }
+        }
+    }
+
+    auto candidates = AllBlessingIDs;
+    std::ranges::shuffle(candidates, reward_random_engine_);
+    for (const auto blessing_id : candidates) {
+        if (selected.size() >= RewardOptionCount) {
+            break;
+        }
+        if (!contains_blessing(selected, blessing_id)) {
+            selected.emplace_back(blessing_id);
+        }
+    }
+
+    std::vector<BlessingOption> options;
+    options.reserve(selected.size());
+    for (std::size_t i = 0; i < selected.size(); ++i) {
+        options.emplace_back(BlessingOption{
+            .option_id = static_cast<int>(i),
+            .blessing_id = selected[i],
+        });
+    }
+    return options;
 }
 
-void battle::BattleInstance::add_or_level_up_blessing_(PlayerBlessingState& blessing_state, BlessingID blessing_id) {
+void battle::BattleInstance::add_or_level_up_blessing_(ecs::Entity player_entity, PlayerBlessingState& blessing_state,
+                                                       BlessingID blessing_id) {
     auto blessing_it = std::ranges::find_if(blessing_state.blessings, [blessing_id](const PlayerBlessing& blessing) {
         return blessing.blessing_id == blessing_id;
     });
 
+    auto inventory = world_.blessing_inventories().try_get(player_entity);
     if (blessing_it != blessing_state.blessings.end()) {
         blessing_it->level++;
+        if (inventory) {
+            auto inventory_it = std::ranges::find_if(inventory->blessings,
+                                                     [blessing_id](const ecs::BlessingStack& stack) {
+                                                         return stack.blessing_id == blessing_id;
+                                                     });
+            if (inventory_it != inventory->blessings.end()) {
+                inventory_it->level = blessing_it->level;
+            } else {
+                inventory->blessings.emplace_back(ecs::BlessingStack{
+                    .blessing_id = blessing_id,
+                    .level = blessing_it->level,
+                });
+            }
+        }
         return;
     }
     blessing_state.blessings.emplace_back(PlayerBlessing{
         .blessing_id = blessing_id,
         .level = 1,
     });
+    if (inventory) {
+        inventory->blessings.emplace_back(ecs::BlessingStack{
+            .blessing_id = blessing_id,
+            .level = 1,
+        });
+    }
 }

@@ -85,6 +85,12 @@ namespace {
         case battle::BlessingID::FreezeOnHit: {
             return battle::v1::BLESSING_ID_FREEZE_ON_HIT;
         }
+        case battle::BlessingID::CriticalStrike: {
+            return battle::v1::BLESSING_ID_CRITICAL_STRIKE;
+        }
+        case battle::BlessingID::ChainLightning: {
+            return battle::v1::BLESSING_ID_CHAIN_LIGHTNING;
+        }
         default: {
             return battle::v1::BLESSING_ID_UNSPECIFIED;
         }
