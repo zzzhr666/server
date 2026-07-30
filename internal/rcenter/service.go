@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/hex"
+	statecontract "server/internal/contract/state"
 	"sync"
 	"time"
 )
@@ -26,14 +27,31 @@ type GameCenterService struct {
 	waitingPlayers       []waitingPlayer
 	battleNodeController BattleNodeController
 	inGamePlayers        map[int64]struct{}
+	coinClient           statecontract.CoinClient
+	rewardRule           RewardRule
+	growthClient         statecontract.GrowthClient
+}
+
+type ServiceConfig struct {
+	BattleNodeController BattleNodeController
+	CoinClient           statecontract.CoinClient
+	RewardRule           RewardRule
+	GrowthClient         statecontract.GrowthClient
 }
 
 // NewService creates an empty in-memory rcenter service.
-func NewService(battleNodeController BattleNodeController) *GameCenterService {
+func NewService(config ServiceConfig) *GameCenterService {
+	rewardRule := config.RewardRule
+	if rewardRule.MonsterKillReward == nil {
+		rewardRule = DefaultRewardRule()
+	}
 	return &GameCenterService{
 		battleNodes:          make(map[string]BattleNode),
-		battleNodeController: battleNodeController,
+		battleNodeController: config.BattleNodeController,
 		inGamePlayers:        make(map[int64]struct{}),
+		coinClient:           config.CoinClient,
+		rewardRule:           rewardRule,
+		growthClient:         config.GrowthClient,
 	}
 }
 
@@ -117,21 +135,44 @@ func (g *GameCenterService) StartMatch(ctx context.Context, playerID int64, weap
 	roomName := newRandomName("room")
 	token := newRandomName("token")
 	playerIDs := []int64{waitingPlayer.playerID, playerID}
-	playerLoadouts := []PlayerLoadout{
-		{
-			PlayerID: waitingPlayer.playerID,
-			Weapon:   waitingPlayer.weapon,
-		},
-		{
-			PlayerID: playerID,
-			Weapon:   weapon,
-		},
-	}
 
 	for _, inGamePlayerID := range playerIDs {
 		g.inGamePlayers[inGamePlayerID] = struct{}{}
 	}
 	g.mu.Unlock()
+	if g.growthClient == nil {
+		g.clearInGamePlayersWithLock(playerIDs)
+		return nil, ErrUnavailableGrowthClient
+	}
+	waitingGrowth, err := g.growthClient.GetGrowth(ctx, waitingPlayer.playerID)
+	if err != nil {
+		g.clearInGamePlayersWithLock(playerIDs)
+		return nil, err
+	}
+	currentGrowth, err := g.growthClient.GetGrowth(ctx, playerID)
+	if err != nil {
+		g.clearInGamePlayersWithLock(playerIDs)
+		return nil, err
+	}
+
+	playerLoadouts := []PlayerLoadout{
+		{
+			PlayerID:         waitingPlayer.playerID,
+			Weapon:           waitingPlayer.weapon,
+			AttackLevel:      waitingGrowth.AttackLevel,
+			AttackSpeedLevel: waitingGrowth.AttackSpeedLevel,
+			HealthLevel:      waitingGrowth.HealthLevel,
+			MoveSpeedLevel:   waitingGrowth.MoveSpeedLevel,
+		},
+		{
+			PlayerID:         playerID,
+			Weapon:           weapon,
+			AttackLevel:      currentGrowth.AttackLevel,
+			AttackSpeedLevel: currentGrowth.AttackSpeedLevel,
+			HealthLevel:      currentGrowth.HealthLevel,
+			MoveSpeedLevel:   currentGrowth.MoveSpeedLevel,
+		},
+	}
 
 	if err := g.battleNodeController.CreateRoom(ctx, node.Name, CreateBattleRoomInput{
 		RoomName:       roomName,
@@ -139,11 +180,7 @@ func (g *GameCenterService) StartMatch(ctx context.Context, playerID int64, weap
 		PlayerIDs:      playerIDs,
 		PlayerLoadouts: playerLoadouts,
 	}); err != nil {
-		g.mu.Lock()
-		for _, id := range playerIDs {
-			delete(g.inGamePlayers, id)
-		}
-		g.mu.Unlock()
+		g.clearInGamePlayersWithLock(playerIDs)
 		return nil, err
 	}
 
@@ -159,20 +196,32 @@ func (g *GameCenterService) StartMatch(ctx context.Context, playerID int64, weap
 }
 
 // FinishMatch releases matched players so they can enter matchmaking again.
-func (g *GameCenterService) FinishMatch(ctx context.Context, playerIDs []int64) error {
+func (g *GameCenterService) FinishMatch(ctx context.Context, input FinishMatchInput) error {
 	if err := ctx.Err(); err != nil {
 		return err
 	}
-	for _, playerID := range playerIDs {
+	for _, playerID := range input.PlayerIDs {
 		if playerID <= 0 {
 			return ErrInvalidPlayerID
 		}
 	}
-	g.mu.Lock()
-	defer g.mu.Unlock()
-	for _, playerID := range playerIDs {
-		delete(g.inGamePlayers, playerID)
+	if len(input.PlayerStats) > 0 && g.coinClient == nil {
+		return ErrUnavailableCoinClient
 	}
+	for _, stat := range input.PlayerStats {
+		reward, err := CalculateCoinReward(stat, input.Reason, g.rewardRule)
+		if err != nil {
+			return err
+		}
+		_, err = g.coinClient.AddPlayerCoins(ctx, statecontract.AddPlayerCoinsInput{
+			PlayerID: stat.PlayerID,
+			Amount:   reward,
+		})
+		if err != nil {
+			return err
+		}
+	}
+	g.clearInGamePlayersWithLock(input.PlayerIDs)
 	return nil
 }
 
@@ -226,4 +275,12 @@ func newRandomName(prefix string) string {
 		return prefix + "-" + time.Now().Format("2006-01-02 15:04:05")
 	}
 	return prefix + "-" + hex.EncodeToString(bytes)
+}
+
+func (g *GameCenterService) clearInGamePlayersWithLock(playIDs []int64) {
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	for _, playerID := range playIDs {
+		delete(g.inGamePlayers, playerID)
+	}
 }

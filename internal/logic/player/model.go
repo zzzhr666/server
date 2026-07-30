@@ -7,4 +7,5 @@ type Player struct {
 	Avatar   string
 	Email    string
 	Phone    string
+	Coins    int64
 }

@@ -41,10 +41,16 @@ func (c *Client) CancelMatch(ctx context.Context, playerID int64) error {
 }
 
 // FinishMatch releases matched players through rcenter gRPC.
-func (c *Client) FinishMatch(ctx context.Context, playerIDs []int64) error {
-	_, err := c.client.FinishMatch(ctx, &rcenterpb.FinishMatchRequest{
-		PlayerIds: playerIDs,
-	})
+func (c *Client) FinishMatch(ctx context.Context, input rcenter.FinishMatchInput) error {
+	req := &rcenterpb.FinishMatchRequest{
+		PlayerIds: input.PlayerIDs,
+		Reason:    input.Reason,
+	}
+	for _, stat := range input.PlayerStats {
+		req.PlayerStats = append(req.PlayerStats, rcenterproto.ToProtoPlayerBattleStats(stat))
+	}
+	_, err := c.client.FinishMatch(ctx, req)
+
 	return mapGRPCError(err)
 }
 
@@ -86,6 +92,10 @@ func mapGRPCError(err error) error {
 		switch st.Message() {
 		case rcenter.ErrNoAvailableBattleNode.Error():
 			return rcenter.ErrNoAvailableBattleNode
+		case rcenter.ErrUnavailableCoinClient.Error():
+			return rcenter.ErrUnavailableCoinClient
+		case rcenter.ErrUnavailableGrowthClient.Error():
+			return rcenter.ErrUnavailableGrowthClient
 		}
 	case codes.FailedPrecondition:
 		switch st.Message() {

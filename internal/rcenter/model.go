@@ -44,6 +44,16 @@ type CreateBattleRoomInput struct {
 }
 
 type PlayerLoadout struct {
-	PlayerID int64
-	Weapon   string
+	PlayerID         int64
+	Weapon           string
+	AttackLevel      int32
+	AttackSpeedLevel int32
+	HealthLevel      int32
+	MoveSpeedLevel   int32
+}
+
+type FinishMatchInput struct {
+	PlayerIDs   []int64
+	Reason      string
+	PlayerStats []PlayerBattleStats
 }

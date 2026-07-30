@@ -147,8 +147,8 @@ TEST(BattleInstanceTest, ConstructorAppliesConfiguredPlayerWeapon) {
                 },
             },
         },
-        .player_weapons = {
-            {1001, WeaponKind::Axe},
+        .player_loadouts = {
+            {1001, std::make_pair(WeaponKind::Axe,GrowthLevels{.attack_level = 1,.attack_speed_level = 1,.health_level = 1,.move_speed_level = 1})},
         },
     });
 

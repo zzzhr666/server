@@ -73,4 +73,8 @@ message EndRoomResponse {
 message PlayerLoadout {
   int64 player_id = 1;
   string weapon = 2;
+  int32 attack_level = 3;
+  int32 attack_speed_level = 4;
+  int32 health_level = 5;
+  int32 move_speed_level = 6;
 }

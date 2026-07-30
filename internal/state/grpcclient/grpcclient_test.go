@@ -82,6 +82,36 @@ func TestMapGRPCError(t *testing.T) {
 			want: statecontract.ErrFriendAlreadyExists,
 		},
 		{
+			name: "growth not found",
+			err:  status.Error(codes.NotFound, statecontract.ErrGrowthNotFound.Error()),
+			want: statecontract.ErrGrowthNotFound,
+		},
+		{
+			name: "invalid growth",
+			err:  status.Error(codes.InvalidArgument, statecontract.ErrInvalidGrowth.Error()),
+			want: statecontract.ErrInvalidGrowth,
+		},
+		{
+			name: "invalid growth field",
+			err:  status.Error(codes.InvalidArgument, statecontract.ErrInvalidGrowthField.Error()),
+			want: statecontract.ErrInvalidGrowthField,
+		},
+		{
+			name: "invalid player",
+			err:  status.Error(codes.InvalidArgument, statecontract.ErrInvalidPlayer.Error()),
+			want: statecontract.ErrInvalidPlayer,
+		},
+		{
+			name: "insufficient coins",
+			err:  status.Error(codes.FailedPrecondition, statecontract.ErrInsufficientCoins.Error()),
+			want: statecontract.ErrInsufficientCoins,
+		},
+		{
+			name: "max growth level",
+			err:  status.Error(codes.FailedPrecondition, statecontract.ErrMaxGrowthLevel.Error()),
+			want: statecontract.ErrMaxGrowthLevel,
+		},
+		{
 			name: "unknown already exists message",
 			err:  status.Error(codes.AlreadyExists, "room already exists"),
 			want: status.Error(codes.AlreadyExists, "room already exists"),
@@ -109,6 +139,36 @@ func TestMapGRPCError(t *testing.T) {
 				t.Fatalf("mapGRPCError returned %v, want %v", got, tt.want)
 			}
 		})
+	}
+}
+
+func TestClientAddPlayerCoins(t *testing.T) {
+	grpcState := &fakeStateServiceClient{
+		addPlayerCoinsResponse: &statepb.AddPlayerCoinsResponse{
+			PlayerId: 7,
+			Coins:    150,
+		},
+	}
+	client := NewClient(grpcState)
+
+	result, err := client.AddPlayerCoins(context.Background(), statecontract.AddPlayerCoinsInput{
+		PlayerID: 7,
+		Amount:   50,
+	})
+	if err != nil {
+		t.Fatalf("AddPlayerCoins returned error: %v", err)
+	}
+	if grpcState.addPlayerCoinsRequest.GetPlayerId() != 7 {
+		t.Fatalf("add player coins player id = %d, want 7", grpcState.addPlayerCoinsRequest.GetPlayerId())
+	}
+	if grpcState.addPlayerCoinsRequest.GetAmount() != 50 {
+		t.Fatalf("add player coins amount = %d, want 50", grpcState.addPlayerCoinsRequest.GetAmount())
+	}
+	if result.PlayerID != 7 {
+		t.Fatalf("result player id = %d, want 7", result.PlayerID)
+	}
+	if result.Coins != 150 {
+		t.Fatalf("result coins = %d, want 150", result.Coins)
 	}
 }
 
@@ -242,6 +302,68 @@ func TestClientPlayerMethods(t *testing.T) {
 	}
 	if id != 8 {
 		t.Fatalf("next player id = %d, want 8", id)
+	}
+}
+
+func TestClientGrowthMethods(t *testing.T) {
+	grpcState := &fakeStateServiceClient{
+		growth: &statepb.Growth{
+			PlayerId:         7,
+			AttackLevel:      2,
+			AttackSpeedLevel: 1,
+			HealthLevel:      3,
+			MoveSpeedLevel:   1,
+		},
+		upgradeGrowthResponse: &statepb.UpgradeGrowthResponse{
+			Growth: &statepb.Growth{
+				PlayerId:         7,
+				AttackLevel:      3,
+				AttackSpeedLevel: 1,
+				HealthLevel:      3,
+				MoveSpeedLevel:   1,
+			},
+			RemainingCoins: 900,
+		},
+	}
+	client := NewClient(grpcState)
+
+	growth, err := client.GetGrowth(context.Background(), 7)
+	if err != nil {
+		t.Fatalf("GetGrowth returned error: %v", err)
+	}
+	if grpcState.getGrowthRequest.GetPlayerId() != 7 {
+		t.Fatalf("get growth player id = %d, want 7", grpcState.getGrowthRequest.GetPlayerId())
+	}
+	if growth.AttackLevel != 2 || growth.HealthLevel != 3 {
+		t.Fatalf("growth = %+v, want attack=2 health=3", growth)
+	}
+
+	result, err := client.UpgradeGrowth(context.Background(), statecontract.UpgradeGrowthInput{
+		PlayerID:     7,
+		UpgradeField: "Attack",
+		Cost:         100,
+		MaxLevel:     10,
+	})
+	if err != nil {
+		t.Fatalf("UpgradeGrowth returned error: %v", err)
+	}
+	if grpcState.upgradeGrowthRequest.GetPlayerId() != 7 {
+		t.Fatalf("upgrade growth player id = %d, want 7", grpcState.upgradeGrowthRequest.GetPlayerId())
+	}
+	if grpcState.upgradeGrowthRequest.GetUpgradeField() != "Attack" {
+		t.Fatalf("upgrade growth field = %q, want Attack", grpcState.upgradeGrowthRequest.GetUpgradeField())
+	}
+	if grpcState.upgradeGrowthRequest.GetCost() != 100 {
+		t.Fatalf("upgrade growth cost = %d, want 100", grpcState.upgradeGrowthRequest.GetCost())
+	}
+	if grpcState.upgradeGrowthRequest.GetMaxLevel() != 10 {
+		t.Fatalf("upgrade growth max level = %d, want 10", grpcState.upgradeGrowthRequest.GetMaxLevel())
+	}
+	if result.RemainingCoins != 900 {
+		t.Fatalf("remaining coins = %d, want 900", result.RemainingCoins)
+	}
+	if result.Growth.AttackLevel != 3 {
+		t.Fatalf("upgraded attack level = %d, want 3", result.Growth.AttackLevel)
 	}
 }
 
@@ -479,6 +601,12 @@ type fakeStateServiceClient struct {
 	deletedFriendRequest     *statepb.DeleteFriendRequest
 	publishedRealtimeRequest *statepb.PublishRealtimeRequest
 	subscribeRealtimeRequest *statepb.SubscribeRealtimeRequest
+	growth                   *statepb.Growth
+	getGrowthRequest         *statepb.GetGrowthRequest
+	upgradeGrowthRequest     *statepb.UpgradeGrowthRequest
+	upgradeGrowthResponse    *statepb.UpgradeGrowthResponse
+	addPlayerCoinsRequest    *statepb.AddPlayerCoinsRequest
+	addPlayerCoinsResponse   *statepb.AddPlayerCoinsResponse
 }
 
 func (f *fakeStateServiceClient) CreateAccount(_ context.Context, in *statepb.CreateAccountRequest, _ ...grpc.CallOption) (*statepb.CreateAccountResponse, error) {
@@ -536,6 +664,30 @@ func (f *fakeStateServiceClient) NextPlayerID(context.Context, *statepb.NextPlay
 		return nil, f.err
 	}
 	return &statepb.NextPlayerIDResponse{Id: f.nextPlayerID}, nil
+}
+
+func (f *fakeStateServiceClient) GetGrowth(_ context.Context, in *statepb.GetGrowthRequest, _ ...grpc.CallOption) (*statepb.GetGrowthResponse, error) {
+	f.getGrowthRequest = in
+	if f.err != nil {
+		return nil, f.err
+	}
+	return &statepb.GetGrowthResponse{Growth: f.growth}, nil
+}
+
+func (f *fakeStateServiceClient) UpgradeGrowth(_ context.Context, in *statepb.UpgradeGrowthRequest, _ ...grpc.CallOption) (*statepb.UpgradeGrowthResponse, error) {
+	f.upgradeGrowthRequest = in
+	if f.err != nil {
+		return nil, f.err
+	}
+	return f.upgradeGrowthResponse, nil
+}
+
+func (f *fakeStateServiceClient) AddPlayerCoins(_ context.Context, in *statepb.AddPlayerCoinsRequest, _ ...grpc.CallOption) (*statepb.AddPlayerCoinsResponse, error) {
+	f.addPlayerCoinsRequest = in
+	if f.err != nil {
+		return nil, f.err
+	}
+	return f.addPlayerCoinsResponse, nil
 }
 
 func (f *fakeStateServiceClient) SetPresence(_ context.Context, in *statepb.SetPresenceRequest, _ ...grpc.CallOption) (*statepb.SetPresenceResponse, error) {

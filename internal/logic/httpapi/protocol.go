@@ -7,6 +7,7 @@ type playerResponse struct {
 	Avatar   string `json:"avatar"`
 	Email    string `json:"email"`
 	Phone    string `json:"phone"`
+	Coins    int64  `json:"coins"`
 }
 
 // errorResponse is the JSON body returned for API errors.
@@ -127,4 +128,22 @@ type matchErrorMessage struct {
 
 type matchCancelMessage struct {
 	Type string `json:"type"`
+}
+
+type growthResponse struct {
+	PlayerID         int64 `json:"player_id"`
+	AttackLevel      int32 `json:"attack_level"`
+	AttackSpeedLevel int32 `json:"attack_speed_level"`
+	HealthLevel      int32 `json:"health_level"`
+	MoveSpeedLevel   int32 `json:"move_speed_level"`
+}
+
+type upgradeGrowthRequest struct {
+	Type string `json:"type"`
+}
+
+type upgradeGrowthResponse struct {
+	Growth         growthResponse `json:"growth"`
+	RemainingCoins int64          `json:"remaining_coins"`
+	Cost           int64          `json:"cost"`
 }

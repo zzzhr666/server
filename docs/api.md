@@ -75,7 +75,8 @@ ok server_name = logic-1
     "nickname": "Alice",
     "avatar": "alice.png",
     "email": "alice@example.com",
-    "phone": "13800000000"
+    "phone": "13800000000",
+    "coins": 0
   }
 }
 ```
@@ -105,7 +106,8 @@ ok server_name = logic-1
     "nickname": "Alice",
     "avatar": "alice.png",
     "email": "alice@example.com",
-    "phone": "13800000000"
+    "phone": "13800000000",
+    "coins": 0
   }
 }
 ```
@@ -130,7 +132,8 @@ Authorization: Bearer <token>
   "nickname": "Alice",
   "avatar": "alice.png",
   "email": "alice@example.com",
-  "phone": "13800000000"
+  "phone": "13800000000",
+  "coins": 0
 }
 ```
 

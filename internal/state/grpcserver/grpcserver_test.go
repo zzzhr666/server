@@ -162,6 +162,45 @@ func TestPlayerMethods(t *testing.T) {
 	}
 }
 
+func TestAddPlayerCoins(t *testing.T) {
+	state := &fakeStateClient{
+		addPlayerCoinsResult: &statecontract.AddPlayerCoinsResult{
+			PlayerID: 7,
+			Coins:    150,
+		},
+	}
+	server := newTestServer(state)
+
+	res, err := server.AddPlayerCoins(context.Background(), &statepb.AddPlayerCoinsRequest{
+		PlayerId: 7,
+		Amount:   50,
+	})
+	if err != nil {
+		t.Fatalf("AddPlayerCoins returned error: %v", err)
+	}
+	if state.addPlayerCoinsInput.PlayerID != 7 {
+		t.Fatalf("add player coins input player id = %d, want 7", state.addPlayerCoinsInput.PlayerID)
+	}
+	if state.addPlayerCoinsInput.Amount != 50 {
+		t.Fatalf("add player coins input amount = %d, want 50", state.addPlayerCoinsInput.Amount)
+	}
+	if res.GetPlayerId() != 7 {
+		t.Fatalf("response player id = %d, want 7", res.GetPlayerId())
+	}
+	if res.GetCoins() != 150 {
+		t.Fatalf("response coins = %d, want 150", res.GetCoins())
+	}
+}
+
+func TestAddPlayerCoinsInvalidPlayer(t *testing.T) {
+	server := newTestServer(&fakeStateClient{err: statecontract.ErrInvalidPlayer})
+
+	_, err := server.AddPlayerCoins(context.Background(), &statepb.AddPlayerCoinsRequest{})
+	if status.Code(err) != codes.InvalidArgument {
+		t.Fatalf("AddPlayerCoins code = %v, want %v", status.Code(err), codes.InvalidArgument)
+	}
+}
+
 func TestPresenceMethods(t *testing.T) {
 	updatedAt := time.Date(2026, 7, 19, 14, 0, 0, 0, time.UTC)
 	state := &fakeStateClient{
@@ -418,6 +457,7 @@ func newTestServer(state *fakeStateClient) *Server {
 		StateClient:    state,
 		PresenceClient: state,
 		FriendClient:   state,
+		CoinClient:     state,
 	})
 }
 
@@ -457,6 +497,8 @@ type fakeStateClient struct {
 	friendIDs                          []int64
 	deletedFriendPlayerID              int64
 	deletedFriendFriendPlayerID        int64
+	addPlayerCoinsInput                statecontract.AddPlayerCoinsInput
+	addPlayerCoinsResult               *statecontract.AddPlayerCoinsResult
 }
 
 func (f *fakeStateClient) CreateAccount(_ context.Context, account *statecontract.Account) error {
@@ -514,6 +556,14 @@ func (f *fakeStateClient) NextPlayerID(_ context.Context) (int64, error) {
 		return 0, f.err
 	}
 	return f.nextPlayerID, nil
+}
+
+func (f *fakeStateClient) AddPlayerCoins(_ context.Context, input statecontract.AddPlayerCoinsInput) (*statecontract.AddPlayerCoinsResult, error) {
+	f.addPlayerCoinsInput = input
+	if f.err != nil {
+		return nil, f.err
+	}
+	return f.addPlayerCoinsResult, nil
 }
 
 func (f *fakeStateClient) SetPresence(_ context.Context, presence *statecontract.Presence, ttl time.Duration) error {
@@ -594,3 +644,4 @@ func (f *fakeStateClient) DeleteFriend(_ context.Context, playerID, friendPlayer
 var _ statecontract.Client = (*fakeStateClient)(nil)
 var _ statecontract.PresenceClient = (*fakeStateClient)(nil)
 var _ statecontract.FriendClient = (*fakeStateClient)(nil)
+var _ statecontract.CoinClient = (*fakeStateClient)(nil)

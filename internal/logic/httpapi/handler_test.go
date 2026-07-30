@@ -8,6 +8,7 @@ import (
 	statecontract "server/internal/contract/state"
 	"server/internal/logic/auth"
 	"server/internal/logic/friend"
+	"server/internal/logic/growth"
 	"server/internal/logic/match"
 	playerpkg "server/internal/logic/player"
 	"server/internal/logic/presence"
@@ -396,6 +397,111 @@ func TestDeleteFriendHTTP(t *testing.T) {
 	}
 	if friends.deletedPlayerID != 7 || friends.deletedFriendID != 8 {
 		t.Fatalf("delete friend got player=%d friend=%d, want player=7 friend=8", friends.deletedPlayerID, friends.deletedFriendID)
+	}
+}
+
+func TestGetGrowthHTTP(t *testing.T) {
+	auths := newFakeAuthService()
+	session := auths.newSession(7)
+	growths := &fakeGrowthService{
+		growth: &growth.Growth{
+			PlayerID:         7,
+			AttackLevel:      2,
+			AttackSpeedLevel: 1,
+			HealthLevel:      3,
+			MoveSpeedLevel:   1,
+		},
+	}
+	handler := newTestHandlerWithGrowth(auths, growths).Routes()
+	req := httptest.NewRequest(http.MethodGet, "/growth", nil)
+	req.Header.Set("Authorization", "Bearer "+session.Token)
+	rec := httptest.NewRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d, want %d; body = %s", rec.Code, http.StatusOK, rec.Body.String())
+	}
+	if growths.getPlayerID != 7 {
+		t.Fatalf("get growth player id = %d, want 7", growths.getPlayerID)
+	}
+	var resp growthResponse
+	if err := json.NewDecoder(rec.Body).Decode(&resp); err != nil {
+		t.Fatalf("decode response: %v", err)
+	}
+	if resp.PlayerID != 7 || resp.AttackLevel != 2 || resp.HealthLevel != 3 {
+		t.Fatalf("growth response = %+v, want player=7 attack=2 health=3", resp)
+	}
+}
+
+func TestUpgradeGrowthHTTP(t *testing.T) {
+	auths := newFakeAuthService()
+	session := auths.newSession(7)
+	growths := &fakeGrowthService{
+		upgradeResult: &growth.UpgradeResult{
+			Growth: &growth.Growth{
+				PlayerID:         7,
+				AttackLevel:      3,
+				AttackSpeedLevel: 1,
+				HealthLevel:      1,
+				MoveSpeedLevel:   1,
+			},
+			RemainingCoins: 850,
+			Cost:           150,
+		},
+	}
+	handler := newTestHandlerWithGrowth(auths, growths).Routes()
+	req := httptest.NewRequest(http.MethodPost, "/growth/upgrade", strings.NewReader(`{"type":"attack"}`))
+	req.Header.Set("Authorization", "Bearer "+session.Token)
+	rec := httptest.NewRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d, want %d; body = %s", rec.Code, http.StatusOK, rec.Body.String())
+	}
+	if growths.upgradePlayerID != 7 {
+		t.Fatalf("upgrade player id = %d, want 7", growths.upgradePlayerID)
+	}
+	if growths.upgradeType != growth.UpgradeAttack {
+		t.Fatalf("upgrade type = %d, want %d", growths.upgradeType, growth.UpgradeAttack)
+	}
+	var resp upgradeGrowthResponse
+	if err := json.NewDecoder(rec.Body).Decode(&resp); err != nil {
+		t.Fatalf("decode response: %v", err)
+	}
+	if resp.Cost != 150 || resp.RemainingCoins != 850 || resp.Growth.AttackLevel != 3 {
+		t.Fatalf("upgrade response = %+v, want cost=150 remaining=850 attack=3", resp)
+	}
+}
+
+func TestUpgradeGrowthHTTPInvalidType(t *testing.T) {
+	auths := newFakeAuthService()
+	session := auths.newSession(7)
+	handler := newTestHandlerWithGrowth(auths, &fakeGrowthService{}).Routes()
+	req := httptest.NewRequest(http.MethodPost, "/growth/upgrade", strings.NewReader(`{"type":"critical"}`))
+	req.Header.Set("Authorization", "Bearer "+session.Token)
+	rec := httptest.NewRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusBadRequest {
+		t.Fatalf("status = %d, want %d; body = %s", rec.Code, http.StatusBadRequest, rec.Body.String())
+	}
+}
+
+func TestUpgradeGrowthHTTPInsufficientCoins(t *testing.T) {
+	auths := newFakeAuthService()
+	session := auths.newSession(7)
+	handler := newTestHandlerWithGrowth(auths, &fakeGrowthService{upgradeErr: growth.ErrInsufficientCoins}).Routes()
+	req := httptest.NewRequest(http.MethodPost, "/growth/upgrade", strings.NewReader(`{"type":"attack"}`))
+	req.Header.Set("Authorization", "Bearer "+session.Token)
+	rec := httptest.NewRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusConflict {
+		t.Fatalf("status = %d, want %d; body = %s", rec.Code, http.StatusConflict, rec.Body.String())
 	}
 }
 
@@ -952,6 +1058,12 @@ func newTestHandlerWithMatch(auths *fakeAuthService, presences presence.Service,
 	return handler
 }
 
+func newTestHandlerWithGrowth(auths *fakeAuthService, growths growth.Service) *Handler {
+	handler := newTestHandlerWithAllServices(auths, newFakePresenceService(), newFakeFriendService(), newFakePlayerService())
+	handler.growthService = growths
+	return handler
+}
+
 func newTestHandlerWithAllServices(auths *fakeAuthService, presences presence.Service, friends friend.Service, players playerpkg.Service) *Handler {
 	return NewHandler(HandlerConfig{
 		AuthService:     auths,
@@ -959,6 +1071,7 @@ func newTestHandlerWithAllServices(auths *fakeAuthService, presences presence.Se
 		FriendService:   friends,
 		PlayerService:   players,
 		ServerName:      "logic-test",
+		GrowthService:   newFakeGrowthService(),
 	})
 }
 
@@ -1207,6 +1320,56 @@ func (f *fakeMatchService) Cancel(ctx context.Context, playerID int64) error {
 }
 
 var _ match.Service = (*fakeMatchService)(nil)
+
+type fakeGrowthService struct {
+	growth          *growth.Growth
+	getPlayerID     int64
+	getErr          error
+	upgradePlayerID int64
+	upgradeType     growth.UpgradeType
+	upgradeResult   *growth.UpgradeResult
+	upgradeErr      error
+}
+
+func newFakeGrowthService() *fakeGrowthService {
+	return &fakeGrowthService{
+		growth: growth.NewInitialGrowth(1),
+		upgradeResult: &growth.UpgradeResult{
+			Growth:         growth.NewInitialGrowth(1),
+			RemainingCoins: 0,
+			Cost:           0,
+		},
+	}
+}
+
+func (f *fakeGrowthService) Get(ctx context.Context, playerID int64) (*growth.Growth, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
+	f.getPlayerID = playerID
+	if f.getErr != nil {
+		return nil, f.getErr
+	}
+	if f.growth == nil {
+		return nil, growth.ErrGrowthNotFound
+	}
+	cp := *f.growth
+	return &cp, nil
+}
+
+func (f *fakeGrowthService) Upgrade(ctx context.Context, playerID int64, upgradeType growth.UpgradeType) (*growth.UpgradeResult, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
+	f.upgradePlayerID = playerID
+	f.upgradeType = upgradeType
+	if f.upgradeErr != nil {
+		return nil, f.upgradeErr
+	}
+	return f.upgradeResult, nil
+}
+
+var _ growth.Service = (*fakeGrowthService)(nil)
 
 type fakePlayerService struct {
 	players map[int64]*playerpkg.Player

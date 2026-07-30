@@ -84,6 +84,32 @@ func TestServiceForwardsPlayerOperations(t *testing.T) {
 	}
 }
 
+func TestServiceForwardsCoinOperations(t *testing.T) {
+	stores := newFakeStores()
+	stores.addPlayerCoinsResult = &statecontract.AddPlayerCoinsResult{
+		PlayerID: 7,
+		Coins:    150,
+	}
+	svc := newTestService(stores)
+
+	result, err := svc.AddPlayerCoins(context.Background(), statecontract.AddPlayerCoinsInput{
+		PlayerID: 7,
+		Amount:   50,
+	})
+	if err != nil {
+		t.Fatalf("AddPlayerCoins returned error: %v", err)
+	}
+	if stores.addPlayerCoinsInput.PlayerID != 7 {
+		t.Fatalf("add player coins input player id = %d, want 7", stores.addPlayerCoinsInput.PlayerID)
+	}
+	if stores.addPlayerCoinsInput.Amount != 50 {
+		t.Fatalf("add player coins input amount = %d, want 50", stores.addPlayerCoinsInput.Amount)
+	}
+	if result.Coins != 150 {
+		t.Fatalf("result coins = %d, want 150", result.Coins)
+	}
+}
+
 func TestServiceForwardsPresenceOperations(t *testing.T) {
 	stores := newFakeStores()
 	svc := newTestService(stores)
@@ -306,6 +332,8 @@ type fakeStores struct {
 	friendIDs                          []int64
 	deletedFriendPlayerID              int64
 	deletedFriendFriendPlayerID        int64
+	addPlayerCoinsInput                statecontract.AddPlayerCoinsInput
+	addPlayerCoinsResult               *statecontract.AddPlayerCoinsResult
 }
 
 func newFakeStores() *fakeStores {
@@ -325,6 +353,7 @@ func newTestService(stores *fakeStores) *Service {
 		Presences:     stores,
 		Registrations: stores,
 		Friends:       stores,
+		Coins:         stores,
 	})
 }
 
@@ -380,6 +409,11 @@ func (f *fakeStores) GetPlayer(_ context.Context, id int64) (*statecontract.Play
 
 func (f *fakeStores) NextPlayerID(_ context.Context) (int64, error) {
 	return f.nextPlayerID, nil
+}
+
+func (f *fakeStores) AddPlayerCoins(_ context.Context, input statecontract.AddPlayerCoinsInput) (*statecontract.AddPlayerCoinsResult, error) {
+	f.addPlayerCoinsInput = input
+	return f.addPlayerCoinsResult, nil
 }
 
 func (f *fakeStores) RegisterAccount(ctx context.Context, input statecontract.RegisterAccountInput) (*statecontract.RegisterAccountResult, error) {
@@ -502,3 +536,4 @@ func (f *fakeStores) DeleteFriend(_ context.Context, playerID, friendPlayerID in
 var _ statecontract.Client = (*Service)(nil)
 var _ statecontract.PresenceClient = (*Service)(nil)
 var _ statecontract.FriendClient = (*Service)(nil)
+var _ statecontract.CoinClient = (*Service)(nil)

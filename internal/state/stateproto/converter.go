@@ -56,6 +56,7 @@ func ToProtoPlayer(player *statecontract.Player) *statepb.Player {
 		Avatar:   player.Avatar,
 		Email:    player.Email,
 		Phone:    player.Phone,
+		Coins:    player.Coins,
 	}
 }
 
@@ -69,6 +70,7 @@ func FromProtoPlayer(player *statepb.Player) *statecontract.Player {
 		Avatar:   player.GetAvatar(),
 		Email:    player.GetEmail(),
 		Phone:    player.GetPhone(),
+		Coins:    player.GetCoins(),
 	}
 }
 
@@ -189,5 +191,31 @@ func FromProtoRealtimeEvent(event *statepb.RealtimeEvent) *statecontract.Realtim
 		BattleKCPAddr:  event.GetBattleKcpAddr(),
 		BattleNodeName: event.GetBattleNodeName(),
 		MatchPlayerIDs: event.GetMatchPlayerIds(),
+	}
+}
+
+func ToProtoGrowth(growth *statecontract.Growth) *statepb.Growth {
+	if growth == nil {
+		return nil
+	}
+	return &statepb.Growth{
+		PlayerId:         growth.PlayerID,
+		AttackLevel:      growth.AttackLevel,
+		AttackSpeedLevel: growth.AttackSpeedLevel,
+		HealthLevel:      growth.HealthLevel,
+		MoveSpeedLevel:   growth.MoveSpeedLevel,
+	}
+}
+
+func FromProtoGrowth(growth *statepb.Growth) *statecontract.Growth {
+	if growth == nil {
+		return nil
+	}
+	return &statecontract.Growth{
+		PlayerID:         growth.GetPlayerId(),
+		AttackLevel:      growth.GetAttackLevel(),
+		AttackSpeedLevel: growth.AttackSpeedLevel,
+		HealthLevel:      growth.GetHealthLevel(),
+		MoveSpeedLevel:   growth.GetMoveSpeedLevel(),
 	}
 }

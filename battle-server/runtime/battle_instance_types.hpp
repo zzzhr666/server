@@ -8,6 +8,7 @@
 
 #include "ecs/world.hpp"
 #include "gameplay/blessing.hpp"
+#include "gameplay/growth.hpp"
 #include "gameplay/monster_kind.hpp"
 #include "gameplay/wave_planner.hpp"
 #include "gameplay/weapon.hpp"
@@ -38,7 +39,7 @@ namespace battle {
         std::string room_name;
         std::vector<std::int64_t> player_ids;
         WaveConfig wave_config = default_wave_config();
-        std::unordered_map<std::int64_t, WeaponKind> player_weapons;
+        std::unordered_map<std::int64_t, std::pair<WeaponKind,GrowthLevels>> player_loadouts;
         std::optional<ecs::CreatePlayerConfig> player_config_override;
         std::optional<std::uint32_t> reward_random_seed;
         ecs::WorldBounds world_bounds = ecs::WorldBounds{

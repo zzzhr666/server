@@ -16,6 +16,49 @@ type Server struct {
 	presenceClient statecontract.PresenceClient
 	friendClient   statecontract.FriendClient
 	realtimeClient statecontract.RealtimeClient
+	growthClient   statecontract.GrowthClient
+	coinClient     statecontract.CoinClient
+}
+
+func (s *Server) AddPlayerCoins(ctx context.Context, request *statepb.AddPlayerCoinsRequest) (*statepb.AddPlayerCoinsResponse, error) {
+	res, err := s.coinClient.AddPlayerCoins(ctx, statecontract.AddPlayerCoinsInput{
+		PlayerID: request.GetPlayerId(),
+		Amount:   request.GetAmount(),
+	})
+	if err != nil {
+		return nil, mapStateError(err)
+	}
+
+	return &statepb.AddPlayerCoinsResponse{
+		PlayerId: res.PlayerID,
+		Coins:    res.Coins,
+	}, nil
+}
+
+func (s *Server) GetGrowth(ctx context.Context, request *statepb.GetGrowthRequest) (*statepb.GetGrowthResponse, error) {
+	growth, err := s.growthClient.GetGrowth(ctx, request.PlayerId)
+	if err != nil {
+		return nil, mapStateError(err)
+	}
+	return &statepb.GetGrowthResponse{
+		Growth: stateproto.ToProtoGrowth(growth),
+	}, nil
+}
+
+func (s *Server) UpgradeGrowth(ctx context.Context, request *statepb.UpgradeGrowthRequest) (*statepb.UpgradeGrowthResponse, error) {
+	res, err := s.growthClient.UpgradeGrowth(ctx, statecontract.UpgradeGrowthInput{
+		PlayerID:     request.GetPlayerId(),
+		UpgradeField: request.GetUpgradeField(),
+		Cost:         request.GetCost(),
+		MaxLevel:     request.GetMaxLevel(),
+	})
+	if err != nil {
+		return nil, mapStateError(err)
+	}
+	return &statepb.UpgradeGrowthResponse{
+		Growth:         stateproto.ToProtoGrowth(res.Growth),
+		RemainingCoins: res.RemainingCoins,
+	}, nil
 }
 
 // CreateAccount handles a gRPC request to create account credentials.
@@ -253,6 +296,8 @@ type ServerConfig struct {
 	PresenceClient statecontract.PresenceClient
 	FriendClient   statecontract.FriendClient
 	RealtimeClient statecontract.RealtimeClient
+	GrowthClient   statecontract.GrowthClient
+	CoinClient     statecontract.CoinClient
 }
 
 // NewServer creates a gRPC state server adapter.
@@ -262,5 +307,7 @@ func NewServer(config ServerConfig) *Server {
 		presenceClient: config.PresenceClient,
 		friendClient:   config.FriendClient,
 		realtimeClient: config.RealtimeClient,
+		growthClient:   config.GrowthClient,
+		coinClient:     config.CoinClient,
 	}
 }

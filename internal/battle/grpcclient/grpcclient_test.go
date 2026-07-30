@@ -25,8 +25,8 @@ func TestClientCreateRoom(t *testing.T) {
 		Token:     "token-1",
 		PlayerIDs: []int64{7, 8},
 		PlayerLoadouts: []PlayerLoadout{
-			{PlayerID: 7, Weapon: "axe"},
-			{PlayerID: 8, Weapon: "dagger"},
+			{PlayerID: 7, Weapon: "axe", AttackLevel: 2, AttackSpeedLevel: 3, HealthLevel: 4, MoveSpeedLevel: 5},
+			{PlayerID: 8, Weapon: "dagger", AttackLevel: 6, AttackSpeedLevel: 7, HealthLevel: 8, MoveSpeedLevel: 9},
 		},
 	})
 	if err != nil {
@@ -43,8 +43,12 @@ func TestClientCreateRoom(t *testing.T) {
 	}
 	if got := grpcBattle.createRoomRequest.GetPlayerLoadouts(); len(got) != 2 ||
 		got[0].GetPlayerId() != 7 || got[0].GetWeapon() != "axe" ||
-		got[1].GetPlayerId() != 8 || got[1].GetWeapon() != "dagger" {
-		t.Fatalf("player loadouts = %+v, want player 7 axe and player 8 dagger", got)
+		got[0].GetAttackLevel() != 2 || got[0].GetAttackSpeedLevel() != 3 ||
+		got[0].GetHealthLevel() != 4 || got[0].GetMoveSpeedLevel() != 5 ||
+		got[1].GetPlayerId() != 8 || got[1].GetWeapon() != "dagger" ||
+		got[1].GetAttackLevel() != 6 || got[1].GetAttackSpeedLevel() != 7 ||
+		got[1].GetHealthLevel() != 8 || got[1].GetMoveSpeedLevel() != 9 {
+		t.Fatalf("player loadouts = %+v, want player 7 and 8 loadouts with growth levels", got)
 	}
 	if result.Status != CreateRoomStatusOK {
 		t.Fatalf("status = %q, want %q", result.Status, CreateRoomStatusOK)

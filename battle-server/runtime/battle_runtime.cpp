@@ -7,6 +7,7 @@
 
 #include "battle_instance.hpp"
 #include "game/game_manager.hpp"
+#include "gameplay/growth.hpp"
 #include "gameplay/weapon.hpp"
 #include "net/packet_codec.hpp"
 #include "session/battle_session.hpp"
@@ -187,20 +188,26 @@ void battle::BattleRuntime::start_room(const std::string& room_name) {
     for (const auto& session : sessions) {
         player_ids.push_back(session->player_id());
     }
-    std::unordered_map<std::int64_t, WeaponKind> player_weapons;
-    player_weapons.reserve(configured_loadouts.size());
+    std::unordered_map<std::int64_t, std::pair<WeaponKind,GrowthLevels>> player_loadouts;
+    player_loadouts.reserve(configured_loadouts.size());
     for (const auto& loadout : configured_loadouts) {
         auto weapon_kind = weapon_kind_from_string(loadout.weapon);
         if (!weapon_kind.has_value()) {
             continue;
         }
-        player_weapons.emplace(loadout.player_id, weapon_kind.value());
+        auto growth_level = GrowthLevels{
+            .attack_level = loadout.attack_level,
+            .attack_speed_level = loadout.attack_speed_level,
+            .health_level = loadout.health_level,
+            .move_speed_level = loadout.move_speed_level,
+        };
+        player_loadouts.emplace(loadout.player_id, std::make_pair(weapon_kind.value(),growth_level));
     }
 
     auto instance = instance_factory_(BattleInstanceConfig{
         .room_name = room_name,
         .player_ids = player_ids,
-        .player_weapons = std::move(player_weapons),
+        .player_loadouts = std::move(player_loadouts),
     });
 
     auto game_start_packet = make_game_start(room_name, player_ids);

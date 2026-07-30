@@ -92,6 +92,33 @@ func TestClientStartMatchMapsNoAvailableBattleNode(t *testing.T) {
 	}
 }
 
+func TestClientStartMatchMapsUnavailableGrowthClient(t *testing.T) {
+	client := NewClient(&fakeRCenterServiceClient{
+		err: status.Error(codes.Unavailable, rcenter.ErrUnavailableGrowthClient.Error()),
+	})
+
+	_, err := client.StartMatch(context.Background(), 7, "")
+	if !errors.Is(err, rcenter.ErrUnavailableGrowthClient) {
+		t.Fatalf("StartMatch error = %v, want %v", err, rcenter.ErrUnavailableGrowthClient)
+	}
+}
+
+func TestClientFinishMatchMapsUnavailableCoinClient(t *testing.T) {
+	client := NewClient(&fakeRCenterServiceClient{
+		err: status.Error(codes.Unavailable, rcenter.ErrUnavailableCoinClient.Error()),
+	})
+
+	err := client.FinishMatch(context.Background(), rcenter.FinishMatchInput{
+		PlayerIDs: []int64{7},
+		PlayerStats: []rcenter.PlayerBattleStats{
+			{PlayerID: 7},
+		},
+	})
+	if !errors.Is(err, rcenter.ErrUnavailableCoinClient) {
+		t.Fatalf("FinishMatch error = %v, want %v", err, rcenter.ErrUnavailableCoinClient)
+	}
+}
+
 func TestClientCancelMatch(t *testing.T) {
 	grpcCenter := &fakeRCenterServiceClient{}
 	client := NewClient(grpcCenter)
@@ -131,12 +158,44 @@ func TestClientFinishMatch(t *testing.T) {
 	grpcCenter := &fakeRCenterServiceClient{}
 	client := NewClient(grpcCenter)
 
-	err := client.FinishMatch(context.Background(), []int64{7, 8})
+	err := client.FinishMatch(context.Background(), rcenter.FinishMatchInput{
+		PlayerIDs: []int64{7, 8},
+		Reason:    rcenter.BattleFinishReasonVictory,
+		PlayerStats: []rcenter.PlayerBattleStats{
+			{
+				PlayerID:   7,
+				TotalKills: 3,
+				Kills: []rcenter.MonsterKillCount{
+					{MonsterKind: "melee", Count: 2},
+					{MonsterKind: "elite", Count: 1},
+				},
+			},
+		},
+	})
 	if err != nil {
 		t.Fatalf("FinishMatch returned error: %v", err)
 	}
 	if !reflect.DeepEqual(grpcCenter.finishMatchRequest.GetPlayerIds(), []int64{7, 8}) {
 		t.Fatalf("player ids = %v, want [7 8]", grpcCenter.finishMatchRequest.GetPlayerIds())
+	}
+	if grpcCenter.finishMatchRequest.GetReason() != rcenter.BattleFinishReasonVictory {
+		t.Fatalf("reason = %q, want %q", grpcCenter.finishMatchRequest.GetReason(), rcenter.BattleFinishReasonVictory)
+	}
+	stats := grpcCenter.finishMatchRequest.GetPlayerStats()
+	if len(stats) != 1 {
+		t.Fatalf("player stats = %d, want 1", len(stats))
+	}
+	if stats[0].GetPlayerId() != 7 {
+		t.Fatalf("stats player id = %d, want 7", stats[0].GetPlayerId())
+	}
+	if stats[0].GetTotalKills() != 3 {
+		t.Fatalf("stats total kills = %d, want 3", stats[0].GetTotalKills())
+	}
+	if len(stats[0].GetKills()) != 2 {
+		t.Fatalf("stats kills = %d, want 2", len(stats[0].GetKills()))
+	}
+	if stats[0].GetKills()[0].GetMonsterKind() != "melee" || stats[0].GetKills()[0].GetCount() != 2 {
+		t.Fatalf("first kill = %+v, want melee x2", stats[0].GetKills()[0])
 	}
 }
 

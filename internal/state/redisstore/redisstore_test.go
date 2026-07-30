@@ -198,6 +198,257 @@ func TestFriendMethodsValidateInput(t *testing.T) {
 	}
 }
 
+func TestAddPlayerCoinsSuccess(t *testing.T) {
+	ctx := context.Background()
+	store, client := newRedisTestStore(t)
+	if err := client.HSet(ctx, playerKey(7), map[string]any{
+		"id":       7,
+		"nickname": "player",
+		"coins":    100,
+	}).Err(); err != nil {
+		t.Fatalf("seed player returned error: %v", err)
+	}
+
+	result, err := store.AddPlayerCoins(ctx, statecontract.AddPlayerCoinsInput{
+		PlayerID: 7,
+		Amount:   50,
+	})
+	if err != nil {
+		t.Fatalf("AddPlayerCoins returned error: %v", err)
+	}
+	if result.PlayerID != 7 {
+		t.Fatalf("result player id = %d, want 7", result.PlayerID)
+	}
+	if result.Coins != 150 {
+		t.Fatalf("result coins = %d, want 150", result.Coins)
+	}
+	assertPlayerCoins(t, ctx, client, 7, 150)
+}
+
+func TestAddPlayerCoinsValidatesInputAndMissingPlayer(t *testing.T) {
+	ctx := context.Background()
+	store, _ := newRedisTestStore(t)
+
+	tests := []struct {
+		name  string
+		input statecontract.AddPlayerCoinsInput
+		want  error
+	}{
+		{
+			name:  "invalid player",
+			input: statecontract.AddPlayerCoinsInput{PlayerID: 0, Amount: 50},
+			want:  statecontract.ErrInvalidPlayer,
+		},
+		{
+			name:  "invalid amount",
+			input: statecontract.AddPlayerCoinsInput{PlayerID: 7, Amount: 0},
+			want:  statecontract.ErrInvalidPlayer,
+		},
+		{
+			name:  "missing player",
+			input: statecontract.AddPlayerCoinsInput{PlayerID: 7, Amount: 50},
+			want:  statecontract.ErrPlayerNotFound,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := store.AddPlayerCoins(ctx, tt.input)
+			if !errors.Is(err, tt.want) {
+				t.Fatalf("AddPlayerCoins error = %v, want %v", err, tt.want)
+			}
+		})
+	}
+}
+
+func TestRegisterAccountCreatesInitialGrowth(t *testing.T) {
+	ctx := context.Background()
+	store, _ := newRedisTestStore(t)
+
+	result, err := store.RegisterAccount(ctx, statecontract.RegisterAccountInput{
+		Username:         "alice",
+		PasswordHash:     "hash",
+		Nickname:         "Alice",
+		SessionToken:     "token-1",
+		SessionExpiresAt: time.Now().Add(time.Hour),
+	})
+	if err != nil {
+		t.Fatalf("RegisterAccount returned error: %v", err)
+	}
+
+	growth, err := store.GetGrowth(ctx, result.Player.ID)
+	if err != nil {
+		t.Fatalf("GetGrowth returned error: %v", err)
+	}
+	if growth.PlayerID != result.Player.ID {
+		t.Fatalf("growth player id = %d, want %d", growth.PlayerID, result.Player.ID)
+	}
+	if growth.AttackLevel != 1 || growth.AttackSpeedLevel != 1 || growth.HealthLevel != 1 || growth.MoveSpeedLevel != 1 {
+		t.Fatalf("initial growth = %+v, want all levels 1", growth)
+	}
+}
+
+func TestGrowthUpgradeSuccess(t *testing.T) {
+	ctx := context.Background()
+	store, client := newRedisTestStore(t)
+	seedPlayerAndGrowth(t, ctx, client, 7, 150, &statecontract.Growth{
+		PlayerID:         7,
+		AttackLevel:      1,
+		AttackSpeedLevel: 1,
+		HealthLevel:      2,
+		MoveSpeedLevel:   1,
+	})
+
+	result, err := store.UpgradeGrowth(ctx, statecontract.UpgradeGrowthInput{
+		PlayerID:     7,
+		UpgradeField: "Attack",
+		Cost:         100,
+		MaxLevel:     10,
+	})
+	if err != nil {
+		t.Fatalf("UpgradeGrowth returned error: %v", err)
+	}
+	if result.RemainingCoins != 50 {
+		t.Fatalf("remaining coins = %d, want 50", result.RemainingCoins)
+	}
+	if result.Growth.AttackLevel != 2 {
+		t.Fatalf("attack level = %d, want 2", result.Growth.AttackLevel)
+	}
+	if result.Growth.HealthLevel != 2 {
+		t.Fatalf("health level = %d, want unchanged 2", result.Growth.HealthLevel)
+	}
+
+	coins, err := client.HGet(ctx, playerKey(7), "coins").Int64()
+	if err != nil {
+		t.Fatalf("HGet coins returned error: %v", err)
+	}
+	if coins != 50 {
+		t.Fatalf("stored coins = %d, want 50", coins)
+	}
+	attackLevel, err := client.HGet(ctx, growthKey(7), "attack_level").Int()
+	if err != nil {
+		t.Fatalf("HGet attack_level returned error: %v", err)
+	}
+	if attackLevel != 2 {
+		t.Fatalf("stored attack level = %d, want 2", attackLevel)
+	}
+}
+
+func TestGrowthUpgradeRejectsInsufficientCoins(t *testing.T) {
+	ctx := context.Background()
+	store, client := newRedisTestStore(t)
+	seedPlayerAndGrowth(t, ctx, client, 7, 99, &statecontract.Growth{
+		PlayerID:         7,
+		AttackLevel:      1,
+		AttackSpeedLevel: 1,
+		HealthLevel:      1,
+		MoveSpeedLevel:   1,
+	})
+
+	_, err := store.UpgradeGrowth(ctx, statecontract.UpgradeGrowthInput{
+		PlayerID:     7,
+		UpgradeField: "Attack",
+		Cost:         100,
+		MaxLevel:     10,
+	})
+	if !errors.Is(err, statecontract.ErrInsufficientCoins) {
+		t.Fatalf("UpgradeGrowth error = %v, want %v", err, statecontract.ErrInsufficientCoins)
+	}
+	assertGrowthStoredLevel(t, ctx, client, 7, "attack_level", 1)
+	assertPlayerCoins(t, ctx, client, 7, 99)
+}
+
+func TestGrowthUpgradeRejectsMaxLevel(t *testing.T) {
+	ctx := context.Background()
+	store, client := newRedisTestStore(t)
+	seedPlayerAndGrowth(t, ctx, client, 7, 500, &statecontract.Growth{
+		PlayerID:         7,
+		AttackLevel:      10,
+		AttackSpeedLevel: 1,
+		HealthLevel:      1,
+		MoveSpeedLevel:   1,
+	})
+
+	_, err := store.UpgradeGrowth(ctx, statecontract.UpgradeGrowthInput{
+		PlayerID:     7,
+		UpgradeField: "Attack",
+		Cost:         100,
+		MaxLevel:     10,
+	})
+	if !errors.Is(err, statecontract.ErrMaxGrowthLevel) {
+		t.Fatalf("UpgradeGrowth error = %v, want %v", err, statecontract.ErrMaxGrowthLevel)
+	}
+	assertGrowthStoredLevel(t, ctx, client, 7, "attack_level", 10)
+	assertPlayerCoins(t, ctx, client, 7, 500)
+}
+
+func TestGrowthUpgradeValidatesInputAndMissingState(t *testing.T) {
+	ctx := context.Background()
+	store, client := newRedisTestStore(t)
+
+	tests := []struct {
+		name string
+		run  func() error
+		want error
+	}{
+		{
+			name: "invalid player",
+			run: func() error {
+				_, err := store.UpgradeGrowth(ctx, statecontract.UpgradeGrowthInput{PlayerID: 0, UpgradeField: "Attack", Cost: 1, MaxLevel: 10})
+				return err
+			},
+			want: statecontract.ErrInvalidGrowth,
+		},
+		{
+			name: "invalid field",
+			run: func() error {
+				_, err := store.UpgradeGrowth(ctx, statecontract.UpgradeGrowthInput{PlayerID: 7, UpgradeField: "Critical", Cost: 1, MaxLevel: 10})
+				return err
+			},
+			want: statecontract.ErrInvalidGrowthField,
+		},
+		{
+			name: "missing player",
+			run: func() error {
+				_, err := store.UpgradeGrowth(ctx, statecontract.UpgradeGrowthInput{PlayerID: 7, UpgradeField: "Attack", Cost: 1, MaxLevel: 10})
+				return err
+			},
+			want: statecontract.ErrPlayerNotFound,
+		},
+		{
+			name: "missing growth",
+			run: func() error {
+				if err := client.HSet(ctx, playerKey(8), "coins", 100).Err(); err != nil {
+					t.Fatalf("seed player coins returned error: %v", err)
+				}
+				_, err := store.UpgradeGrowth(ctx, statecontract.UpgradeGrowthInput{PlayerID: 8, UpgradeField: "Attack", Cost: 1, MaxLevel: 10})
+				return err
+			},
+			want: statecontract.ErrGrowthNotFound,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := tt.run(); !errors.Is(err, tt.want) {
+				t.Fatalf("error = %v, want %v", err, tt.want)
+			}
+		})
+	}
+}
+
+func TestGetGrowthValidatesInputAndMissingState(t *testing.T) {
+	ctx := context.Background()
+	store, _ := newRedisTestStore(t)
+
+	if _, err := store.GetGrowth(ctx, 0); !errors.Is(err, statecontract.ErrInvalidGrowth) {
+		t.Fatalf("GetGrowth invalid player error = %v, want %v", err, statecontract.ErrInvalidGrowth)
+	}
+	if _, err := store.GetGrowth(ctx, 7); !errors.Is(err, statecontract.ErrGrowthNotFound) {
+		t.Fatalf("GetGrowth missing error = %v, want %v", err, statecontract.ErrGrowthNotFound)
+	}
+}
+
 type friendRequestWant struct {
 	from int64
 	to   int64
@@ -362,5 +613,50 @@ func assertInt64Set(t *testing.T, got, want []int64) {
 		if count != 0 {
 			t.Fatalf("ids = %v, want %v; %d count diff %d", got, want, value, count)
 		}
+	}
+}
+
+func seedPlayerAndGrowth(t *testing.T, ctx context.Context, client *redis.Client, playerID int64, coins int64, growth *statecontract.Growth) {
+	t.Helper()
+
+	if err := client.HSet(ctx, playerKey(playerID), map[string]any{
+		"id":       playerID,
+		"nickname": "player",
+		"coins":    coins,
+	}).Err(); err != nil {
+		t.Fatalf("seed player returned error: %v", err)
+	}
+	if err := client.HSet(ctx, growthKey(playerID), map[string]any{
+		"player_id":          growth.PlayerID,
+		"attack_level":       growth.AttackLevel,
+		"attack_speed_level": growth.AttackSpeedLevel,
+		"health_level":       growth.HealthLevel,
+		"move_speed_level":   growth.MoveSpeedLevel,
+	}).Err(); err != nil {
+		t.Fatalf("seed growth returned error: %v", err)
+	}
+}
+
+func assertPlayerCoins(t *testing.T, ctx context.Context, client *redis.Client, playerID int64, want int64) {
+	t.Helper()
+
+	got, err := client.HGet(ctx, playerKey(playerID), "coins").Int64()
+	if err != nil {
+		t.Fatalf("HGet coins returned error: %v", err)
+	}
+	if got != want {
+		t.Fatalf("coins = %d, want %d", got, want)
+	}
+}
+
+func assertGrowthStoredLevel(t *testing.T, ctx context.Context, client *redis.Client, playerID int64, field string, want int) {
+	t.Helper()
+
+	got, err := client.HGet(ctx, growthKey(playerID), field).Int()
+	if err != nil {
+		t.Fatalf("HGet %s returned error: %v", field, err)
+	}
+	if got != want {
+		t.Fatalf("%s = %d, want %d", field, got, want)
 	}
 }

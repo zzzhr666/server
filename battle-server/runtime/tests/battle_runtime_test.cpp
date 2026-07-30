@@ -105,12 +105,12 @@ TEST(BattleRuntimeTest, ReceiveInputReturnsFalseForMissingRoom) {
 TEST(BattleRuntimeTest, StartRoomPassesConfiguredPlayerWeaponsToInstance) {
     RoomManager room_manager;
     SessionManager session_manager(room_manager);
-    std::unordered_map<std::int64_t, WeaponKind> captured_weapons;
+    std::unordered_map<std::int64_t, std::pair<WeaponKind,GrowthLevels>> captured_weapons;
     BattleRuntime runtime(
         room_manager, session_manager,
         [](const v1::ServerPacket&, const UdpEndpoint&) {},
         [&captured_weapons](BattleInstanceConfig config) {
-            captured_weapons = config.player_weapons;
+            captured_weapons = config.player_loadouts;
             return std::make_unique<BattleInstance>(std::move(config));
         });
 
@@ -138,7 +138,7 @@ TEST(BattleRuntimeTest, StartRoomPassesConfiguredPlayerWeaponsToInstance) {
     runtime.start_room("room-1");
 
     ASSERT_TRUE(captured_weapons.contains(1001));
-    EXPECT_EQ(captured_weapons.at(1001), WeaponKind::Dagger);
+    EXPECT_EQ(captured_weapons.at(1001).first, WeaponKind::Dagger);
 }
 
 TEST(BattleRuntimeTest, EndRoomBroadcastsGameOverAndCleansRoom) {

@@ -4,12 +4,32 @@ import (
 	"context"
 	"errors"
 	"reflect"
+	statecontract "server/internal/contract/state"
 	"testing"
 )
 
 func TestServiceRegisterBattleNode(t *testing.T) {
 	battleRooms := &fakeBattleRoomCreator{}
-	svc := NewService(battleRooms)
+	svc := NewService(ServiceConfig{
+		BattleNodeController: battleRooms,
+		RewardRule:           DefaultRewardRule(),
+		GrowthClient: &fakeGrowthClient{growths: map[int64]*statecontract.Growth{
+			7: {
+				PlayerID:         7,
+				AttackLevel:      2,
+				AttackSpeedLevel: 3,
+				HealthLevel:      4,
+				MoveSpeedLevel:   5,
+			},
+			8: {
+				PlayerID:         8,
+				AttackLevel:      6,
+				AttackSpeedLevel: 7,
+				HealthLevel:      8,
+				MoveSpeedLevel:   9,
+			},
+		}},
+	})
 
 	err := svc.RegisterBattleNode(context.Background(), BattleNode{
 		Name:        "battle-1",
@@ -78,7 +98,26 @@ func TestServiceStartMatchWaitsForFirstPlayer(t *testing.T) {
 
 func TestServiceStartMatchCreatesRoomForSecondPlayer(t *testing.T) {
 	battleRooms := &fakeBattleRoomCreator{}
-	svc := NewService(battleRooms)
+	svc := NewService(ServiceConfig{
+		BattleNodeController: battleRooms,
+		RewardRule:           DefaultRewardRule(),
+		GrowthClient: &fakeGrowthClient{growths: map[int64]*statecontract.Growth{
+			7: {
+				PlayerID:         7,
+				AttackLevel:      2,
+				AttackSpeedLevel: 3,
+				HealthLevel:      4,
+				MoveSpeedLevel:   5,
+			},
+			8: {
+				PlayerID:         8,
+				AttackLevel:      6,
+				AttackSpeedLevel: 7,
+				HealthLevel:      8,
+				MoveSpeedLevel:   9,
+			},
+		}},
+	})
 	mustRegisterBattleNode(t, svc, BattleNode{
 		Name:          "battle-1",
 		KCPAddr:       "127.0.0.1:7001",
@@ -125,8 +164,8 @@ func TestServiceStartMatchCreatesRoomForSecondPlayer(t *testing.T) {
 		t.Fatalf("player ids = %v, want [7 8]", second.PlayerIDs)
 	}
 	wantLoadouts := []PlayerLoadout{
-		{PlayerID: 7, Weapon: "axe"},
-		{PlayerID: 8, Weapon: "dagger"},
+		{PlayerID: 7, Weapon: "axe", AttackLevel: 2, AttackSpeedLevel: 3, HealthLevel: 4, MoveSpeedLevel: 5},
+		{PlayerID: 8, Weapon: "dagger", AttackLevel: 6, AttackSpeedLevel: 7, HealthLevel: 8, MoveSpeedLevel: 9},
 	}
 	if !reflect.DeepEqual(second.PlayerLoadouts, wantLoadouts) {
 		t.Fatalf("player loadouts = %+v, want %+v", second.PlayerLoadouts, wantLoadouts)
@@ -151,7 +190,11 @@ func TestServiceStartMatchCreatesRoomForSecondPlayer(t *testing.T) {
 func TestServiceStartMatchReturnsCreateRoomError(t *testing.T) {
 	wantErr := errors.New("battle create failed")
 	battleRooms := &fakeBattleRoomCreator{createRoomErr: wantErr}
-	svc := NewService(battleRooms)
+	svc := NewService(ServiceConfig{
+		BattleNodeController: battleRooms,
+		RewardRule:           DefaultRewardRule(),
+		GrowthClient:         &fakeGrowthClient{},
+	})
 	mustRegisterBattleNode(t, svc, BattleNode{
 		Name:        "battle-1",
 		KCPAddr:     "127.0.0.1:7001",
@@ -263,7 +306,7 @@ func TestServiceFinishMatchAllowsPlayersToMatchAgain(t *testing.T) {
 		t.Fatalf("second StartMatch returned error: %v", err)
 	}
 
-	if err := svc.FinishMatch(context.Background(), matched.PlayerIDs); err != nil {
+	if err := svc.FinishMatch(context.Background(), FinishMatchInput{PlayerIDs: matched.PlayerIDs}); err != nil {
 		t.Fatalf("FinishMatch returned error: %v", err)
 	}
 
@@ -276,10 +319,152 @@ func TestServiceFinishMatchAllowsPlayersToMatchAgain(t *testing.T) {
 	}
 }
 
+func TestServiceFinishMatchAddsCoinRewards(t *testing.T) {
+	coins := &fakeCoinClient{}
+	svc := NewService(ServiceConfig{
+		BattleNodeController: &fakeBattleRoomCreator{},
+		CoinClient:           coins,
+		GrowthClient:         &fakeGrowthClient{},
+		RewardRule: RewardRule{
+			BaseReward:    50,
+			VictoryReward: 100,
+			MonsterKillReward: map[string]int64{
+				"melee": 10,
+				"elite": 35,
+			},
+		},
+	})
+	mustRegisterBattleNode(t, svc, BattleNode{
+		Name:        "battle-1",
+		KCPAddr:     "127.0.0.1:7001",
+		ControlAddr: "127.0.0.1:9101",
+		MaxPlayers:  100,
+	})
+
+	if _, err := svc.StartMatch(context.Background(), 7, ""); err != nil {
+		t.Fatalf("first StartMatch returned error: %v", err)
+	}
+	matched, err := svc.StartMatch(context.Background(), 8, "")
+	if err != nil {
+		t.Fatalf("second StartMatch returned error: %v", err)
+	}
+
+	err = svc.FinishMatch(context.Background(), FinishMatchInput{
+		PlayerIDs: matched.PlayerIDs,
+		Reason:    BattleFinishReasonVictory,
+		PlayerStats: []PlayerBattleStats{
+			{
+				PlayerID:   7,
+				TotalKills: 2,
+				Kills: []MonsterKillCount{
+					{MonsterKind: "melee", Count: 2},
+				},
+			},
+			{
+				PlayerID:   8,
+				TotalKills: 1,
+				Kills: []MonsterKillCount{
+					{MonsterKind: "elite", Count: 1},
+				},
+			},
+		},
+	})
+	if err != nil {
+		t.Fatalf("FinishMatch returned error: %v", err)
+	}
+	wantInputs := []statecontract.AddPlayerCoinsInput{
+		{PlayerID: 7, Amount: 170},
+		{PlayerID: 8, Amount: 185},
+	}
+	if !reflect.DeepEqual(coins.inputs, wantInputs) {
+		t.Fatalf("coin inputs = %+v, want %+v", coins.inputs, wantInputs)
+	}
+
+	result, err := svc.StartMatch(context.Background(), 7, "")
+	if err != nil {
+		t.Fatalf("StartMatch after FinishMatch returned error: %v", err)
+	}
+	if result.Status != MatchStatusWaiting {
+		t.Fatalf("status = %q, want %q", result.Status, MatchStatusWaiting)
+	}
+}
+
+func TestServiceFinishMatchRejectsRewardsWithoutCoinClient(t *testing.T) {
+	svc := newTestService()
+	mustRegisterBattleNode(t, svc, BattleNode{
+		Name:        "battle-1",
+		KCPAddr:     "127.0.0.1:7001",
+		ControlAddr: "127.0.0.1:9101",
+		MaxPlayers:  100,
+	})
+
+	if _, err := svc.StartMatch(context.Background(), 7, ""); err != nil {
+		t.Fatalf("first StartMatch returned error: %v", err)
+	}
+	matched, err := svc.StartMatch(context.Background(), 8, "")
+	if err != nil {
+		t.Fatalf("second StartMatch returned error: %v", err)
+	}
+
+	err = svc.FinishMatch(context.Background(), FinishMatchInput{
+		PlayerIDs: matched.PlayerIDs,
+		PlayerStats: []PlayerBattleStats{
+			{PlayerID: 7},
+		},
+	})
+	if !errors.Is(err, ErrUnavailableCoinClient) {
+		t.Fatalf("FinishMatch error = %v, want %v", err, ErrUnavailableCoinClient)
+	}
+
+	_, err = svc.StartMatch(context.Background(), 7, "")
+	if !errors.Is(err, ErrPlayerInGame) {
+		t.Fatalf("StartMatch after failed FinishMatch error = %v, want %v", err, ErrPlayerInGame)
+	}
+}
+
+func TestServiceFinishMatchReturnsCoinErrorWithoutReleasingPlayers(t *testing.T) {
+	wantErr := statecontract.ErrPlayerNotFound
+	svc := NewService(ServiceConfig{
+		BattleNodeController: &fakeBattleRoomCreator{},
+		CoinClient:           &fakeCoinClient{err: wantErr},
+		RewardRule:           DefaultRewardRule(),
+		GrowthClient:         &fakeGrowthClient{},
+	})
+	mustRegisterBattleNode(t, svc, BattleNode{
+		Name:        "battle-1",
+		KCPAddr:     "127.0.0.1:7001",
+		ControlAddr: "127.0.0.1:9101",
+		MaxPlayers:  100,
+	})
+
+	if _, err := svc.StartMatch(context.Background(), 7, ""); err != nil {
+		t.Fatalf("first StartMatch returned error: %v", err)
+	}
+	matched, err := svc.StartMatch(context.Background(), 8, "")
+	if err != nil {
+		t.Fatalf("second StartMatch returned error: %v", err)
+	}
+
+	err = svc.FinishMatch(context.Background(), FinishMatchInput{
+		PlayerIDs: matched.PlayerIDs,
+		PlayerStats: []PlayerBattleStats{
+			{PlayerID: 7},
+		},
+	})
+	if !errors.Is(err, wantErr) {
+		t.Fatalf("FinishMatch error = %v, want %v", err, wantErr)
+	}
+
+	_, err = svc.StartMatch(context.Background(), 7, "")
+	if !errors.Is(err, ErrPlayerInGame) {
+		t.Fatalf("StartMatch after failed FinishMatch error = %v, want %v", err, ErrPlayerInGame)
+	}
+}
+
 func TestServiceFinishMatchInvalidPlayer(t *testing.T) {
 	svc := newTestService()
 
-	err := svc.FinishMatch(context.Background(), []int64{7, 0})
+	err := svc.FinishMatch(context.Background(), FinishMatchInput{PlayerIDs: []int64{7, 0}})
 	if !errors.Is(err, ErrInvalidPlayerID) {
 		t.Fatalf("FinishMatch error = %v, want %v", err, ErrInvalidPlayerID)
 	}
@@ -359,7 +544,11 @@ func mustRegisterBattleNode(t *testing.T, svc *GameCenterService, node BattleNod
 }
 
 func newTestService() *GameCenterService {
-	return NewService(&fakeBattleRoomCreator{})
+	return NewService(ServiceConfig{
+		BattleNodeController: &fakeBattleRoomCreator{},
+		RewardRule:           DefaultRewardRule(),
+		GrowthClient:         &fakeGrowthClient{},
+	})
 }
 
 type fakeBattleRoomCreator struct {
@@ -379,4 +568,45 @@ func (f *fakeBattleRoomCreator) CreateRoom(ctx context.Context, nodeName string,
 	f.createRoomNodeName = nodeName
 	f.createRoomInput = input
 	return f.createRoomErr
+}
+
+type fakeCoinClient struct {
+	inputs []statecontract.AddPlayerCoinsInput
+	err    error
+}
+
+func (f *fakeCoinClient) AddPlayerCoins(_ context.Context, input statecontract.AddPlayerCoinsInput) (*statecontract.AddPlayerCoinsResult, error) {
+	f.inputs = append(f.inputs, input)
+	if f.err != nil {
+		return nil, f.err
+	}
+	return &statecontract.AddPlayerCoinsResult{
+		PlayerID: input.PlayerID,
+		Coins:    input.Amount,
+	}, nil
+}
+
+type fakeGrowthClient struct {
+	growths map[int64]*statecontract.Growth
+	err     error
+}
+
+func (f *fakeGrowthClient) GetGrowth(_ context.Context, playerID int64) (*statecontract.Growth, error) {
+	if f.err != nil {
+		return nil, f.err
+	}
+	if growth := f.growths[playerID]; growth != nil {
+		return growth, nil
+	}
+	return &statecontract.Growth{
+		PlayerID:         playerID,
+		AttackLevel:      1,
+		AttackSpeedLevel: 1,
+		HealthLevel:      1,
+		MoveSpeedLevel:   1,
+	}, nil
+}
+
+func (f *fakeGrowthClient) UpgradeGrowth(_ context.Context, input statecontract.UpgradeGrowthInput) (*statecontract.UpgradeGrowthResult, error) {
+	return nil, errors.New("UpgradeGrowth is not used by these tests")
 }

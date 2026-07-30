@@ -50,6 +50,7 @@ func toStatePlayer(player *Player) *statecontract.Player {
 		Avatar:   player.Avatar,
 		Email:    player.Email,
 		Phone:    player.Phone,
+		Coins:    player.Coins,
 	}
 }
 func fromStatePlayer(player *statecontract.Player) *Player {
@@ -62,6 +63,7 @@ func fromStatePlayer(player *statecontract.Player) *Player {
 		Avatar:   player.Avatar,
 		Email:    player.Email,
 		Phone:    player.Phone,
+		Coins:    player.Coins,
 	}
 }
 
