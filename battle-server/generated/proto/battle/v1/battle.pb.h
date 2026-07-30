@@ -378,6 +378,10 @@ class PlayerLoadout final : public ::google::protobuf::Message
   enum : int {
     kWeaponFieldNumber = 2,
     kPlayerIdFieldNumber = 1,
+    kAttackLevelFieldNumber = 3,
+    kAttackSpeedLevelFieldNumber = 4,
+    kHealthLevelFieldNumber = 5,
+    kMoveSpeedLevelFieldNumber = 6,
   };
   // string weapon = 2;
   void clear_weapon() ;
@@ -404,11 +408,51 @@ class PlayerLoadout final : public ::google::protobuf::Message
   void _internal_set_player_id(::int64_t value);
 
   public:
+  // int32 attack_level = 3;
+  void clear_attack_level() ;
+  ::int32_t attack_level() const;
+  void set_attack_level(::int32_t value);
+
+  private:
+  ::int32_t _internal_attack_level() const;
+  void _internal_set_attack_level(::int32_t value);
+
+  public:
+  // int32 attack_speed_level = 4;
+  void clear_attack_speed_level() ;
+  ::int32_t attack_speed_level() const;
+  void set_attack_speed_level(::int32_t value);
+
+  private:
+  ::int32_t _internal_attack_speed_level() const;
+  void _internal_set_attack_speed_level(::int32_t value);
+
+  public:
+  // int32 health_level = 5;
+  void clear_health_level() ;
+  ::int32_t health_level() const;
+  void set_health_level(::int32_t value);
+
+  private:
+  ::int32_t _internal_health_level() const;
+  void _internal_set_health_level(::int32_t value);
+
+  public:
+  // int32 move_speed_level = 6;
+  void clear_move_speed_level() ;
+  ::int32_t move_speed_level() const;
+  void set_move_speed_level(::int32_t value);
+
+  private:
+  ::int32_t _internal_move_speed_level() const;
+  void _internal_set_move_speed_level(::int32_t value);
+
+  public:
   // @@protoc_insertion_point(class_scope:battle.v1.PlayerLoadout)
  private:
   class _Internal;
   friend class ::google::protobuf::internal::TcParser;
-  static const ::google::protobuf::internal::TcParseTable<1, 2,
+  static const ::google::protobuf::internal::TcParseTable<3, 6,
                                    0, 38,
                                    2>
       _table_;
@@ -432,6 +476,10 @@ class PlayerLoadout final : public ::google::protobuf::Message
     ::google::protobuf::internal::CachedSize _cached_size_;
     ::google::protobuf::internal::ArenaStringPtr weapon_;
     ::int64_t player_id_;
+    ::int32_t attack_level_;
+    ::int32_t attack_speed_level_;
+    ::int32_t health_level_;
+    ::int32_t move_speed_level_;
     PROTOBUF_TSAN_DECLARE_MEMBER
   };
   union { Impl_ _impl_; };
@@ -2659,6 +2707,102 @@ inline void PlayerLoadout::set_allocated_weapon(::std::string* PROTOBUF_NULLABLE
     _impl_.weapon_.Set("", GetArena());
   }
   // @@protoc_insertion_point(field_set_allocated:battle.v1.PlayerLoadout.weapon)
+}
+
+// int32 attack_level = 3;
+inline void PlayerLoadout::clear_attack_level() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.attack_level_ = 0;
+  _impl_._has_bits_[0] &= ~0x00000004u;
+}
+inline ::int32_t PlayerLoadout::attack_level() const {
+  // @@protoc_insertion_point(field_get:battle.v1.PlayerLoadout.attack_level)
+  return _internal_attack_level();
+}
+inline void PlayerLoadout::set_attack_level(::int32_t value) {
+  _internal_set_attack_level(value);
+  _impl_._has_bits_[0] |= 0x00000004u;
+  // @@protoc_insertion_point(field_set:battle.v1.PlayerLoadout.attack_level)
+}
+inline ::int32_t PlayerLoadout::_internal_attack_level() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.attack_level_;
+}
+inline void PlayerLoadout::_internal_set_attack_level(::int32_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.attack_level_ = value;
+}
+
+// int32 attack_speed_level = 4;
+inline void PlayerLoadout::clear_attack_speed_level() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.attack_speed_level_ = 0;
+  _impl_._has_bits_[0] &= ~0x00000008u;
+}
+inline ::int32_t PlayerLoadout::attack_speed_level() const {
+  // @@protoc_insertion_point(field_get:battle.v1.PlayerLoadout.attack_speed_level)
+  return _internal_attack_speed_level();
+}
+inline void PlayerLoadout::set_attack_speed_level(::int32_t value) {
+  _internal_set_attack_speed_level(value);
+  _impl_._has_bits_[0] |= 0x00000008u;
+  // @@protoc_insertion_point(field_set:battle.v1.PlayerLoadout.attack_speed_level)
+}
+inline ::int32_t PlayerLoadout::_internal_attack_speed_level() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.attack_speed_level_;
+}
+inline void PlayerLoadout::_internal_set_attack_speed_level(::int32_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.attack_speed_level_ = value;
+}
+
+// int32 health_level = 5;
+inline void PlayerLoadout::clear_health_level() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.health_level_ = 0;
+  _impl_._has_bits_[0] &= ~0x00000010u;
+}
+inline ::int32_t PlayerLoadout::health_level() const {
+  // @@protoc_insertion_point(field_get:battle.v1.PlayerLoadout.health_level)
+  return _internal_health_level();
+}
+inline void PlayerLoadout::set_health_level(::int32_t value) {
+  _internal_set_health_level(value);
+  _impl_._has_bits_[0] |= 0x00000010u;
+  // @@protoc_insertion_point(field_set:battle.v1.PlayerLoadout.health_level)
+}
+inline ::int32_t PlayerLoadout::_internal_health_level() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.health_level_;
+}
+inline void PlayerLoadout::_internal_set_health_level(::int32_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.health_level_ = value;
+}
+
+// int32 move_speed_level = 6;
+inline void PlayerLoadout::clear_move_speed_level() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.move_speed_level_ = 0;
+  _impl_._has_bits_[0] &= ~0x00000020u;
+}
+inline ::int32_t PlayerLoadout::move_speed_level() const {
+  // @@protoc_insertion_point(field_get:battle.v1.PlayerLoadout.move_speed_level)
+  return _internal_move_speed_level();
+}
+inline void PlayerLoadout::set_move_speed_level(::int32_t value) {
+  _internal_set_move_speed_level(value);
+  _impl_._has_bits_[0] |= 0x00000020u;
+  // @@protoc_insertion_point(field_set:battle.v1.PlayerLoadout.move_speed_level)
+}
+inline ::int32_t PlayerLoadout::_internal_move_speed_level() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.move_speed_level_;
+}
+inline void PlayerLoadout::_internal_set_move_speed_level(::int32_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.move_speed_level_ = value;
 }
 
 #ifdef __GNUC__

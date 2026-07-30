@@ -70,6 +70,43 @@ func FromProtoMatchResult(result *rcenterpb.MatchResult) *rcenter.MatchResult {
 	return matchResult
 }
 
+func FromProtoPlayerBattleStats(stat *rcenterpb.PlayerBattleStats) rcenter.PlayerBattleStats {
+	res := rcenter.PlayerBattleStats{
+		PlayerID:   stat.GetPlayerId(),
+		TotalKills: stat.GetTotalKills(),
+	}
+	for _, kill := range stat.GetKills() {
+		res.Kills = append(res.Kills, FromProtoMonsterKillCount(kill))
+	}
+	return res
+}
+
+func ToProtoPlayerBattleStats(stat rcenter.PlayerBattleStats) *rcenterpb.PlayerBattleStats {
+	res := &rcenterpb.PlayerBattleStats{
+		PlayerId:   stat.PlayerID,
+		TotalKills: stat.TotalKills,
+	}
+	for _, kill := range stat.Kills {
+		res.Kills = append(res.Kills, ToProtoMonsterKillCount(kill))
+	}
+	return res
+}
+
+func FromProtoMonsterKillCount(kill *rcenterpb.MonsterKillCount) rcenter.MonsterKillCount {
+	return rcenter.MonsterKillCount{
+		MonsterKind: kill.GetMonsterKind(),
+		Count:       kill.GetCount(),
+	}
+
+}
+
+func ToProtoMonsterKillCount(kill rcenter.MonsterKillCount) *rcenterpb.MonsterKillCount {
+	return &rcenterpb.MonsterKillCount{
+		MonsterKind: kill.MonsterKind,
+		Count:       kill.Count,
+	}
+}
+
 func mapStatus(statusStr string) rcenter.MatchStatus {
 	switch statusStr {
 	case string(rcenter.MatchStatusWaiting):

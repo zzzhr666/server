@@ -40,8 +40,8 @@ func TestBattleRepositoryCreateRoom(t *testing.T) {
 		Token:     "token-1",
 		PlayerIDs: []int64{7, 8},
 		PlayerLoadouts: []PlayerLoadout{
-			{PlayerID: 7, Weapon: "axe"},
-			{PlayerID: 8, Weapon: "dagger"},
+			{PlayerID: 7, Weapon: "axe", AttackLevel: 2, AttackSpeedLevel: 3, HealthLevel: 4, MoveSpeedLevel: 5},
+			{PlayerID: 8, Weapon: "dagger", AttackLevel: 6, AttackSpeedLevel: 7, HealthLevel: 8, MoveSpeedLevel: 9},
 		},
 	})
 	if err != nil {
@@ -57,8 +57,8 @@ func TestBattleRepositoryCreateRoom(t *testing.T) {
 		t.Fatalf("player ids = %v, want [7 8]", factory.client.createRoomInput.PlayerIDs)
 	}
 	wantLoadouts := []battlegrpcclient.PlayerLoadout{
-		{PlayerID: 7, Weapon: "axe"},
-		{PlayerID: 8, Weapon: "dagger"},
+		{PlayerID: 7, Weapon: "axe", AttackLevel: 2, AttackSpeedLevel: 3, HealthLevel: 4, MoveSpeedLevel: 5},
+		{PlayerID: 8, Weapon: "dagger", AttackLevel: 6, AttackSpeedLevel: 7, HealthLevel: 8, MoveSpeedLevel: 9},
 	}
 	if !reflect.DeepEqual(factory.client.createRoomInput.PlayerLoadouts, wantLoadouts) {
 		t.Fatalf("player loadouts = %+v, want %+v", factory.client.createRoomInput.PlayerLoadouts, wantLoadouts)

@@ -35,6 +35,19 @@ func mapStateError(err error) error {
 		return status.Error(codes.AlreadyExists, err.Error())
 	case errors.Is(err, statecontract.ErrInvalidFriendRequest):
 		return status.Error(codes.InvalidArgument, err.Error())
+	case errors.Is(err, statecontract.ErrGrowthNotFound):
+		return status.Error(codes.NotFound, err.Error())
+	case errors.Is(err, statecontract.ErrInvalidGrowth):
+		return status.Error(codes.InvalidArgument, err.Error())
+	case errors.Is(err, statecontract.ErrInvalidGrowthField):
+		return status.Error(codes.InvalidArgument, err.Error())
+	case errors.Is(err, statecontract.ErrInsufficientCoins):
+		return status.Error(codes.FailedPrecondition, err.Error())
+	case errors.Is(err, statecontract.ErrMaxGrowthLevel):
+		return status.Error(codes.FailedPrecondition, err.Error())
+	case errors.Is(err, statecontract.ErrInvalidPlayer):
+		return status.Error(codes.InvalidArgument, err.Error())
+
 	default:
 		return status.Error(codes.Internal, err.Error())
 	}

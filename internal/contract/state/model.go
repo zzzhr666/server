@@ -26,6 +26,15 @@ type Player struct {
 	Avatar   string
 	Email    string
 	Phone    string
+	Coins    int64
+}
+
+type Growth struct {
+	PlayerID         int64
+	AttackLevel      int32
+	AttackSpeedLevel int32
+	HealthLevel      int32
+	MoveSpeedLevel   int32
 }
 
 // RegisterAccountInput groups the state data needed for account registration.
@@ -133,3 +142,34 @@ type RealtimeClient interface {
 
 // RealtimeEventMatchResult delivers a cross-logic-server match result.
 const RealtimeEventMatchResult = "match_result"
+
+type UpgradeGrowthInput struct {
+	PlayerID     int64
+	UpgradeField string
+	Cost         int64
+	MaxLevel     int32
+}
+
+type UpgradeGrowthResult struct {
+	Growth         *Growth
+	RemainingCoins int64
+}
+
+type GrowthClient interface {
+	GetGrowth(ctx context.Context, playerID int64) (*Growth, error)
+	UpgradeGrowth(ctx context.Context, input UpgradeGrowthInput) (*UpgradeGrowthResult, error)
+}
+
+type AddPlayerCoinsInput struct {
+	PlayerID int64
+	Amount   int64
+}
+
+type AddPlayerCoinsResult struct {
+	PlayerID int64
+	Coins    int64
+}
+
+type CoinClient interface {
+	AddPlayerCoins(ctx context.Context, input AddPlayerCoinsInput) (*AddPlayerCoinsResult, error)
+}

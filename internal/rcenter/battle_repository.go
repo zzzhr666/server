@@ -72,8 +72,12 @@ func toBattleGRPCPlayerLoadouts(loadouts []PlayerLoadout) []grpcclient.PlayerLoa
 	result := make([]grpcclient.PlayerLoadout, 0, len(loadouts))
 	for _, loadout := range loadouts {
 		result = append(result, grpcclient.PlayerLoadout{
-			PlayerID: loadout.PlayerID,
-			Weapon:   loadout.Weapon,
+			PlayerID:         loadout.PlayerID,
+			Weapon:           loadout.Weapon,
+			AttackLevel:      loadout.AttackLevel,
+			AttackSpeedLevel: loadout.AttackSpeedLevel,
+			HealthLevel:      loadout.HealthLevel,
+			MoveSpeedLevel:   loadout.MoveSpeedLevel,
 		})
 	}
 	return result

@@ -9,6 +9,7 @@ import (
 	"server/internal/contract/statepb"
 	"server/internal/logic/auth"
 	"server/internal/logic/friend"
+	"server/internal/logic/growth"
 	"server/internal/logic/httpapi"
 	logicmatch "server/internal/logic/match"
 	"server/internal/logic/player"
@@ -75,6 +76,9 @@ func main() {
 	friendRepo := friend.NewStateRepository(stateService)
 	friendService := friend.NewService(friendRepo)
 
+	growthRepo := growth.NewStateRepository(stateService)
+	growthService := growth.NewService(growthRepo, growth.DefaultUpgradeRules())
+
 	rCenterConn, err := grpc.NewClient(cfg.RCenterGRPCAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Fatalf("rcenter grpc.NewClient failed: %v", err)
@@ -96,6 +100,7 @@ func main() {
 		PlayerService:   playerService,
 		RealtimeClient:  stateService,
 		MatchService:    matchService,
+		GrowthService:   growthService,
 	})
 
 	ctx, cancel := context.WithCancel(context.Background())

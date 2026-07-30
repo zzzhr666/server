@@ -17,4 +17,12 @@ var (
 	ErrBattleNodeNotRegistered = errors.New("battle node not registered")
 	// ErrPlayerInGame means a player is already assigned to an active battle room.
 	ErrPlayerInGame = errors.New("player already in game")
+
+	ErrInvalidBattleStats = errors.New("invalid BattleStats")
+
+	ErrInvalidRewardRules = errors.New("invalid reward rules")
+
+	ErrUnavailableCoinClient = errors.New("unavailable coinClient")
+
+	ErrUnavailableGrowthClient = errors.New("unavailable growthClient")
 )

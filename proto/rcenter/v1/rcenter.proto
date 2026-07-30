@@ -61,6 +61,19 @@ message CancelMatchResponse {}
 
 message FinishMatchRequest {
   repeated int64 player_ids = 1;
+  string reason = 2;
+  repeated PlayerBattleStats player_stats = 3;
+}
+
+message PlayerBattleStats {
+  int64 player_id = 1;
+  int32 total_kills = 2;
+  repeated MonsterKillCount kills = 3;
+}
+
+message MonsterKillCount {
+  string monster_kind = 1;
+  int32 count = 2;
 }
 
 message FinishMatchResponse {}

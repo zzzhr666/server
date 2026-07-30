@@ -15,4 +15,12 @@ var (
 	ErrFriendAlreadyExists   = errors.New("friend already exists")
 	ErrFriendNotFound        = errors.New("friend not found")
 	ErrInvalidFriendRequest  = errors.New("invalid friend request")
+
+	ErrGrowthNotFound     = errors.New("growth not found")
+	ErrInvalidGrowth      = errors.New("invalid growth")
+	ErrInvalidGrowthField = errors.New("invalid growth field")
+	ErrInsufficientCoins  = errors.New("insufficient coins")
+	ErrMaxGrowthLevel     = errors.New("max growth level")
+
+	ErrInvalidPlayer = errors.New("invalid player")
 )

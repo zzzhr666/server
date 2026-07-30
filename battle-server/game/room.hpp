@@ -10,6 +10,10 @@ namespace battle {
     struct PlayerLoadout {
         std::int64_t player_id;
         std::string weapon;
+        std::int32_t attack_level;
+        std::int32_t attack_speed_level;
+        std::int32_t health_level;
+        std::int32_t move_speed_level;
     };
 
     /// Request used by rcenter to reserve a battle room.

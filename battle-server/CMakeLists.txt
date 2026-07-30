@@ -24,7 +24,6 @@ add_library(battle_platform
         platform/config.cpp
 )
 
-add_library(battle_app INTERFACE)
 add_library(battle_control
         control/control_handler.cpp
         control/grpc_server.cpp
@@ -73,6 +72,8 @@ add_library(battle_gameplay
         gameplay/monster_kind_codec.hpp
         gameplay/weapon.cpp
         gameplay/weapon.hpp
+        gameplay/growth.cpp
+        gameplay/growth.hpp
 )
 add_library(battle_session
         session/battle_session.cpp
@@ -165,7 +166,6 @@ target_link_libraries(battle_registry PUBLIC
 
 target_link_libraries(battle_server PRIVATE
         battle_platform
-        battle_app
         battle_control
         battle_ecs
         battle_game

@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"server/internal/contract/rcenterpb"
+	statecontract "server/internal/contract/state"
 	"server/internal/rcenter"
 
 	"google.golang.org/grpc/codes"
@@ -138,6 +139,27 @@ func TestStartMatchWithoutBattleNodeMapsToUnavailable(t *testing.T) {
 	}
 }
 
+func TestStartMatchUnavailableGrowthClientMapsToUnavailable(t *testing.T) {
+	server := NewServer(rcenter.NewService(rcenter.ServiceConfig{
+		BattleNodeController: &fakeBattleNodeController{},
+		RewardRule:           rcenter.DefaultRewardRule(),
+	}))
+	mustRegisterBattleNode(t, server, &rcenterpb.BattleNode{
+		Name:        "battle-1",
+		KcpAddr:     "127.0.0.1:7001",
+		ControlAddr: "127.0.0.1:9101",
+		MaxPlayers:  100,
+	})
+
+	if _, err := server.StartMatch(context.Background(), &rcenterpb.StartMatchRequest{PlayerId: 7}); err != nil {
+		t.Fatalf("first StartMatch returned error: %v", err)
+	}
+	_, err := server.StartMatch(context.Background(), &rcenterpb.StartMatchRequest{PlayerId: 8})
+	if status.Code(err) != codes.Unavailable {
+		t.Fatalf("StartMatch code = %v, want %v", status.Code(err), codes.Unavailable)
+	}
+}
+
 func TestCancelMatch(t *testing.T) {
 	server := NewServer(newTestCenterService())
 	mustRegisterBattleNode(t, server, &rcenterpb.BattleNode{
@@ -203,6 +225,20 @@ func TestFinishMatchInvalidPlayerMapsToInvalidArgument(t *testing.T) {
 	}
 }
 
+func TestFinishMatchUnavailableCoinClientMapsToUnavailable(t *testing.T) {
+	server := NewServer(newTestCenterService())
+
+	_, err := server.FinishMatch(context.Background(), &rcenterpb.FinishMatchRequest{
+		PlayerIds: []int64{7},
+		PlayerStats: []*rcenterpb.PlayerBattleStats{
+			{PlayerId: 7},
+		},
+	})
+	if status.Code(err) != codes.Unavailable {
+		t.Fatalf("FinishMatch code = %v, want %v", status.Code(err), codes.Unavailable)
+	}
+}
+
 func mustRegisterBattleNode(t *testing.T, server *Server, node *rcenterpb.BattleNode) {
 	t.Helper()
 	if _, err := server.RegisterBattleNode(context.Background(), &rcenterpb.RegisterBattleNodeRequest{Node: node}); err != nil {
@@ -211,7 +247,11 @@ func mustRegisterBattleNode(t *testing.T, server *Server, node *rcenterpb.Battle
 }
 
 func newTestCenterService() *rcenter.GameCenterService {
-	return rcenter.NewService(&fakeBattleNodeController{})
+	return rcenter.NewService(rcenter.ServiceConfig{
+		BattleNodeController: &fakeBattleNodeController{},
+		RewardRule:           rcenter.DefaultRewardRule(),
+		GrowthClient:         &fakeGrowthClient{},
+	})
 }
 
 type fakeBattleNodeController struct{}
@@ -222,4 +262,20 @@ func (f *fakeBattleNodeController) RegisterNode(ctx context.Context, node rcente
 
 func (f *fakeBattleNodeController) CreateRoom(ctx context.Context, nodeName string, input rcenter.CreateBattleRoomInput) error {
 	return nil
+}
+
+type fakeGrowthClient struct{}
+
+func (f *fakeGrowthClient) GetGrowth(_ context.Context, playerID int64) (*statecontract.Growth, error) {
+	return &statecontract.Growth{
+		PlayerID:         playerID,
+		AttackLevel:      1,
+		AttackSpeedLevel: 1,
+		HealthLevel:      1,
+		MoveSpeedLevel:   1,
+	}, nil
+}
+
+func (f *fakeGrowthClient) UpgradeGrowth(_ context.Context, input statecontract.UpgradeGrowthInput) (*statecontract.UpgradeGrowthResult, error) {
+	return nil, nil
 }

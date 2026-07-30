@@ -41,8 +41,10 @@ battle::BattleInstance::BattleInstance(BattleInstanceConfig config)
         auto spawn_config = spawn_planner_.player_spawn(i);
 
         auto weapon_kind = WeaponKind::Sword;
-        if (auto it = config.player_weapons.find(config.player_ids[i]); it != config.player_weapons.end()) {
-            weapon_kind = it->second;
+        GrowthLevels growth_lvl;
+        if (auto it = config.player_loadouts.find(config.player_ids[i]); it != config.player_loadouts.end()) {
+            weapon_kind = it->second.first;
+            growth_lvl = it->second.second;
         }
         auto weapon = weapon_definition(weapon_kind);
         spawn_config.attack = weapon.attack;
@@ -51,6 +53,7 @@ battle::BattleInstance::BattleInstance(BattleInstanceConfig config)
             override_config.position = spawn_config.position;
             spawn_config = override_config;
         }
+        spawn_config = apply_growth(spawn_config,growth_lvl);
         auto entity = world_.create_player(spawn_config);
         if (auto* progress = world_.player_progress().try_get(entity)) {
             progress->experience_to_next_level = experience_to_next_level_(progress->level);

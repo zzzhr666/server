@@ -532,11 +532,15 @@ func (x *EndRoomResponse) GetMessage() string {
 }
 
 type PlayerLoadout struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	PlayerId      int64                  `protobuf:"varint,1,opt,name=player_id,json=playerId,proto3" json:"player_id,omitempty"`
-	Weapon        string                 `protobuf:"bytes,2,opt,name=weapon,proto3" json:"weapon,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state            protoimpl.MessageState `protogen:"open.v1"`
+	PlayerId         int64                  `protobuf:"varint,1,opt,name=player_id,json=playerId,proto3" json:"player_id,omitempty"`
+	Weapon           string                 `protobuf:"bytes,2,opt,name=weapon,proto3" json:"weapon,omitempty"`
+	AttackLevel      int32                  `protobuf:"varint,3,opt,name=attack_level,json=attackLevel,proto3" json:"attack_level,omitempty"`
+	AttackSpeedLevel int32                  `protobuf:"varint,4,opt,name=attack_speed_level,json=attackSpeedLevel,proto3" json:"attack_speed_level,omitempty"`
+	HealthLevel      int32                  `protobuf:"varint,5,opt,name=health_level,json=healthLevel,proto3" json:"health_level,omitempty"`
+	MoveSpeedLevel   int32                  `protobuf:"varint,6,opt,name=move_speed_level,json=moveSpeedLevel,proto3" json:"move_speed_level,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
 }
 
 func (x *PlayerLoadout) Reset() {
@@ -583,6 +587,34 @@ func (x *PlayerLoadout) GetWeapon() string {
 	return ""
 }
 
+func (x *PlayerLoadout) GetAttackLevel() int32 {
+	if x != nil {
+		return x.AttackLevel
+	}
+	return 0
+}
+
+func (x *PlayerLoadout) GetAttackSpeedLevel() int32 {
+	if x != nil {
+		return x.AttackSpeedLevel
+	}
+	return 0
+}
+
+func (x *PlayerLoadout) GetHealthLevel() int32 {
+	if x != nil {
+		return x.HealthLevel
+	}
+	return 0
+}
+
+func (x *PlayerLoadout) GetMoveSpeedLevel() int32 {
+	if x != nil {
+		return x.MoveSpeedLevel
+	}
+	return 0
+}
+
 var File_proto_battle_v1_battle_proto protoreflect.FileDescriptor
 
 const file_proto_battle_v1_battle_proto_rawDesc = "" +
@@ -609,10 +641,14 @@ const file_proto_battle_v1_battle_proto_rawDesc = "" +
 	"\x06reason\x18\x02 \x01(\tR\x06reason\"]\n" +
 	"\x0fEndRoomResponse\x120\n" +
 	"\x06status\x18\x01 \x01(\x0e2\x18.battle.v1.EndRoomStatusR\x06status\x12\x18\n" +
-	"\amessage\x18\x02 \x01(\tR\amessage\"D\n" +
+	"\amessage\x18\x02 \x01(\tR\amessage\"\xe2\x01\n" +
 	"\rPlayerLoadout\x12\x1b\n" +
 	"\tplayer_id\x18\x01 \x01(\x03R\bplayerId\x12\x16\n" +
-	"\x06weapon\x18\x02 \x01(\tR\x06weapon*\xc7\x01\n" +
+	"\x06weapon\x18\x02 \x01(\tR\x06weapon\x12!\n" +
+	"\fattack_level\x18\x03 \x01(\x05R\vattackLevel\x12,\n" +
+	"\x12attack_speed_level\x18\x04 \x01(\x05R\x10attackSpeedLevel\x12!\n" +
+	"\fhealth_level\x18\x05 \x01(\x05R\vhealthLevel\x12(\n" +
+	"\x10move_speed_level\x18\x06 \x01(\x05R\x0emoveSpeedLevel*\xc7\x01\n" +
 	"\x10CreateRoomStatus\x12\"\n" +
 	"\x1eCREATE_ROOM_STATUS_UNSPECIFIED\x10\x00\x12\x19\n" +
 	"\x15CREATE_ROOM_STATUS_OK\x10\x01\x12&\n" +

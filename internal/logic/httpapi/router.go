@@ -20,5 +20,8 @@ func (h *Handler) Routes() http.Handler {
 	mux.HandleFunc("POST /friends/requests/reject", h.handleRejectRequest)
 	mux.HandleFunc("GET /friends", h.handleListFriends)
 	mux.HandleFunc("DELETE /friends", h.handleDeleteFriend)
+
+	mux.HandleFunc("GET /growth", h.handleGetGrowth)
+	mux.HandleFunc("POST /growth/upgrade", h.handleUpgrade)
 	return mux
 }

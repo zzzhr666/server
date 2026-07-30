@@ -536,6 +536,8 @@ func (*CancelMatchResponse) Descriptor() ([]byte, []int) {
 type FinishMatchRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	PlayerIds     []int64                `protobuf:"varint,1,rep,packed,name=player_ids,json=playerIds,proto3" json:"player_ids,omitempty"`
+	Reason        string                 `protobuf:"bytes,2,opt,name=reason,proto3" json:"reason,omitempty"`
+	PlayerStats   []*PlayerBattleStats   `protobuf:"bytes,3,rep,name=player_stats,json=playerStats,proto3" json:"player_stats,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -577,6 +579,132 @@ func (x *FinishMatchRequest) GetPlayerIds() []int64 {
 	return nil
 }
 
+func (x *FinishMatchRequest) GetReason() string {
+	if x != nil {
+		return x.Reason
+	}
+	return ""
+}
+
+func (x *FinishMatchRequest) GetPlayerStats() []*PlayerBattleStats {
+	if x != nil {
+		return x.PlayerStats
+	}
+	return nil
+}
+
+type PlayerBattleStats struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	PlayerId      int64                  `protobuf:"varint,1,opt,name=player_id,json=playerId,proto3" json:"player_id,omitempty"`
+	TotalKills    int32                  `protobuf:"varint,2,opt,name=total_kills,json=totalKills,proto3" json:"total_kills,omitempty"`
+	Kills         []*MonsterKillCount    `protobuf:"bytes,3,rep,name=kills,proto3" json:"kills,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PlayerBattleStats) Reset() {
+	*x = PlayerBattleStats{}
+	mi := &file_proto_rcenter_v1_rcenter_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PlayerBattleStats) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PlayerBattleStats) ProtoMessage() {}
+
+func (x *PlayerBattleStats) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_rcenter_v1_rcenter_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PlayerBattleStats.ProtoReflect.Descriptor instead.
+func (*PlayerBattleStats) Descriptor() ([]byte, []int) {
+	return file_proto_rcenter_v1_rcenter_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *PlayerBattleStats) GetPlayerId() int64 {
+	if x != nil {
+		return x.PlayerId
+	}
+	return 0
+}
+
+func (x *PlayerBattleStats) GetTotalKills() int32 {
+	if x != nil {
+		return x.TotalKills
+	}
+	return 0
+}
+
+func (x *PlayerBattleStats) GetKills() []*MonsterKillCount {
+	if x != nil {
+		return x.Kills
+	}
+	return nil
+}
+
+type MonsterKillCount struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	MonsterKind   string                 `protobuf:"bytes,1,opt,name=monster_kind,json=monsterKind,proto3" json:"monster_kind,omitempty"`
+	Count         int32                  `protobuf:"varint,2,opt,name=count,proto3" json:"count,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *MonsterKillCount) Reset() {
+	*x = MonsterKillCount{}
+	mi := &file_proto_rcenter_v1_rcenter_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *MonsterKillCount) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*MonsterKillCount) ProtoMessage() {}
+
+func (x *MonsterKillCount) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_rcenter_v1_rcenter_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use MonsterKillCount.ProtoReflect.Descriptor instead.
+func (*MonsterKillCount) Descriptor() ([]byte, []int) {
+	return file_proto_rcenter_v1_rcenter_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *MonsterKillCount) GetMonsterKind() string {
+	if x != nil {
+		return x.MonsterKind
+	}
+	return ""
+}
+
+func (x *MonsterKillCount) GetCount() int32 {
+	if x != nil {
+		return x.Count
+	}
+	return 0
+}
+
 type FinishMatchResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
@@ -585,7 +713,7 @@ type FinishMatchResponse struct {
 
 func (x *FinishMatchResponse) Reset() {
 	*x = FinishMatchResponse{}
-	mi := &file_proto_rcenter_v1_rcenter_proto_msgTypes[11]
+	mi := &file_proto_rcenter_v1_rcenter_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -597,7 +725,7 @@ func (x *FinishMatchResponse) String() string {
 func (*FinishMatchResponse) ProtoMessage() {}
 
 func (x *FinishMatchResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_rcenter_v1_rcenter_proto_msgTypes[11]
+	mi := &file_proto_rcenter_v1_rcenter_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -610,7 +738,7 @@ func (x *FinishMatchResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FinishMatchResponse.ProtoReflect.Descriptor instead.
 func (*FinishMatchResponse) Descriptor() ([]byte, []int) {
-	return file_proto_rcenter_v1_rcenter_proto_rawDescGZIP(), []int{11}
+	return file_proto_rcenter_v1_rcenter_proto_rawDescGZIP(), []int{13}
 }
 
 type PlayerLoadout struct {
@@ -623,7 +751,7 @@ type PlayerLoadout struct {
 
 func (x *PlayerLoadout) Reset() {
 	*x = PlayerLoadout{}
-	mi := &file_proto_rcenter_v1_rcenter_proto_msgTypes[12]
+	mi := &file_proto_rcenter_v1_rcenter_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -635,7 +763,7 @@ func (x *PlayerLoadout) String() string {
 func (*PlayerLoadout) ProtoMessage() {}
 
 func (x *PlayerLoadout) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_rcenter_v1_rcenter_proto_msgTypes[12]
+	mi := &file_proto_rcenter_v1_rcenter_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -648,7 +776,7 @@ func (x *PlayerLoadout) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PlayerLoadout.ProtoReflect.Descriptor instead.
 func (*PlayerLoadout) Descriptor() ([]byte, []int) {
-	return file_proto_rcenter_v1_rcenter_proto_rawDescGZIP(), []int{12}
+	return file_proto_rcenter_v1_rcenter_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *PlayerLoadout) GetPlayerId() int64 {
@@ -702,10 +830,20 @@ const file_proto_rcenter_v1_rcenter_proto_rawDesc = "" +
 	"\x06result\x18\x01 \x01(\v2\x17.rcenter.v1.MatchResultR\x06result\"1\n" +
 	"\x12CancelMatchRequest\x12\x1b\n" +
 	"\tplayer_id\x18\x01 \x01(\x03R\bplayerId\"\x15\n" +
-	"\x13CancelMatchResponse\"3\n" +
+	"\x13CancelMatchResponse\"\x8d\x01\n" +
 	"\x12FinishMatchRequest\x12\x1d\n" +
 	"\n" +
-	"player_ids\x18\x01 \x03(\x03R\tplayerIds\"\x15\n" +
+	"player_ids\x18\x01 \x03(\x03R\tplayerIds\x12\x16\n" +
+	"\x06reason\x18\x02 \x01(\tR\x06reason\x12@\n" +
+	"\fplayer_stats\x18\x03 \x03(\v2\x1d.rcenter.v1.PlayerBattleStatsR\vplayerStats\"\x85\x01\n" +
+	"\x11PlayerBattleStats\x12\x1b\n" +
+	"\tplayer_id\x18\x01 \x01(\x03R\bplayerId\x12\x1f\n" +
+	"\vtotal_kills\x18\x02 \x01(\x05R\n" +
+	"totalKills\x122\n" +
+	"\x05kills\x18\x03 \x03(\v2\x1c.rcenter.v1.MonsterKillCountR\x05kills\"K\n" +
+	"\x10MonsterKillCount\x12!\n" +
+	"\fmonster_kind\x18\x01 \x01(\tR\vmonsterKind\x12\x14\n" +
+	"\x05count\x18\x02 \x01(\x05R\x05count\"\x15\n" +
 	"\x13FinishMatchResponse\"D\n" +
 	"\rPlayerLoadout\x12\x1b\n" +
 	"\tplayer_id\x18\x01 \x01(\x03R\bplayerId\x12\x16\n" +
@@ -730,7 +868,7 @@ func file_proto_rcenter_v1_rcenter_proto_rawDescGZIP() []byte {
 	return file_proto_rcenter_v1_rcenter_proto_rawDescData
 }
 
-var file_proto_rcenter_v1_rcenter_proto_msgTypes = make([]protoimpl.MessageInfo, 13)
+var file_proto_rcenter_v1_rcenter_proto_msgTypes = make([]protoimpl.MessageInfo, 15)
 var file_proto_rcenter_v1_rcenter_proto_goTypes = []any{
 	(*BattleNode)(nil),                 // 0: rcenter.v1.BattleNode
 	(*MatchResult)(nil),                // 1: rcenter.v1.MatchResult
@@ -743,29 +881,33 @@ var file_proto_rcenter_v1_rcenter_proto_goTypes = []any{
 	(*CancelMatchRequest)(nil),         // 8: rcenter.v1.CancelMatchRequest
 	(*CancelMatchResponse)(nil),        // 9: rcenter.v1.CancelMatchResponse
 	(*FinishMatchRequest)(nil),         // 10: rcenter.v1.FinishMatchRequest
-	(*FinishMatchResponse)(nil),        // 11: rcenter.v1.FinishMatchResponse
-	(*PlayerLoadout)(nil),              // 12: rcenter.v1.PlayerLoadout
+	(*PlayerBattleStats)(nil),          // 11: rcenter.v1.PlayerBattleStats
+	(*MonsterKillCount)(nil),           // 12: rcenter.v1.MonsterKillCount
+	(*FinishMatchResponse)(nil),        // 13: rcenter.v1.FinishMatchResponse
+	(*PlayerLoadout)(nil),              // 14: rcenter.v1.PlayerLoadout
 }
 var file_proto_rcenter_v1_rcenter_proto_depIdxs = []int32{
-	12, // 0: rcenter.v1.MatchResult.player_loadouts:type_name -> rcenter.v1.PlayerLoadout
+	14, // 0: rcenter.v1.MatchResult.player_loadouts:type_name -> rcenter.v1.PlayerLoadout
 	0,  // 1: rcenter.v1.RegisterBattleNodeRequest.node:type_name -> rcenter.v1.BattleNode
 	0,  // 2: rcenter.v1.ListBattleNodesResponse.nodes:type_name -> rcenter.v1.BattleNode
 	1,  // 3: rcenter.v1.StartMatchResponse.result:type_name -> rcenter.v1.MatchResult
-	2,  // 4: rcenter.v1.RCenterService.RegisterBattleNode:input_type -> rcenter.v1.RegisterBattleNodeRequest
-	4,  // 5: rcenter.v1.RCenterService.ListBattleNodes:input_type -> rcenter.v1.ListBattleNodesRequest
-	6,  // 6: rcenter.v1.RCenterService.StartMatch:input_type -> rcenter.v1.StartMatchRequest
-	8,  // 7: rcenter.v1.RCenterService.CancelMatch:input_type -> rcenter.v1.CancelMatchRequest
-	10, // 8: rcenter.v1.RCenterService.FinishMatch:input_type -> rcenter.v1.FinishMatchRequest
-	3,  // 9: rcenter.v1.RCenterService.RegisterBattleNode:output_type -> rcenter.v1.RegisterBattleNodeResponse
-	5,  // 10: rcenter.v1.RCenterService.ListBattleNodes:output_type -> rcenter.v1.ListBattleNodesResponse
-	7,  // 11: rcenter.v1.RCenterService.StartMatch:output_type -> rcenter.v1.StartMatchResponse
-	9,  // 12: rcenter.v1.RCenterService.CancelMatch:output_type -> rcenter.v1.CancelMatchResponse
-	11, // 13: rcenter.v1.RCenterService.FinishMatch:output_type -> rcenter.v1.FinishMatchResponse
-	9,  // [9:14] is the sub-list for method output_type
-	4,  // [4:9] is the sub-list for method input_type
-	4,  // [4:4] is the sub-list for extension type_name
-	4,  // [4:4] is the sub-list for extension extendee
-	0,  // [0:4] is the sub-list for field type_name
+	11, // 4: rcenter.v1.FinishMatchRequest.player_stats:type_name -> rcenter.v1.PlayerBattleStats
+	12, // 5: rcenter.v1.PlayerBattleStats.kills:type_name -> rcenter.v1.MonsterKillCount
+	2,  // 6: rcenter.v1.RCenterService.RegisterBattleNode:input_type -> rcenter.v1.RegisterBattleNodeRequest
+	4,  // 7: rcenter.v1.RCenterService.ListBattleNodes:input_type -> rcenter.v1.ListBattleNodesRequest
+	6,  // 8: rcenter.v1.RCenterService.StartMatch:input_type -> rcenter.v1.StartMatchRequest
+	8,  // 9: rcenter.v1.RCenterService.CancelMatch:input_type -> rcenter.v1.CancelMatchRequest
+	10, // 10: rcenter.v1.RCenterService.FinishMatch:input_type -> rcenter.v1.FinishMatchRequest
+	3,  // 11: rcenter.v1.RCenterService.RegisterBattleNode:output_type -> rcenter.v1.RegisterBattleNodeResponse
+	5,  // 12: rcenter.v1.RCenterService.ListBattleNodes:output_type -> rcenter.v1.ListBattleNodesResponse
+	7,  // 13: rcenter.v1.RCenterService.StartMatch:output_type -> rcenter.v1.StartMatchResponse
+	9,  // 14: rcenter.v1.RCenterService.CancelMatch:output_type -> rcenter.v1.CancelMatchResponse
+	13, // 15: rcenter.v1.RCenterService.FinishMatch:output_type -> rcenter.v1.FinishMatchResponse
+	11, // [11:16] is the sub-list for method output_type
+	6,  // [6:11] is the sub-list for method input_type
+	6,  // [6:6] is the sub-list for extension type_name
+	6,  // [6:6] is the sub-list for extension extendee
+	0,  // [0:6] is the sub-list for field type_name
 }
 
 func init() { file_proto_rcenter_v1_rcenter_proto_init() }
@@ -779,7 +921,7 @@ func file_proto_rcenter_v1_rcenter_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_rcenter_v1_rcenter_proto_rawDesc), len(file_proto_rcenter_v1_rcenter_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   13,
+			NumMessages:   15,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

@@ -20,5 +20,6 @@ func toPlayerResponse(player *playerpkg.Player) (r playerResponse) {
 	r.Avatar = player.Avatar
 	r.Email = player.Email
 	r.Phone = player.Phone
+	r.Coins = player.Coins
 	return
 }

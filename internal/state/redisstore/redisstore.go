@@ -19,6 +19,28 @@ type Store struct {
 	client *redis.Client
 }
 
+func (s *Store) AddPlayerCoins(ctx context.Context, input statecontract.AddPlayerCoinsInput) (*statecontract.AddPlayerCoinsResult, error) {
+	if input.PlayerID <= 0 || input.Amount <= 0 {
+		return nil, statecontract.ErrInvalidPlayer
+	}
+	key := playerKey(input.PlayerID)
+	exists, err := s.client.Exists(ctx, key).Result()
+	if err != nil {
+		return nil, err
+	}
+	if exists == 0 {
+		return nil, statecontract.ErrPlayerNotFound
+	}
+	coins, err := s.client.HIncrBy(ctx, key, "coins", input.Amount).Result()
+	if err != nil {
+		return nil, err
+	}
+	return &statecontract.AddPlayerCoinsResult{
+		PlayerID: input.PlayerID,
+		Coins:    coins,
+	}, nil
+}
+
 // CreatePlayer stores a player profile by player ID.
 func (s *Store) CreatePlayer(ctx context.Context, player *statecontract.Player) error {
 	return s.client.HSet(ctx, playerKey(player.ID), map[string]any{
@@ -27,6 +49,7 @@ func (s *Store) CreatePlayer(ctx context.Context, player *statecontract.Player) 
 		"avatar":   player.Avatar,
 		"email":    player.Email,
 		"phone":    player.Phone,
+		"coins":    player.Coins,
 	}).Err()
 
 }
@@ -41,12 +64,17 @@ func (s *Store) GetPlayer(ctx context.Context, id int64) (*statecontract.Player,
 	if len(value) == 0 {
 		return nil, statecontract.ErrPlayerNotFound
 	}
+	coins, err := strconv.ParseInt(value["coins"], 10, 64)
+	if err != nil {
+		coins = 0
+	}
 	return &statecontract.Player{
 		ID:       id,
 		Nickname: value["nickname"],
 		Avatar:   value["avatar"],
 		Email:    value["email"],
 		Phone:    value["phone"],
+		Coins:    coins,
 	}, nil
 
 }
@@ -289,6 +317,7 @@ func (s *Store) RegisterAccount(ctx context.Context, input statecontract.Registe
 				Avatar:   input.Avatar,
 				Email:    input.Email,
 				Phone:    input.Phone,
+				Coins:    0,
 			}
 			account := &statecontract.Account{
 				Username:     input.Username,
@@ -312,6 +341,7 @@ func (s *Store) RegisterAccount(ctx context.Context, input statecontract.Registe
 					"avatar":   player.Avatar,
 					"email":    player.Email,
 					"phone":    player.Phone,
+					"coins":    player.Coins,
 				})
 				p.HSet(ctx, accountKey, map[string]any{
 					"username":      account.Username,
@@ -322,6 +352,13 @@ func (s *Store) RegisterAccount(ctx context.Context, input statecontract.Registe
 					"token":      session.Token,
 					"player_id":  session.PlayerID,
 					"expires_at": session.ExpiresAt.Unix(),
+				})
+				p.HSet(ctx, growthKey(playerID), map[string]any{
+					"player_id":          playerID,
+					"attack_level":       1,
+					"attack_speed_level": 1,
+					"health_level":       1,
+					"move_speed_level":   1,
 				})
 				p.Expire(ctx, sessionKey(session.Token), sessionTTL)
 				return nil
@@ -617,6 +654,123 @@ func (s *Store) SubscribeRealtime(ctx context.Context, serverName string) (<-cha
 	return events, nil
 }
 
+func (s *Store) GetGrowth(ctx context.Context, playerID int64) (*statecontract.Growth, error) {
+	if playerID <= 0 {
+		return nil, statecontract.ErrInvalidGrowth
+	}
+	value, err := s.client.HGetAll(ctx, growthKey(playerID)).Result()
+	if err != nil {
+		return nil, err
+	}
+	if len(value) == 0 {
+		return nil, statecontract.ErrGrowthNotFound
+	}
+	return parseGrowth(value)
+}
+
+func (s *Store) UpgradeGrowth(ctx context.Context, input statecontract.UpgradeGrowthInput) (*statecontract.UpgradeGrowthResult, error) {
+
+	if input.PlayerID <= 0 || input.Cost < 0 || input.MaxLevel < 1 {
+		return nil, statecontract.ErrInvalidGrowth
+	}
+	field, err := growthFieldName(input.UpgradeField)
+	if err != nil {
+		return nil, err
+	}
+	playerKey := playerKey(input.PlayerID)
+	growthKey := growthKey(input.PlayerID)
+	var result *statecontract.UpgradeGrowthResult
+	err = retryOptimisticLock(ctx, func() error {
+		return s.client.Watch(ctx, func(tx *redis.Tx) error {
+			coins, err := tx.HGet(ctx, playerKey, "coins").Int64()
+			if errors.Is(err, redis.Nil) {
+				return statecontract.ErrPlayerNotFound
+			}
+			if err != nil {
+				return err
+			}
+			if coins < input.Cost {
+				return statecontract.ErrInsufficientCoins
+			}
+			value, err := tx.HGetAll(ctx, growthKey).Result()
+			if err != nil {
+				return err
+			}
+			if len(value) == 0 {
+				return statecontract.ErrGrowthNotFound
+			}
+			growth, err := parseGrowth(value)
+			if err != nil {
+				return err
+			}
+			currentLevel64, err := strconv.ParseInt(value[field], 10, 32)
+			if err != nil {
+				return statecontract.ErrInvalidGrowth
+			}
+			if currentLevel64 < 1 {
+				return statecontract.ErrInvalidGrowth
+			}
+			if currentLevel64 >= int64(input.MaxLevel) {
+				return statecontract.ErrMaxGrowthLevel
+			}
+			remainingCoins := coins - input.Cost
+			nextLevel := currentLevel64 + 1
+			setGrowthLevel(growth, field, int32(nextLevel))
+			_, err = tx.TxPipelined(ctx, func(pipeliner redis.Pipeliner) error {
+				pipeliner.HSet(ctx, playerKey, "coins", remainingCoins)
+				pipeliner.HSet(ctx, growthKey, field, nextLevel)
+
+				return nil
+			})
+			if err != nil {
+				return err
+			}
+
+			result = &statecontract.UpgradeGrowthResult{
+				Growth:         growth,
+				RemainingCoins: remainingCoins,
+			}
+			return nil
+		}, playerKey, growthKey)
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
+}
+
+func parseGrowth(value map[string]string) (*statecontract.Growth, error) {
+	playerID, err := strconv.ParseInt(value["player_id"], 10, 64)
+	if err != nil {
+		return nil, err
+	}
+	attackLevel, err := strconv.ParseInt(value["attack_level"], 10, 32)
+	if err != nil {
+		return nil, err
+	}
+	attackSpeedLevel, err := strconv.ParseInt(value["attack_speed_level"], 10, 32)
+	if err != nil {
+		return nil, err
+	}
+	healthLevel, err := strconv.ParseInt(value["health_level"], 10, 32)
+	if err != nil {
+		return nil, err
+	}
+	moveSpeedLevel, err := strconv.ParseInt(value["move_speed_level"], 10, 32)
+	if err != nil {
+		return nil, err
+	}
+
+	return &statecontract.Growth{
+		PlayerID:         playerID,
+		AttackLevel:      int32(attackLevel),
+		AttackSpeedLevel: int32(attackSpeedLevel),
+		HealthLevel:      int32(healthLevel),
+		MoveSpeedLevel:   int32(moveSpeedLevel),
+	}, nil
+}
+
 func retryOptimisticLock(ctx context.Context, operation func() error) error {
 	var err error
 	for range optimisticLockRetries {
@@ -647,6 +801,9 @@ func playerKey(id int64) string {
 }
 func presenceKey(playerID int64) string {
 	return "game:presence:" + strconv.FormatInt(playerID, 10)
+}
+func growthKey(playerID int64) string {
+	return "game:growth:" + strconv.FormatInt(playerID, 10)
 }
 
 func friendRequestKey(fromPlayerID, toPlayerID int64) string {
@@ -701,4 +858,32 @@ func parseFriendRequest(value map[string]string) (*statecontract.FriendRequest, 
 		ToPlayerID:   toPlayerID,
 		CreatedAt:    time.UnixMilli(createdAtMilli),
 	}, nil
+}
+
+func growthFieldName(field string) (string, error) {
+	switch field {
+	case "Attack":
+		return "attack_level", nil
+	case "AttackSpeed":
+		return "attack_speed_level", nil
+	case "Health":
+		return "health_level", nil
+	case "MoveSpeed":
+		return "move_speed_level", nil
+	default:
+		return "", statecontract.ErrInvalidGrowthField
+	}
+}
+
+func setGrowthLevel(growth *statecontract.Growth, field string, level int32) {
+	switch field {
+	case "attack_level":
+		growth.AttackLevel = level
+	case "attack_speed_level":
+		growth.AttackSpeedLevel = level
+	case "health_level":
+		growth.HealthLevel = level
+	case "move_speed_level":
+		growth.MoveSpeedLevel = level
+	}
 }

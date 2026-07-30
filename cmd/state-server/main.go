@@ -42,6 +42,8 @@ func main() {
 		Presences:     store,
 		Friends:       store,
 		Realtime:      store,
+		Growth:        store,
+		Coins:         store,
 	})
 
 	grpcServer := grpc.NewServer()
@@ -50,6 +52,8 @@ func main() {
 		PresenceClient: stateService,
 		FriendClient:   stateService,
 		RealtimeClient: stateService,
+		GrowthClient:   stateService,
+		CoinClient:     stateService,
 	}))
 	listener, err := net.Listen("tcp", cfg.StateGRPCAddr)
 	if err != nil {

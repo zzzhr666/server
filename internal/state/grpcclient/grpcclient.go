@@ -16,6 +16,46 @@ type Client struct {
 	grpc statepb.StateServiceClient
 }
 
+func (c *Client) AddPlayerCoins(ctx context.Context, input state.AddPlayerCoinsInput) (*state.AddPlayerCoinsResult, error) {
+	res, err := c.grpc.AddPlayerCoins(ctx, &statepb.AddPlayerCoinsRequest{
+		PlayerId: input.PlayerID,
+		Amount:   input.Amount,
+	})
+	if err != nil {
+		return nil, mapGRPCError(err)
+	}
+	return &state.AddPlayerCoinsResult{
+		PlayerID: res.GetPlayerId(),
+		Coins:    res.GetCoins(),
+	}, nil
+}
+
+func (c *Client) GetGrowth(ctx context.Context, playerID int64) (*state.Growth, error) {
+	res, err := c.grpc.GetGrowth(ctx, &statepb.GetGrowthRequest{
+		PlayerId: playerID,
+	})
+	if err != nil {
+		return nil, mapGRPCError(err)
+	}
+	return stateproto.FromProtoGrowth(res.GetGrowth()), nil
+}
+
+func (c *Client) UpgradeGrowth(ctx context.Context, input state.UpgradeGrowthInput) (*state.UpgradeGrowthResult, error) {
+	res, err := c.grpc.UpgradeGrowth(ctx, &statepb.UpgradeGrowthRequest{
+		PlayerId:     input.PlayerID,
+		UpgradeField: input.UpgradeField,
+		Cost:         input.Cost,
+		MaxLevel:     input.MaxLevel,
+	})
+	if err != nil {
+		return nil, mapGRPCError(err)
+	}
+	return &state.UpgradeGrowthResult{
+		Growth:         stateproto.FromProtoGrowth(res.GetGrowth()),
+		RemainingCoins: res.GetRemainingCoins(),
+	}, nil
+}
+
 // GetAccount loads an account by username through state-server.
 func (c *Client) GetAccount(ctx context.Context, username string) (*state.Account, error) {
 	res, err := c.grpc.GetAccount(ctx, &statepb.GetAccountRequest{Username: username})
@@ -257,6 +297,8 @@ func mapGRPCError(err error) error {
 			return state.ErrFriendNotFound
 		case state.ErrFriendRequestNotFound.Error():
 			return state.ErrFriendRequestNotFound
+		case state.ErrGrowthNotFound.Error():
+			return state.ErrGrowthNotFound
 		}
 	case codes.AlreadyExists:
 		switch st.Message() {
@@ -273,6 +315,20 @@ func mapGRPCError(err error) error {
 			return state.ErrInvalidPresence
 		case state.ErrInvalidFriendRequest.Error():
 			return state.ErrInvalidFriendRequest
+		case state.ErrInvalidGrowth.Error():
+			return state.ErrInvalidGrowth
+		case state.ErrInvalidGrowthField.Error():
+			return state.ErrInvalidGrowthField
+		case state.ErrInvalidPlayer.Error():
+			return state.ErrInvalidPlayer
+
+		}
+	case codes.FailedPrecondition:
+		switch st.Message() {
+		case state.ErrInsufficientCoins.Error():
+			return state.ErrInsufficientCoins
+		case state.ErrMaxGrowthLevel.Error():
+			return state.ErrMaxGrowthLevel
 		}
 	}
 	return err

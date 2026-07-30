@@ -49,6 +49,15 @@ type realtimeStore interface {
 	SubscribeRealtime(ctx context.Context, serverName string) (<-chan *statecontract.RealtimeEvent, error)
 }
 
+type growthStore interface {
+	GetGrowth(ctx context.Context, playerID int64) (*statecontract.Growth, error)
+	UpgradeGrowth(ctx context.Context, input statecontract.UpgradeGrowthInput) (*statecontract.UpgradeGrowthResult, error)
+}
+
+type coinsStore interface {
+	AddPlayerCoins(ctx context.Context, input statecontract.AddPlayerCoinsInput) (*statecontract.AddPlayerCoinsResult, error)
+}
+
 // Service coordinates state operations across the configured stores.
 type Service struct {
 	registrations registrationStore
@@ -58,6 +67,12 @@ type Service struct {
 	presences     presenceStore
 	friends       friendStore
 	realtime      realtimeStore
+	growth        growthStore
+	coins         coinsStore
+}
+
+func (s *Service) AddPlayerCoins(ctx context.Context, input statecontract.AddPlayerCoinsInput) (*statecontract.AddPlayerCoinsResult, error) {
+	return s.coins.AddPlayerCoins(ctx, input)
 }
 
 func (s *Service) PublishRealtimeToServer(ctx context.Context, serverName string, event *statecontract.RealtimeEvent) error {
@@ -161,6 +176,14 @@ func (s *Service) DeleteFriend(ctx context.Context, playerID, friendPlayerID int
 	return s.friends.DeleteFriend(ctx, playerID, friendPlayerID)
 }
 
+func (s *Service) GetGrowth(ctx context.Context, playerID int64) (*statecontract.Growth, error) {
+	return s.growth.GetGrowth(ctx, playerID)
+}
+
+func (s *Service) UpgradeGrowth(ctx context.Context, input statecontract.UpgradeGrowthInput) (*statecontract.UpgradeGrowthResult, error) {
+	return s.growth.UpgradeGrowth(ctx, input)
+}
+
 // StoreConfig groups the stores required by Service.
 type StoreConfig struct {
 	Accounts      accountStore
@@ -170,6 +193,8 @@ type StoreConfig struct {
 	Presences     presenceStore
 	Friends       friendStore
 	Realtime      realtimeStore
+	Growth        growthStore
+	Coins         coinsStore
 }
 
 // NewService creates a state service from store implementations.
@@ -182,5 +207,7 @@ func NewService(storeConfig StoreConfig) *Service {
 		presences:     storeConfig.Presences,
 		friends:       storeConfig.Friends,
 		realtime:      storeConfig.Realtime,
+		growth:        storeConfig.Growth,
+		coins:         storeConfig.Coins,
 	}
 }

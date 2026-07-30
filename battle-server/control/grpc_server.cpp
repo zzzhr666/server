@@ -15,6 +15,10 @@ namespace {
             out.player_loadouts.push_back(battle::PlayerLoadout{
                 .player_id = loadout.player_id(),
                 .weapon = loadout.weapon(),
+                .attack_level = loadout.attack_level(),
+                .attack_speed_level = loadout.attack_speed_level(),
+                .health_level = loadout.health_level(),
+                .move_speed_level = loadout.move_speed_level(),
             });
         }
         return out;

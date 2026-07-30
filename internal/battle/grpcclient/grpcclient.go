@@ -15,8 +15,12 @@ type CreateRoomInput struct {
 
 // PlayerLoadout carries one player's selected battle configuration.
 type PlayerLoadout struct {
-	PlayerID int64
-	Weapon   string
+	PlayerID         int64
+	Weapon           string
+	AttackLevel      int32
+	AttackSpeedLevel int32
+	HealthLevel      int32
+	MoveSpeedLevel   int32
 }
 
 // CreateRoomStatus is the battle client status normalized for rcenter business code.
@@ -89,8 +93,12 @@ func (c *Client) CreateRoom(ctx context.Context, input CreateRoomInput) (*Create
 	req.PlayerLoadouts = make([]*battlepb.PlayerLoadout, 0, len(input.PlayerLoadouts))
 	for _, loadout := range input.PlayerLoadouts {
 		req.PlayerLoadouts = append(req.PlayerLoadouts, &battlepb.PlayerLoadout{
-			PlayerId: loadout.PlayerID,
-			Weapon:   loadout.Weapon,
+			PlayerId:         loadout.PlayerID,
+			Weapon:           loadout.Weapon,
+			AttackLevel:      loadout.AttackLevel,
+			AttackSpeedLevel: loadout.AttackSpeedLevel,
+			HealthLevel:      loadout.HealthLevel,
+			MoveSpeedLevel:   loadout.MoveSpeedLevel,
 		})
 	}
 

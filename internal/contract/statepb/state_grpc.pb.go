@@ -41,6 +41,9 @@ const (
 	StateService_DeleteFriend_FullMethodName        = "/state.v1.StateService/DeleteFriend"
 	StateService_PublishRealtime_FullMethodName     = "/state.v1.StateService/PublishRealtime"
 	StateService_SubscribeRealtime_FullMethodName   = "/state.v1.StateService/SubscribeRealtime"
+	StateService_GetGrowth_FullMethodName           = "/state.v1.StateService/GetGrowth"
+	StateService_UpgradeGrowth_FullMethodName       = "/state.v1.StateService/UpgradeGrowth"
+	StateService_AddPlayerCoins_FullMethodName      = "/state.v1.StateService/AddPlayerCoins"
 )
 
 // StateServiceClient is the client API for StateService service.
@@ -69,6 +72,9 @@ type StateServiceClient interface {
 	DeleteFriend(ctx context.Context, in *DeleteFriendRequest, opts ...grpc.CallOption) (*DeleteFriendResponse, error)
 	PublishRealtime(ctx context.Context, in *PublishRealtimeRequest, opts ...grpc.CallOption) (*PublishRealtimeResponse, error)
 	SubscribeRealtime(ctx context.Context, in *SubscribeRealtimeRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[RealtimeEvent], error)
+	GetGrowth(ctx context.Context, in *GetGrowthRequest, opts ...grpc.CallOption) (*GetGrowthResponse, error)
+	UpgradeGrowth(ctx context.Context, in *UpgradeGrowthRequest, opts ...grpc.CallOption) (*UpgradeGrowthResponse, error)
+	AddPlayerCoins(ctx context.Context, in *AddPlayerCoinsRequest, opts ...grpc.CallOption) (*AddPlayerCoinsResponse, error)
 }
 
 type stateServiceClient struct {
@@ -308,6 +314,36 @@ func (c *stateServiceClient) SubscribeRealtime(ctx context.Context, in *Subscrib
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type StateService_SubscribeRealtimeClient = grpc.ServerStreamingClient[RealtimeEvent]
 
+func (c *stateServiceClient) GetGrowth(ctx context.Context, in *GetGrowthRequest, opts ...grpc.CallOption) (*GetGrowthResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetGrowthResponse)
+	err := c.cc.Invoke(ctx, StateService_GetGrowth_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *stateServiceClient) UpgradeGrowth(ctx context.Context, in *UpgradeGrowthRequest, opts ...grpc.CallOption) (*UpgradeGrowthResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UpgradeGrowthResponse)
+	err := c.cc.Invoke(ctx, StateService_UpgradeGrowth_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *stateServiceClient) AddPlayerCoins(ctx context.Context, in *AddPlayerCoinsRequest, opts ...grpc.CallOption) (*AddPlayerCoinsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(AddPlayerCoinsResponse)
+	err := c.cc.Invoke(ctx, StateService_AddPlayerCoins_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // StateServiceServer is the server API for StateService service.
 // All implementations must embed UnimplementedStateServiceServer
 // for forward compatibility.
@@ -334,6 +370,9 @@ type StateServiceServer interface {
 	DeleteFriend(context.Context, *DeleteFriendRequest) (*DeleteFriendResponse, error)
 	PublishRealtime(context.Context, *PublishRealtimeRequest) (*PublishRealtimeResponse, error)
 	SubscribeRealtime(*SubscribeRealtimeRequest, grpc.ServerStreamingServer[RealtimeEvent]) error
+	GetGrowth(context.Context, *GetGrowthRequest) (*GetGrowthResponse, error)
+	UpgradeGrowth(context.Context, *UpgradeGrowthRequest) (*UpgradeGrowthResponse, error)
+	AddPlayerCoins(context.Context, *AddPlayerCoinsRequest) (*AddPlayerCoinsResponse, error)
 	mustEmbedUnimplementedStateServiceServer()
 }
 
@@ -409,6 +448,15 @@ func (UnimplementedStateServiceServer) PublishRealtime(context.Context, *Publish
 }
 func (UnimplementedStateServiceServer) SubscribeRealtime(*SubscribeRealtimeRequest, grpc.ServerStreamingServer[RealtimeEvent]) error {
 	return status.Error(codes.Unimplemented, "method SubscribeRealtime not implemented")
+}
+func (UnimplementedStateServiceServer) GetGrowth(context.Context, *GetGrowthRequest) (*GetGrowthResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetGrowth not implemented")
+}
+func (UnimplementedStateServiceServer) UpgradeGrowth(context.Context, *UpgradeGrowthRequest) (*UpgradeGrowthResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpgradeGrowth not implemented")
+}
+func (UnimplementedStateServiceServer) AddPlayerCoins(context.Context, *AddPlayerCoinsRequest) (*AddPlayerCoinsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method AddPlayerCoins not implemented")
 }
 func (UnimplementedStateServiceServer) mustEmbedUnimplementedStateServiceServer() {}
 func (UnimplementedStateServiceServer) testEmbeddedByValue()                      {}
@@ -820,6 +868,60 @@ func _StateService_SubscribeRealtime_Handler(srv interface{}, stream grpc.Server
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type StateService_SubscribeRealtimeServer = grpc.ServerStreamingServer[RealtimeEvent]
 
+func _StateService_GetGrowth_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetGrowthRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(StateServiceServer).GetGrowth(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: StateService_GetGrowth_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(StateServiceServer).GetGrowth(ctx, req.(*GetGrowthRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _StateService_UpgradeGrowth_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpgradeGrowthRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(StateServiceServer).UpgradeGrowth(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: StateService_UpgradeGrowth_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(StateServiceServer).UpgradeGrowth(ctx, req.(*UpgradeGrowthRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _StateService_AddPlayerCoins_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AddPlayerCoinsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(StateServiceServer).AddPlayerCoins(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: StateService_AddPlayerCoins_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(StateServiceServer).AddPlayerCoins(ctx, req.(*AddPlayerCoinsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // StateService_ServiceDesc is the grpc.ServiceDesc for StateService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -910,6 +1012,18 @@ var StateService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "PublishRealtime",
 			Handler:    _StateService_PublishRealtime_Handler,
+		},
+		{
+			MethodName: "GetGrowth",
+			Handler:    _StateService_GetGrowth_Handler,
+		},
+		{
+			MethodName: "UpgradeGrowth",
+			Handler:    _StateService_UpgradeGrowth_Handler,
+		},
+		{
+			MethodName: "AddPlayerCoins",
+			Handler:    _StateService_AddPlayerCoins_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{
