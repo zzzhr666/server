@@ -19,6 +19,7 @@ void battle::ecs::attack_resolve_system(World& world, DeltaTime delta_time) {
         intent->damage = 0;
         intent->range = 0.0f;
         intent->projectile_speed = 0.0f;
+        intent->context = {};
 
         cooldown->remaining_seconds -= delta_time;
         if (cooldown->remaining_seconds < DeltaTime{0}) {
@@ -35,6 +36,12 @@ void battle::ecs::attack_resolve_system(World& world, DeltaTime delta_time) {
         intent->damage = attack->damage;
         intent->range = attack->range;
         intent->projectile_speed = attack->projectile_speed;
+        intent->context = CombatContext {
+            .owner = entity,
+            .emitter = entity,
+            .action_state = world.crete_combat_action(),
+            .effect_id = world.create_combat_effect(),
+        };
         cooldown->remaining_seconds = attack->cooldown_seconds;
     }
 }

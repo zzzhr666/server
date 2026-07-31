@@ -95,6 +95,16 @@ bool battle::ecs::World::set_player_command(Entity entity, PlayerCommand command
     return move_set && attack_set && dash_set;
 }
 
+std::shared_ptr<battle::ecs::CombatActionState> battle::ecs::World::crete_combat_action() {
+    auto state = std::make_shared<CombatActionState>();
+    state->action_id = next_combat_action_id_++;
+    return state;
+}
+
+battle::ecs::CombatEffectID battle::ecs::World::create_combat_effect() {
+    return next_combat_effect_id_++;
+}
+
 bool battle::ecs::World::set_move_request_(Entity entity, float x, float y) {
     auto* move_request = registry_.try_get<MoveRequest>(entity);
     if (!move_request) {
@@ -124,8 +134,6 @@ bool battle::ecs::World::set_dash_request_(Entity entity, bool requested) {
 }
 
 
-
-
 void battle::ecs::World::tick(DeltaTime delta_time) {
     system_scheduler_.tick(*this, delta_time);
 }
@@ -146,7 +154,7 @@ battle::ecs::WorldSnapshot battle::ecs::World::snapshot() const {
     WorldSnapshot snap_shot;
     for (const auto entity : registry_.entities()) {
         auto* transform = registry_.try_get<Transform>(entity);
-        auto* health =registry_.try_get<Health>(entity);
+        auto* health = registry_.try_get<Health>(entity);
         auto kind = EntityKind::Unknown;
         if (registry_.has<PlayerController>(entity)) {
             kind = EntityKind::Player;

@@ -19,6 +19,7 @@ void battle::ecs::damage_system(World& world, DeltaTime) {
                 .target = event.target,
                 .amount = final_damage,
                 .source_kind = event.source_kind,
+                .context = event.context,
             });
         }
         if (before_health > 0 && health->current_health == 0 && world.registry().has<MonsterController>(event.target)) {

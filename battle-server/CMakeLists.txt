@@ -58,6 +58,7 @@ add_library(battle_ecs
         ecs/system/status_effect_system.cpp
         ecs/system/status_effect_system.hpp
         ecs/registry.hpp
+        ecs/combat/combat.hpp
 )
 add_library(battle_game
         game/room.cpp

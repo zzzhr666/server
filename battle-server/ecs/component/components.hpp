@@ -6,6 +6,7 @@
 
 #include "ecs/entity/entity.hpp"
 #include "ecs/time.hpp"
+#include "ecs/combat/combat.hpp"
 #include "gameplay/blessing.hpp"
 #include "gameplay/monster_kind.hpp"
 
@@ -74,11 +75,12 @@ namespace battle::ecs {
     };
 
     struct AttackIntent {
-        bool active;
-        AttackKind kind;
-        int damage;
-        float range;
-        float projectile_speed;
+        bool active{};
+        AttackKind kind{};
+        int damage{};
+        float range{};
+        float projectile_speed{};
+        CombatContext context;
     };
 
     struct DashIntent {
@@ -119,6 +121,7 @@ namespace battle::ecs {
         int base_damage{};
         int modified_damage{};
         DamageSourceKind source_kind{DamageSourceKind::Attack};
+        CombatContext context;
     };
 
     struct MonsterIdentity {
@@ -128,7 +131,7 @@ namespace battle::ecs {
     struct KillEvent {
         Entity killer;
         Entity victim;
-        MonsterKind monster_kind;
+        MonsterKind monster_kind{};
     };
 
     struct PlayerProgress {
@@ -152,6 +155,7 @@ namespace battle::ecs {
         Entity target{};
         int amount{};
         DamageSourceKind source_kind{DamageSourceKind::Attack};
+        CombatContext context;
     };
 
     struct BurnStatus {

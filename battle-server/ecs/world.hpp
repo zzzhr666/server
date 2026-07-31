@@ -184,6 +184,10 @@ namespace battle::ecs {
             return !registry_.pool<MonsterController>().empty();
         }
 
+        std::shared_ptr<CombatActionState> crete_combat_action();
+
+        CombatEffectID create_combat_effect();
+
     private:
         bool set_move_request_(Entity entity, float x, float y);
 
@@ -202,5 +206,8 @@ namespace battle::ecs {
         WorldBounds bounds_;
         std::mt19937 random_engine_;
         std::uniform_int_distribution<int> percent_distribution_;
+
+        CombatActionID next_combat_action_id_;
+        CombatEffectID next_combat_effect_id_;
     };
 }
