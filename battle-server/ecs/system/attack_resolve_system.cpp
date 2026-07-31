@@ -4,11 +4,11 @@
 #include "ecs/world.hpp"
 
 void battle::ecs::attack_resolve_system(World& world, DeltaTime delta_time) {
-    for (auto entity : world.attack_requests().entities()) {
-        auto request = world.attack_requests().try_get(entity);
-        const auto attack = world.attack_definitions().try_get(entity);
-        auto cooldown = world.attack_cooldowns().try_get(entity);
-        auto intent = world.attack_intents().try_get(entity);
+    for (auto entity : world.registry().pool<AttackRequest>().entities()) {
+        auto request = world.registry().try_get<AttackRequest>(entity);
+        const auto attack = world.registry().try_get<AttackDefinition>(entity);
+        auto cooldown = world.registry().try_get<AttackCooldown>(entity);
+        auto intent = world.registry().try_get<AttackIntent>(entity);
 
         if (!request || !attack || !cooldown || !intent) {
             continue;

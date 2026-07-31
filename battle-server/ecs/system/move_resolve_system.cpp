@@ -5,11 +5,11 @@
 #include "ecs/world.hpp"
 
 void battle::ecs::move_resolve_system(World& world, DeltaTime) {
-    for (auto entity : world.move_requests().entities()) {
-        auto* velocity = world.velocities().try_get(entity);
-        auto* stats = world.character_stats().try_get(entity);
-        auto* intent = world.move_intents().try_get(entity);
-        const auto* request = world.move_requests().try_get(entity);
+    for (auto entity : world.registry().pool<MoveRequest>().entities()) {
+        auto* velocity = world.registry().try_get<Velocity>(entity);
+        auto* stats = world.registry().try_get<CharacterStats>(entity);
+        auto* intent = world.registry().try_get<MoveIntent>(entity);
+        const auto* request = world.registry().try_get<MoveRequest>(entity);
         if (!velocity || !stats || !intent || !request) {
             continue;
         }

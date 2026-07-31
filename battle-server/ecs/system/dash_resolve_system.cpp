@@ -4,11 +4,11 @@
 
 
 void battle::ecs::dash_resolve_system(World& world, DeltaTime delta_time) {
-    for (auto entity : world.dash_requests().entities()) {
-        auto request = world.dash_requests().try_get(entity);
-        auto dash_cooldown = world.dash_cooldowns().try_get(entity);
-        auto dashes = world.dashes().try_get(entity);
-        auto intent = world.dash_intents().try_get(entity);
+    for (auto entity : world.registry().pool<DashRequest>().entities()) {
+        auto request = world.registry().try_get<DashRequest>(entity);
+        auto dash_cooldown = world.registry().try_get<DashCooldown>(entity);
+        auto dashes = world.registry().try_get<Dash>(entity);
+        auto intent = world.registry().try_get<DashIntent>(entity);
         if (!request || !dash_cooldown || !dashes || !intent) {
             continue;
         }

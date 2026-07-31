@@ -55,7 +55,7 @@ battle::BattleInstance::BattleInstance(BattleInstanceConfig config)
         }
         spawn_config = apply_growth(spawn_config,growth_lvl);
         auto entity = world_.create_player(spawn_config);
-        if (auto* progress = world_.player_progress().try_get(entity)) {
+        if (auto* progress = world_.registry().try_get<ecs::PlayerProgress>(entity)) {
             progress->experience_to_next_level = experience_to_next_level_(progress->level);
         }
         player_entities_.emplace(config.player_ids[i], entity);
@@ -108,7 +108,7 @@ battle::BattleWorldSnapshot battle::BattleInstance::snapshot() const {
                                                     snapshot.current_health, snapshot.max_health);
     }
     for (auto [player_id, player_entity] : player_entities_) {
-        auto progress = world_.player_progress().try_get(player_entity);
+        auto progress = world_.registry().try_get<ecs::PlayerProgress>(player_entity);
         if (!progress) {
             continue;
         }
@@ -167,7 +167,7 @@ std::optional<battle::ecs::PlayerProgress> battle::BattleInstance::player_progre
     if (it == player_entities_.end()) {
         return std::nullopt;
     }
-    const auto* progress = world_.player_progress().try_get(it->second);
+    const auto* progress = world_.registry().try_get<ecs::PlayerProgress>(it->second);
     if (!progress) {
         return std::nullopt;
     }
@@ -192,7 +192,7 @@ bool battle::BattleInstance::choose_blessing(std::int64_t player_id, int option_
         return false;
     }
 
-    auto progress = world_.player_progress().try_get(entity_it->second);
+    auto progress = world_.registry().try_get<ecs::PlayerProgress>(entity_it->second);
     if (!progress || progress->pending_upgrade_choices <= 0) {
         return false;
     }
@@ -332,7 +332,7 @@ void battle::BattleInstance::grant_experience_(std::int64_t player_id, int exper
         return;
     }
     ecs::Entity entity = it->second;
-    auto progress = world_.player_progress().try_get(entity);
+    auto progress = world_.registry().try_get<ecs::PlayerProgress>(entity);
     if (!progress) {
         return;
     }
@@ -403,7 +403,7 @@ void battle::BattleInstance::add_or_level_up_blessing_(ecs::Entity player_entity
         return blessing.blessing_id == blessing_id;
     });
 
-    auto inventory = world_.blessing_inventories().try_get(player_entity);
+    auto inventory = world_.registry().try_get<ecs::BlessingInventory>(player_entity);
     if (blessing_it != blessing_state.blessings.end()) {
         blessing_it->level++;
         if (inventory) {

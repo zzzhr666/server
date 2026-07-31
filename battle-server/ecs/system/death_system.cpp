@@ -6,8 +6,8 @@
 
 void battle::ecs::death_system(World& world, DeltaTime) {
     std::vector<Entity> dead_entities;
-    for (auto entity : world.health().entities()) {
-        const auto* health = world.health().try_get(entity);
+    for (auto entity : world.registry().pool<Health>().entities()) {
+        const auto* health = world.registry().try_get<Health>(entity);
         if (health && health->current_health <= 0) {
             dead_entities.push_back(entity);
         }

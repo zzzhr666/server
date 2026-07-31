@@ -59,10 +59,9 @@ TEST(BattleInstanceTest, ConstructorCreatesPlayersAtPlannedSpawns) {
     auto snapshot = instance.snapshot();
 
     ASSERT_EQ(snapshot.entities.size(), 2);
-    EXPECT_EQ(snapshot.entities[0].entity, 1);
+
     EXPECT_FLOAT_EQ(snapshot.entities[0].x_position, -2.0f);
     EXPECT_FLOAT_EQ(snapshot.entities[0].y_position, 0.0f);
-    EXPECT_EQ(snapshot.entities[1].entity, 2);
     EXPECT_FLOAT_EQ(snapshot.entities[1].x_position, 2.0f);
     EXPECT_FLOAT_EQ(snapshot.entities[1].y_position, 0.0f);
 }

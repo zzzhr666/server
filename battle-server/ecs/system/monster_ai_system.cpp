@@ -6,19 +6,19 @@
 #include "ecs/world.hpp"
 
 void battle::ecs::monster_ai_system(World& world, DeltaTime) {
-    for (auto entity : world.monster_controllers().entities()) {
-        const auto* transform = world.transforms().try_get(entity);
-        auto* velocity = world.velocities().try_get(entity);
-        const auto* stats = world.character_stats().try_get(entity);
-        const auto* attack = world.attack_definitions().try_get(entity);
-        auto* attack_request = world.attack_requests().try_get(entity);
+    for (auto entity : world.registry().pool<MonsterController>().entities()) {
+        const auto* transform = world.registry().try_get<Transform>(entity);
+        auto* velocity = world.registry().try_get<Velocity>(entity);
+        const auto* stats = world.registry().try_get<CharacterStats>(entity);
+        const auto* attack = world.registry().try_get<AttackDefinition>(entity);
+        auto* attack_request = world.registry().try_get<AttackRequest>(entity);
         if (!transform || !velocity || !stats) {
             continue;
         }
         if (attack_request) {
             attack_request->requested = false;
         }
-        const auto status_effects = world.status_effects().try_get(entity);
+        const auto status_effects = world.registry().try_get<StatusEffects>(entity);
         if (status_effects && status_effects->freeze.has_value()) {
             velocity->x = 0.0f;
             velocity->y = 0.0f;
@@ -30,8 +30,8 @@ void battle::ecs::monster_ai_system(World& world, DeltaTime) {
         auto nearest_distance_squared = std::numeric_limits<float>::max();
         Position target_position{};
         bool has_target = false;
-        for (auto players_entity : world.player_controllers().entities()) {
-            const auto* player_transform = world.transforms().try_get(players_entity);
+        for (auto players_entity : world.registry().pool<PlayerController>().entities()) {
+            const auto* player_transform = world.registry().try_get<Transform>(players_entity);
             if (!player_transform) {
                 continue;
             }

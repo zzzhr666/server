@@ -887,7 +887,7 @@ func (x *ClientInput) GetDashRequested() bool {
 
 type EntitySnapshot struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Entity        uint32                 `protobuf:"varint,1,opt,name=entity,proto3" json:"entity,omitempty"`
+	Entity        uint64                 `protobuf:"varint,1,opt,name=entity,proto3" json:"entity,omitempty"`
 	XPosition     float32                `protobuf:"fixed32,2,opt,name=x_position,json=xPosition,proto3" json:"x_position,omitempty"`
 	YPosition     float32                `protobuf:"fixed32,3,opt,name=y_position,json=yPosition,proto3" json:"y_position,omitempty"`
 	XDirection    float32                `protobuf:"fixed32,4,opt,name=x_direction,json=xDirection,proto3" json:"x_direction,omitempty"`
@@ -931,7 +931,7 @@ func (*EntitySnapshot) Descriptor() ([]byte, []int) {
 	return file_proto_battle_v1_session_proto_rawDescGZIP(), []int{10}
 }
 
-func (x *EntitySnapshot) GetEntity() uint32 {
+func (x *EntitySnapshot) GetEntity() uint64 {
 	if x != nil {
 		return x.Entity
 	}
@@ -1447,7 +1447,7 @@ const file_proto_battle_v1_session_proto_rawDesc = "" +
 	"\x10attack_requested\x18\x05 \x01(\bR\x0fattackRequested\x12%\n" +
 	"\x0edash_requested\x18\x06 \x01(\bR\rdashRequested\"\xd9\x02\n" +
 	"\x0eEntitySnapshot\x12\x16\n" +
-	"\x06entity\x18\x01 \x01(\rR\x06entity\x12\x1d\n" +
+	"\x06entity\x18\x01 \x01(\x04R\x06entity\x12\x1d\n" +
 	"\n" +
 	"x_position\x18\x02 \x01(\x02R\txPosition\x12\x1d\n" +
 	"\n" +

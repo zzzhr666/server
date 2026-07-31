@@ -203,15 +203,15 @@ inline constexpr EntitySnapshot::Impl_::Impl_(
         monster_kind_(
             &::google::protobuf::internal::fixed_address_empty_string,
             ::_pbi::ConstantInitialized()),
-        entity_{0u},
+        entity_{::uint64_t{0u}},
         x_position_{0},
         y_position_{0},
         x_direction_{0},
         y_direction_{0},
         current_health_{0},
         max_health_{0},
-        kind_{static_cast< ::battle::v1::EntityKind >(0)},
-        player_id_{::int64_t{0}} {}
+        player_id_{::int64_t{0}},
+        kind_{static_cast< ::battle::v1::EntityKind >(0)} {}
 
 template <typename>
 PROTOBUF_CONSTEXPR EntitySnapshot::EntitySnapshot(::_pbi::ConstantInitialized)
@@ -637,8 +637,8 @@ const ::uint32_t
         5,
         6,
         7,
-        8,
         9,
+        8,
         0,
         0x081, // bitmap
         PROTOBUF_FIELD_OFFSET(::battle::v1::PlayerProgressSnapshot, _impl_._has_bits_),
@@ -772,7 +772,7 @@ const char descriptor_table_protodef_proto_2fbattle_2fv1_2fsession_2eproto[] ABS
     "\001(\t\022\021\n\tplayer_id\030\002 \001(\003\022\t\n\001x\030\003 \001(\002\022\t\n\001y\030\004"
     " \001(\002\022\030\n\020attack_requested\030\005 \001(\010\022\026\n\016dash_r"
     "equested\030\006 \001(\010\"\354\001\n\016EntitySnapshot\022\016\n\006ent"
-    "ity\030\001 \001(\r\022\022\n\nx_position\030\002 \001(\002\022\022\n\ny_posit"
+    "ity\030\001 \001(\004\022\022\n\nx_position\030\002 \001(\002\022\022\n\ny_posit"
     "ion\030\003 \001(\002\022\023\n\013x_direction\030\004 \001(\002\022\023\n\013y_dire"
     "ction\030\005 \001(\002\022\026\n\016current_health\030\006 \001(\005\022\022\n\nm"
     "ax_health\030\007 \001(\005\022#\n\004kind\030\010 \001(\0162\025.battle.v"
@@ -4495,9 +4495,9 @@ EntitySnapshot::EntitySnapshot(
                offsetof(Impl_, entity_),
            reinterpret_cast<const char *>(&from._impl_) +
                offsetof(Impl_, entity_),
-           offsetof(Impl_, player_id_) -
+           offsetof(Impl_, kind_) -
                offsetof(Impl_, entity_) +
-               sizeof(Impl_::player_id_));
+               sizeof(Impl_::kind_));
 
   // @@protoc_insertion_point(copy_constructor:battle.v1.EntitySnapshot)
 }
@@ -4512,9 +4512,9 @@ inline void EntitySnapshot::SharedCtor(::_pb::Arena* PROTOBUF_NULLABLE arena) {
   ::memset(reinterpret_cast<char *>(&_impl_) +
                offsetof(Impl_, entity_),
            0,
-           offsetof(Impl_, player_id_) -
+           offsetof(Impl_, kind_) -
                offsetof(Impl_, entity_) +
-               sizeof(Impl_::player_id_));
+               sizeof(Impl_::kind_));
 }
 EntitySnapshot::~EntitySnapshot() {
   // @@protoc_insertion_point(destructor:battle.v1.EntitySnapshot)
@@ -4591,8 +4591,8 @@ EntitySnapshot::_table_ = {
     #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
   }, {{
     {::_pbi::TcParser::MiniParse, {}},
-    // uint32 entity = 1;
-    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(EntitySnapshot, _impl_.entity_), 1>(),
+    // uint64 entity = 1;
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint64_t, offsetof(EntitySnapshot, _impl_.entity_), 1>(),
      {8, 1, 0, PROTOBUF_FIELD_OFFSET(EntitySnapshot, _impl_.entity_)}},
     // float x_position = 2;
     {::_pbi::TcParser::FastF32S1,
@@ -4613,11 +4613,11 @@ EntitySnapshot::_table_ = {
     {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(EntitySnapshot, _impl_.max_health_), 7>(),
      {56, 7, 0, PROTOBUF_FIELD_OFFSET(EntitySnapshot, _impl_.max_health_)}},
     // .battle.v1.EntityKind kind = 8;
-    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(EntitySnapshot, _impl_.kind_), 8>(),
-     {64, 8, 0, PROTOBUF_FIELD_OFFSET(EntitySnapshot, _impl_.kind_)}},
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(EntitySnapshot, _impl_.kind_), 9>(),
+     {64, 9, 0, PROTOBUF_FIELD_OFFSET(EntitySnapshot, _impl_.kind_)}},
     // int64 player_id = 9;
-    {::_pbi::TcParser::SingularVarintNoZag1<::uint64_t, offsetof(EntitySnapshot, _impl_.player_id_), 9>(),
-     {72, 9, 0, PROTOBUF_FIELD_OFFSET(EntitySnapshot, _impl_.player_id_)}},
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint64_t, offsetof(EntitySnapshot, _impl_.player_id_), 8>(),
+     {72, 8, 0, PROTOBUF_FIELD_OFFSET(EntitySnapshot, _impl_.player_id_)}},
     // string monster_kind = 10;
     {::_pbi::TcParser::FastUS1,
      {82, 0, 0, PROTOBUF_FIELD_OFFSET(EntitySnapshot, _impl_.monster_kind_)}},
@@ -4629,9 +4629,9 @@ EntitySnapshot::_table_ = {
   }}, {{
     65535, 65535
   }}, {{
-    // uint32 entity = 1;
+    // uint64 entity = 1;
     {PROTOBUF_FIELD_OFFSET(EntitySnapshot, _impl_.entity_), _Internal::kHasBitsOffset + 1, 0,
-    (0 | ::_fl::kFcOptional | ::_fl::kUInt32)},
+    (0 | ::_fl::kFcOptional | ::_fl::kUInt64)},
     // float x_position = 2;
     {PROTOBUF_FIELD_OFFSET(EntitySnapshot, _impl_.x_position_), _Internal::kHasBitsOffset + 2, 0,
     (0 | ::_fl::kFcOptional | ::_fl::kFloat)},
@@ -4651,10 +4651,10 @@ EntitySnapshot::_table_ = {
     {PROTOBUF_FIELD_OFFSET(EntitySnapshot, _impl_.max_health_), _Internal::kHasBitsOffset + 7, 0,
     (0 | ::_fl::kFcOptional | ::_fl::kInt32)},
     // .battle.v1.EntityKind kind = 8;
-    {PROTOBUF_FIELD_OFFSET(EntitySnapshot, _impl_.kind_), _Internal::kHasBitsOffset + 8, 0,
+    {PROTOBUF_FIELD_OFFSET(EntitySnapshot, _impl_.kind_), _Internal::kHasBitsOffset + 9, 0,
     (0 | ::_fl::kFcOptional | ::_fl::kOpenEnum)},
     // int64 player_id = 9;
-    {PROTOBUF_FIELD_OFFSET(EntitySnapshot, _impl_.player_id_), _Internal::kHasBitsOffset + 9, 0,
+    {PROTOBUF_FIELD_OFFSET(EntitySnapshot, _impl_.player_id_), _Internal::kHasBitsOffset + 8, 0,
     (0 | ::_fl::kFcOptional | ::_fl::kInt64)},
     // string monster_kind = 10;
     {PROTOBUF_FIELD_OFFSET(EntitySnapshot, _impl_.monster_kind_), _Internal::kHasBitsOffset + 0, 0,
@@ -4684,9 +4684,9 @@ PROTOBUF_NOINLINE void EntitySnapshot::Clear() {
         reinterpret_cast<char*>(&_impl_.entity_)) + sizeof(_impl_.max_health_));
   }
   if ((cached_has_bits & 0x00000300u) != 0) {
-    ::memset(&_impl_.kind_, 0, static_cast<::size_t>(
-        reinterpret_cast<char*>(&_impl_.player_id_) -
-        reinterpret_cast<char*>(&_impl_.kind_)) + sizeof(_impl_.player_id_));
+    ::memset(&_impl_.player_id_, 0, static_cast<::size_t>(
+        reinterpret_cast<char*>(&_impl_.kind_) -
+        reinterpret_cast<char*>(&_impl_.player_id_)) + sizeof(_impl_.kind_));
   }
   _impl_._has_bits_.Clear();
   _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
@@ -4707,11 +4707,11 @@ PROTOBUF_NOINLINE void EntitySnapshot::Clear() {
   ::uint32_t cached_has_bits = 0;
   (void)cached_has_bits;
 
-  // uint32 entity = 1;
+  // uint64 entity = 1;
   if ((this_._impl_._has_bits_[0] & 0x00000002u) != 0) {
     if (this_._internal_entity() != 0) {
       target = stream->EnsureSpace(target);
-      target = ::_pbi::WireFormatLite::WriteUInt32ToArray(
+      target = ::_pbi::WireFormatLite::WriteUInt64ToArray(
           1, this_._internal_entity(), target);
     }
   }
@@ -4771,7 +4771,7 @@ PROTOBUF_NOINLINE void EntitySnapshot::Clear() {
   }
 
   // .battle.v1.EntityKind kind = 8;
-  if ((this_._impl_._has_bits_[0] & 0x00000100u) != 0) {
+  if ((this_._impl_._has_bits_[0] & 0x00000200u) != 0) {
     if (this_._internal_kind() != 0) {
       target = stream->EnsureSpace(target);
       target = ::_pbi::WireFormatLite::WriteEnumToArray(
@@ -4780,7 +4780,7 @@ PROTOBUF_NOINLINE void EntitySnapshot::Clear() {
   }
 
   // int64 player_id = 9;
-  if ((this_._impl_._has_bits_[0] & 0x00000200u) != 0) {
+  if ((this_._impl_._has_bits_[0] & 0x00000100u) != 0) {
     if (this_._internal_player_id() != 0) {
       target =
           ::google::protobuf::internal::WireFormatLite::WriteInt64ToArrayWithField<9>(
@@ -4831,10 +4831,10 @@ PROTOBUF_NOINLINE void EntitySnapshot::Clear() {
                                         this_._internal_monster_kind());
       }
     }
-    // uint32 entity = 1;
+    // uint64 entity = 1;
     if ((cached_has_bits & 0x00000002u) != 0) {
       if (this_._internal_entity() != 0) {
-        total_size += ::_pbi::WireFormatLite::UInt32SizePlusOne(
+        total_size += ::_pbi::WireFormatLite::UInt64SizePlusOne(
             this_._internal_entity());
       }
     }
@@ -4878,18 +4878,18 @@ PROTOBUF_NOINLINE void EntitySnapshot::Clear() {
     }
   }
   if ((cached_has_bits & 0x00000300u) != 0) {
-    // .battle.v1.EntityKind kind = 8;
-    if ((cached_has_bits & 0x00000100u) != 0) {
-      if (this_._internal_kind() != 0) {
-        total_size += 1 +
-                      ::_pbi::WireFormatLite::EnumSize(this_._internal_kind());
-      }
-    }
     // int64 player_id = 9;
-    if ((cached_has_bits & 0x00000200u) != 0) {
+    if ((cached_has_bits & 0x00000100u) != 0) {
       if (this_._internal_player_id() != 0) {
         total_size += ::_pbi::WireFormatLite::Int64SizePlusOne(
             this_._internal_player_id());
+      }
+    }
+    // .battle.v1.EntityKind kind = 8;
+    if ((cached_has_bits & 0x00000200u) != 0) {
+      if (this_._internal_kind() != 0) {
+        total_size += 1 +
+                      ::_pbi::WireFormatLite::EnumSize(this_._internal_kind());
       }
     }
   }
@@ -4954,13 +4954,13 @@ void EntitySnapshot::MergeImpl(::google::protobuf::MessageLite& to_msg, const ::
   }
   if ((cached_has_bits & 0x00000300u) != 0) {
     if ((cached_has_bits & 0x00000100u) != 0) {
-      if (from._internal_kind() != 0) {
-        _this->_impl_.kind_ = from._impl_.kind_;
+      if (from._internal_player_id() != 0) {
+        _this->_impl_.player_id_ = from._impl_.player_id_;
       }
     }
     if ((cached_has_bits & 0x00000200u) != 0) {
-      if (from._internal_player_id() != 0) {
-        _this->_impl_.player_id_ = from._impl_.player_id_;
+      if (from._internal_kind() != 0) {
+        _this->_impl_.kind_ = from._impl_.kind_;
       }
     }
   }
@@ -4984,8 +4984,8 @@ void EntitySnapshot::InternalSwap(EntitySnapshot* PROTOBUF_RESTRICT PROTOBUF_NON
   swap(_impl_._has_bits_[0], other->_impl_._has_bits_[0]);
   ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.monster_kind_, &other->_impl_.monster_kind_, arena);
   ::google::protobuf::internal::memswap<
-      PROTOBUF_FIELD_OFFSET(EntitySnapshot, _impl_.player_id_)
-      + sizeof(EntitySnapshot::_impl_.player_id_)
+      PROTOBUF_FIELD_OFFSET(EntitySnapshot, _impl_.kind_)
+      + sizeof(EntitySnapshot::_impl_.kind_)
       - PROTOBUF_FIELD_OFFSET(EntitySnapshot, _impl_.entity_)>(
           reinterpret_cast<char*>(&_impl_.entity_),
           reinterpret_cast<char*>(&other->_impl_.entity_));

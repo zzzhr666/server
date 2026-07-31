@@ -57,6 +57,7 @@ add_library(battle_ecs
         ecs/system/blessing_trigger_system.hpp
         ecs/system/status_effect_system.cpp
         ecs/system/status_effect_system.hpp
+        ecs/registry.hpp
 )
 add_library(battle_game
         game/room.cpp

@@ -6,7 +6,7 @@
 
 const battle::ecs::BlessingStack* battle::ecs::find_blessing(const World& world, Entity entity,
                                                              BlessingID blessing_id) {
-    const auto* inventory = world.blessing_inventories().try_get(entity);
+    const auto* inventory = world.registry().try_get<BlessingInventory>(entity);
     if (!inventory) {
         return nullptr;
     }

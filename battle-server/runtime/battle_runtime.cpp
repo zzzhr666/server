@@ -108,7 +108,7 @@ namespace {
         send_pkg->set_reward_selection_remaining_seconds(snapshot.reward_selection_remaining.count());
         for (const auto& entity : snapshot.entities) {
             auto entity_snapshot = send_pkg->add_entities();
-            entity_snapshot->set_entity(entity.entity);
+            entity_snapshot->set_entity(entity.entity.packed());
             entity_snapshot->set_kind(to_proto_entity_kind(entity.kind));
             entity_snapshot->set_player_id(entity.player_id);
             entity_snapshot->set_x_position(entity.x_position);

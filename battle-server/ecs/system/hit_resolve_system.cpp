@@ -5,11 +5,11 @@
 
 namespace {
     bool is_monster(const battle::ecs::World& world, battle::ecs::Entity entity) {
-        return world.monster_controllers().has(entity);
+        return world.registry().has<battle::ecs::MonsterController>(entity);
     }
 
     bool is_player(const battle::ecs::World& world, battle::ecs::Entity entity) {
-        return world.player_controllers().has(entity);
+        return world.registry().has<battle::ecs::PlayerController>(entity);
     }
 
     bool is_enemy(const battle::ecs::World& world, battle::ecs::Entity attacker, battle::ecs::Entity target) {
@@ -19,9 +19,9 @@ namespace {
 }
 
 void battle::ecs::hit_resolve_system(World& world, DeltaTime) {
-    for (auto attacker_entity : world.attack_intents().entities()) {
-        auto intent = world.attack_intents().try_get(attacker_entity);
-        auto transform = world.transforms().try_get(attacker_entity);
+    for (auto attacker_entity : world.registry().pool<AttackIntent>().entities()) {
+        auto intent = world.registry().try_get<AttackIntent>(attacker_entity);
+        auto transform = world.registry().try_get<Transform>(attacker_entity);
         if (!intent || !transform) {
             continue;
         }
@@ -32,15 +32,15 @@ void battle::ecs::hit_resolve_system(World& world, DeltaTime) {
         if (intent->kind != battle::ecs::AttackKind::Melee) {
             continue;
         }
-        for (auto target_entity : world.health().entities()) {
+        for (auto target_entity : world.registry().pool<Health>().entities()) {
             if (attacker_entity == target_entity) {
                 continue;
             }
             if (!is_enemy(world, attacker_entity, target_entity)) {
                 continue;
             }
-            auto target_transform = world.transforms().try_get(target_entity);
-            auto target_health = world.health().try_get(target_entity);
+            auto target_transform = world.registry().try_get<Transform>(target_entity);
+            auto target_health = world.registry().try_get<Health>(target_entity);
             if (!target_transform || !target_health) {
                 continue;
             }

@@ -35,6 +35,14 @@ namespace battle::ecs {
         static constexpr DeltaTime TickIntervalSeconds = DeltaTime{1.0f};
     };
 
+    struct ChainLightningConfig {
+        static constexpr int BaseDamagePercent = 40;
+        static constexpr int DamagePercentPerLevel = 10;
+        static constexpr int BaseSecondaryTargets = 2;
+        static constexpr int LevelsPerExtraTarget = 2;
+        static constexpr float JumpRadius = 5.0f;
+    };
+
     constexpr int burn_damage_per_tick(int level) {
         return BurnOnHitConfig::BaseDamagePerTick +
             (normalized_blessing_level(level) - 1) * BurnOnHitConfig::DamagePerTickPerLevel;
@@ -60,5 +68,13 @@ namespace battle::ecs {
     constexpr DeltaTime freeze_duration_seconds(int level) {
         return FreezeOnHitConfig::BaseDurationSeconds +
             FreezeOnHitConfig::DurationSecondsPerLevel * static_cast<float>(normalized_blessing_level(level) - 1);
+    }
+
+    constexpr int chain_lighting_damage_percent(int level) {
+        return ChainLightningConfig::BaseDamagePercent + ChainLightningConfig::DamagePercentPerLevel * (normalized_blessing_level(level) - 1);
+    }
+
+    constexpr int chain_lighting_target_count(int level) {
+        return ChainLightningConfig::BaseSecondaryTargets + ChainLightningConfig::LevelsPerExtraTarget * (level / 2);
     }
 }

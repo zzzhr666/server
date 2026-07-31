@@ -6,7 +6,7 @@
 
 void battle::ecs::damage_system(World& world, DeltaTime) {
     for (const auto& event : world.damage_events()) {
-        auto* health = world.health().try_get(event.target);
+        auto* health = world.registry().try_get<Health>(event.target);
         if (!health) {
             continue;
         }
@@ -21,8 +21,8 @@ void battle::ecs::damage_system(World& world, DeltaTime) {
                 .source_kind = event.source_kind,
             });
         }
-        if (before_health > 0 && health->current_health == 0 && world.monster_controllers().has(event.target)) {
-            if (auto identity = world.monster_identities().try_get(event.target)) {
+        if (before_health > 0 && health->current_health == 0 && world.registry().has<MonsterController>(event.target)) {
+            if (auto identity = world.registry().try_get<MonsterIdentity>(event.target)) {
                 world.add_kill_event({
                     .killer = event.source,
                     .victim = event.target,

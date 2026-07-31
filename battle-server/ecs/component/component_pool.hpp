@@ -11,64 +11,64 @@ namespace battle::ecs {
     template <typename T>
     class ComponentPool {
     public:
-        static constexpr std::size_t INVALID_INDEX = std::numeric_limits<std::size_t>::max();
+        static constexpr std::size_t InvalidIndex = std::numeric_limits<std::size_t>::max();
 
         [[nodiscard]] bool has(Entity entity) const {
-            if (entity >= sparse_.size())
-                return false;
-
-            auto index = sparse_[entity];
-
-            if (index == INVALID_INDEX)
-                return false;
-
-            if (index >= dense_entities_.size()) {
+            if (!entity || entity.index >= sparse_.size()) {
                 return false;
             }
-
-            return dense_entities_[index] == entity;
+            const auto dense_index = sparse_[entity.index];
+            if (dense_index == InvalidIndex || dense_index >= dense_entities_.size()) {
+                return false;
+            }
+            return dense_entities_[dense_index] == entity;
         }
 
         const T& get(Entity entity) const {
             assert(has(entity));
-            return dense_components_[sparse_[entity]];
+            return dense_components_[sparse_[entity.index]];
         }
 
         T& get(Entity entity) {
             assert(has(entity));
-            return dense_components_[sparse_[entity]];
+            return dense_components_[sparse_[entity.index]];
         }
 
         T* try_get(Entity entity) {
             if (!has(entity))
                 return nullptr;
 
-            return &dense_components_[sparse_[entity]];
+            return &dense_components_[sparse_[entity.index]];
         }
 
         const T* try_get(Entity entity) const {
             if (!has(entity))
                 return nullptr;
 
-            return &dense_components_[sparse_[entity]];
+            return &dense_components_[sparse_[entity.index]];
         }
 
         template <typename... Args>
         T& emplace(Entity entity, Args&&... args) {
-            if (entity >= sparse_.size()) {
-                sparse_.resize(entity + 1, INVALID_INDEX);
+            assert(entity);
+            if (entity.index >= sparse_.size()) {
+                sparse_.resize(static_cast<std::size_t>(entity.index) + 1, InvalidIndex);
             }
-            if (sparse_[entity] != INVALID_INDEX) {
-                dense_components_[sparse_[entity]] = T{std::forward<Args>(args)...};
-                return dense_components_[sparse_[entity]];
+            std::size_t index = sparse_[entity.index];
+            if (index == InvalidIndex) {
+                const auto new_index = dense_entities_.size();
+                dense_entities_.emplace_back(entity);
+                dense_components_.emplace_back(std::forward<Args>(args)...);
+                sparse_[entity.index] = new_index;
+                return dense_components_.back();
             }
-            sparse_[entity] = dense_entities_.size();
-            dense_entities_.emplace_back(entity);
-            dense_components_.emplace_back(std::forward<Args>(args)...);
-            return dense_components_.back();
+
+            dense_components_[index] = T(std::forward<Args>(args)...);
+            dense_entities_[index] = entity;
+            return dense_components_[index];
         }
 
-        bool empty() const {
+        [[nodiscard]] bool empty() const {
             return size() == 0;
         }
 
@@ -76,16 +76,17 @@ namespace battle::ecs {
             if (!has(entity)) {
                 return false;
             }
-            auto remove_index = sparse_[entity];
+            auto remove_index = sparse_[entity.index];
             auto last_index = dense_entities_.size() - 1;
             if (remove_index != last_index) {
-                dense_entities_[remove_index] = dense_entities_.back();
+                const Entity moved_entity = dense_entities_.back();
+                dense_entities_[remove_index] = moved_entity;
                 dense_components_[remove_index] = std::move(dense_components_.back());
-                sparse_[dense_entities_[remove_index]] = remove_index;
+                sparse_[moved_entity.index] = remove_index;
             }
             dense_entities_.pop_back();
             dense_components_.pop_back();
-            sparse_[entity] = INVALID_INDEX;
+            sparse_[entity.index] = InvalidIndex;
             return true;
         }
 
@@ -95,11 +96,11 @@ namespace battle::ecs {
             dense_components_.clear();
         }
 
-        std::size_t size() const {
+        [[nodiscard]] std::size_t size() const {
             return dense_entities_.size();
         }
 
-        const std::vector<Entity>& entities() const {
+        [[nodiscard]] const std::vector<Entity>& entities() const {
             return dense_entities_;
         }
 

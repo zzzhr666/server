@@ -8,9 +8,9 @@
 void battle::ecs::move_system(World& world, DeltaTime delta_time) {
     const auto& bounds = world.world_bounds();
     const float delta_seconds = delta_time.count();
-    for (auto entity : world.velocities().entities()) {
-        auto velocity = world.velocities().try_get(entity);
-        auto transform = world.transforms().try_get(entity);
+    for (auto entity : world.registry().pool<Velocity>().entities()) {
+        auto velocity = world.registry().try_get<Velocity>(entity);
+        auto transform = world.registry().try_get<Transform>(entity);
         if (!velocity || !transform) {
             continue;
         }

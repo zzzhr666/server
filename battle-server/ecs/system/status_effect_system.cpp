@@ -37,8 +37,8 @@ namespace {
 
 
 void battle::ecs::status_effect_system(World& world, DeltaTime delta_time) {
-    for (auto entity : world.status_effects().entities()) {
-        auto status_effect = world.status_effects().try_get(entity);
+    for (auto entity : world.registry().pool<StatusEffects>().entities()) {
+        auto status_effect = world.registry().try_get<StatusEffects>(entity);
         if (!status_effect) {
             continue;
         }

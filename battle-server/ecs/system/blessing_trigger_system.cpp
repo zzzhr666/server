@@ -7,7 +7,7 @@
 #include "ecs/world.hpp"
 namespace {
     void handle_life_steal(battle::ecs::World& world, const battle::ecs::DamageAppliedEvent& event) {
-        auto health = world.health().try_get(event.source);
+        auto health = world.registry().try_get<battle::ecs::Health>(event.source);
         if (!health) {
             return;
         }
@@ -24,7 +24,7 @@ namespace {
         if (!blessing) {
             return;
         }
-        auto status_effect = world.status_effects().try_get(event.target);
+        auto status_effect = world.registry().try_get<battle::ecs::StatusEffects>(event.target);
         if (!status_effect) {
             return;
         }
@@ -43,7 +43,7 @@ namespace {
         if (!blessing) {
             return;
         }
-        auto status_effect = world.status_effects().try_get(event.target);
+        auto status_effect = world.registry().try_get<battle::ecs::StatusEffects>(event.target);
         if (!status_effect) {
             return;
         }

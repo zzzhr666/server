@@ -36,55 +36,57 @@ battle::ecs::World::World(std::initializer_list<sysFunc> functions, WorldBounds 
     : system_scheduler_(functions), bounds_(bounds), random_engine_(random_seed), percent_distribution_(1, 100) {}
 
 battle::ecs::Entity battle::ecs::World::create_player(CreatePlayerConfig config) {
-    Entity entity = entity_manager_.create();
-    transforms_.emplace(entity, Position{.x = config.position.x, .y = config.position.y},
-                        Direction{.x = 0.0f, .y = 1.0f});
-    velocities_.emplace(entity, 0.0f, 0.0f);
-    move_requests_.emplace(entity, 0.0f, 0.0f);
-    attack_requests_.emplace(entity, false);
-    dash_requests_.emplace(entity, false);
-    move_intents_.emplace(entity, 0.0f, 0.0f);
-    health_.emplace(entity, config.max_health, config.max_health);
-    character_stats_.emplace(entity, config.move_speed);
-    player_controllers_.emplace(entity);
-    attack_intents_.emplace(entity, false, AttackKind::Melee, 0, 0.0f, 0.0f);
-    dashes_.emplace(entity, DefaultPlayerDashCooldown, DefaultPlayerDashSpeedMultiplier);
-    dash_intents_.emplace(entity, false, 0.0f);
-    attack_definitions_.emplace(entity, config.attack.kind, config.attack.damage, config.attack.range,
-                                config.attack.cooldown_seconds, config.attack.projectile_speed);
-    attack_cooldowns_.emplace(entity, DeltaTime{0.0f});
-    dash_cooldowns_.emplace(entity, DeltaTime{0.0f});
-    player_progress_.emplace(entity, 1, 0, 100, 0);
-    blessings_inventories_.emplace(entity);
-    status_effects_.emplace(entity);
+    Entity entity = registry_.create();
+
+    registry_.emplace<Transform>(entity, Position{.x = config.position.x, .y = config.position.y},
+                                 Direction{.x = 0.0f, .y = 1.0f});
+    registry_.emplace<Velocity>(entity, 0.0f, 0.0f);
+    registry_.emplace<MoveRequest>(entity, 0.0f, 0.0f);
+
+    registry_.emplace<AttackRequest>(entity, false);
+    registry_.emplace<DashRequest>(entity, false);
+    registry_.emplace<MoveIntent>(entity, 0.0f, 0.0f);
+    registry_.emplace<Health>(entity, config.max_health, config.max_health);
+    registry_.emplace<CharacterStats>(entity, config.move_speed);
+    registry_.emplace<PlayerController>(entity);
+    registry_.emplace<AttackIntent>(entity, false, AttackKind::Melee, 0, 0.0f, 0.0f);
+    registry_.emplace<Dash>(entity, DefaultPlayerDashCooldown, DefaultPlayerDashSpeedMultiplier);
+    registry_.emplace<DashIntent>(entity, false, 0.0f);
+    registry_.emplace<AttackDefinition>(entity, config.attack.kind, config.attack.damage, config.attack.range,
+                                        config.attack.cooldown_seconds, config.attack.projectile_speed);
+    registry_.emplace<AttackCooldown>(entity, DeltaTime{0.0f});
+    registry_.emplace<DashCooldown>(entity, DeltaTime{0.0f});
+    registry_.emplace<PlayerProgress>(entity, 1, 0, 100, 0);
+    registry_.emplace<BlessingInventory>(entity);
+    registry_.emplace<StatusEffects>(entity);
     return entity;
 }
 
 battle::ecs::Entity battle::ecs::World::create_monster(CreateMonsterConfig config) {
-    Entity entity = entity_manager_.create();
-    transforms_.emplace(entity, Position{.x = config.x_position, .y = config.y_position},
-                        Direction{.x = 0.0f, .y = 1.0f});
-    velocities_.emplace(entity, 0.0f, 0.0f);
-    health_.emplace(entity, config.max_health, config.max_health);
-    character_stats_.emplace(entity, config.move_speed);
-    monster_controllers_.emplace(entity);
-    attack_requests_.emplace(entity, false);
-    attack_intents_.emplace(entity, false, AttackKind::Melee, 0, 0.0f, 0.0f);
-    attack_definitions_.emplace(entity, config.attack.kind, config.attack.damage, config.attack.range,
-                                config.attack.cooldown_seconds, config.attack.projectile_speed);
-    attack_cooldowns_.emplace(entity, DeltaTime{0.0f});
-    monster_identities_.emplace(entity, config.kind);
-    status_effects_.emplace(entity);
+    Entity entity = registry_.create();
+    registry_.emplace<Transform>(entity, Position{.x = config.x_position, .y = config.y_position},
+                                 Direction{.x = 0.0f, .y = 1.0f});
+    registry_.emplace<Velocity>(entity, 0.0f, 0.0f);
+    registry_.emplace<Health>(entity, config.max_health, config.max_health);
+    registry_.emplace<CharacterStats>(entity, config.move_speed);
+    registry_.emplace<MonsterController>(entity);
+    registry_.emplace<AttackRequest>(entity, false);
+    registry_.emplace<AttackIntent>(entity, false, AttackKind::Melee, 0, 0.0f, 0.0f);
+    registry_.emplace<AttackDefinition>(entity, config.attack.kind, config.attack.damage, config.attack.range,
+                                        config.attack.cooldown_seconds, config.attack.projectile_speed);
+    registry_.emplace<AttackCooldown>(entity, DeltaTime{0.0f});
+    registry_.emplace<MonsterIdentity>(entity, config.kind);
+    registry_.emplace<StatusEffects>(entity);
     return entity;
 }
 
 bool battle::ecs::World::has_entity(Entity entity) const {
-    return entity_manager_.has(entity);
+    return registry_.valid(entity);
 }
 
 
 bool battle::ecs::World::set_player_command(Entity entity, PlayerCommand command) {
-    if (!player_controllers_.has(entity)) {
+    if (!registry_.has<PlayerController>(entity)) {
         return false;
     }
     const bool move_set = set_move_request_(entity, command.move_x, command.move_y);
@@ -94,7 +96,7 @@ bool battle::ecs::World::set_player_command(Entity entity, PlayerCommand command
 }
 
 bool battle::ecs::World::set_move_request_(Entity entity, float x, float y) {
-    auto* move_request = move_requests_.try_get(entity);
+    auto* move_request = registry_.try_get<MoveRequest>(entity);
     if (!move_request) {
         return false;
     }
@@ -104,7 +106,7 @@ bool battle::ecs::World::set_move_request_(Entity entity, float x, float y) {
 }
 
 bool battle::ecs::World::set_attack_request_(Entity entity, bool requested) {
-    auto* attack_request = attack_requests_.try_get(entity);
+    auto* attack_request = registry_.try_get<AttackRequest>(entity);
     if (!attack_request) {
         return false;
     }
@@ -113,7 +115,7 @@ bool battle::ecs::World::set_attack_request_(Entity entity, bool requested) {
 }
 
 bool battle::ecs::World::set_dash_request_(Entity entity, bool requested) {
-    auto* dash_request = dash_requests_.try_get(entity);
+    auto* dash_request = registry_.try_get<DashRequest>(entity);
     if (!dash_request) {
         return false;
     }
@@ -121,28 +123,7 @@ bool battle::ecs::World::set_dash_request_(Entity entity, bool requested) {
     return true;
 }
 
-void battle::ecs::World::clear_components_(Entity entity) {
-    transforms_.remove(entity);
-    velocities_.remove(entity);
-    character_stats_.remove(entity);
-    move_requests_.remove(entity);
-    attack_requests_.remove(entity);
-    move_intents_.remove(entity);
-    health_.remove(entity);
-    player_controllers_.remove(entity);
-    monster_controllers_.remove(entity);
-    attack_cooldowns_.remove(entity);
-    attack_intents_.remove(entity);
-    attack_definitions_.remove(entity);
-    dash_requests_.remove(entity);
-    dash_intents_.remove(entity);
-    dashes_.remove(entity);
-    dash_cooldowns_.remove(entity);
-    monster_identities_.remove(entity);
-    player_progress_.remove(entity);
-    blessings_inventories_.remove(entity);
-    status_effects_.remove(entity);
-}
+
 
 
 void battle::ecs::World::tick(DeltaTime delta_time) {
@@ -163,13 +144,13 @@ void battle::ecs::World::add_damage_applied_event(DamageAppliedEvent event) {
 
 battle::ecs::WorldSnapshot battle::ecs::World::snapshot() const {
     WorldSnapshot snap_shot;
-    for (const auto entity : entity_manager_.entities()) {
-        auto* transform = transforms_.try_get(entity);
-        auto* health = health_.try_get(entity);
+    for (const auto entity : registry_.entities()) {
+        auto* transform = registry_.try_get<Transform>(entity);
+        auto* health =registry_.try_get<Health>(entity);
         auto kind = EntityKind::Unknown;
-        if (player_controllers_.has(entity)) {
+        if (registry_.has<PlayerController>(entity)) {
             kind = EntityKind::Player;
-        } else if (monster_controllers_.has(entity)) {
+        } else if (registry_.has<MonsterController>(entity)) {
             kind = EntityKind::Monster;
         }
         if (transform && health) {
@@ -182,9 +163,5 @@ battle::ecs::WorldSnapshot battle::ecs::World::snapshot() const {
 }
 
 bool battle::ecs::World::destroy_entity(Entity entity) {
-    if (!entity_manager_.destroy(entity)) {
-        return false;
-    }
-    clear_components_(entity);
-    return true;
+    return registry_.destroy(entity);
 }

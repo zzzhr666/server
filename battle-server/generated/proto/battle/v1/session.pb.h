@@ -1706,8 +1706,8 @@ class EntitySnapshot final : public ::google::protobuf::Message
     kYDirectionFieldNumber = 5,
     kCurrentHealthFieldNumber = 6,
     kMaxHealthFieldNumber = 7,
-    kKindFieldNumber = 8,
     kPlayerIdFieldNumber = 9,
+    kKindFieldNumber = 8,
   };
   // string monster_kind = 10;
   void clear_monster_kind() ;
@@ -1724,14 +1724,14 @@ class EntitySnapshot final : public ::google::protobuf::Message
   ::std::string* PROTOBUF_NONNULL _internal_mutable_monster_kind();
 
   public:
-  // uint32 entity = 1;
+  // uint64 entity = 1;
   void clear_entity() ;
-  ::uint32_t entity() const;
-  void set_entity(::uint32_t value);
+  ::uint64_t entity() const;
+  void set_entity(::uint64_t value);
 
   private:
-  ::uint32_t _internal_entity() const;
-  void _internal_set_entity(::uint32_t value);
+  ::uint64_t _internal_entity() const;
+  void _internal_set_entity(::uint64_t value);
 
   public:
   // float x_position = 2;
@@ -1794,16 +1794,6 @@ class EntitySnapshot final : public ::google::protobuf::Message
   void _internal_set_max_health(::int32_t value);
 
   public:
-  // .battle.v1.EntityKind kind = 8;
-  void clear_kind() ;
-  ::battle::v1::EntityKind kind() const;
-  void set_kind(::battle::v1::EntityKind value);
-
-  private:
-  ::battle::v1::EntityKind _internal_kind() const;
-  void _internal_set_kind(::battle::v1::EntityKind value);
-
-  public:
   // int64 player_id = 9;
   void clear_player_id() ;
   ::int64_t player_id() const;
@@ -1812,6 +1802,16 @@ class EntitySnapshot final : public ::google::protobuf::Message
   private:
   ::int64_t _internal_player_id() const;
   void _internal_set_player_id(::int64_t value);
+
+  public:
+  // .battle.v1.EntityKind kind = 8;
+  void clear_kind() ;
+  ::battle::v1::EntityKind kind() const;
+  void set_kind(::battle::v1::EntityKind value);
+
+  private:
+  ::battle::v1::EntityKind _internal_kind() const;
+  void _internal_set_kind(::battle::v1::EntityKind value);
 
   public:
   // @@protoc_insertion_point(class_scope:battle.v1.EntitySnapshot)
@@ -1841,15 +1841,15 @@ class EntitySnapshot final : public ::google::protobuf::Message
     ::google::protobuf::internal::HasBits<1> _has_bits_;
     ::google::protobuf::internal::CachedSize _cached_size_;
     ::google::protobuf::internal::ArenaStringPtr monster_kind_;
-    ::uint32_t entity_;
+    ::uint64_t entity_;
     float x_position_;
     float y_position_;
     float x_direction_;
     float y_direction_;
     ::int32_t current_health_;
     ::int32_t max_health_;
-    int kind_;
     ::int64_t player_id_;
+    int kind_;
     PROTOBUF_TSAN_DECLARE_MEMBER
   };
   union { Impl_ _impl_; };
@@ -6123,26 +6123,26 @@ inline void ClientInput::_internal_set_dash_requested(bool value) {
 
 // EntitySnapshot
 
-// uint32 entity = 1;
+// uint64 entity = 1;
 inline void EntitySnapshot::clear_entity() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_.entity_ = 0u;
+  _impl_.entity_ = ::uint64_t{0u};
   _impl_._has_bits_[0] &= ~0x00000002u;
 }
-inline ::uint32_t EntitySnapshot::entity() const {
+inline ::uint64_t EntitySnapshot::entity() const {
   // @@protoc_insertion_point(field_get:battle.v1.EntitySnapshot.entity)
   return _internal_entity();
 }
-inline void EntitySnapshot::set_entity(::uint32_t value) {
+inline void EntitySnapshot::set_entity(::uint64_t value) {
   _internal_set_entity(value);
   _impl_._has_bits_[0] |= 0x00000002u;
   // @@protoc_insertion_point(field_set:battle.v1.EntitySnapshot.entity)
 }
-inline ::uint32_t EntitySnapshot::_internal_entity() const {
+inline ::uint64_t EntitySnapshot::_internal_entity() const {
   ::google::protobuf::internal::TSanRead(&_impl_);
   return _impl_.entity_;
 }
-inline void EntitySnapshot::_internal_set_entity(::uint32_t value) {
+inline void EntitySnapshot::_internal_set_entity(::uint64_t value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.entity_ = value;
 }
@@ -6295,7 +6295,7 @@ inline void EntitySnapshot::_internal_set_max_health(::int32_t value) {
 inline void EntitySnapshot::clear_kind() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.kind_ = 0;
-  _impl_._has_bits_[0] &= ~0x00000100u;
+  _impl_._has_bits_[0] &= ~0x00000200u;
 }
 inline ::battle::v1::EntityKind EntitySnapshot::kind() const {
   // @@protoc_insertion_point(field_get:battle.v1.EntitySnapshot.kind)
@@ -6303,7 +6303,7 @@ inline ::battle::v1::EntityKind EntitySnapshot::kind() const {
 }
 inline void EntitySnapshot::set_kind(::battle::v1::EntityKind value) {
   _internal_set_kind(value);
-  _impl_._has_bits_[0] |= 0x00000100u;
+  _impl_._has_bits_[0] |= 0x00000200u;
   // @@protoc_insertion_point(field_set:battle.v1.EntitySnapshot.kind)
 }
 inline ::battle::v1::EntityKind EntitySnapshot::_internal_kind() const {
@@ -6319,7 +6319,7 @@ inline void EntitySnapshot::_internal_set_kind(::battle::v1::EntityKind value) {
 inline void EntitySnapshot::clear_player_id() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.player_id_ = ::int64_t{0};
-  _impl_._has_bits_[0] &= ~0x00000200u;
+  _impl_._has_bits_[0] &= ~0x00000100u;
 }
 inline ::int64_t EntitySnapshot::player_id() const {
   // @@protoc_insertion_point(field_get:battle.v1.EntitySnapshot.player_id)
@@ -6327,7 +6327,7 @@ inline ::int64_t EntitySnapshot::player_id() const {
 }
 inline void EntitySnapshot::set_player_id(::int64_t value) {
   _internal_set_player_id(value);
-  _impl_._has_bits_[0] |= 0x00000200u;
+  _impl_._has_bits_[0] |= 0x00000100u;
   // @@protoc_insertion_point(field_set:battle.v1.EntitySnapshot.player_id)
 }
 inline ::int64_t EntitySnapshot::_internal_player_id() const {

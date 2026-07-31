@@ -3,9 +3,9 @@
 #include "ecs/world.hpp"
 
 void battle::ecs::dash_system(World& world, DeltaTime deltaTime) {
-    for (auto entity : world.dash_intents().entities()) {
-        auto intent = world.dash_intents().try_get(entity);
-        auto velocity = world.velocities().try_get(entity);
+    for (auto entity : world.registry().pool<DashIntent>().entities()) {
+        auto intent = world.registry().try_get<DashIntent>(entity);
+        auto velocity = world.registry().try_get<Velocity>(entity);
         if (!intent || !intent->active || !velocity) {
             continue;
         }

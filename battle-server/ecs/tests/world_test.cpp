@@ -35,10 +35,10 @@ TEST(WorldTest, CreatePlayerReturnsLiveEntityWithInitialTransform) {
 
     auto entity = world.create_player(default_player_config());
 
-    EXPECT_NE(entity, INVALID_ENTITY);
+    EXPECT_TRUE(entity);
     EXPECT_TRUE(world.has_entity(entity));
 
-    const auto& transform = world.transforms().get(entity);
+    const auto& transform = world.registry().get<Transform>(entity);
     EXPECT_FLOAT_EQ(transform.position.x, 10.0f);
     EXPECT_FLOAT_EQ(transform.position.y, 20.0f);
     EXPECT_FLOAT_EQ(transform.direction.x, 0.0f);
@@ -51,11 +51,11 @@ TEST(WorldTest, CreatePlayerAllowsMultiplePlayerControlledEntities) {
     auto first = world.create_player(default_player_config());
     auto second = world.create_player(default_player_config());
 
-    EXPECT_NE(first, INVALID_ENTITY);
-    EXPECT_NE(second, INVALID_ENTITY);
+    EXPECT_TRUE(first);
+    EXPECT_TRUE(second);
     EXPECT_NE(first, second);
-    EXPECT_TRUE(world.player_controllers().has(first));
-    EXPECT_TRUE(world.player_controllers().has(second));
+    EXPECT_TRUE(world.registry().has<PlayerController>(first));
+    EXPECT_TRUE(world.registry().has<PlayerController>(second));
 }
 
 TEST(WorldTest, CreatePlayerInitializesBlessingInventory) {
@@ -63,8 +63,8 @@ TEST(WorldTest, CreatePlayerInitializesBlessingInventory) {
 
     auto entity = world.create_player(default_player_config());
 
-    ASSERT_TRUE(world.blessing_inventories().has(entity));
-    EXPECT_TRUE(world.blessing_inventories().get(entity).blessings.empty());
+    ASSERT_TRUE(world.registry().has<BlessingInventory>(entity));
+    EXPECT_TRUE(world.registry().get<BlessingInventory>(entity).blessings.empty());
 }
 
 TEST(WorldTest, CreatePlayerInitializesStatusEffects) {
@@ -72,9 +72,9 @@ TEST(WorldTest, CreatePlayerInitializesStatusEffects) {
 
     auto entity = world.create_player(default_player_config());
 
-    ASSERT_TRUE(world.status_effects().has(entity));
-    EXPECT_TRUE(world.status_effects().get(entity).burns.empty());
-    EXPECT_FALSE(world.status_effects().get(entity).freeze.has_value());
+    ASSERT_TRUE(world.registry().has<StatusEffects>(entity));
+    EXPECT_TRUE(world.registry().get<StatusEffects>(entity).burns.empty());
+    EXPECT_FALSE(world.registry().get<StatusEffects>(entity).freeze.has_value());
 }
 
 TEST(WorldTest, BlessingConfigScalesEffectValuesWithLevel) {
@@ -103,18 +103,18 @@ TEST(WorldTest, CreatePlayerInitializesAttackComponentsFromConfig) {
         },
     });
 
-    ASSERT_TRUE(world.attack_intents().has(entity));
-    ASSERT_TRUE(world.attack_requests().has(entity));
-    ASSERT_TRUE(world.attack_definitions().has(entity));
-    ASSERT_TRUE(world.attack_cooldowns().has(entity));
+    ASSERT_TRUE(world.registry().has<AttackIntent>(entity));
+    ASSERT_TRUE(world.registry().has<AttackRequest>(entity));
+    ASSERT_TRUE(world.registry().has<AttackDefinition>(entity));
+    ASSERT_TRUE(world.registry().has<AttackCooldown>(entity));
 
-    const auto& attack_intent = world.attack_intents().get(entity);
-    const auto& attack = world.attack_definitions().get(entity);
-    const auto& cooldown = world.attack_cooldowns().get(entity);
+    const auto& attack_intent = world.registry().get<AttackIntent>(entity);
+    const auto& attack = world.registry().get<AttackDefinition>(entity);
+    const auto& cooldown = world.registry().get<AttackCooldown>(entity);
     EXPECT_FALSE(attack_intent.active);
     EXPECT_EQ(attack_intent.damage, 0);
     EXPECT_FLOAT_EQ(attack_intent.range, 0.0f);
-    EXPECT_FALSE(world.attack_requests().get(entity).requested);
+    EXPECT_FALSE(world.registry().get<AttackRequest>(entity).requested);
     EXPECT_EQ(attack.kind, AttackKind::Melee);
     EXPECT_EQ(attack.damage, 30);
     EXPECT_FLOAT_EQ(attack.range, 2.0f);
@@ -125,7 +125,7 @@ TEST(WorldTest, CreatePlayerInitializesAttackComponentsFromConfig) {
 TEST(WorldTest, SetPlayerCommandReturnsFalseForUnknownEntity) {
     World world;
 
-    EXPECT_FALSE(world.set_player_command(404, PlayerCommand{
+    EXPECT_FALSE(world.set_player_command(Entity{}, PlayerCommand{
                                                    .move_x = 1.0f,
                                                    .move_y = 0.0f,
                                                    .attack_requested = false,
@@ -144,10 +144,10 @@ TEST(WorldTest, SetPlayerCommandWritesMoveAndAttackRequests) {
                                                      .dash_requested = false,
                                                  }));
 
-    EXPECT_FLOAT_EQ(world.move_requests().get(entity).x, 1.0f);
-    EXPECT_FLOAT_EQ(world.move_requests().get(entity).y, 0.0f);
-    EXPECT_TRUE(world.attack_requests().get(entity).requested);
-    EXPECT_FALSE(world.attack_intents().get(entity).active);
+    EXPECT_FLOAT_EQ(world.registry().get<MoveRequest>(entity).x, 1.0f);
+    EXPECT_FLOAT_EQ(world.registry().get<MoveRequest>(entity).y, 0.0f);
+    EXPECT_TRUE(world.registry().get<AttackRequest>(entity).requested);
+    EXPECT_FALSE(world.registry().get<AttackIntent>(entity).active);
 }
 
 TEST(WorldTest, SetPlayerCommandReturnsFalseForMonster) {
@@ -183,12 +183,12 @@ TEST(WorldTest, TickResolvesAttackRequestIntoAttackIntent) {
                                                  }));
     world.tick(DeltaTime{0.0f});
 
-    const auto& intent = world.attack_intents().get(entity);
+    const auto& intent = world.registry().get<AttackIntent>(entity);
     EXPECT_TRUE(intent.active);
     EXPECT_EQ(intent.damage, 30);
     EXPECT_FLOAT_EQ(intent.range, 2.0f);
-    EXPECT_FALSE(world.attack_requests().get(entity).requested);
-    EXPECT_FLOAT_EQ(world.attack_cooldowns().get(entity).remaining_seconds.count(), 0.75f);
+    EXPECT_FALSE(world.registry().get<AttackRequest>(entity).requested);
+    EXPECT_FLOAT_EQ(world.registry().get<AttackCooldown>(entity).remaining_seconds.count(), 0.75f);
 }
 
 TEST(WorldTest, TickDoesNotResolveAttackRequestDuringCooldown) {
@@ -210,7 +210,7 @@ TEST(WorldTest, TickDoesNotResolveAttackRequestDuringCooldown) {
                                                      .dash_requested = false,
                                                  }));
     world.tick(DeltaTime{0.0f});
-    ASSERT_TRUE(world.attack_intents().get(entity).active);
+    ASSERT_TRUE(world.registry().get<AttackIntent>(entity).active);
 
     ASSERT_TRUE(world.set_player_command(entity, PlayerCommand{
                                                      .move_x = 0.0f,
@@ -220,12 +220,12 @@ TEST(WorldTest, TickDoesNotResolveAttackRequestDuringCooldown) {
                                                  }));
     world.tick(DeltaTime{0.1f});
 
-    const auto& intent = world.attack_intents().get(entity);
+    const auto& intent = world.registry().get<AttackIntent>(entity);
     EXPECT_FALSE(intent.active);
     EXPECT_EQ(intent.damage, 0);
     EXPECT_FLOAT_EQ(intent.range, 0.0f);
-    EXPECT_FALSE(world.attack_requests().get(entity).requested);
-    EXPECT_FLOAT_EQ(world.attack_cooldowns().get(entity).remaining_seconds.count(), 0.65f);
+    EXPECT_FALSE(world.registry().get<AttackRequest>(entity).requested);
+    EXPECT_FLOAT_EQ(world.registry().get<AttackCooldown>(entity).remaining_seconds.count(), 0.65f);
 }
 
 TEST(WorldTest, TickAllowsAttackAfterCooldownExpires) {
@@ -256,12 +256,12 @@ TEST(WorldTest, TickAllowsAttackAfterCooldownExpires) {
                                                  }));
     world.tick(DeltaTime{0.75f});
 
-    const auto& intent = world.attack_intents().get(entity);
+    const auto& intent = world.registry().get<AttackIntent>(entity);
     EXPECT_TRUE(intent.active);
     EXPECT_EQ(intent.damage, 30);
     EXPECT_FLOAT_EQ(intent.range, 2.0f);
-    EXPECT_FALSE(world.attack_requests().get(entity).requested);
-    EXPECT_FLOAT_EQ(world.attack_cooldowns().get(entity).remaining_seconds.count(), 0.75f);
+    EXPECT_FALSE(world.registry().get<AttackRequest>(entity).requested);
+    EXPECT_FLOAT_EQ(world.registry().get<AttackCooldown>(entity).remaining_seconds.count(), 0.75f);
 }
 
 TEST(WorldTest, TickDamagesMonsterInsideAttackRange) {
@@ -292,7 +292,7 @@ TEST(WorldTest, TickDamagesMonsterInsideAttackRange) {
     world.tick(DeltaTime{0.0f});
 
     EXPECT_TRUE(world.has_entity(monster));
-    EXPECT_EQ(world.health().get(monster).current_health, 30);
+    EXPECT_EQ(world.registry().get<Health>(monster).current_health, 30);
     EXPECT_TRUE(world.damage_events().empty());
 }
 
@@ -323,7 +323,7 @@ TEST(WorldTest, TickDoesNotDamageMonsterOutsideAttackRange) {
                                                  }));
     world.tick(DeltaTime{0.0f});
 
-    EXPECT_EQ(world.health().get(monster).current_health, 50);
+    EXPECT_EQ(world.registry().get<Health>(monster).current_health, 50);
     EXPECT_TRUE(world.damage_events().empty());
 }
 
@@ -358,7 +358,7 @@ TEST(WorldTest, TickDoesNotDamageOtherPlayers) {
                                                    }));
     world.tick(DeltaTime{0.0f});
 
-    EXPECT_EQ(world.health().get(teammate).current_health, 100);
+    EXPECT_EQ(world.registry().get<Health>(teammate).current_health, 100);
 }
 
 TEST(WorldTest, TickDestroysMonsterWhenHealthReachesZero) {
@@ -389,9 +389,9 @@ TEST(WorldTest, TickDestroysMonsterWhenHealthReachesZero) {
     world.tick(DeltaTime{0.0f});
 
     EXPECT_FALSE(world.has_entity(monster));
-    EXPECT_FALSE(world.health().has(monster));
-    EXPECT_FALSE(world.transforms().has(monster));
-    EXPECT_FALSE(world.monster_controllers().has(monster));
+    EXPECT_FALSE(world.registry().has<Health>(monster));
+    EXPECT_FALSE(world.registry().has<Transform>(monster));
+    EXPECT_FALSE(world.registry().has<MonsterController>(monster));
 }
 
 TEST(WorldTest, DamageEventReducesHealthAndIsCleared) {
@@ -408,7 +408,7 @@ TEST(WorldTest, DamageEventReducesHealthAndIsCleared) {
     world.tick(DeltaTime{0.0f});
 
     ASSERT_TRUE(world.has_entity(monster));
-    EXPECT_EQ(world.health().get(monster).current_health, 35);
+    EXPECT_EQ(world.registry().get<Health>(monster).current_health, 35);
     EXPECT_TRUE(world.damage_events().empty());
 }
 
@@ -426,7 +426,7 @@ TEST(WorldTest, DamageEventUsesModifiedDamage) {
     world.tick(DeltaTime{0.0f});
 
     ASSERT_TRUE(world.has_entity(monster));
-    EXPECT_EQ(world.health().get(monster).current_health, 20);
+    EXPECT_EQ(world.registry().get<Health>(monster).current_health, 20);
     EXPECT_TRUE(world.damage_events().empty());
 }
 
@@ -461,8 +461,8 @@ TEST(WorldTest, LifeStealHealsSourceFromAppliedAttackDamage) {
     World world({blessing_trigger_system});
     auto player = world.create_player(default_player_config());
     auto monster = world.create_monster(default_monster_config());
-    world.health().get(player).current_health = 40;
-    world.blessing_inventories().get(player).blessings.emplace_back(BlessingStack{
+    world.registry().get<Health>(player).current_health = 40;
+    world.registry().get<BlessingInventory>(player).blessings.emplace_back(BlessingStack{
         .blessing_id = BlessingID::LifeSteal,
         .level = 1,
     });
@@ -475,7 +475,7 @@ TEST(WorldTest, LifeStealHealsSourceFromAppliedAttackDamage) {
     });
     world.tick(DeltaTime{0.0f});
 
-    EXPECT_EQ(world.health().get(player).current_health, 50);
+    EXPECT_EQ(world.registry().get<Health>(player).current_health, 50);
     EXPECT_TRUE(world.damage_applied_events().empty());
 }
 
@@ -483,8 +483,8 @@ TEST(WorldTest, LifeStealDoesNotTriggerForNonAttackDamage) {
     World world({blessing_trigger_system});
     auto player = world.create_player(default_player_config());
     auto monster = world.create_monster(default_monster_config());
-    world.health().get(player).current_health = 40;
-    world.blessing_inventories().get(player).blessings.emplace_back(BlessingStack{
+    world.registry().get<Health>(player).current_health = 40;
+    world.registry().get<BlessingInventory>(player).blessings.emplace_back(BlessingStack{
         .blessing_id = BlessingID::LifeSteal,
         .level = 1,
     });
@@ -497,7 +497,7 @@ TEST(WorldTest, LifeStealDoesNotTriggerForNonAttackDamage) {
     });
     world.tick(DeltaTime{0.0f});
 
-    EXPECT_EQ(world.health().get(player).current_health, 40);
+    EXPECT_EQ(world.registry().get<Health>(player).current_health, 40);
     EXPECT_TRUE(world.damage_applied_events().empty());
 }
 
@@ -505,8 +505,8 @@ TEST(WorldTest, LifeStealClampsHealingToMaxHealth) {
     World world({blessing_trigger_system});
     auto player = world.create_player(default_player_config());
     auto monster = world.create_monster(default_monster_config());
-    world.health().get(player).current_health = DefaultPlayerMaxHealth - 5;
-    world.blessing_inventories().get(player).blessings.emplace_back(BlessingStack{
+    world.registry().get<Health>(player).current_health = DefaultPlayerMaxHealth - 5;
+    world.registry().get<BlessingInventory>(player).blessings.emplace_back(BlessingStack{
         .blessing_id = BlessingID::LifeSteal,
         .level = 1,
     });
@@ -519,7 +519,7 @@ TEST(WorldTest, LifeStealClampsHealingToMaxHealth) {
     });
     world.tick(DeltaTime{0.0f});
 
-    EXPECT_EQ(world.health().get(player).current_health, DefaultPlayerMaxHealth);
+    EXPECT_EQ(world.registry().get<Health>(player).current_health, DefaultPlayerMaxHealth);
     EXPECT_TRUE(world.damage_applied_events().empty());
 }
 
@@ -527,7 +527,7 @@ TEST(WorldTest, BurnOnHitAddsBurnStatusToTarget) {
     World world({blessing_trigger_system});
     auto player = world.create_player(default_player_config());
     auto monster = world.create_monster(default_monster_config());
-    world.blessing_inventories().get(player).blessings.emplace_back(BlessingStack{
+    world.registry().get<BlessingInventory>(player).blessings.emplace_back(BlessingStack{
         .blessing_id = BlessingID::BurnOnHit,
         .level = 1,
     });
@@ -540,8 +540,8 @@ TEST(WorldTest, BurnOnHitAddsBurnStatusToTarget) {
     });
     world.tick(DeltaTime{0.0f});
 
-    EXPECT_TRUE(world.status_effects().get(player).burns.empty());
-    const auto& burns = world.status_effects().get(monster).burns;
+    EXPECT_TRUE(world.registry().get<StatusEffects>(player).burns.empty());
+    const auto& burns = world.registry().get<StatusEffects>(monster).burns;
     ASSERT_EQ(burns.size(), 1);
     EXPECT_EQ(burns[0].source, player);
     EXPECT_FLOAT_EQ(burns[0].remaining_seconds.count(), burn_duration_seconds(1).count());
@@ -555,7 +555,7 @@ TEST(WorldTest, FreezeOnHitAddsFreezeStatusToTarget) {
     World world({blessing_trigger_system}, DefaultWorldBounds, 5);
     auto player = world.create_player(default_player_config());
     auto monster = world.create_monster(default_monster_config());
-    world.blessing_inventories().get(player).blessings.emplace_back(BlessingStack{
+    world.registry().get<BlessingInventory>(player).blessings.emplace_back(BlessingStack{
         .blessing_id = BlessingID::FreezeOnHit,
         .level = 1,
     });
@@ -568,11 +568,11 @@ TEST(WorldTest, FreezeOnHitAddsFreezeStatusToTarget) {
     });
     world.tick(DeltaTime{0.0f});
 
-    EXPECT_FALSE(world.status_effects().get(player).freeze.has_value());
-    const auto& freeze = world.status_effects().get(monster).freeze;
+    EXPECT_FALSE(world.registry().get<StatusEffects>(player).freeze.has_value());
+    const auto& freeze = world.registry().get<StatusEffects>(monster).freeze;
     ASSERT_TRUE(freeze.has_value());
     EXPECT_FLOAT_EQ(freeze->remaining_seconds.count(), freeze_duration_seconds(1).count());
-    EXPECT_TRUE(world.status_effects().get(monster).burns.empty());
+    EXPECT_TRUE(world.registry().get<StatusEffects>(monster).burns.empty());
     EXPECT_TRUE(world.damage_applied_events().empty());
 }
 
@@ -589,8 +589,8 @@ TEST(WorldTest, BlessingTriggerDoesNotAddStatusWithoutMatchingBlessing) {
     });
     world.tick(DeltaTime{0.0f});
 
-    EXPECT_TRUE(world.status_effects().get(monster).burns.empty());
-    EXPECT_FALSE(world.status_effects().get(monster).freeze.has_value());
+    EXPECT_TRUE(world.registry().get<StatusEffects>(monster).burns.empty());
+    EXPECT_FALSE(world.registry().get<StatusEffects>(monster).freeze.has_value());
     EXPECT_TRUE(world.damage_applied_events().empty());
 }
 
@@ -598,11 +598,11 @@ TEST(WorldTest, FreezeOnHitKeepsLongerExistingDuration) {
     World world({blessing_trigger_system}, DefaultWorldBounds, 5);
     auto player = world.create_player(default_player_config());
     auto monster = world.create_monster(default_monster_config());
-    world.blessing_inventories().get(player).blessings.emplace_back(BlessingStack{
+    world.registry().get<BlessingInventory>(player).blessings.emplace_back(BlessingStack{
         .blessing_id = BlessingID::FreezeOnHit,
         .level = 1,
     });
-    world.status_effects().get(monster).freeze = FreezeStatus{
+    world.registry().get<StatusEffects>(monster).freeze = FreezeStatus{
         .remaining_seconds = DeltaTime{5.0f},
     };
 
@@ -614,8 +614,8 @@ TEST(WorldTest, FreezeOnHitKeepsLongerExistingDuration) {
     });
     world.tick(DeltaTime{0.0f});
 
-    ASSERT_TRUE(world.status_effects().get(monster).freeze.has_value());
-    EXPECT_FLOAT_EQ(world.status_effects().get(monster).freeze->remaining_seconds.count(), 5.0f);
+    ASSERT_TRUE(world.registry().get<StatusEffects>(monster).freeze.has_value());
+    EXPECT_FLOAT_EQ(world.registry().get<StatusEffects>(monster).freeze->remaining_seconds.count(), 5.0f);
     EXPECT_TRUE(world.damage_applied_events().empty());
 }
 
@@ -623,7 +623,7 @@ TEST(WorldTest, BurnStatusAddsDamageEventAfterTickInterval) {
     World world({status_effect_system});
     auto player = world.create_player(default_player_config());
     auto monster = world.create_monster(default_monster_config());
-    world.status_effects().get(monster).burns.emplace_back(BurnStatus{
+    world.registry().get<StatusEffects>(monster).burns.emplace_back(BurnStatus{
         .source = player,
         .remaining_seconds = DeltaTime{3.0f},
         .tick_interval_seconds = DeltaTime{1.0f},
@@ -634,9 +634,9 @@ TEST(WorldTest, BurnStatusAddsDamageEventAfterTickInterval) {
     world.tick(DeltaTime{0.5f});
 
     EXPECT_TRUE(world.damage_events().empty());
-    ASSERT_EQ(world.status_effects().get(monster).burns.size(), 1);
-    EXPECT_FLOAT_EQ(world.status_effects().get(monster).burns[0].remaining_seconds.count(), 2.5f);
-    EXPECT_FLOAT_EQ(world.status_effects().get(monster).burns[0].tick_timer_seconds.count(), 0.5f);
+    ASSERT_EQ(world.registry().get<StatusEffects>(monster).burns.size(), 1);
+    EXPECT_FLOAT_EQ(world.registry().get<StatusEffects>(monster).burns[0].remaining_seconds.count(), 2.5f);
+    EXPECT_FLOAT_EQ(world.registry().get<StatusEffects>(monster).burns[0].tick_timer_seconds.count(), 0.5f);
 
     world.tick(DeltaTime{0.5f});
 
@@ -647,15 +647,15 @@ TEST(WorldTest, BurnStatusAddsDamageEventAfterTickInterval) {
     EXPECT_EQ(event.base_damage, 5);
     EXPECT_EQ(event.modified_damage, 5);
     EXPECT_EQ(event.source_kind, DamageSourceKind::Burn);
-    ASSERT_EQ(world.status_effects().get(monster).burns.size(), 1);
-    EXPECT_FLOAT_EQ(world.status_effects().get(monster).burns[0].tick_timer_seconds.count(), 0.0f);
+    ASSERT_EQ(world.registry().get<StatusEffects>(monster).burns.size(), 1);
+    EXPECT_FLOAT_EQ(world.registry().get<StatusEffects>(monster).burns[0].tick_timer_seconds.count(), 0.0f);
 }
 
 TEST(WorldTest, BurnStatusExpiresAndIsRemoved) {
     World world({status_effect_system});
     auto player = world.create_player(default_player_config());
     auto monster = world.create_monster(default_monster_config());
-    world.status_effects().get(monster).burns.emplace_back(BurnStatus{
+    world.registry().get<StatusEffects>(monster).burns.emplace_back(BurnStatus{
         .source = player,
         .remaining_seconds = DeltaTime{0.25f},
         .tick_interval_seconds = DeltaTime{1.0f},
@@ -665,27 +665,27 @@ TEST(WorldTest, BurnStatusExpiresAndIsRemoved) {
 
     world.tick(DeltaTime{0.25f});
 
-    EXPECT_TRUE(world.status_effects().get(monster).burns.empty());
+    EXPECT_TRUE(world.registry().get<StatusEffects>(monster).burns.empty());
     EXPECT_TRUE(world.damage_events().empty());
 }
 
 TEST(WorldTest, FreezeStatusExpiresAndIsRemoved) {
     World world({status_effect_system});
     auto monster = world.create_monster(default_monster_config());
-    world.status_effects().get(monster).freeze = FreezeStatus{
+    world.registry().get<StatusEffects>(monster).freeze = FreezeStatus{
         .remaining_seconds = DeltaTime{0.25f},
     };
 
     world.tick(DeltaTime{0.25f});
 
-    EXPECT_FALSE(world.status_effects().get(monster).freeze.has_value());
+    EXPECT_FALSE(world.registry().get<StatusEffects>(monster).freeze.has_value());
 }
 
 TEST(WorldTest, CriticalStrikeCanDoubleAttackDamage) {
     World world({damage_modify_system, damage_system}, DefaultWorldBounds, 5);
     auto player = world.create_player(default_player_config());
     auto monster = world.create_monster(default_monster_config());
-    world.blessing_inventories().get(player).blessings.emplace_back(BlessingStack{
+    world.registry().get<BlessingInventory>(player).blessings.emplace_back(BlessingStack{
         .blessing_id = BlessingID::CriticalStrike,
         .level = 1,
     });
@@ -700,7 +700,7 @@ TEST(WorldTest, CriticalStrikeCanDoubleAttackDamage) {
     world.tick(DeltaTime{0.0f});
 
     ASSERT_TRUE(world.has_entity(monster));
-    EXPECT_EQ(world.health().get(monster).current_health, 20);
+    EXPECT_EQ(world.registry().get<Health>(monster).current_health, 20);
     EXPECT_TRUE(world.damage_events().empty());
 }
 
@@ -718,7 +718,7 @@ TEST(WorldTest, DamageEventWithNegativeDamageDoesNotChangeHealth) {
     world.tick(DeltaTime{0.0f});
 
     ASSERT_TRUE(world.has_entity(monster));
-    EXPECT_EQ(world.health().get(monster).current_health, 50);
+    EXPECT_EQ(world.registry().get<Health>(monster).current_health, 50);
     EXPECT_TRUE(world.damage_events().empty());
     EXPECT_TRUE(world.damage_applied_events().empty());
 }
@@ -804,7 +804,7 @@ TEST(WorldTest, TickMovesPlayerByInputDirectionAndMoveSpeed) {
                                                  }));
     world.tick(DeltaTime{1.0f});
 
-    const auto& transform = world.transforms().get(entity);
+    const auto& transform = world.registry().get<Transform>(entity);
     EXPECT_FLOAT_EQ(transform.position.x, 22.0f);
     EXPECT_FLOAT_EQ(transform.position.y, 20.0f);
     EXPECT_FLOAT_EQ(transform.direction.x, 1.0f);
@@ -832,7 +832,7 @@ TEST(WorldTest, TickClampsPlayerPositionToWorldBounds) {
                                                  }));
     world.tick(DeltaTime{1.0f});
 
-    const auto& transform = world.transforms().get(entity);
+    const auto& transform = world.registry().get<Transform>(entity);
     EXPECT_FLOAT_EQ(transform.position.x, 1.0f);
     EXPECT_FLOAT_EQ(transform.position.y, 0.0f);
     EXPECT_FLOAT_EQ(transform.direction.x, 1.0f);
@@ -851,13 +851,13 @@ TEST(WorldTest, TickDashMovesPlayerWithDashSpeedMultiplierOnce) {
                                                  }));
     world.tick(DeltaTime{1.0f});
 
-    const auto& transform = world.transforms().get(entity);
+    const auto& transform = world.registry().get<Transform>(entity);
     EXPECT_FLOAT_EQ(transform.position.x, 130.0f);
     EXPECT_FLOAT_EQ(transform.position.y, 20.0f);
     EXPECT_FLOAT_EQ(transform.direction.x, 1.0f);
     EXPECT_FLOAT_EQ(transform.direction.y, 0.0f);
-    EXPECT_FALSE(world.dash_requests().get(entity).requested);
-    EXPECT_FLOAT_EQ(world.dash_cooldowns().get(entity).remaining_seconds.count(), 1.0f);
+    EXPECT_FALSE(world.registry().get<DashRequest>(entity).requested);
+    EXPECT_FLOAT_EQ(world.registry().get<DashCooldown>(entity).remaining_seconds.count(), 1.0f);
 }
 
 TEST(WorldTest, TickDoesNotDashAgainDuringCooldown) {
@@ -880,11 +880,11 @@ TEST(WorldTest, TickDoesNotDashAgainDuringCooldown) {
                                                  }));
     world.tick(DeltaTime{0.5f});
 
-    const auto& transform = world.transforms().get(entity);
+    const auto& transform = world.registry().get<Transform>(entity);
     EXPECT_FLOAT_EQ(transform.position.x, 136.0f);
     EXPECT_FLOAT_EQ(transform.position.y, 20.0f);
-    EXPECT_FALSE(world.dash_requests().get(entity).requested);
-    EXPECT_FLOAT_EQ(world.dash_cooldowns().get(entity).remaining_seconds.count(), 0.5f);
+    EXPECT_FALSE(world.registry().get<DashRequest>(entity).requested);
+    EXPECT_FLOAT_EQ(world.registry().get<DashCooldown>(entity).remaining_seconds.count(), 0.5f);
 }
 
 TEST(WorldTest, TickUsesDeltaSecondsOnce) {
@@ -899,7 +899,7 @@ TEST(WorldTest, TickUsesDeltaSecondsOnce) {
                                                  }));
     world.tick(DeltaTime{0.5f});
 
-    const auto& transform = world.transforms().get(entity);
+    const auto& transform = world.registry().get<Transform>(entity);
     EXPECT_FLOAT_EQ(transform.position.x, 16.0f);
     EXPECT_FLOAT_EQ(transform.position.y, 20.0f);
 }
@@ -916,7 +916,7 @@ TEST(WorldTest, TickMovesPlayerInNegativeInputDirection) {
                                                  }));
     world.tick(DeltaTime{1.0f});
 
-    const auto& transform = world.transforms().get(entity);
+    const auto& transform = world.registry().get<Transform>(entity);
     EXPECT_FLOAT_EQ(transform.position.x, -2.0f);
     EXPECT_FLOAT_EQ(transform.position.y, 20.0f);
     EXPECT_FLOAT_EQ(transform.direction.x, -1.0f);
@@ -935,7 +935,7 @@ TEST(WorldTest, TickNormalizesDiagonalMoveIntent) {
                                                  }));
     world.tick(DeltaTime{1.0f});
 
-    const auto& transform = world.transforms().get(entity);
+    const auto& transform = world.registry().get<Transform>(entity);
     const float expected_delta = DefaultPlayerMoveSpeed / std::sqrt(2.0f);
     EXPECT_NEAR(transform.position.x, 10.0f + expected_delta, 0.001f);
     EXPECT_NEAR(transform.position.y, 20.0f + expected_delta, 0.001f);
@@ -962,7 +962,7 @@ TEST(WorldTest, TickWithZeroMoveIntentDoesNotMoveOrChangeDirection) {
                                                  }));
     world.tick(DeltaTime{1.0f});
 
-    const auto& transform = world.transforms().get(entity);
+    const auto& transform = world.registry().get<Transform>(entity);
     EXPECT_FLOAT_EQ(transform.position.x, 22.0f);
     EXPECT_FLOAT_EQ(transform.position.y, 20.0f);
     EXPECT_FLOAT_EQ(transform.direction.x, 1.0f);
@@ -978,21 +978,21 @@ TEST(WorldTest, DestroyPlayerRemovesEntityAndPlayerComponents) {
     EXPECT_TRUE(world.destroy_entity(entity));
 
     EXPECT_FALSE(world.has_entity(entity));
-    EXPECT_FALSE(world.transforms().has(entity));
-    EXPECT_FALSE(world.player_controllers().has(entity));
-    EXPECT_FALSE(world.attack_intents().has(entity));
-    EXPECT_FALSE(world.attack_requests().has(entity));
-    EXPECT_FALSE(world.attack_definitions().has(entity));
-    EXPECT_FALSE(world.attack_cooldowns().has(entity));
-    EXPECT_FALSE(world.move_requests().has(entity));
-    EXPECT_FALSE(world.move_intents().has(entity));
-    EXPECT_FALSE(world.dash_requests().has(entity));
-    EXPECT_FALSE(world.dash_intents().has(entity));
-    EXPECT_FALSE(world.dashes().has(entity));
-    EXPECT_FALSE(world.dash_cooldowns().has(entity));
-    EXPECT_FALSE(world.player_progress().has(entity));
-    EXPECT_FALSE(world.blessing_inventories().has(entity));
-    EXPECT_FALSE(world.status_effects().has(entity));
+    EXPECT_FALSE(world.registry().has<Transform>(entity));
+    EXPECT_FALSE(world.registry().has<PlayerController>(entity));
+    EXPECT_FALSE(world.registry().has<AttackIntent>(entity));
+    EXPECT_FALSE(world.registry().has<AttackRequest>(entity));
+    EXPECT_FALSE(world.registry().has<AttackDefinition>(entity));
+    EXPECT_FALSE(world.registry().has<AttackCooldown>(entity));
+    EXPECT_FALSE(world.registry().has<MoveRequest>(entity));
+    EXPECT_FALSE(world.registry().has<MoveIntent>(entity));
+    EXPECT_FALSE(world.registry().has<DashRequest>(entity));
+    EXPECT_FALSE(world.registry().has<DashIntent>(entity));
+    EXPECT_FALSE(world.registry().has<Dash>(entity));
+    EXPECT_FALSE(world.registry().has<DashCooldown>(entity));
+    EXPECT_FALSE(world.registry().has<PlayerProgress>(entity));
+    EXPECT_FALSE(world.registry().has<BlessingInventory>(entity));
+    EXPECT_FALSE(world.registry().has<StatusEffects>(entity));
     EXPECT_FALSE(world.set_player_command(entity, PlayerCommand{
                                                       .move_x = 1.0f,
                                                       .move_y = 0.0f,
@@ -1016,7 +1016,7 @@ TEST(WorldTest, HasLivingPlayersReflectsPlayerControllerEntities) {
 TEST(WorldTest, DestroyUnknownEntityReturnsFalse) {
     World world;
 
-    EXPECT_FALSE(world.destroy_entity(999));
+    EXPECT_FALSE(world.destroy_entity(Entity{}));
 }
 
 TEST(WorldTest, DestroyEntityReturnsFalseWhenCalledTwice) {
@@ -1032,18 +1032,18 @@ TEST(WorldTest, CreateMonsterReturnsLiveEntityWithInitialTransform) {
 
     auto entity = world.create_monster(default_monster_config());
 
-    EXPECT_NE(entity, INVALID_ENTITY);
+    EXPECT_NE(entity, Entity{});
     EXPECT_TRUE(world.has_entity(entity));
 
-    const auto& transform = world.transforms().get(entity);
+    const auto& transform = world.registry().get<Transform>(entity);
     EXPECT_FLOAT_EQ(transform.position.x, 30.0f);
     EXPECT_FLOAT_EQ(transform.position.y, 40.0f);
     EXPECT_FLOAT_EQ(transform.direction.x, 0.0f);
     EXPECT_FLOAT_EQ(transform.direction.y, 1.0f);
-    EXPECT_FALSE(world.player_controllers().has(entity));
-    EXPECT_TRUE(world.monster_controllers().has(entity));
-    ASSERT_TRUE(world.monster_identities().has(entity));
-    EXPECT_EQ(world.monster_identities().get(entity).kind, battle::MonsterKind::Melee);
+    EXPECT_FALSE(world.registry().has<PlayerController>(entity));
+    EXPECT_TRUE(world.registry().has<MonsterController>(entity));
+    ASSERT_TRUE(world.registry().has<MonsterIdentity>(entity));
+    EXPECT_EQ(world.registry().get<MonsterIdentity>(entity).kind, battle::MonsterKind::Melee);
 }
 
 TEST(WorldTest, CreateMonsterInitializesStatusEffects) {
@@ -1051,9 +1051,9 @@ TEST(WorldTest, CreateMonsterInitializesStatusEffects) {
 
     auto entity = world.create_monster(default_monster_config());
 
-    ASSERT_TRUE(world.status_effects().has(entity));
-    EXPECT_TRUE(world.status_effects().get(entity).burns.empty());
-    EXPECT_FALSE(world.status_effects().get(entity).freeze.has_value());
+    ASSERT_TRUE(world.registry().has<StatusEffects>(entity));
+    EXPECT_TRUE(world.registry().get<StatusEffects>(entity).burns.empty());
+    EXPECT_FALSE(world.registry().get<StatusEffects>(entity).freeze.has_value());
 }
 
 TEST(WorldTest, CreateMonsterInitializesAttackComponentsFromConfig) {
@@ -1073,19 +1073,19 @@ TEST(WorldTest, CreateMonsterInitializesAttackComponentsFromConfig) {
         },
     });
 
-    ASSERT_TRUE(world.attack_intents().has(entity));
-    ASSERT_TRUE(world.attack_requests().has(entity));
-    ASSERT_TRUE(world.attack_definitions().has(entity));
-    ASSERT_TRUE(world.attack_cooldowns().has(entity));
+    ASSERT_TRUE(world.registry().has<AttackIntent>(entity));
+    ASSERT_TRUE(world.registry().has<AttackRequest>(entity));
+    ASSERT_TRUE(world.registry().has<AttackDefinition>(entity));
+    ASSERT_TRUE(world.registry().has<AttackCooldown>(entity));
 
-    const auto& attack = world.attack_definitions().get(entity);
-    EXPECT_FALSE(world.attack_requests().get(entity).requested);
-    EXPECT_FALSE(world.attack_intents().get(entity).active);
+    const auto& attack = world.registry().get<AttackDefinition>(entity);
+    EXPECT_FALSE(world.registry().get<AttackRequest>(entity).requested);
+    EXPECT_FALSE(world.registry().get<AttackIntent>(entity).active);
     EXPECT_EQ(attack.kind, AttackKind::Melee);
     EXPECT_EQ(attack.damage, 12);
     EXPECT_FLOAT_EQ(attack.range, 1.25f);
     EXPECT_FLOAT_EQ(attack.cooldown_seconds.count(), 1.5f);
-    EXPECT_FLOAT_EQ(world.attack_cooldowns().get(entity).remaining_seconds.count(), 0.0f);
+    EXPECT_FLOAT_EQ(world.registry().get<AttackCooldown>(entity).remaining_seconds.count(), 0.0f);
 }
 
 TEST(WorldTest, MonsterDoesNotHavePlayerCommand) {
@@ -1100,7 +1100,7 @@ TEST(WorldTest, MonsterDoesNotHavePlayerCommand) {
                                                   }));
     world.tick(DeltaTime{1.0f});
 
-    const auto& transform = world.transforms().get(entity);
+    const auto& transform = world.registry().get<Transform>(entity);
     EXPECT_FLOAT_EQ(transform.position.x, 30.0f);
     EXPECT_FLOAT_EQ(transform.position.y, 40.0f);
 }
@@ -1129,7 +1129,7 @@ TEST(WorldTest, TickMonsterDamagesPlayerInsideAttackRange) {
     world.tick(DeltaTime{0.0f});
 
     ASSERT_TRUE(world.has_entity(player));
-    EXPECT_EQ(world.health().get(player).current_health, 85);
+    EXPECT_EQ(world.registry().get<Health>(player).current_health, 85);
     EXPECT_TRUE(world.damage_events().empty());
 }
 
@@ -1156,9 +1156,9 @@ TEST(WorldTest, TickMonsterDoesNotDamagePlayerOutsideAttackRange) {
 
     world.tick(DeltaTime{1.0f});
 
-    EXPECT_EQ(world.health().get(player).current_health, 100);
-    EXPECT_FLOAT_EQ(world.transforms().get(monster).position.x, 1.0f);
-    EXPECT_FALSE(world.attack_requests().get(monster).requested);
+    EXPECT_EQ(world.registry().get<Health>(player).current_health, 100);
+    EXPECT_FLOAT_EQ(world.registry().get<Transform>(monster).position.x, 1.0f);
+    EXPECT_FALSE(world.registry().get<AttackRequest>(monster).requested);
 }
 
 TEST(WorldTest, TickMonsterAttackUsesCooldown) {
@@ -1183,13 +1183,13 @@ TEST(WorldTest, TickMonsterAttackUsesCooldown) {
     });
 
     world.tick(DeltaTime{0.0f});
-    ASSERT_EQ(world.health().get(player).current_health, 85);
-    EXPECT_FLOAT_EQ(world.attack_cooldowns().get(monster).remaining_seconds.count(), 1.0f);
+    ASSERT_EQ(world.registry().get<Health>(player).current_health, 85);
+    EXPECT_FLOAT_EQ(world.registry().get<AttackCooldown>(monster).remaining_seconds.count(), 1.0f);
 
     world.tick(DeltaTime{0.5f});
 
-    EXPECT_EQ(world.health().get(player).current_health, 85);
-    EXPECT_FLOAT_EQ(world.attack_cooldowns().get(monster).remaining_seconds.count(), 0.5f);
+    EXPECT_EQ(world.registry().get<Health>(player).current_health, 85);
+    EXPECT_FLOAT_EQ(world.registry().get<AttackCooldown>(monster).remaining_seconds.count(), 0.5f);
 }
 
 TEST(WorldTest, TickMonsterDoesNotDamageOtherMonsters) {
@@ -1225,7 +1225,7 @@ TEST(WorldTest, TickMonsterDoesNotDamageOtherMonsters) {
             .projectile_speed = 0.0f,
         },
     });
-    world.attack_intents().get(attacker) = AttackIntent{
+    world.registry().get<AttackIntent>(attacker) = AttackIntent{
         .active = true,
         .kind = AttackKind::Melee,
         .damage = 15,
@@ -1236,7 +1236,7 @@ TEST(WorldTest, TickMonsterDoesNotDamageOtherMonsters) {
     hit_resolve_system(world, DeltaTime{0.0f});
     damage_system(world, DeltaTime{0.0f});
 
-    EXPECT_EQ(world.health().get(other_monster).current_health, 50);
+    EXPECT_EQ(world.registry().get<Health>(other_monster).current_health, 50);
 }
 
 TEST(WorldTest, TickMovesMonsterTowardPlayerUsingMonsterMoveSpeed) {
@@ -1255,7 +1255,7 @@ TEST(WorldTest, TickMovesMonsterTowardPlayerUsingMonsterMoveSpeed) {
 
     world.tick(DeltaTime{1.0f});
 
-    const auto& transform = world.transforms().get(monster);
+    const auto& transform = world.registry().get<Transform>(monster);
     EXPECT_FLOAT_EQ(transform.position.x, 3.0f);
     EXPECT_FLOAT_EQ(transform.position.y, 0.0f);
     EXPECT_FLOAT_EQ(transform.direction.x, 1.0f);
@@ -1275,19 +1275,19 @@ TEST(WorldTest, TickFrozenMonsterDoesNotMoveTowardPlayer) {
         .max_health = 50,
         .move_speed = 3.0f,
     });
-    world.status_effects().get(monster).freeze = FreezeStatus{
+    world.registry().get<StatusEffects>(monster).freeze = FreezeStatus{
         .remaining_seconds = DeltaTime{2.0f},
     };
 
     world.tick(DeltaTime{1.0f});
 
-    const auto& transform = world.transforms().get(monster);
+    const auto& transform = world.registry().get<Transform>(monster);
     EXPECT_FLOAT_EQ(transform.position.x, 0.0f);
     EXPECT_FLOAT_EQ(transform.position.y, 0.0f);
-    EXPECT_FLOAT_EQ(world.velocities().get(monster).x, 0.0f);
-    EXPECT_FLOAT_EQ(world.velocities().get(monster).y, 0.0f);
-    ASSERT_TRUE(world.status_effects().get(monster).freeze.has_value());
-    EXPECT_FLOAT_EQ(world.status_effects().get(monster).freeze->remaining_seconds.count(), 1.0f);
+    EXPECT_FLOAT_EQ(world.registry().get<Velocity>(monster).x, 0.0f);
+    EXPECT_FLOAT_EQ(world.registry().get<Velocity>(monster).y, 0.0f);
+    ASSERT_TRUE(world.registry().get<StatusEffects>(monster).freeze.has_value());
+    EXPECT_FLOAT_EQ(world.registry().get<StatusEffects>(monster).freeze->remaining_seconds.count(), 1.0f);
 }
 
 TEST(WorldTest, TickFrozenMonsterDoesNotDamagePlayerInsideAttackRange) {
@@ -1310,15 +1310,15 @@ TEST(WorldTest, TickFrozenMonsterDoesNotDamagePlayerInsideAttackRange) {
             .projectile_speed = 0.0f,
         },
     });
-    world.status_effects().get(monster).freeze = FreezeStatus{
+    world.registry().get<StatusEffects>(monster).freeze = FreezeStatus{
         .remaining_seconds = DeltaTime{2.0f},
     };
 
     world.tick(DeltaTime{0.0f});
 
-    EXPECT_EQ(world.health().get(player).current_health, 100);
-    EXPECT_FALSE(world.attack_requests().get(monster).requested);
-    EXPECT_FALSE(world.attack_intents().get(monster).active);
+    EXPECT_EQ(world.registry().get<Health>(player).current_health, 100);
+    EXPECT_FALSE(world.registry().get<AttackRequest>(monster).requested);
+    EXPECT_FALSE(world.registry().get<AttackIntent>(monster).active);
 }
 
 TEST(WorldTest, TickMonsterMovesAfterFreezeExpires) {
@@ -1334,15 +1334,15 @@ TEST(WorldTest, TickMonsterMovesAfterFreezeExpires) {
         .max_health = 50,
         .move_speed = 3.0f,
     });
-    world.status_effects().get(monster).freeze = FreezeStatus{
+    world.registry().get<StatusEffects>(monster).freeze = FreezeStatus{
         .remaining_seconds = DeltaTime{0.5f},
     };
 
     world.tick(DeltaTime{1.0f});
 
-    EXPECT_FALSE(world.status_effects().get(monster).freeze.has_value());
-    EXPECT_FLOAT_EQ(world.transforms().get(monster).position.x, 3.0f);
-    EXPECT_FLOAT_EQ(world.transforms().get(monster).position.y, 0.0f);
+    EXPECT_FALSE(world.registry().get<StatusEffects>(monster).freeze.has_value());
+    EXPECT_FLOAT_EQ(world.registry().get<Transform>(monster).position.x, 3.0f);
+    EXPECT_FLOAT_EQ(world.registry().get<Transform>(monster).position.y, 0.0f);
 }
 
 TEST(WorldTest, TickClampsMonsterPositionToWorldBounds) {
@@ -1366,7 +1366,7 @@ TEST(WorldTest, TickClampsMonsterPositionToWorldBounds) {
 
     world.tick(DeltaTime{1.0f});
 
-    const auto& transform = world.transforms().get(monster);
+    const auto& transform = world.registry().get<Transform>(monster);
     EXPECT_FLOAT_EQ(transform.position.x, 1.0f);
     EXPECT_FLOAT_EQ(transform.position.y, 0.0f);
     EXPECT_FLOAT_EQ(transform.direction.x, 1.0f);
@@ -1394,7 +1394,7 @@ TEST(WorldTest, TickMovesMonsterTowardNearestPlayer) {
 
     world.tick(DeltaTime{1.0f});
 
-    const auto& transform = world.transforms().get(monster);
+    const auto& transform = world.registry().get<Transform>(monster);
     EXPECT_FLOAT_EQ(transform.position.x, 0.0f);
     EXPECT_FLOAT_EQ(transform.position.y, 2.0f);
     EXPECT_FLOAT_EQ(transform.direction.x, 0.0f);
@@ -1407,7 +1407,7 @@ TEST(WorldTest, TickDoesNotMoveMonsterWithoutPlayerTarget) {
 
     world.tick(DeltaTime{1.0f});
 
-    const auto& transform = world.transforms().get(monster);
+    const auto& transform = world.registry().get<Transform>(monster);
     EXPECT_FLOAT_EQ(transform.position.x, 30.0f);
     EXPECT_FLOAT_EQ(transform.position.y, 40.0f);
 }
@@ -1430,7 +1430,7 @@ TEST(WorldTest, TickStopsMonsterWhenPlayerTargetIsDestroyed) {
 
     world.tick(DeltaTime{1.0f});
 
-    const auto& transform = world.transforms().get(monster);
+    const auto& transform = world.registry().get<Transform>(monster);
     EXPECT_FLOAT_EQ(transform.position.x, 3.0f);
     EXPECT_FLOAT_EQ(transform.position.y, 0.0f);
 }
@@ -1451,7 +1451,7 @@ TEST(WorldTest, TickDoesNotProduceNanWhenMonsterOverlapsPlayer) {
 
     world.tick(DeltaTime{1.0f});
 
-    const auto& transform = world.transforms().get(monster);
+    const auto& transform = world.registry().get<Transform>(monster);
     EXPECT_FALSE(std::isnan(transform.position.x));
     EXPECT_FALSE(std::isnan(transform.position.y));
     EXPECT_FLOAT_EQ(transform.position.x, 10.0f);
@@ -1465,10 +1465,10 @@ TEST(WorldTest, DestroyMonsterRemovesEntityComponents) {
     EXPECT_TRUE(world.destroy_entity(entity));
 
     EXPECT_FALSE(world.has_entity(entity));
-    EXPECT_FALSE(world.transforms().has(entity));
-    EXPECT_FALSE(world.monster_controllers().has(entity));
-    EXPECT_FALSE(world.monster_identities().has(entity));
-    EXPECT_FALSE(world.status_effects().has(entity));
+    EXPECT_FALSE(world.registry().has<Transform>(entity));
+    EXPECT_FALSE(world.registry().has<MonsterController>(entity));
+    EXPECT_FALSE(world.registry().has<MonsterIdentity>(entity));
+    EXPECT_FALSE(world.registry().has<StatusEffects>(entity));
 }
 
 TEST(WorldTest, HasLivingMonstersReflectsMonsterControllerEntities) {
