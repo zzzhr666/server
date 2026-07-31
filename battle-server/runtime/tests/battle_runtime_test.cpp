@@ -312,6 +312,8 @@ TEST(BattleRuntimeTest, TickBroadcastsGameOverAndCleansRoomWhenInstanceEnds) {
     ASSERT_EQ(sent_packets.size(), 1);
     ASSERT_EQ(sent_packets[0].first.payload_case(), v1::ServerPacket::kSnapshot);
     const auto& chosen_snapshot = sent_packets[0].first.snapshot();
+    EXPECT_EQ(chosen_snapshot.current_wave(),2);
+    EXPECT_EQ(chosen_snapshot.phase(),v1::BATTLE_PHASE_FIGHTING);
     ASSERT_EQ(chosen_snapshot.player_progress_size(), 1);
     EXPECT_EQ(chosen_snapshot.player_progress(0).pending_upgrade_choices(), 0);
     ASSERT_EQ(chosen_snapshot.player_blessings_size(), 1);
@@ -320,20 +322,7 @@ TEST(BattleRuntimeTest, TickBroadcastsGameOverAndCleansRoomWhenInstanceEnds) {
     EXPECT_EQ(chosen_snapshot.player_blessings(0).blessings(0).level(), 1);
     EXPECT_EQ(chosen_snapshot.player_blessings(0).current_options_size(), 0);
 
-    EXPECT_TRUE(runtime.receive_input("room-1", 1001, PlayerInput{
-                                                   .move_x = 1.0f,
-                                                   .move_y = 0.0f,
-                                               }));
-    EXPECT_EQ(session_manager.sessions_in_room("room-1").size(), 1);
-    EXPECT_EQ(room_manager.active_rooms(), 1);
 
-    sent_packets.clear();
-    runtime.tick(SelectionTime);
-
-    ASSERT_EQ(sent_packets.size(), 1);
-    ASSERT_EQ(sent_packets[0].first.payload_case(), v1::ServerPacket::kSnapshot);
-    EXPECT_EQ(sent_packets[0].first.snapshot().current_wave(), 2);
-    EXPECT_EQ(sent_packets[0].first.snapshot().phase(), v1::BATTLE_PHASE_FIGHTING);
 
     ASSERT_TRUE(runtime.receive_input("room-1", 1001, PlayerInput{
                                                    .attack_requested = true,

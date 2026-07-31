@@ -64,14 +64,14 @@ namespace battle {
 
     struct BattleEntitySnapshot {
         ecs::Entity entity;
-        ecs::EntityKind kind;
-        std::int64_t player_id;
-        float x_position;
-        float y_position;
-        float x_direction;
-        float y_direction;
-        int current_health;
-        int max_health;
+        ecs::EntityKind kind{};
+        std::int64_t player_id{};
+        float x_position{};
+        float y_position{};
+        float x_direction{};
+        float y_direction{};
+        int current_health{};
+        int max_health{};
     };
 
     struct PlayerBattleStats {
@@ -104,7 +104,7 @@ namespace battle {
         ecs::DeltaTime remaining_seconds{0.0f};
     };
 
-    constexpr ecs::DeltaTime SelectionTime{12.0f};
+    constexpr ecs::DeltaTime SelectionTime{15.0f};
 
     struct PlayerProgressSnapshot {
         std::int64_t player_id = 0;

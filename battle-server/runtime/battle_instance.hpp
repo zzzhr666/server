@@ -88,7 +88,7 @@ namespace battle {
         void add_or_level_up_blessing_(ecs::Entity player_entity, PlayerBlessingState& blessing_state,
                                        BlessingID blessing_id);
 
-
+        [[nodiscard]] bool all_reward_choices_completed_() const;
 
     private:
         std::string room_name_;

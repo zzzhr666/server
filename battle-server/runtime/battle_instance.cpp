@@ -7,19 +7,19 @@
 #include <utility>
 
 namespace {
-constexpr std::size_t RewardOptionCount = 3;
+    constexpr std::size_t RewardOptionCount = 3;
 
-constexpr std::array<battle::BlessingID, 5> AllBlessingIDs{
-    battle::BlessingID::BurnOnHit,
-    battle::BlessingID::LifeSteal,
-    battle::BlessingID::FreezeOnHit,
-    battle::BlessingID::CriticalStrike,
-    battle::BlessingID::ChainLightning,
-};
+    constexpr std::array<battle::BlessingID, 5> AllBlessingIDs{
+        battle::BlessingID::BurnOnHit,
+        battle::BlessingID::LifeSteal,
+        battle::BlessingID::FreezeOnHit,
+        battle::BlessingID::CriticalStrike,
+        battle::BlessingID::ChainLightning,
+    };
 
-bool contains_blessing(const std::vector<battle::BlessingID>& blessings, battle::BlessingID blessing_id) {
-    return std::ranges::find(blessings, blessing_id) != blessings.end();
-}
+    bool contains_blessing(const std::vector<battle::BlessingID>& blessings, battle::BlessingID blessing_id) {
+        return std::ranges::find(blessings, blessing_id) != blessings.end();
+    }
 }
 
 battle::BattleInstance::BattleInstance(BattleInstanceConfig config)
@@ -53,7 +53,7 @@ battle::BattleInstance::BattleInstance(BattleInstanceConfig config)
             override_config.position = spawn_config.position;
             spawn_config = override_config;
         }
-        spawn_config = apply_growth(spawn_config,growth_lvl);
+        spawn_config = apply_growth(spawn_config, growth_lvl);
         auto entity = world_.create_player(spawn_config);
         if (auto* progress = world_.registry().try_get<ecs::PlayerProgress>(entity)) {
             progress->experience_to_next_level = experience_to_next_level_(progress->level);
@@ -268,11 +268,16 @@ void battle::BattleInstance::tick_fighting_(ecs::DeltaTime delta_time) {
 }
 
 void battle::BattleInstance::tick_reward_selection_(ecs::DeltaTime delta_time) {
-    reward_selection_.remaining_seconds -= delta_time;
-    if (reward_selection_.remaining_seconds.count() <= 0.0f) {
-        apply_default_upgrade_choices_();
+    if (all_reward_choices_completed_()) {
         start_next_wave_or_end_();
+        return;
     }
+    reward_selection_.remaining_seconds -= delta_time;
+    if (reward_selection_.remaining_seconds.count() > 0.0f) {
+        return;
+    }
+    apply_default_upgrade_choices_();
+    start_next_wave_or_end_();
 }
 
 void battle::BattleInstance::start_reward_selection_() {
@@ -364,7 +369,8 @@ std::vector<battle::BlessingOption> battle::BattleInstance::generate_blessing_op
     std::vector<BlessingID> selected;
     selected.reserve(RewardOptionCount);
 
-    if (const auto blessing_state_it = player_blessings_.find(player_id); blessing_state_it != player_blessings_.end()) {
+    if (const auto blessing_state_it = player_blessings_.find(player_id); blessing_state_it != player_blessings_.
+        end()) {
         for (const auto& blessing : blessing_state_it->second.blessings) {
             if (selected.size() >= RewardOptionCount) {
                 break;
@@ -432,4 +438,17 @@ void battle::BattleInstance::add_or_level_up_blessing_(ecs::Entity player_entity
             .level = 1,
         });
     }
+}
+
+bool battle::BattleInstance::all_reward_choices_completed_() const {
+    for (const auto& [player_id , entity] : player_entities_) {
+        const auto* progress = world_.registry().try_get<ecs::PlayerProgress>(entity);
+        if (!progress) {
+            continue;
+        }
+        if (progress->pending_upgrade_choices > 0) {
+            return false;
+        }
+    }
+    return true;
 }
