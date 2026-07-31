@@ -13,10 +13,12 @@
 #include "system/monster_ai_system.hpp"
 #include "system/move_resolve_system.hpp"
 #include "system/move_system.hpp"
+#include "system/pre_damage_blessing_system.hpp"
 #include "system/status_effect_system.hpp"
 
 battle::ecs::World::World(WorldBounds bounds, std::uint32_t random_seed)
-    : bounds_(bounds), random_engine_(random_seed), percent_distribution_(1, 100) {
+    : bounds_(bounds), random_engine_(random_seed), percent_distribution_(1, 100), next_combat_action_id_(1),
+      next_combat_effect_id_(1) {
     damage_events_.reserve(InitialDamageEventCount);
     system_scheduler_.add_system(move_resolve_system);
     system_scheduler_.add_system(status_effect_system);
@@ -27,13 +29,15 @@ battle::ecs::World::World(WorldBounds bounds, std::uint32_t random_seed)
     system_scheduler_.add_system(attack_resolve_system);
     system_scheduler_.add_system(hit_resolve_system);
     system_scheduler_.add_system(damage_modify_system);
+    system_scheduler_.add_system(pre_damage_blessing_system);
     system_scheduler_.add_system(damage_system);
     system_scheduler_.add_system(blessing_trigger_system);
     system_scheduler_.add_system(death_system);
 }
 
 battle::ecs::World::World(std::initializer_list<sysFunc> functions, WorldBounds bounds, std::uint32_t random_seed)
-    : system_scheduler_(functions), bounds_(bounds), random_engine_(random_seed), percent_distribution_(1, 100) {}
+    : system_scheduler_(functions), bounds_(bounds), random_engine_(random_seed), percent_distribution_(1, 100),
+      next_combat_action_id_(1), next_combat_effect_id_(1) {}
 
 battle::ecs::Entity battle::ecs::World::create_player(CreatePlayerConfig config) {
     Entity entity = registry_.create();

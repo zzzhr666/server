@@ -11,6 +11,7 @@
 
 
 namespace battle {
+    struct FinishedBattle;
     class RoomManager;
 
     struct RegisterBattleNodeResult {
@@ -29,7 +30,7 @@ namespace battle {
 
         RegisterBattleNodeResult register_battle_node(const Config& config, const RoomManager& room_manager);
 
-        FinishMatchResult finish_match(const std::vector<std::int64_t>& player_ids);
+        FinishMatchResult finish_match(const FinishedBattle& finished);
 
     private:
         std::unique_ptr<rcenter::v1::RCenterService::Stub> stub_;

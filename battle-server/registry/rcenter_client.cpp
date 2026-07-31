@@ -4,6 +4,8 @@
 #include <utility>
 
 #include "game/game_manager.hpp"
+#include "gameplay/monster_kind_codec.hpp"
+#include "runtime/battle_runtime.hpp"
 
 battle::RCenterClient::RCenterClient(std::shared_ptr<grpc::Channel> channel)
     : stub_(rcenter::v1::RCenterService::NewStub(std::move(channel))) {}
@@ -26,11 +28,32 @@ battle::RegisterBattleNodeResult battle::RCenterClient::register_battle_node(
                : RegisterBattleNodeResult{.ok = false, .message = status.error_message()};
 }
 
-battle::FinishMatchResult battle::RCenterClient::finish_match(const std::vector<std::int64_t>& player_ids) {
+battle::FinishMatchResult battle::RCenterClient::finish_match(const FinishedBattle& finished) {
     rcenter::v1::FinishMatchRequest request;
-    for (const auto& player_id : player_ids) {
+    if (finished.player_ids.empty() || finished.settlement.players.empty() || (finished.settlement.reason !=
+        BattleEndReason::Defeat && finished.settlement.reason != BattleEndReason::Victory)) {
+        return FinishMatchResult{.ok = false, .message = "invalid finish request"};
+    }
+    for (const auto& player_id : finished.player_ids) {
         request.add_player_ids(player_id);
     }
+    auto& reason = finished.settlement.reason;
+    if (reason == BattleEndReason::Defeat) {
+        request.set_reason("defeat");
+    } else if (reason == BattleEndReason::Victory) {
+        request.set_reason("victory");
+    }
+    for (auto& player : finished.settlement.players) {
+        auto stat = request.add_player_stats();
+        stat->set_player_id(player.player_id);
+        stat->set_total_kills(player.total_kills);
+        for (auto& kill : player.kills) {
+            auto kill_detail = stat->add_kills();
+            kill_detail->set_monster_kind(monster_kind_to_string(kill.monster_kind));
+            kill_detail->set_count(kill.count);
+        }
+    }
+
 
     grpc::ClientContext ctx;
     rcenter::v1::FinishMatchResponse response;

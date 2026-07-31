@@ -29,7 +29,7 @@ int main() {
         },
         {},
         [&rcenter_client](const battle::FinishedBattle& finished) {
-            auto res = rcenter_client.finish_match(finished.player_ids);
+            auto res = rcenter_client.finish_match(finished);
             if (!res.ok) {
                 std::cerr << "failed to finish match in rcenter: " << res.message << std::endl;
             }

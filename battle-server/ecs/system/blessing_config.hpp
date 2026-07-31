@@ -40,7 +40,7 @@ namespace battle::ecs {
         static constexpr int DamagePercentPerLevel = 10;
         static constexpr int BaseSecondaryTargets = 2;
         static constexpr int LevelsPerExtraTarget = 2;
-        static constexpr float JumpRadius = 5.0f;
+        static constexpr float JumpRadius = 25.0f;
     };
 
     constexpr int burn_damage_per_tick(int level) {
@@ -70,11 +70,12 @@ namespace battle::ecs {
             FreezeOnHitConfig::DurationSecondsPerLevel * static_cast<float>(normalized_blessing_level(level) - 1);
     }
 
-    constexpr int chain_lighting_damage_percent(int level) {
-        return ChainLightningConfig::BaseDamagePercent + ChainLightningConfig::DamagePercentPerLevel * (normalized_blessing_level(level) - 1);
+    constexpr int chain_lightning_damage_percent(int level) {
+        return ChainLightningConfig::BaseDamagePercent + ChainLightningConfig::DamagePercentPerLevel * (
+            normalized_blessing_level(level) - 1);
     }
 
-    constexpr int chain_lighting_target_count(int level) {
-        return ChainLightningConfig::BaseSecondaryTargets + ChainLightningConfig::LevelsPerExtraTarget * (level / 2);
+    constexpr int chain_lightning_target_count(int level) {
+        return ChainLightningConfig::BaseSecondaryTargets + (level - 1) / ChainLightningConfig::LevelsPerExtraTarget;
     }
 }

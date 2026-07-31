@@ -441,14 +441,8 @@ void battle::BattleInstance::add_or_level_up_blessing_(ecs::Entity player_entity
 }
 
 bool battle::BattleInstance::all_reward_choices_completed_() const {
-    for (const auto& [player_id , entity] : player_entities_) {
-        const auto* progress = world_.registry().try_get<ecs::PlayerProgress>(entity);
-        if (!progress) {
-            continue;
-        }
-        if (progress->pending_upgrade_choices > 0) {
-            return false;
-        }
-    }
-    return true;
+    return std::ranges::none_of(player_entities_, [this](const auto& p) {
+        const auto* progress = world_.registry().try_get<ecs::PlayerProgress>(p.second);
+        return progress && progress->pending_upgrade_choices > 0;
+    });
 }

@@ -1,22 +1,10 @@
 #include "hit_resolve_system.hpp"
 
+#include "combat_tageting.hpp"
 #include "ecs/world.hpp"
 
 
-namespace {
-    bool is_monster(const battle::ecs::World& world, battle::ecs::Entity entity) {
-        return world.registry().has<battle::ecs::MonsterController>(entity);
-    }
 
-    bool is_player(const battle::ecs::World& world, battle::ecs::Entity entity) {
-        return world.registry().has<battle::ecs::PlayerController>(entity);
-    }
-
-    bool is_enemy(const battle::ecs::World& world, battle::ecs::Entity attacker, battle::ecs::Entity target) {
-        return (is_player(world, attacker) && is_monster(world, target)) || (is_player(world, target) && is_monster(
-            world, attacker));
-    }
-}
 
 void battle::ecs::hit_resolve_system(World& world, DeltaTime) {
     for (auto attacker_entity : world.registry().pool<AttackIntent>().entities()) {
