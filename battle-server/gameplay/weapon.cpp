@@ -40,10 +40,11 @@ battle::WeaponDefinition battle::weapon_definition(WeaponKind kind) {
             .kind = WeaponKind::Bow,
             .attack = {
                 .kind = ecs::AttackKind::Projectile,
-                .damage = 18,
+                .damage = BowAttackDamage,
                 .range = 15.0f,
-                .cooldown_seconds = ecs::DeltaTime{0.45f},
-                .projectile_speed = 25.0f
+                .cooldown_seconds = BowAttackCooldown,
+                .projectile_speed = 25.0f,
+                .projectile_hit_radius = BowProjectileHitRadius,
             }
         };
     default:

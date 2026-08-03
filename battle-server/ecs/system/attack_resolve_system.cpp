@@ -19,6 +19,7 @@ void battle::ecs::attack_resolve_system(World& world, DeltaTime delta_time) {
         intent->damage = 0;
         intent->range = 0.0f;
         intent->projectile_speed = 0.0f;
+        intent->projectile_hit_radius = DefaultProjectileHitRadius;
         intent->context = {};
 
         cooldown->remaining_seconds -= delta_time;
@@ -36,6 +37,7 @@ void battle::ecs::attack_resolve_system(World& world, DeltaTime delta_time) {
         intent->damage = attack->damage;
         intent->range = attack->range;
         intent->projectile_speed = attack->projectile_speed;
+        intent->projectile_hit_radius = attack->projectile_hit_radius;
         intent->context = CombatContext {
             .owner = entity,
             .emitter = entity,
@@ -43,5 +45,15 @@ void battle::ecs::attack_resolve_system(World& world, DeltaTime delta_time) {
             .effect_id = world.create_combat_effect(),
         };
         cooldown->remaining_seconds = attack->cooldown_seconds;
+        auto transform = world.registry().try_get<Transform>(entity);
+        if (!transform) {
+            continue;
+        }
+        world.add_attack_event(AttackEvent{
+            .attacker = entity,
+            .kind = attack->kind,
+            .direction = transform->direction,
+            .action_id = intent->context.action_state->action_id,
+        });
     }
 }

@@ -129,6 +129,39 @@ message PlayerBlessingStateSnapshot {
   repeated BlessingOptionSnapshot current_options = 3;
 }
 
+enum AttackKind {
+  ATTACK_KIND_UNSPECIFIED = 0;
+  ATTACK_KIND_MELEE = 1;
+  ATTACK_KIND_PROJECTILE = 2;
+}
+
+message AttackEvent {
+  uint64 attacker_entity = 1;
+  uint64 action_id = 2;
+  AttackKind attack_kind = 3;
+  float x_direction = 4;
+  float y_direction = 5;
+}
+
+message DeathEvent {
+  uint64 victim_entity = 1;
+  EntityKind victim_kind = 2;
+  string monster_kind = 3;
+  float x_position = 4;
+  float y_position = 5;
+  float x_direction = 6;
+  float y_direction = 7;
+  uint64 killer_entity = 8;
+}
+
+message BattleEvent {
+  uint64 event_id = 1;
+  oneof payload {
+    AttackEvent attack = 2;
+    DeathEvent death = 3;
+  }
+}
+
 message WorldSnapshot {
   string room_name = 1;
   repeated EntitySnapshot entities = 2;
@@ -137,6 +170,8 @@ message WorldSnapshot {
   float reward_selection_remaining_seconds = 5;
   repeated PlayerProgressSnapshot player_progress = 6;
   repeated PlayerBlessingStateSnapshot player_blessings = 7;
+  uint64 server_tick = 8;
+  repeated BattleEvent events = 9;
 }
 
 message ChooseBlessing {

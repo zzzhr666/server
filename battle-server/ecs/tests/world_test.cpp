@@ -69,6 +69,7 @@ TEST(WorldTest, CreateProjectileInitializesMovementAndCombatContext) {
         .speed = 25.0f,
         .damage = 30,
         .max_distance = 15.0f,
+        .hit_radius = 0.85f,
         .context = CombatContext{
             .owner = owner,
             .action_state = action_state,
@@ -90,6 +91,7 @@ TEST(WorldTest, CreateProjectileInitializesMovementAndCombatContext) {
     EXPECT_EQ(projectile_component.damage, 30);
     EXPECT_FLOAT_EQ(projectile_component.current_distance, 0.0f);
     EXPECT_FLOAT_EQ(projectile_component.max_distance, 15.0f);
+    EXPECT_FLOAT_EQ(projectile_component.hit_radius, 0.85f);
     EXPECT_EQ(projectile_component.context.owner, owner);
     EXPECT_EQ(projectile_component.context.emitter, projectile);
     EXPECT_EQ(projectile_component.context.action_state, action_state);
@@ -108,6 +110,7 @@ TEST(WorldTest, TickSpawnsOneProjectileForProjectileAttack) {
             .range = 15.0f,
             .cooldown_seconds = DeltaTime{0.5f},
             .projectile_speed = 25.0f,
+            .projectile_hit_radius = 0.85f,
         },
     });
 
@@ -129,6 +132,7 @@ TEST(WorldTest, TickSpawnsOneProjectileForProjectileAttack) {
     EXPECT_FLOAT_EQ(transform.direction.y, 1.0f);
     EXPECT_EQ(projectile_component.damage, 30);
     EXPECT_FLOAT_EQ(projectile_component.max_distance, 15.0f);
+    EXPECT_FLOAT_EQ(projectile_component.hit_radius, 0.85f);
     EXPECT_EQ(projectile_component.context.owner, player);
     EXPECT_EQ(projectile_component.context.emitter, projectile);
 
@@ -192,6 +196,35 @@ TEST(WorldTest, TickProjectileDamagesEnemyAndIsDestroyedOnHit) {
         .speed = 0.0f,
         .damage = 30,
         .max_distance = 20.0f,
+        .context = CombatContext{.owner = player},
+    });
+
+    world.tick(DeltaTime{0.0f});
+
+    EXPECT_FALSE(world.has_entity(projectile));
+    EXPECT_EQ(world.registry().get<Health>(monster).current_health, 20);
+}
+
+TEST(WorldTest, TickProjectileUsesConfiguredHitRadius) {
+    World world;
+    auto player = world.create_player(CreatePlayerConfig{
+        .position = Position{.x = 0.0f, .y = 0.0f},
+        .max_health = 100,
+        .move_speed = 5.0f,
+    });
+    auto monster = world.create_monster(CreateMonsterConfig{
+        .x_position = 0.75f,
+        .y_position = 0.0f,
+        .max_health = 50,
+        .move_speed = 0.0f,
+    });
+    auto projectile = world.create_projectile(CreateProjectileConfig{
+        .position = Position{.x = 0.0f, .y = 0.0f},
+        .direction = Direction{.x = 1.0f, .y = 0.0f},
+        .speed = 0.0f,
+        .damage = 30,
+        .max_distance = 20.0f,
+        .hit_radius = 0.85f,
         .context = CombatContext{.owner = player},
     });
 
@@ -359,6 +392,13 @@ TEST(WorldTest, TickResolvesAttackRequestIntoAttackIntent) {
     EXPECT_FLOAT_EQ(intent.range, 2.0f);
     EXPECT_FALSE(world.registry().get<AttackRequest>(entity).requested);
     EXPECT_FLOAT_EQ(world.registry().get<AttackCooldown>(entity).remaining_seconds.count(), 0.75f);
+    ASSERT_EQ(world.attack_events().size(), 1);
+    const auto& event = world.attack_events()[0];
+    EXPECT_EQ(event.attacker, entity);
+    EXPECT_EQ(event.kind, AttackKind::Melee);
+    EXPECT_FLOAT_EQ(event.direction.x, 0.0f);
+    EXPECT_FLOAT_EQ(event.direction.y, 1.0f);
+    EXPECT_NE(event.action_id, InvalidActionID);
 }
 
 TEST(WorldTest, TickDoesNotResolveAttackRequestDuringCooldown) {
@@ -396,6 +436,7 @@ TEST(WorldTest, TickDoesNotResolveAttackRequestDuringCooldown) {
     EXPECT_FLOAT_EQ(intent.range, 0.0f);
     EXPECT_FALSE(world.registry().get<AttackRequest>(entity).requested);
     EXPECT_FLOAT_EQ(world.registry().get<AttackCooldown>(entity).remaining_seconds.count(), 0.65f);
+    EXPECT_EQ(world.attack_events().size(), 1);
 }
 
 TEST(WorldTest, TickAllowsAttackAfterCooldownExpires) {
@@ -988,6 +1029,39 @@ TEST(WorldTest, DamageSystemAddsKillEventWhenPlayerKillsMonster) {
     EXPECT_EQ(event.killer, player);
     EXPECT_EQ(event.victim, monster);
     EXPECT_EQ(event.monster_kind, battle::MonsterKind::Melee);
+    ASSERT_EQ(world.death_events().size(), 1);
+    const auto& death_event = world.death_events()[0];
+    EXPECT_EQ(death_event.victim, monster);
+    EXPECT_EQ(death_event.killer, player);
+    EXPECT_EQ(death_event.kind, DeathEntityKind::Monster);
+    EXPECT_FLOAT_EQ(death_event.position.x, 30.0f);
+    EXPECT_FLOAT_EQ(death_event.position.y, 40.0f);
+    ASSERT_TRUE(death_event.monster_kind.has_value());
+    EXPECT_EQ(death_event.monster_kind.value(), MonsterKind::Melee);
+}
+
+TEST(WorldTest, DamageSystemAddsDeathEventWhenMonsterKillsPlayer) {
+    World world({damage_system});
+    auto player = world.create_player(default_player_config());
+    auto monster = world.create_monster(default_monster_config());
+
+    world.add_damage_event(DamageEvent{
+        .source = monster,
+        .target = player,
+        .base_damage = DefaultPlayerMaxHealth,
+        .modified_damage = DefaultPlayerMaxHealth,
+    });
+    world.tick(DeltaTime{0.0f});
+
+    ASSERT_EQ(world.death_events().size(), 1);
+    const auto& death_event = world.death_events()[0];
+    EXPECT_EQ(death_event.victim, player);
+    EXPECT_EQ(death_event.killer, monster);
+    EXPECT_EQ(death_event.kind, DeathEntityKind::Player);
+    EXPECT_FLOAT_EQ(death_event.position.x, 10.0f);
+    EXPECT_FLOAT_EQ(death_event.position.y, 20.0f);
+    EXPECT_FALSE(death_event.monster_kind.has_value());
+    EXPECT_TRUE(world.kill_events().empty());
 }
 
 TEST(WorldTest, DamageSystemDoesNotAddKillEventForNonLethalDamage) {

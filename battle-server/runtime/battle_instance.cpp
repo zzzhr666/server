@@ -69,6 +69,8 @@ void battle::BattleInstance::tick(ecs::DeltaTime delta_time) {
     if (state_ == BattleState::Ended) {
         return;
     }
+    ++server_tick_;
+    discard_expired_combat_events_();
     if (phase_ == BattlePhase::RewardSelection) {
         tick_reward_selection_(delta_time);
         return;
@@ -96,6 +98,7 @@ battle::BattleWorldSnapshot battle::BattleInstance::snapshot() const {
     battle_world_snapshot.current_wave = current_wave_;
     battle_world_snapshot.phase = phase_;
     battle_world_snapshot.reward_selection_remaining = reward_selection_.remaining_seconds;
+    battle_world_snapshot.server_tick = server_tick_;
     for (auto& snapshot : world_snapshot.entities) {
         std::int64_t player_id = 0;
         if (snapshot.kind == ecs::EntityKind::Player) {
@@ -105,7 +108,8 @@ battle::BattleWorldSnapshot battle::BattleInstance::snapshot() const {
         }
         battle_world_snapshot.entities.emplace_back(snapshot.entity, snapshot.kind, player_id, snapshot.position,
                                                     snapshot.direction,
-                                                    snapshot.current_health, snapshot.max_health,snapshot.monster_kind);
+                                                    snapshot.current_health, snapshot.max_health,
+                                                    snapshot.monster_kind);
     }
     for (auto [player_id, player_entity] : player_entities_) {
         auto progress = world_.registry().try_get<ecs::PlayerProgress>(player_entity);
@@ -120,6 +124,10 @@ battle::BattleWorldSnapshot battle::BattleInstance::snapshot() const {
     for (auto& player_blessing : player_blessings_ | std::views::values) {
         battle_world_snapshot.player_blessings.emplace_back(player_blessing.player_id, player_blessing.blessings,
                                                             player_blessing.current_options);
+    }
+    for (auto& event : pending_battle_events_) {
+
+        battle_world_snapshot.events.emplace_back(event.event);
     }
     std::ranges::sort(battle_world_snapshot.player_progress,
                       [](const PlayerProgressSnapshot& lhs, const PlayerProgressSnapshot& rhs) {
@@ -217,6 +225,47 @@ bool battle::BattleInstance::choose_blessing(std::int64_t player_id, int option_
     return true;
 }
 
+void battle::BattleInstance::collect_combat_events_() {
+    for (auto& event : world_.attack_events()) {
+        pending_battle_events_.emplace_back(PendingBattleEvent{
+            .event = {
+                .event_id = next_event_id_++,
+                .payload = BattleAttackEvent{
+                    .attacker = event.attacker,
+                    .kind = event.kind,
+                    .direction = event.direction,
+                    .action_id = event.action_id,
+                }
+            },
+            .expire_tick = server_tick_ + EventHistoryTicks
+        });
+    }
+    for (auto& event : world_.death_events()) {
+        pending_battle_events_.emplace_back(PendingBattleEvent{
+            .event = BattleEvent{
+                .event_id = next_event_id_++,
+                .payload = BattleDeathEvent{
+                    .victim = event.victim,
+                    .killer = event.killer,
+                    .kind = event.kind,
+                    .position = event.position,
+                    .direction = event.direction,
+                    .monster_kind = event.monster_kind,
+                },
+            },
+            .expire_tick = server_tick_ + EventHistoryTicks,
+        });
+    }
+    world_.clear_attack_events();
+    world_.clear_death_events();
+}
+
+void battle::BattleInstance::discard_expired_combat_events_() {
+    std::erase_if(pending_battle_events_, [this](const PendingBattleEvent& event) {
+        return event.expire_tick <= server_tick_;
+    });
+}
+
 void battle::BattleInstance::spawn_next_wave_() {
     if (current_wave_ >= wave_config_.waves.size()) {
         return;
@@ -253,6 +302,7 @@ void battle::BattleInstance::tick_fighting_(ecs::DeltaTime delta_time) {
         spawn_next_wave_();
     }
     world_.tick(delta_time);
+    collect_combat_events_();
     consume_kill_events_();
     if (!world_.has_living_players()) {
         end_battle_(BattleEndReason::Defeat);
@@ -368,38 +418,17 @@ int battle::BattleInstance::experience_to_next_level_(int level) const {
 }
 
 std::vector<battle::BlessingOption> battle::BattleInstance::generate_blessing_options_(std::int64_t player_id) {
-    std::vector<BlessingID> selected;
-    selected.reserve(RewardOptionCount);
 
-    if (const auto blessing_state_it = player_blessings_.find(player_id); blessing_state_it != player_blessings_.
-        end()) {
-        for (const auto& blessing : blessing_state_it->second.blessings) {
-            if (selected.size() >= RewardOptionCount) {
-                break;
-            }
-            if (!contains_blessing(selected, blessing.blessing_id)) {
-                selected.emplace_back(blessing.blessing_id);
-            }
-        }
-    }
 
     auto candidates = AllBlessingIDs;
     std::ranges::shuffle(candidates, reward_random_engine_);
-    for (const auto blessing_id : candidates) {
-        if (selected.size() >= RewardOptionCount) {
-            break;
-        }
-        if (!contains_blessing(selected, blessing_id)) {
-            selected.emplace_back(blessing_id);
-        }
-    }
 
     std::vector<BlessingOption> options;
-    options.reserve(selected.size());
-    for (std::size_t i = 0; i < selected.size(); ++i) {
+    options.reserve(RewardOptionCount);
+    for (std::size_t i = 0; i < RewardOptionCount; ++i) {
         options.emplace_back(BlessingOption{
             .option_id = static_cast<int>(i),
-            .blessing_id = selected[i],
+            .blessing_id = candidates[i],
         });
     }
     return options;

@@ -7,6 +7,10 @@
 
 
 namespace battle {
+    constexpr int BowAttackDamage = 30;
+    constexpr ecs::DeltaTime BowAttackCooldown{0.30f};
+    constexpr float BowProjectileHitRadius = 0.85f;
+
     enum class WeaponKind {
         Sword,
         Dagger,

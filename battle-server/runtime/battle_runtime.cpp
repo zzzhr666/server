@@ -4,6 +4,8 @@
 #include <vector>
 #include <cstdint>
 #include <chrono>
+#include <type_traits>
+#include <variant>
 
 #include "battle_instance.hpp"
 #include "game/game_manager.hpp"
@@ -23,8 +25,6 @@ namespace {
             return battle::v1::ENTITY_KIND_MONSTER;
         case battle::ecs::EntityKind::Projectile:
             return battle::v1::ENTITY_KIND_PROJECTILE;
-        case battle::ecs::EntityKind::Unknown:
-            return battle::v1::ENTITY_KIND_UNSPECIFIED;
         default:
             return battle::v1::ENTITY_KIND_UNSPECIFIED;
         }
@@ -102,6 +102,26 @@ namespace {
         }
     }
 
+    battle::v1::AttackKind to_proto_attack_kind(battle::ecs::AttackKind kind) {
+        switch (kind) {
+        case battle::ecs::AttackKind::Melee:
+            return battle::v1::ATTACK_KIND_MELEE;
+        case battle::ecs::AttackKind::Projectile:
+            return battle::v1::ATTACK_KIND_PROJECTILE;
+        }
+        return battle::v1::ATTACK_KIND_UNSPECIFIED;
+    }
+
+    battle::v1::EntityKind to_proto_death_entity_kind(battle::ecs::DeathEntityKind kind) {
+        switch (kind) {
+        case battle::ecs::DeathEntityKind::Player:
+            return battle::v1::ENTITY_KIND_PLAYER;
+        case battle::ecs::DeathEntityKind::Monster:
+            return battle::v1::ENTITY_KIND_MONSTER;
+        }
+        return battle::v1::ENTITY_KIND_UNSPECIFIED;
+    }
+
 
     battle::v1::ServerPacket make_snapshot(const std::string& room_name, const battle::BattleWorldSnapshot& snapshot) {
         battle::v1::ServerPacket packet;
@@ -110,6 +130,7 @@ namespace {
         send_pkg->set_current_wave(static_cast<std::int32_t>(snapshot.current_wave));
         send_pkg->set_phase(to_proto_battle_phase(snapshot.phase));
         send_pkg->set_reward_selection_remaining_seconds(snapshot.reward_selection_remaining.count());
+        send_pkg->set_server_tick(snapshot.server_tick);
         for (const auto& entity : snapshot.entities) {
             auto entity_snapshot = send_pkg->add_entities();
             entity_snapshot->set_entity(entity.entity.packed());
@@ -121,6 +142,7 @@ namespace {
             entity_snapshot->set_y_direction(entity.direction.y);
             entity_snapshot->set_current_health(entity.current_health);
             entity_snapshot->set_max_health(entity.max_health);
+
             if (entity.monster_kind.has_value()) {
                 entity_snapshot->set_monster_kind(battle::monster_kind_to_string(entity.monster_kind.value()));
             }
@@ -149,6 +171,33 @@ namespace {
                 proto_option->set_option_id(option.option_id);
                 proto_option->set_blessing_id(to_proto_blessing_id(option.blessing_id));
             }
+        }
+        for (const auto& battle_event : snapshot.events) {
+            auto event = send_pkg->add_events();
+            event->set_event_id(battle_event.event_id);
+            std::visit([event]<typename T>(const T& payload) {
+                using Payload = std::decay_t<T>;
+                if constexpr (std::is_same_v<Payload, battle::BattleAttackEvent>) {
+                    auto proto_attack = event->mutable_attack();
+                    proto_attack->set_attacker_entity(payload.attacker.packed());
+                    proto_attack->set_action_id(payload.action_id);
+                    proto_attack->set_attack_kind(to_proto_attack_kind(payload.kind));
+                    proto_attack->set_x_direction(payload.direction.x);
+                    proto_attack->set_y_direction(payload.direction.y);
+                } else if constexpr (std::is_same_v<Payload, battle::BattleDeathEvent>) {
+                    auto proto_death = event->mutable_death();
+                    proto_death->set_victim_entity(payload.victim.packed());
+                    proto_death->set_killer_entity(payload.killer.packed());
+                    proto_death->set_victim_kind(to_proto_death_entity_kind(payload.kind));
+                    proto_death->set_x_direction(payload.direction.x);
+                    proto_death->set_y_direction(payload.direction.y);
+                    proto_death->set_x_position(payload.position.x);
+                    proto_death->set_y_position(payload.position.y);
+                    if (payload.monster_kind.has_value()) {
+                        proto_death->set_monster_kind(battle::monster_kind_to_string(payload.monster_kind.value()));
+                    }
+                }
+            }, battle_event.payload);
         }
         return packet;
     }
@@ -238,11 +287,7 @@ void battle::BattleRuntime::tick(ecs::DeltaTime delta_time) {
         std::lock_guard<std::mutex> lock(mutex_);
         for (auto& [room_name, instance] : instances_) {
             instance->tick(delta_time);
-            if (instance->ended()) {
-                auto reason = instance->end_reason();
-                end_state.emplace_back(room_name, reason);
-                continue;
-            }
+
             auto snapshot = instance->snapshot();
             const auto packet = make_snapshot(room_name, snapshot);
             auto sessions = session_manager_.sessions_in_room(room_name);
@@ -250,15 +295,19 @@ void battle::BattleRuntime::tick(ecs::DeltaTime delta_time) {
                 packets.emplace_back(packet);
                 endpoints.push_back(session->endpoint());
             }
+
+            if (instance->ended()) {
+                auto reason = instance->end_reason();
+                end_state.emplace_back(room_name, reason);
+            }
         }
+    }
+    for (std::size_t i = 0; i < packets.size(); i++) {
+        send_packet_(packets[i], endpoints[i]);
     }
 
     for (const auto& [room_name,reason] : end_state) {
         end_room(room_name, battle_end_reason_to_string(reason));
-    }
-
-    for (std::size_t i = 0; i < packets.size(); i++) {
-        send_packet_(packets[i], endpoints[i]);
     }
 }
 

@@ -78,6 +78,47 @@ TEST(BattleInstanceTest, ReceiveInputReturnsFalseForUnknownPlayer) {
                                              }));
 }
 
+TEST(BattleInstanceTest, SnapshotRetainsAttackEventForConfiguredHistoryWindow) {
+    BattleInstance instance({
+        .room_name = "room-1",
+        .player_ids = {1001},
+        .wave_config = WaveConfig{
+            .waves = {
+                WaveDefinition{
+                    .groups = {
+                        WaveMonsterGroup{
+                            .kind = MonsterKind::Melee,
+                            .count = 1,
+                        },
+                    },
+                },
+            },
+        },
+    });
+
+    ASSERT_TRUE(instance.receive_input(1001, PlayerInput{
+                                                   .attack_requested = true,
+                                               }));
+    instance.tick(ecs::DeltaTime{0.0f});
+
+    const auto first_snapshot = instance.snapshot();
+    ASSERT_EQ(first_snapshot.server_tick, 1);
+    ASSERT_EQ(first_snapshot.events.size(), 1);
+    EXPECT_EQ(first_snapshot.events[0].event_id, 1);
+    const auto* attack_event = std::get_if<BattleAttackEvent>(&first_snapshot.events[0].payload);
+    ASSERT_NE(attack_event, nullptr);
+    EXPECT_EQ(attack_event->kind, ecs::AttackKind::Melee);
+    EXPECT_NE(attack_event->action_id, ecs::InvalidActionID);
+
+    for (int i = 0; i < 59; ++i) {
+        instance.tick(ecs::DeltaTime{0.0f});
+    }
+
+    EXPECT_EQ(instance.snapshot().events.size(), 1);
+    instance.tick(ecs::DeltaTime{0.0f});
+    EXPECT_TRUE(instance.snapshot().events.empty());
+}
+
 TEST(BattleInstanceTest, ReceiveInputAndTickMovesOnlyTargetPlayer) {
     BattleInstance instance({
         .room_name = "room-1",

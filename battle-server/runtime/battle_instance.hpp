@@ -61,6 +61,19 @@ namespace battle {
         bool choose_blessing(std::int64_t player_id, int option_id);
 
     private:
+
+        struct PendingBattleEvent {
+            BattleEvent event;
+            std::uint64_t expire_tick{};
+        };
+
+        static constexpr std::uint64_t EventHistoryTicks = 60;
+
+        void collect_combat_events_();
+
+        void discard_expired_combat_events_();
+
+
         void spawn_next_wave_();
 
         void end_battle_(BattleEndReason reason);
@@ -107,5 +120,9 @@ namespace battle {
         ProgressionConfig progression_config_;
         std::unordered_map<std::int64_t, PlayerBlessingState> player_blessings_;
         std::mt19937 reward_random_engine_;
+
+        std::uint64_t server_tick_{};
+        std::uint64_t next_event_id_{1};
+        std::vector<PendingBattleEvent>pending_battle_events_;
     };
 }

@@ -11,6 +11,8 @@
 #include "gameplay/monster_kind.hpp"
 
 namespace battle::ecs {
+    constexpr float DefaultProjectileHitRadius = 0.5f;
+
     struct PlayerCommand {
         float move_x;
         float move_y;
@@ -80,6 +82,7 @@ namespace battle::ecs {
         int damage{};
         float range{};
         float projectile_speed{};
+        float projectile_hit_radius{DefaultProjectileHitRadius};
         CombatContext context;
     };
 
@@ -94,6 +97,7 @@ namespace battle::ecs {
         float range;
         DeltaTime cooldown_seconds;
         float projectile_speed;
+        float projectile_hit_radius{DefaultProjectileHitRadius};
     };
 
     struct Dash {
@@ -132,6 +136,27 @@ namespace battle::ecs {
         Entity killer;
         Entity victim;
         MonsterKind monster_kind{};
+    };
+
+    struct AttackEvent {
+        Entity attacker;
+        AttackKind kind{};
+        Direction direction{};
+        CombatActionID action_id{};
+    };
+
+    enum class DeathEntityKind {
+        Player,
+        Monster,
+    };
+
+    struct DeathEvent {
+        Entity victim;
+        Entity killer;
+        DeathEntityKind kind{};
+        Position position{};
+        Direction direction{};
+        std::optional<MonsterKind> monster_kind;
     };
 
     struct PlayerProgress {
@@ -179,6 +204,7 @@ namespace battle::ecs {
         int damage{};
         float current_distance{};
         float max_distance{};
+        float hit_radius{DefaultProjectileHitRadius};
         CombatContext context;
     };
 

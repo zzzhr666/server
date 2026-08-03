@@ -55,12 +55,22 @@ extern const ::google::protobuf::internal::DescriptorTable descriptor_table_prot
 }  // extern "C"
 namespace battle {
 namespace v1 {
+enum AttackKind : int;
+extern const uint32_t AttackKind_internal_data_[];
 enum BattlePhase : int;
 extern const uint32_t BattlePhase_internal_data_[];
 enum BlessingId : int;
 extern const uint32_t BlessingId_internal_data_[];
 enum EntityKind : int;
 extern const uint32_t EntityKind_internal_data_[];
+class AttackEvent;
+struct AttackEventDefaultTypeInternal;
+extern AttackEventDefaultTypeInternal _AttackEvent_default_instance_;
+extern const ::google::protobuf::internal::ClassDataFull AttackEvent_class_data_;
+class BattleEvent;
+struct BattleEventDefaultTypeInternal;
+extern BattleEventDefaultTypeInternal _BattleEvent_default_instance_;
+extern const ::google::protobuf::internal::ClassDataFull BattleEvent_class_data_;
 class BlessingOptionSnapshot;
 struct BlessingOptionSnapshotDefaultTypeInternal;
 extern BlessingOptionSnapshotDefaultTypeInternal _BlessingOptionSnapshot_default_instance_;
@@ -81,6 +91,10 @@ class ClientPacket;
 struct ClientPacketDefaultTypeInternal;
 extern ClientPacketDefaultTypeInternal _ClientPacket_default_instance_;
 extern const ::google::protobuf::internal::ClassDataFull ClientPacket_class_data_;
+class DeathEvent;
+struct DeathEventDefaultTypeInternal;
+extern DeathEventDefaultTypeInternal _DeathEvent_default_instance_;
+extern const ::google::protobuf::internal::ClassDataFull DeathEvent_class_data_;
 class EntitySnapshot;
 struct EntitySnapshotDefaultTypeInternal;
 extern EntitySnapshotDefaultTypeInternal _EntitySnapshot_default_instance_;
@@ -133,6 +147,9 @@ extern const ::google::protobuf::internal::ClassDataFull WorldSnapshot_class_dat
 }  // namespace battle
 namespace google {
 namespace protobuf {
+template <>
+internal::EnumTraitsT<::battle::v1::AttackKind_internal_data_>
+    internal::EnumTraitsImpl::value<::battle::v1::AttackKind>;
 template <>
 internal::EnumTraitsT<::battle::v1::BattlePhase_internal_data_>
     internal::EnumTraitsImpl::value<::battle::v1::BattlePhase>;
@@ -260,6 +277,43 @@ inline const ::std::string& BlessingId_Name(BlessingId value) {
 inline bool BlessingId_Parse(
     ::absl::string_view name, BlessingId* PROTOBUF_NONNULL value) {
   return ::google::protobuf::internal::ParseNamedEnum<BlessingId>(BlessingId_descriptor(), name,
+                                           value);
+}
+enum AttackKind : int {
+  ATTACK_KIND_UNSPECIFIED = 0,
+  ATTACK_KIND_MELEE = 1,
+  ATTACK_KIND_PROJECTILE = 2,
+  AttackKind_INT_MIN_SENTINEL_DO_NOT_USE_ =
+      ::std::numeric_limits<::int32_t>::min(),
+  AttackKind_INT_MAX_SENTINEL_DO_NOT_USE_ =
+      ::std::numeric_limits<::int32_t>::max(),
+};
+
+extern const uint32_t AttackKind_internal_data_[];
+inline constexpr AttackKind AttackKind_MIN =
+    static_cast<AttackKind>(0);
+inline constexpr AttackKind AttackKind_MAX =
+    static_cast<AttackKind>(2);
+inline bool AttackKind_IsValid(int value) {
+  return 0 <= value && value <= 2;
+}
+inline constexpr int AttackKind_ARRAYSIZE = 2 + 1;
+const ::google::protobuf::EnumDescriptor* PROTOBUF_NONNULL AttackKind_descriptor();
+template <typename T>
+const ::std::string& AttackKind_Name(T value) {
+  static_assert(::std::is_same<T, AttackKind>::value ||
+                    ::std::is_integral<T>::value,
+                "Incorrect type passed to AttackKind_Name().");
+  return AttackKind_Name(static_cast<AttackKind>(value));
+}
+template <>
+inline const ::std::string& AttackKind_Name(AttackKind value) {
+  return ::google::protobuf::internal::NameOfDenseEnum<AttackKind_descriptor, 0, 2>(
+      static_cast<int>(value));
+}
+inline bool AttackKind_Parse(
+    ::absl::string_view name, AttackKind* PROTOBUF_NONNULL value) {
+  return ::google::protobuf::internal::ParseNamedEnum<AttackKind>(AttackKind_descriptor(), name,
                                            value);
 }
 
@@ -1860,6 +1914,286 @@ class EntitySnapshot final : public ::google::protobuf::Message
 extern const ::google::protobuf::internal::ClassDataFull EntitySnapshot_class_data_;
 // -------------------------------------------------------------------
 
+class DeathEvent final : public ::google::protobuf::Message
+/* @@protoc_insertion_point(class_definition:battle.v1.DeathEvent) */ {
+ public:
+  inline DeathEvent() : DeathEvent(nullptr) {}
+  ~DeathEvent() PROTOBUF_FINAL;
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+  void operator delete(DeathEvent* PROTOBUF_NONNULL msg, std::destroying_delete_t) {
+    SharedDtor(*msg);
+    ::google::protobuf::internal::SizedDelete(msg, sizeof(DeathEvent));
+  }
+#endif
+
+  template <typename = void>
+  explicit PROTOBUF_CONSTEXPR DeathEvent(::google::protobuf::internal::ConstantInitialized);
+
+  inline DeathEvent(const DeathEvent& from) : DeathEvent(nullptr, from) {}
+  inline DeathEvent(DeathEvent&& from) noexcept
+      : DeathEvent(nullptr, ::std::move(from)) {}
+  inline DeathEvent& operator=(const DeathEvent& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline DeathEvent& operator=(DeathEvent&& from) noexcept {
+    if (this == &from) return *this;
+    if (::google::protobuf::internal::CanMoveWithInternalSwap(GetArena(), from.GetArena())) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance);
+  }
+  inline ::google::protobuf::UnknownFieldSet* PROTOBUF_NONNULL mutable_unknown_fields()
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.mutable_unknown_fields<::google::protobuf::UnknownFieldSet>();
+  }
+
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL descriptor() {
+    return GetDescriptor();
+  }
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::google::protobuf::Reflection* PROTOBUF_NONNULL GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const DeathEvent& default_instance() {
+    return *reinterpret_cast<const DeathEvent*>(
+        &_DeathEvent_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages = 16;
+  friend void swap(DeathEvent& a, DeathEvent& b) { a.Swap(&b); }
+  inline void Swap(DeathEvent* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    if (::google::protobuf::internal::CanUseInternalSwap(GetArena(), other->GetArena())) {
+      InternalSwap(other);
+    } else {
+      ::google::protobuf::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(DeathEvent* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    ABSL_DCHECK(GetArena() == other->GetArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  DeathEvent* PROTOBUF_NONNULL New(::google::protobuf::Arena* PROTOBUF_NULLABLE arena = nullptr) const {
+    return ::google::protobuf::Message::DefaultConstruct<DeathEvent>(arena);
+  }
+  using ::google::protobuf::Message::CopyFrom;
+  void CopyFrom(const DeathEvent& from);
+  using ::google::protobuf::Message::MergeFrom;
+  void MergeFrom(const DeathEvent& from) { DeathEvent::MergeImpl(*this, from); }
+
+  private:
+  static void MergeImpl(::google::protobuf::MessageLite& to_msg,
+                        const ::google::protobuf::MessageLite& from_msg);
+
+  public:
+  bool IsInitialized() const {
+    return true;
+  }
+  ABSL_ATTRIBUTE_REINITIALIZES void Clear() PROTOBUF_FINAL;
+  #if defined(PROTOBUF_CUSTOM_VTABLE)
+  private:
+  static ::size_t ByteSizeLong(const ::google::protobuf::MessageLite& msg);
+  static ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      const ::google::protobuf::MessageLite& msg, ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream);
+
+  public:
+  ::size_t ByteSizeLong() const { return ByteSizeLong(*this); }
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+    return _InternalSerialize(*this, target, stream);
+  }
+  #else   // PROTOBUF_CUSTOM_VTABLE
+  ::size_t ByteSizeLong() const final;
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const final;
+  #endif  // PROTOBUF_CUSTOM_VTABLE
+  int GetCachedSize() const { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static void SharedDtor(MessageLite& self);
+  void InternalSwap(DeathEvent* PROTOBUF_NONNULL other);
+ private:
+  template <typename T>
+  friend ::absl::string_view(::google::protobuf::internal::GetAnyMessageName)();
+  static ::absl::string_view FullMessageName() { return "battle.v1.DeathEvent"; }
+
+ protected:
+  explicit DeathEvent(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  DeathEvent(::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const DeathEvent& from);
+  DeathEvent(
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, DeathEvent&& from) noexcept
+      : DeathEvent(arena) {
+    *this = ::std::move(from);
+  }
+  const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL GetClassData() const PROTOBUF_FINAL;
+  static void* PROTOBUF_NONNULL PlacementNew_(
+      const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static constexpr auto InternalNewImpl_();
+
+ public:
+  static constexpr auto InternalGenerateClassData_();
+
+  ::google::protobuf::Metadata GetMetadata() const;
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+  enum : int {
+    kMonsterKindFieldNumber = 3,
+    kVictimEntityFieldNumber = 1,
+    kVictimKindFieldNumber = 2,
+    kXPositionFieldNumber = 4,
+    kYPositionFieldNumber = 5,
+    kXDirectionFieldNumber = 6,
+    kKillerEntityFieldNumber = 8,
+    kYDirectionFieldNumber = 7,
+  };
+  // string monster_kind = 3;
+  void clear_monster_kind() ;
+  const ::std::string& monster_kind() const;
+  template <typename Arg_ = const ::std::string&, typename... Args_>
+  void set_monster_kind(Arg_&& arg, Args_... args);
+  ::std::string* PROTOBUF_NONNULL mutable_monster_kind();
+  [[nodiscard]] ::std::string* PROTOBUF_NULLABLE release_monster_kind();
+  void set_allocated_monster_kind(::std::string* PROTOBUF_NULLABLE value);
+
+  private:
+  const ::std::string& _internal_monster_kind() const;
+  PROTOBUF_ALWAYS_INLINE void _internal_set_monster_kind(const ::std::string& value);
+  ::std::string* PROTOBUF_NONNULL _internal_mutable_monster_kind();
+
+  public:
+  // uint64 victim_entity = 1;
+  void clear_victim_entity() ;
+  ::uint64_t victim_entity() const;
+  void set_victim_entity(::uint64_t value);
+
+  private:
+  ::uint64_t _internal_victim_entity() const;
+  void _internal_set_victim_entity(::uint64_t value);
+
+  public:
+  // .battle.v1.EntityKind victim_kind = 2;
+  void clear_victim_kind() ;
+  ::battle::v1::EntityKind victim_kind() const;
+  void set_victim_kind(::battle::v1::EntityKind value);
+
+  private:
+  ::battle::v1::EntityKind _internal_victim_kind() const;
+  void _internal_set_victim_kind(::battle::v1::EntityKind value);
+
+  public:
+  // float x_position = 4;
+  void clear_x_position() ;
+  float x_position() const;
+  void set_x_position(float value);
+
+  private:
+  float _internal_x_position() const;
+  void _internal_set_x_position(float value);
+
+  public:
+  // float y_position = 5;
+  void clear_y_position() ;
+  float y_position() const;
+  void set_y_position(float value);
+
+  private:
+  float _internal_y_position() const;
+  void _internal_set_y_position(float value);
+
+  public:
+  // float x_direction = 6;
+  void clear_x_direction() ;
+  float x_direction() const;
+  void set_x_direction(float value);
+
+  private:
+  float _internal_x_direction() const;
+  void _internal_set_x_direction(float value);
+
+  public:
+  // uint64 killer_entity = 8;
+  void clear_killer_entity() ;
+  ::uint64_t killer_entity() const;
+  void set_killer_entity(::uint64_t value);
+
+  private:
+  ::uint64_t _internal_killer_entity() const;
+  void _internal_set_killer_entity(::uint64_t value);
+
+  public:
+  // float y_direction = 7;
+  void clear_y_direction() ;
+  float y_direction() const;
+  void set_y_direction(float value);
+
+  private:
+  float _internal_y_direction() const;
+  void _internal_set_y_direction(float value);
+
+  public:
+  // @@protoc_insertion_point(class_scope:battle.v1.DeathEvent)
+ private:
+  class _Internal;
+  friend class ::google::protobuf::internal::TcParser;
+  static const ::google::protobuf::internal::TcParseTable<3, 8,
+                                   0, 49,
+                                   2>
+      _table_;
+
+  friend class ::google::protobuf::MessageLite;
+  friend class ::google::protobuf::Arena;
+  template <typename T>
+  friend class ::google::protobuf::Arena::InternalHelper;
+  using InternalArenaConstructable_ = void;
+  using DestructorSkippable_ = void;
+  struct Impl_ {
+    inline explicit constexpr Impl_(::google::protobuf::internal::ConstantInitialized) noexcept;
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
+        const DeathEvent& from_msg);
+    ::google::protobuf::internal::HasBits<1> _has_bits_;
+    ::google::protobuf::internal::CachedSize _cached_size_;
+    ::google::protobuf::internal::ArenaStringPtr monster_kind_;
+    ::uint64_t victim_entity_;
+    int victim_kind_;
+    float x_position_;
+    float y_position_;
+    float x_direction_;
+    ::uint64_t killer_entity_;
+    float y_direction_;
+    PROTOBUF_TSAN_DECLARE_MEMBER
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_proto_2fbattle_2fv1_2fsession_2eproto;
+};
+
+extern const ::google::protobuf::internal::ClassDataFull DeathEvent_class_data_;
+// -------------------------------------------------------------------
+
 class ClientInput final : public ::google::protobuf::Message
 /* @@protoc_insertion_point(class_definition:battle.v1.ClientInput) */ {
  public:
@@ -2396,7 +2730,7 @@ class ChooseBlessing final : public ::google::protobuf::Message
     return *reinterpret_cast<const ChooseBlessing*>(
         &_ChooseBlessing_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 16;
+  static constexpr int kIndexInFileMessages = 19;
   friend void swap(ChooseBlessing& a, ChooseBlessing& b) { a.Swap(&b); }
   inline void Swap(ChooseBlessing* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -2762,6 +3096,245 @@ class BlessingOptionSnapshot final : public ::google::protobuf::Message
 };
 
 extern const ::google::protobuf::internal::ClassDataFull BlessingOptionSnapshot_class_data_;
+// -------------------------------------------------------------------
+
+class AttackEvent final : public ::google::protobuf::Message
+/* @@protoc_insertion_point(class_definition:battle.v1.AttackEvent) */ {
+ public:
+  inline AttackEvent() : AttackEvent(nullptr) {}
+  ~AttackEvent() PROTOBUF_FINAL;
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+  void operator delete(AttackEvent* PROTOBUF_NONNULL msg, std::destroying_delete_t) {
+    SharedDtor(*msg);
+    ::google::protobuf::internal::SizedDelete(msg, sizeof(AttackEvent));
+  }
+#endif
+
+  template <typename = void>
+  explicit PROTOBUF_CONSTEXPR AttackEvent(::google::protobuf::internal::ConstantInitialized);
+
+  inline AttackEvent(const AttackEvent& from) : AttackEvent(nullptr, from) {}
+  inline AttackEvent(AttackEvent&& from) noexcept
+      : AttackEvent(nullptr, ::std::move(from)) {}
+  inline AttackEvent& operator=(const AttackEvent& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline AttackEvent& operator=(AttackEvent&& from) noexcept {
+    if (this == &from) return *this;
+    if (::google::protobuf::internal::CanMoveWithInternalSwap(GetArena(), from.GetArena())) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance);
+  }
+  inline ::google::protobuf::UnknownFieldSet* PROTOBUF_NONNULL mutable_unknown_fields()
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.mutable_unknown_fields<::google::protobuf::UnknownFieldSet>();
+  }
+
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL descriptor() {
+    return GetDescriptor();
+  }
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::google::protobuf::Reflection* PROTOBUF_NONNULL GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const AttackEvent& default_instance() {
+    return *reinterpret_cast<const AttackEvent*>(
+        &_AttackEvent_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages = 15;
+  friend void swap(AttackEvent& a, AttackEvent& b) { a.Swap(&b); }
+  inline void Swap(AttackEvent* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    if (::google::protobuf::internal::CanUseInternalSwap(GetArena(), other->GetArena())) {
+      InternalSwap(other);
+    } else {
+      ::google::protobuf::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(AttackEvent* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    ABSL_DCHECK(GetArena() == other->GetArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  AttackEvent* PROTOBUF_NONNULL New(::google::protobuf::Arena* PROTOBUF_NULLABLE arena = nullptr) const {
+    return ::google::protobuf::Message::DefaultConstruct<AttackEvent>(arena);
+  }
+  using ::google::protobuf::Message::CopyFrom;
+  void CopyFrom(const AttackEvent& from);
+  using ::google::protobuf::Message::MergeFrom;
+  void MergeFrom(const AttackEvent& from) { AttackEvent::MergeImpl(*this, from); }
+
+  private:
+  static void MergeImpl(::google::protobuf::MessageLite& to_msg,
+                        const ::google::protobuf::MessageLite& from_msg);
+
+  public:
+  bool IsInitialized() const {
+    return true;
+  }
+  ABSL_ATTRIBUTE_REINITIALIZES void Clear() PROTOBUF_FINAL;
+  #if defined(PROTOBUF_CUSTOM_VTABLE)
+  private:
+  static ::size_t ByteSizeLong(const ::google::protobuf::MessageLite& msg);
+  static ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      const ::google::protobuf::MessageLite& msg, ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream);
+
+  public:
+  ::size_t ByteSizeLong() const { return ByteSizeLong(*this); }
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+    return _InternalSerialize(*this, target, stream);
+  }
+  #else   // PROTOBUF_CUSTOM_VTABLE
+  ::size_t ByteSizeLong() const final;
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const final;
+  #endif  // PROTOBUF_CUSTOM_VTABLE
+  int GetCachedSize() const { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static void SharedDtor(MessageLite& self);
+  void InternalSwap(AttackEvent* PROTOBUF_NONNULL other);
+ private:
+  template <typename T>
+  friend ::absl::string_view(::google::protobuf::internal::GetAnyMessageName)();
+  static ::absl::string_view FullMessageName() { return "battle.v1.AttackEvent"; }
+
+ protected:
+  explicit AttackEvent(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  AttackEvent(::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const AttackEvent& from);
+  AttackEvent(
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, AttackEvent&& from) noexcept
+      : AttackEvent(arena) {
+    *this = ::std::move(from);
+  }
+  const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL GetClassData() const PROTOBUF_FINAL;
+  static void* PROTOBUF_NONNULL PlacementNew_(
+      const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static constexpr auto InternalNewImpl_();
+
+ public:
+  static constexpr auto InternalGenerateClassData_();
+
+  ::google::protobuf::Metadata GetMetadata() const;
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+  enum : int {
+    kAttackerEntityFieldNumber = 1,
+    kActionIdFieldNumber = 2,
+    kAttackKindFieldNumber = 3,
+    kXDirectionFieldNumber = 4,
+    kYDirectionFieldNumber = 5,
+  };
+  // uint64 attacker_entity = 1;
+  void clear_attacker_entity() ;
+  ::uint64_t attacker_entity() const;
+  void set_attacker_entity(::uint64_t value);
+
+  private:
+  ::uint64_t _internal_attacker_entity() const;
+  void _internal_set_attacker_entity(::uint64_t value);
+
+  public:
+  // uint64 action_id = 2;
+  void clear_action_id() ;
+  ::uint64_t action_id() const;
+  void set_action_id(::uint64_t value);
+
+  private:
+  ::uint64_t _internal_action_id() const;
+  void _internal_set_action_id(::uint64_t value);
+
+  public:
+  // .battle.v1.AttackKind attack_kind = 3;
+  void clear_attack_kind() ;
+  ::battle::v1::AttackKind attack_kind() const;
+  void set_attack_kind(::battle::v1::AttackKind value);
+
+  private:
+  ::battle::v1::AttackKind _internal_attack_kind() const;
+  void _internal_set_attack_kind(::battle::v1::AttackKind value);
+
+  public:
+  // float x_direction = 4;
+  void clear_x_direction() ;
+  float x_direction() const;
+  void set_x_direction(float value);
+
+  private:
+  float _internal_x_direction() const;
+  void _internal_set_x_direction(float value);
+
+  public:
+  // float y_direction = 5;
+  void clear_y_direction() ;
+  float y_direction() const;
+  void set_y_direction(float value);
+
+  private:
+  float _internal_y_direction() const;
+  void _internal_set_y_direction(float value);
+
+  public:
+  // @@protoc_insertion_point(class_scope:battle.v1.AttackEvent)
+ private:
+  class _Internal;
+  friend class ::google::protobuf::internal::TcParser;
+  static const ::google::protobuf::internal::TcParseTable<3, 5,
+                                   0, 0,
+                                   2>
+      _table_;
+
+  friend class ::google::protobuf::MessageLite;
+  friend class ::google::protobuf::Arena;
+  template <typename T>
+  friend class ::google::protobuf::Arena::InternalHelper;
+  using InternalArenaConstructable_ = void;
+  using DestructorSkippable_ = void;
+  struct Impl_ {
+    inline explicit constexpr Impl_(::google::protobuf::internal::ConstantInitialized) noexcept;
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
+        const AttackEvent& from_msg);
+    ::google::protobuf::internal::HasBits<1> _has_bits_;
+    ::google::protobuf::internal::CachedSize _cached_size_;
+    ::uint64_t attacker_entity_;
+    ::uint64_t action_id_;
+    int attack_kind_;
+    float x_direction_;
+    float y_direction_;
+    PROTOBUF_TSAN_DECLARE_MEMBER
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_proto_2fbattle_2fv1_2fsession_2eproto;
+};
+
+extern const ::google::protobuf::internal::ClassDataFull AttackEvent_class_data_;
 // -------------------------------------------------------------------
 
 class PlayerBlessingStateSnapshot final : public ::google::protobuf::Message
@@ -3474,6 +4047,255 @@ class ClientPacket final : public ::google::protobuf::Message
 extern const ::google::protobuf::internal::ClassDataFull ClientPacket_class_data_;
 // -------------------------------------------------------------------
 
+class BattleEvent final : public ::google::protobuf::Message
+/* @@protoc_insertion_point(class_definition:battle.v1.BattleEvent) */ {
+ public:
+  inline BattleEvent() : BattleEvent(nullptr) {}
+  ~BattleEvent() PROTOBUF_FINAL;
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+  void operator delete(BattleEvent* PROTOBUF_NONNULL msg, std::destroying_delete_t) {
+    SharedDtor(*msg);
+    ::google::protobuf::internal::SizedDelete(msg, sizeof(BattleEvent));
+  }
+#endif
+
+  template <typename = void>
+  explicit PROTOBUF_CONSTEXPR BattleEvent(::google::protobuf::internal::ConstantInitialized);
+
+  inline BattleEvent(const BattleEvent& from) : BattleEvent(nullptr, from) {}
+  inline BattleEvent(BattleEvent&& from) noexcept
+      : BattleEvent(nullptr, ::std::move(from)) {}
+  inline BattleEvent& operator=(const BattleEvent& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline BattleEvent& operator=(BattleEvent&& from) noexcept {
+    if (this == &from) return *this;
+    if (::google::protobuf::internal::CanMoveWithInternalSwap(GetArena(), from.GetArena())) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance);
+  }
+  inline ::google::protobuf::UnknownFieldSet* PROTOBUF_NONNULL mutable_unknown_fields()
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.mutable_unknown_fields<::google::protobuf::UnknownFieldSet>();
+  }
+
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL descriptor() {
+    return GetDescriptor();
+  }
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::google::protobuf::Reflection* PROTOBUF_NONNULL GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const BattleEvent& default_instance() {
+    return *reinterpret_cast<const BattleEvent*>(
+        &_BattleEvent_default_instance_);
+  }
+  enum PayloadCase {
+    kAttack = 2,
+    kDeath = 3,
+    PAYLOAD_NOT_SET = 0,
+  };
+  static constexpr int kIndexInFileMessages = 17;
+  friend void swap(BattleEvent& a, BattleEvent& b) { a.Swap(&b); }
+  inline void Swap(BattleEvent* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    if (::google::protobuf::internal::CanUseInternalSwap(GetArena(), other->GetArena())) {
+      InternalSwap(other);
+    } else {
+      ::google::protobuf::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(BattleEvent* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    ABSL_DCHECK(GetArena() == other->GetArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  BattleEvent* PROTOBUF_NONNULL New(::google::protobuf::Arena* PROTOBUF_NULLABLE arena = nullptr) const {
+    return ::google::protobuf::Message::DefaultConstruct<BattleEvent>(arena);
+  }
+  using ::google::protobuf::Message::CopyFrom;
+  void CopyFrom(const BattleEvent& from);
+  using ::google::protobuf::Message::MergeFrom;
+  void MergeFrom(const BattleEvent& from) { BattleEvent::MergeImpl(*this, from); }
+
+  private:
+  static void MergeImpl(::google::protobuf::MessageLite& to_msg,
+                        const ::google::protobuf::MessageLite& from_msg);
+
+  public:
+  bool IsInitialized() const {
+    return true;
+  }
+  ABSL_ATTRIBUTE_REINITIALIZES void Clear() PROTOBUF_FINAL;
+  #if defined(PROTOBUF_CUSTOM_VTABLE)
+  private:
+  static ::size_t ByteSizeLong(const ::google::protobuf::MessageLite& msg);
+  static ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      const ::google::protobuf::MessageLite& msg, ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream);
+
+  public:
+  ::size_t ByteSizeLong() const { return ByteSizeLong(*this); }
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+    return _InternalSerialize(*this, target, stream);
+  }
+  #else   // PROTOBUF_CUSTOM_VTABLE
+  ::size_t ByteSizeLong() const final;
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const final;
+  #endif  // PROTOBUF_CUSTOM_VTABLE
+  int GetCachedSize() const { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static void SharedDtor(MessageLite& self);
+  void InternalSwap(BattleEvent* PROTOBUF_NONNULL other);
+ private:
+  template <typename T>
+  friend ::absl::string_view(::google::protobuf::internal::GetAnyMessageName)();
+  static ::absl::string_view FullMessageName() { return "battle.v1.BattleEvent"; }
+
+ protected:
+  explicit BattleEvent(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  BattleEvent(::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const BattleEvent& from);
+  BattleEvent(
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, BattleEvent&& from) noexcept
+      : BattleEvent(arena) {
+    *this = ::std::move(from);
+  }
+  const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL GetClassData() const PROTOBUF_FINAL;
+  static void* PROTOBUF_NONNULL PlacementNew_(
+      const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static constexpr auto InternalNewImpl_();
+
+ public:
+  static constexpr auto InternalGenerateClassData_();
+
+  ::google::protobuf::Metadata GetMetadata() const;
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+  enum : int {
+    kEventIdFieldNumber = 1,
+    kAttackFieldNumber = 2,
+    kDeathFieldNumber = 3,
+  };
+  // uint64 event_id = 1;
+  void clear_event_id() ;
+  ::uint64_t event_id() const;
+  void set_event_id(::uint64_t value);
+
+  private:
+  ::uint64_t _internal_event_id() const;
+  void _internal_set_event_id(::uint64_t value);
+
+  public:
+  // .battle.v1.AttackEvent attack = 2;
+  bool has_attack() const;
+  private:
+  bool _internal_has_attack() const;
+
+  public:
+  void clear_attack() ;
+  const ::battle::v1::AttackEvent& attack() const;
+  [[nodiscard]] ::battle::v1::AttackEvent* PROTOBUF_NULLABLE release_attack();
+  ::battle::v1::AttackEvent* PROTOBUF_NONNULL mutable_attack();
+  void set_allocated_attack(::battle::v1::AttackEvent* PROTOBUF_NULLABLE value);
+  void unsafe_arena_set_allocated_attack(::battle::v1::AttackEvent* PROTOBUF_NULLABLE value);
+  ::battle::v1::AttackEvent* PROTOBUF_NULLABLE unsafe_arena_release_attack();
+
+  private:
+  const ::battle::v1::AttackEvent& _internal_attack() const;
+  ::battle::v1::AttackEvent* PROTOBUF_NONNULL _internal_mutable_attack();
+
+  public:
+  // .battle.v1.DeathEvent death = 3;
+  bool has_death() const;
+  private:
+  bool _internal_has_death() const;
+
+  public:
+  void clear_death() ;
+  const ::battle::v1::DeathEvent& death() const;
+  [[nodiscard]] ::battle::v1::DeathEvent* PROTOBUF_NULLABLE release_death();
+  ::battle::v1::DeathEvent* PROTOBUF_NONNULL mutable_death();
+  void set_allocated_death(::battle::v1::DeathEvent* PROTOBUF_NULLABLE value);
+  void unsafe_arena_set_allocated_death(::battle::v1::DeathEvent* PROTOBUF_NULLABLE value);
+  ::battle::v1::DeathEvent* PROTOBUF_NULLABLE unsafe_arena_release_death();
+
+  private:
+  const ::battle::v1::DeathEvent& _internal_death() const;
+  ::battle::v1::DeathEvent* PROTOBUF_NONNULL _internal_mutable_death();
+
+  public:
+  void clear_payload();
+  PayloadCase payload_case() const;
+  // @@protoc_insertion_point(class_scope:battle.v1.BattleEvent)
+ private:
+  class _Internal;
+  void set_has_attack();
+  void set_has_death();
+  inline bool has_payload() const;
+  inline void clear_has_payload();
+  friend class ::google::protobuf::internal::TcParser;
+  static const ::google::protobuf::internal::TcParseTable<0, 3,
+                                   2, 0,
+                                   2>
+      _table_;
+
+  friend class ::google::protobuf::MessageLite;
+  friend class ::google::protobuf::Arena;
+  template <typename T>
+  friend class ::google::protobuf::Arena::InternalHelper;
+  using InternalArenaConstructable_ = void;
+  using DestructorSkippable_ = void;
+  struct Impl_ {
+    inline explicit constexpr Impl_(::google::protobuf::internal::ConstantInitialized) noexcept;
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
+        const BattleEvent& from_msg);
+    ::google::protobuf::internal::HasBits<1> _has_bits_;
+    ::google::protobuf::internal::CachedSize _cached_size_;
+    ::uint64_t event_id_;
+    union PayloadUnion {
+      constexpr PayloadUnion() : _constinit_{} {}
+      ::google::protobuf::internal::ConstantInitialized _constinit_;
+      ::battle::v1::AttackEvent* PROTOBUF_NULLABLE attack_;
+      ::battle::v1::DeathEvent* PROTOBUF_NULLABLE death_;
+    } payload_;
+    ::uint32_t _oneof_case_[1];
+    PROTOBUF_TSAN_DECLARE_MEMBER
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_proto_2fbattle_2fv1_2fsession_2eproto;
+};
+
+extern const ::google::protobuf::internal::ClassDataFull BattleEvent_class_data_;
+// -------------------------------------------------------------------
+
 class WorldSnapshot final : public ::google::protobuf::Message
 /* @@protoc_insertion_point(class_definition:battle.v1.WorldSnapshot) */ {
  public:
@@ -3529,7 +4351,7 @@ class WorldSnapshot final : public ::google::protobuf::Message
     return *reinterpret_cast<const WorldSnapshot*>(
         &_WorldSnapshot_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 15;
+  static constexpr int kIndexInFileMessages = 18;
   friend void swap(WorldSnapshot& a, WorldSnapshot& b) { a.Swap(&b); }
   inline void Swap(WorldSnapshot* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -3620,9 +4442,11 @@ class WorldSnapshot final : public ::google::protobuf::Message
     kEntitiesFieldNumber = 2,
     kPlayerProgressFieldNumber = 6,
     kPlayerBlessingsFieldNumber = 7,
+    kEventsFieldNumber = 9,
     kRoomNameFieldNumber = 1,
     kCurrentWaveFieldNumber = 3,
     kPhaseFieldNumber = 4,
+    kServerTickFieldNumber = 8,
     kRewardSelectionRemainingSecondsFieldNumber = 5,
   };
   // repeated .battle.v1.EntitySnapshot entities = 2;
@@ -3676,6 +4500,23 @@ class WorldSnapshot final : public ::google::protobuf::Message
   const ::battle::v1::PlayerBlessingStateSnapshot& player_blessings(int index) const;
   ::battle::v1::PlayerBlessingStateSnapshot* PROTOBUF_NONNULL add_player_blessings();
   const ::google::protobuf::RepeatedPtrField<::battle::v1::PlayerBlessingStateSnapshot>& player_blessings() const;
+  // repeated .battle.v1.BattleEvent events = 9;
+  int events_size() const;
+  private:
+  int _internal_events_size() const;
+
+  public:
+  void clear_events() ;
+  ::battle::v1::BattleEvent* PROTOBUF_NONNULL mutable_events(int index);
+  ::google::protobuf::RepeatedPtrField<::battle::v1::BattleEvent>* PROTOBUF_NONNULL mutable_events();
+
+  private:
+  const ::google::protobuf::RepeatedPtrField<::battle::v1::BattleEvent>& _internal_events() const;
+  ::google::protobuf::RepeatedPtrField<::battle::v1::BattleEvent>* PROTOBUF_NONNULL _internal_mutable_events();
+  public:
+  const ::battle::v1::BattleEvent& events(int index) const;
+  ::battle::v1::BattleEvent* PROTOBUF_NONNULL add_events();
+  const ::google::protobuf::RepeatedPtrField<::battle::v1::BattleEvent>& events() const;
   // string room_name = 1;
   void clear_room_name() ;
   const ::std::string& room_name() const;
@@ -3711,6 +4552,16 @@ class WorldSnapshot final : public ::google::protobuf::Message
   void _internal_set_phase(::battle::v1::BattlePhase value);
 
   public:
+  // uint64 server_tick = 8;
+  void clear_server_tick() ;
+  ::uint64_t server_tick() const;
+  void set_server_tick(::uint64_t value);
+
+  private:
+  ::uint64_t _internal_server_tick() const;
+  void _internal_set_server_tick(::uint64_t value);
+
+  public:
   // float reward_selection_remaining_seconds = 5;
   void clear_reward_selection_remaining_seconds() ;
   float reward_selection_remaining_seconds() const;
@@ -3725,8 +4576,8 @@ class WorldSnapshot final : public ::google::protobuf::Message
  private:
   class _Internal;
   friend class ::google::protobuf::internal::TcParser;
-  static const ::google::protobuf::internal::TcParseTable<3, 7,
-                                   3, 41,
+  static const ::google::protobuf::internal::TcParseTable<4, 9,
+                                   4, 49,
                                    2>
       _table_;
 
@@ -3750,9 +4601,11 @@ class WorldSnapshot final : public ::google::protobuf::Message
     ::google::protobuf::RepeatedPtrField< ::battle::v1::EntitySnapshot > entities_;
     ::google::protobuf::RepeatedPtrField< ::battle::v1::PlayerProgressSnapshot > player_progress_;
     ::google::protobuf::RepeatedPtrField< ::battle::v1::PlayerBlessingStateSnapshot > player_blessings_;
+    ::google::protobuf::RepeatedPtrField< ::battle::v1::BattleEvent > events_;
     ::google::protobuf::internal::ArenaStringPtr room_name_;
     ::int32_t current_wave_;
     int phase_;
+    ::uint64_t server_tick_;
     float reward_selection_remaining_seconds_;
     PROTOBUF_TSAN_DECLARE_MEMBER
   };
@@ -6763,6 +7616,566 @@ PlayerBlessingStateSnapshot::_internal_mutable_current_options() {
 
 // -------------------------------------------------------------------
 
+// AttackEvent
+
+// uint64 attacker_entity = 1;
+inline void AttackEvent::clear_attacker_entity() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.attacker_entity_ = ::uint64_t{0u};
+  _impl_._has_bits_[0] &= ~0x00000001u;
+}
+inline ::uint64_t AttackEvent::attacker_entity() const {
+  // @@protoc_insertion_point(field_get:battle.v1.AttackEvent.attacker_entity)
+  return _internal_attacker_entity();
+}
+inline void AttackEvent::set_attacker_entity(::uint64_t value) {
+  _internal_set_attacker_entity(value);
+  _impl_._has_bits_[0] |= 0x00000001u;
+  // @@protoc_insertion_point(field_set:battle.v1.AttackEvent.attacker_entity)
+}
+inline ::uint64_t AttackEvent::_internal_attacker_entity() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.attacker_entity_;
+}
+inline void AttackEvent::_internal_set_attacker_entity(::uint64_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.attacker_entity_ = value;
+}
+
+// uint64 action_id = 2;
+inline void AttackEvent::clear_action_id() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.action_id_ = ::uint64_t{0u};
+  _impl_._has_bits_[0] &= ~0x00000002u;
+}
+inline ::uint64_t AttackEvent::action_id() const {
+  // @@protoc_insertion_point(field_get:battle.v1.AttackEvent.action_id)
+  return _internal_action_id();
+}
+inline void AttackEvent::set_action_id(::uint64_t value) {
+  _internal_set_action_id(value);
+  _impl_._has_bits_[0] |= 0x00000002u;
+  // @@protoc_insertion_point(field_set:battle.v1.AttackEvent.action_id)
+}
+inline ::uint64_t AttackEvent::_internal_action_id() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.action_id_;
+}
+inline void AttackEvent::_internal_set_action_id(::uint64_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.action_id_ = value;
+}
+
+// .battle.v1.AttackKind attack_kind = 3;
+inline void AttackEvent::clear_attack_kind() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.attack_kind_ = 0;
+  _impl_._has_bits_[0] &= ~0x00000004u;
+}
+inline ::battle::v1::AttackKind AttackEvent::attack_kind() const {
+  // @@protoc_insertion_point(field_get:battle.v1.AttackEvent.attack_kind)
+  return _internal_attack_kind();
+}
+inline void AttackEvent::set_attack_kind(::battle::v1::AttackKind value) {
+  _internal_set_attack_kind(value);
+  _impl_._has_bits_[0] |= 0x00000004u;
+  // @@protoc_insertion_point(field_set:battle.v1.AttackEvent.attack_kind)
+}
+inline ::battle::v1::AttackKind AttackEvent::_internal_attack_kind() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return static_cast<::battle::v1::AttackKind>(_impl_.attack_kind_);
+}
+inline void AttackEvent::_internal_set_attack_kind(::battle::v1::AttackKind value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.attack_kind_ = value;
+}
+
+// float x_direction = 4;
+inline void AttackEvent::clear_x_direction() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.x_direction_ = 0;
+  _impl_._has_bits_[0] &= ~0x00000008u;
+}
+inline float AttackEvent::x_direction() const {
+  // @@protoc_insertion_point(field_get:battle.v1.AttackEvent.x_direction)
+  return _internal_x_direction();
+}
+inline void AttackEvent::set_x_direction(float value) {
+  _internal_set_x_direction(value);
+  _impl_._has_bits_[0] |= 0x00000008u;
+  // @@protoc_insertion_point(field_set:battle.v1.AttackEvent.x_direction)
+}
+inline float AttackEvent::_internal_x_direction() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.x_direction_;
+}
+inline void AttackEvent::_internal_set_x_direction(float value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.x_direction_ = value;
+}
+
+// float y_direction = 5;
+inline void AttackEvent::clear_y_direction() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.y_direction_ = 0;
+  _impl_._has_bits_[0] &= ~0x00000010u;
+}
+inline float AttackEvent::y_direction() const {
+  // @@protoc_insertion_point(field_get:battle.v1.AttackEvent.y_direction)
+  return _internal_y_direction();
+}
+inline void AttackEvent::set_y_direction(float value) {
+  _internal_set_y_direction(value);
+  _impl_._has_bits_[0] |= 0x00000010u;
+  // @@protoc_insertion_point(field_set:battle.v1.AttackEvent.y_direction)
+}
+inline float AttackEvent::_internal_y_direction() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.y_direction_;
+}
+inline void AttackEvent::_internal_set_y_direction(float value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.y_direction_ = value;
+}
+
+// -------------------------------------------------------------------
+
+// DeathEvent
+
+// uint64 victim_entity = 1;
+inline void DeathEvent::clear_victim_entity() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.victim_entity_ = ::uint64_t{0u};
+  _impl_._has_bits_[0] &= ~0x00000002u;
+}
+inline ::uint64_t DeathEvent::victim_entity() const {
+  // @@protoc_insertion_point(field_get:battle.v1.DeathEvent.victim_entity)
+  return _internal_victim_entity();
+}
+inline void DeathEvent::set_victim_entity(::uint64_t value) {
+  _internal_set_victim_entity(value);
+  _impl_._has_bits_[0] |= 0x00000002u;
+  // @@protoc_insertion_point(field_set:battle.v1.DeathEvent.victim_entity)
+}
+inline ::uint64_t DeathEvent::_internal_victim_entity() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.victim_entity_;
+}
+inline void DeathEvent::_internal_set_victim_entity(::uint64_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.victim_entity_ = value;
+}
+
+// .battle.v1.EntityKind victim_kind = 2;
+inline void DeathEvent::clear_victim_kind() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.victim_kind_ = 0;
+  _impl_._has_bits_[0] &= ~0x00000004u;
+}
+inline ::battle::v1::EntityKind DeathEvent::victim_kind() const {
+  // @@protoc_insertion_point(field_get:battle.v1.DeathEvent.victim_kind)
+  return _internal_victim_kind();
+}
+inline void DeathEvent::set_victim_kind(::battle::v1::EntityKind value) {
+  _internal_set_victim_kind(value);
+  _impl_._has_bits_[0] |= 0x00000004u;
+  // @@protoc_insertion_point(field_set:battle.v1.DeathEvent.victim_kind)
+}
+inline ::battle::v1::EntityKind DeathEvent::_internal_victim_kind() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return static_cast<::battle::v1::EntityKind>(_impl_.victim_kind_);
+}
+inline void DeathEvent::_internal_set_victim_kind(::battle::v1::EntityKind value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.victim_kind_ = value;
+}
+
+// string monster_kind = 3;
+inline void DeathEvent::clear_monster_kind() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.monster_kind_.ClearToEmpty();
+  _impl_._has_bits_[0] &= ~0x00000001u;
+}
+inline const ::std::string& DeathEvent::monster_kind() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:battle.v1.DeathEvent.monster_kind)
+  return _internal_monster_kind();
+}
+template <typename Arg_, typename... Args_>
+PROTOBUF_ALWAYS_INLINE void DeathEvent::set_monster_kind(Arg_&& arg, Args_... args) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_._has_bits_[0] |= 0x00000001u;
+  _impl_.monster_kind_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
+  // @@protoc_insertion_point(field_set:battle.v1.DeathEvent.monster_kind)
+}
+inline ::std::string* PROTOBUF_NONNULL DeathEvent::mutable_monster_kind()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  ::std::string* _s = _internal_mutable_monster_kind();
+  // @@protoc_insertion_point(field_mutable:battle.v1.DeathEvent.monster_kind)
+  return _s;
+}
+inline const ::std::string& DeathEvent::_internal_monster_kind() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.monster_kind_.Get();
+}
+inline void DeathEvent::_internal_set_monster_kind(const ::std::string& value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_._has_bits_[0] |= 0x00000001u;
+  _impl_.monster_kind_.Set(value, GetArena());
+}
+inline ::std::string* PROTOBUF_NONNULL DeathEvent::_internal_mutable_monster_kind() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_._has_bits_[0] |= 0x00000001u;
+  return _impl_.monster_kind_.Mutable( GetArena());
+}
+inline ::std::string* PROTOBUF_NULLABLE DeathEvent::release_monster_kind() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  // @@protoc_insertion_point(field_release:battle.v1.DeathEvent.monster_kind)
+  if ((_impl_._has_bits_[0] & 0x00000001u) == 0) {
+    return nullptr;
+  }
+  _impl_._has_bits_[0] &= ~0x00000001u;
+  auto* released = _impl_.monster_kind_.Release();
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString()) {
+    _impl_.monster_kind_.Set("", GetArena());
+  }
+  return released;
+}
+inline void DeathEvent::set_allocated_monster_kind(::std::string* PROTOBUF_NULLABLE value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (value != nullptr) {
+    _impl_._has_bits_[0] |= 0x00000001u;
+  } else {
+    _impl_._has_bits_[0] &= ~0x00000001u;
+  }
+  _impl_.monster_kind_.SetAllocated(value, GetArena());
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.monster_kind_.IsDefault()) {
+    _impl_.monster_kind_.Set("", GetArena());
+  }
+  // @@protoc_insertion_point(field_set_allocated:battle.v1.DeathEvent.monster_kind)
+}
+
+// float x_position = 4;
+inline void DeathEvent::clear_x_position() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.x_position_ = 0;
+  _impl_._has_bits_[0] &= ~0x00000008u;
+}
+inline float DeathEvent::x_position() const {
+  // @@protoc_insertion_point(field_get:battle.v1.DeathEvent.x_position)
+  return _internal_x_position();
+}
+inline void DeathEvent::set_x_position(float value) {
+  _internal_set_x_position(value);
+  _impl_._has_bits_[0] |= 0x00000008u;
+  // @@protoc_insertion_point(field_set:battle.v1.DeathEvent.x_position)
+}
+inline float DeathEvent::_internal_x_position() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.x_position_;
+}
+inline void DeathEvent::_internal_set_x_position(float value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.x_position_ = value;
+}
+
+// float y_position = 5;
+inline void DeathEvent::clear_y_position() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.y_position_ = 0;
+  _impl_._has_bits_[0] &= ~0x00000010u;
+}
+inline float DeathEvent::y_position() const {
+  // @@protoc_insertion_point(field_get:battle.v1.DeathEvent.y_position)
+  return _internal_y_position();
+}
+inline void DeathEvent::set_y_position(float value) {
+  _internal_set_y_position(value);
+  _impl_._has_bits_[0] |= 0x00000010u;
+  // @@protoc_insertion_point(field_set:battle.v1.DeathEvent.y_position)
+}
+inline float DeathEvent::_internal_y_position() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.y_position_;
+}
+inline void DeathEvent::_internal_set_y_position(float value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.y_position_ = value;
+}
+
+// float x_direction = 6;
+inline void DeathEvent::clear_x_direction() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.x_direction_ = 0;
+  _impl_._has_bits_[0] &= ~0x00000020u;
+}
+inline float DeathEvent::x_direction() const {
+  // @@protoc_insertion_point(field_get:battle.v1.DeathEvent.x_direction)
+  return _internal_x_direction();
+}
+inline void DeathEvent::set_x_direction(float value) {
+  _internal_set_x_direction(value);
+  _impl_._has_bits_[0] |= 0x00000020u;
+  // @@protoc_insertion_point(field_set:battle.v1.DeathEvent.x_direction)
+}
+inline float DeathEvent::_internal_x_direction() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.x_direction_;
+}
+inline void DeathEvent::_internal_set_x_direction(float value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.x_direction_ = value;
+}
+
+// float y_direction = 7;
+inline void DeathEvent::clear_y_direction() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.y_direction_ = 0;
+  _impl_._has_bits_[0] &= ~0x00000080u;
+}
+inline float DeathEvent::y_direction() const {
+  // @@protoc_insertion_point(field_get:battle.v1.DeathEvent.y_direction)
+  return _internal_y_direction();
+}
+inline void DeathEvent::set_y_direction(float value) {
+  _internal_set_y_direction(value);
+  _impl_._has_bits_[0] |= 0x00000080u;
+  // @@protoc_insertion_point(field_set:battle.v1.DeathEvent.y_direction)
+}
+inline float DeathEvent::_internal_y_direction() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.y_direction_;
+}
+inline void DeathEvent::_internal_set_y_direction(float value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.y_direction_ = value;
+}
+
+// uint64 killer_entity = 8;
+inline void DeathEvent::clear_killer_entity() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.killer_entity_ = ::uint64_t{0u};
+  _impl_._has_bits_[0] &= ~0x00000040u;
+}
+inline ::uint64_t DeathEvent::killer_entity() const {
+  // @@protoc_insertion_point(field_get:battle.v1.DeathEvent.killer_entity)
+  return _internal_killer_entity();
+}
+inline void DeathEvent::set_killer_entity(::uint64_t value) {
+  _internal_set_killer_entity(value);
+  _impl_._has_bits_[0] |= 0x00000040u;
+  // @@protoc_insertion_point(field_set:battle.v1.DeathEvent.killer_entity)
+}
+inline ::uint64_t DeathEvent::_internal_killer_entity() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.killer_entity_;
+}
+inline void DeathEvent::_internal_set_killer_entity(::uint64_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.killer_entity_ = value;
+}
+
+// -------------------------------------------------------------------
+
+// BattleEvent
+
+// uint64 event_id = 1;
+inline void BattleEvent::clear_event_id() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.event_id_ = ::uint64_t{0u};
+  _impl_._has_bits_[0] &= ~0x00000001u;
+}
+inline ::uint64_t BattleEvent::event_id() const {
+  // @@protoc_insertion_point(field_get:battle.v1.BattleEvent.event_id)
+  return _internal_event_id();
+}
+inline void BattleEvent::set_event_id(::uint64_t value) {
+  _internal_set_event_id(value);
+  _impl_._has_bits_[0] |= 0x00000001u;
+  // @@protoc_insertion_point(field_set:battle.v1.BattleEvent.event_id)
+}
+inline ::uint64_t BattleEvent::_internal_event_id() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.event_id_;
+}
+inline void BattleEvent::_internal_set_event_id(::uint64_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.event_id_ = value;
+}
+
+// .battle.v1.AttackEvent attack = 2;
+inline bool BattleEvent::has_attack() const {
+  return payload_case() == kAttack;
+}
+inline bool BattleEvent::_internal_has_attack() const {
+  return payload_case() == kAttack;
+}
+inline void BattleEvent::set_has_attack() {
+  _impl_._oneof_case_[0] = kAttack;
+}
+inline void BattleEvent::clear_attack() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (payload_case() == kAttack) {
+    if (GetArena() == nullptr) {
+      delete _impl_.payload_.attack_;
+    } else if (::google::protobuf::internal::DebugHardenClearOneofMessageOnArena()) {
+      ::google::protobuf::internal::MaybePoisonAfterClear(_impl_.payload_.attack_);
+    }
+    clear_has_payload();
+  }
+}
+inline ::battle::v1::AttackEvent* PROTOBUF_NULLABLE BattleEvent::release_attack() {
+  // @@protoc_insertion_point(field_release:battle.v1.BattleEvent.attack)
+  if (payload_case() == kAttack) {
+    clear_has_payload();
+    auto* temp = _impl_.payload_.attack_;
+    if (GetArena() != nullptr) {
+      temp = ::google::protobuf::internal::DuplicateIfNonNull(temp);
+    }
+    _impl_.payload_.attack_ = nullptr;
+    return temp;
+  } else {
+    return nullptr;
+  }
+}
+inline const ::battle::v1::AttackEvent& BattleEvent::_internal_attack() const {
+  return payload_case() == kAttack ? *_impl_.payload_.attack_ : reinterpret_cast<::battle::v1::AttackEvent&>(::battle::v1::_AttackEvent_default_instance_);
+}
+inline const ::battle::v1::AttackEvent& BattleEvent::attack() const ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:battle.v1.BattleEvent.attack)
+  return _internal_attack();
+}
+inline ::battle::v1::AttackEvent* PROTOBUF_NULLABLE BattleEvent::unsafe_arena_release_attack() {
+  // @@protoc_insertion_point(field_unsafe_arena_release:battle.v1.BattleEvent.attack)
+  if (payload_case() == kAttack) {
+    clear_has_payload();
+    auto* temp = _impl_.payload_.attack_;
+    _impl_.payload_.attack_ = nullptr;
+    return temp;
+  } else {
+    return nullptr;
+  }
+}
+inline void BattleEvent::unsafe_arena_set_allocated_attack(
+    ::battle::v1::AttackEvent* PROTOBUF_NULLABLE value) {
+  // We rely on the oneof clear method to free the earlier contents
+  // of this oneof. We can directly use the pointer we're given to
+  // set the new value.
+  clear_payload();
+  if (value) {
+    set_has_attack();
+    _impl_.payload_.attack_ = value;
+  }
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:battle.v1.BattleEvent.attack)
+}
+inline ::battle::v1::AttackEvent* PROTOBUF_NONNULL BattleEvent::_internal_mutable_attack() {
+  if (payload_case() != kAttack) {
+    clear_payload();
+    set_has_attack();
+    _impl_.payload_.attack_ =
+        ::google::protobuf::Message::DefaultConstruct<::battle::v1::AttackEvent>(GetArena());
+  }
+  return _impl_.payload_.attack_;
+}
+inline ::battle::v1::AttackEvent* PROTOBUF_NONNULL BattleEvent::mutable_attack()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  ::battle::v1::AttackEvent* _msg = _internal_mutable_attack();
+  // @@protoc_insertion_point(field_mutable:battle.v1.BattleEvent.attack)
+  return _msg;
+}
+
+// .battle.v1.DeathEvent death = 3;
+inline bool BattleEvent::has_death() const {
+  return payload_case() == kDeath;
+}
+inline bool BattleEvent::_internal_has_death() const {
+  return payload_case() == kDeath;
+}
+inline void BattleEvent::set_has_death() {
+  _impl_._oneof_case_[0] = kDeath;
+}
+inline void BattleEvent::clear_death() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (payload_case() == kDeath) {
+    if (GetArena() == nullptr) {
+      delete _impl_.payload_.death_;
+    } else if (::google::protobuf::internal::DebugHardenClearOneofMessageOnArena()) {
+      ::google::protobuf::internal::MaybePoisonAfterClear(_impl_.payload_.death_);
+    }
+    clear_has_payload();
+  }
+}
+inline ::battle::v1::DeathEvent* PROTOBUF_NULLABLE BattleEvent::release_death() {
+  // @@protoc_insertion_point(field_release:battle.v1.BattleEvent.death)
+  if (payload_case() == kDeath) {
+    clear_has_payload();
+    auto* temp = _impl_.payload_.death_;
+    if (GetArena() != nullptr) {
+      temp = ::google::protobuf::internal::DuplicateIfNonNull(temp);
+    }
+    _impl_.payload_.death_ = nullptr;
+    return temp;
+  } else {
+    return nullptr;
+  }
+}
+inline const ::battle::v1::DeathEvent& BattleEvent::_internal_death() const {
+  return payload_case() == kDeath ? *_impl_.payload_.death_ : reinterpret_cast<::battle::v1::DeathEvent&>(::battle::v1::_DeathEvent_default_instance_);
+}
+inline const ::battle::v1::DeathEvent& BattleEvent::death() const ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:battle.v1.BattleEvent.death)
+  return _internal_death();
+}
+inline ::battle::v1::DeathEvent* PROTOBUF_NULLABLE BattleEvent::unsafe_arena_release_death() {
+  // @@protoc_insertion_point(field_unsafe_arena_release:battle.v1.BattleEvent.death)
+  if (payload_case() == kDeath) {
+    clear_has_payload();
+    auto* temp = _impl_.payload_.death_;
+    _impl_.payload_.death_ = nullptr;
+    return temp;
+  } else {
+    return nullptr;
+  }
+}
+inline void BattleEvent::unsafe_arena_set_allocated_death(
+    ::battle::v1::DeathEvent* PROTOBUF_NULLABLE value) {
+  // We rely on the oneof clear method to free the earlier contents
+  // of this oneof. We can directly use the pointer we're given to
+  // set the new value.
+  clear_payload();
+  if (value) {
+    set_has_death();
+    _impl_.payload_.death_ = value;
+  }
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:battle.v1.BattleEvent.death)
+}
+inline ::battle::v1::DeathEvent* PROTOBUF_NONNULL BattleEvent::_internal_mutable_death() {
+  if (payload_case() != kDeath) {
+    clear_payload();
+    set_has_death();
+    _impl_.payload_.death_ =
+        ::google::protobuf::Message::DefaultConstruct<::battle::v1::DeathEvent>(GetArena());
+  }
+  return _impl_.payload_.death_;
+}
+inline ::battle::v1::DeathEvent* PROTOBUF_NONNULL BattleEvent::mutable_death()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  ::battle::v1::DeathEvent* _msg = _internal_mutable_death();
+  // @@protoc_insertion_point(field_mutable:battle.v1.BattleEvent.death)
+  return _msg;
+}
+
+inline bool BattleEvent::has_payload() const {
+  return payload_case() != PAYLOAD_NOT_SET;
+}
+inline void BattleEvent::clear_has_payload() {
+  _impl_._oneof_case_[0] = PAYLOAD_NOT_SET;
+}
+inline BattleEvent::PayloadCase BattleEvent::payload_case() const {
+  return BattleEvent::PayloadCase(_impl_._oneof_case_[0]);
+}
+// -------------------------------------------------------------------
+
 // WorldSnapshot
 
 // string room_name = 1;
@@ -6932,7 +8345,7 @@ inline void WorldSnapshot::_internal_set_phase(::battle::v1::BattlePhase value) 
 inline void WorldSnapshot::clear_reward_selection_remaining_seconds() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.reward_selection_remaining_seconds_ = 0;
-  _impl_._has_bits_[0] &= ~0x00000008u;
+  _impl_._has_bits_[0] &= ~0x00000010u;
 }
 inline float WorldSnapshot::reward_selection_remaining_seconds() const {
   // @@protoc_insertion_point(field_get:battle.v1.WorldSnapshot.reward_selection_remaining_seconds)
@@ -6940,7 +8353,7 @@ inline float WorldSnapshot::reward_selection_remaining_seconds() const {
 }
 inline void WorldSnapshot::set_reward_selection_remaining_seconds(float value) {
   _internal_set_reward_selection_remaining_seconds(value);
-  _impl_._has_bits_[0] |= 0x00000008u;
+  _impl_._has_bits_[0] |= 0x00000010u;
   // @@protoc_insertion_point(field_set:battle.v1.WorldSnapshot.reward_selection_remaining_seconds)
 }
 inline float WorldSnapshot::_internal_reward_selection_remaining_seconds() const {
@@ -7050,6 +8463,80 @@ inline ::google::protobuf::RepeatedPtrField<::battle::v1::PlayerBlessingStateSna
 WorldSnapshot::_internal_mutable_player_blessings() {
   ::google::protobuf::internal::TSanRead(&_impl_);
   return &_impl_.player_blessings_;
+}
+
+// uint64 server_tick = 8;
+inline void WorldSnapshot::clear_server_tick() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.server_tick_ = ::uint64_t{0u};
+  _impl_._has_bits_[0] &= ~0x00000008u;
+}
+inline ::uint64_t WorldSnapshot::server_tick() const {
+  // @@protoc_insertion_point(field_get:battle.v1.WorldSnapshot.server_tick)
+  return _internal_server_tick();
+}
+inline void WorldSnapshot::set_server_tick(::uint64_t value) {
+  _internal_set_server_tick(value);
+  _impl_._has_bits_[0] |= 0x00000008u;
+  // @@protoc_insertion_point(field_set:battle.v1.WorldSnapshot.server_tick)
+}
+inline ::uint64_t WorldSnapshot::_internal_server_tick() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.server_tick_;
+}
+inline void WorldSnapshot::_internal_set_server_tick(::uint64_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.server_tick_ = value;
+}
+
+// repeated .battle.v1.BattleEvent events = 9;
+inline int WorldSnapshot::_internal_events_size() const {
+  return _internal_events().size();
+}
+inline int WorldSnapshot::events_size() const {
+  return _internal_events_size();
+}
+inline void WorldSnapshot::clear_events() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.events_.Clear();
+}
+inline ::battle::v1::BattleEvent* PROTOBUF_NONNULL WorldSnapshot::mutable_events(int index)
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_mutable:battle.v1.WorldSnapshot.events)
+  return _internal_mutable_events()->Mutable(index);
+}
+inline ::google::protobuf::RepeatedPtrField<::battle::v1::BattleEvent>* PROTOBUF_NONNULL WorldSnapshot::mutable_events()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_mutable_list:battle.v1.WorldSnapshot.events)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  return _internal_mutable_events();
+}
+inline const ::battle::v1::BattleEvent& WorldSnapshot::events(int index) const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:battle.v1.WorldSnapshot.events)
+  return _internal_events().Get(index);
+}
+inline ::battle::v1::BattleEvent* PROTOBUF_NONNULL WorldSnapshot::add_events()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  ::battle::v1::BattleEvent* _add = _internal_mutable_events()->Add();
+  // @@protoc_insertion_point(field_add:battle.v1.WorldSnapshot.events)
+  return _add;
+}
+inline const ::google::protobuf::RepeatedPtrField<::battle::v1::BattleEvent>& WorldSnapshot::events() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_list:battle.v1.WorldSnapshot.events)
+  return _internal_events();
+}
+inline const ::google::protobuf::RepeatedPtrField<::battle::v1::BattleEvent>&
+WorldSnapshot::_internal_events() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.events_;
+}
+inline ::google::protobuf::RepeatedPtrField<::battle::v1::BattleEvent>* PROTOBUF_NONNULL
+WorldSnapshot::_internal_mutable_events() {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return &_impl_.events_;
 }
 
 // -------------------------------------------------------------------
@@ -7198,6 +8685,12 @@ struct is_proto_enum<::battle::v1::BlessingId> : std::true_type {};
 template <>
 inline const EnumDescriptor* PROTOBUF_NONNULL GetEnumDescriptor<::battle::v1::BlessingId>() {
   return ::battle::v1::BlessingId_descriptor();
+}
+template <>
+struct is_proto_enum<::battle::v1::AttackKind> : std::true_type {};
+template <>
+inline const EnumDescriptor* PROTOBUF_NONNULL GetEnumDescriptor<::battle::v1::AttackKind>() {
+  return ::battle::v1::AttackKind_descriptor();
 }
 
 }  // namespace protobuf

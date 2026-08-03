@@ -60,11 +60,13 @@ battle::ecs::Entity battle::ecs::World::create_player(CreatePlayerConfig config)
     registry_.emplace<Health>(entity, config.max_health, config.max_health);
     registry_.emplace<CharacterStats>(entity, config.move_speed);
     registry_.emplace<PlayerController>(entity);
-    registry_.emplace<AttackIntent>(entity, false, AttackKind::Melee, 0, 0.0f, 0.0f);
+    registry_.emplace<AttackIntent>(entity, false, AttackKind::Melee, 0, 0.0f, 0.0f,
+                                    DefaultProjectileHitRadius);
     registry_.emplace<Dash>(entity, DefaultPlayerDashCooldown, DefaultPlayerDashSpeedMultiplier);
     registry_.emplace<DashIntent>(entity, false, 0.0f);
     registry_.emplace<AttackDefinition>(entity, config.attack.kind, config.attack.damage, config.attack.range,
-                                        config.attack.cooldown_seconds, config.attack.projectile_speed);
+                                        config.attack.cooldown_seconds, config.attack.projectile_speed,
+                                        config.attack.projectile_hit_radius);
     registry_.emplace<AttackCooldown>(entity, DeltaTime{0.0f});
     registry_.emplace<DashCooldown>(entity, DeltaTime{0.0f});
     registry_.emplace<PlayerProgress>(entity, 1, 0, 100, 0);
@@ -82,9 +84,11 @@ battle::ecs::Entity battle::ecs::World::create_monster(CreateMonsterConfig confi
     registry_.emplace<CharacterStats>(entity, config.move_speed);
     registry_.emplace<MonsterController>(entity);
     registry_.emplace<AttackRequest>(entity, false);
-    registry_.emplace<AttackIntent>(entity, false, AttackKind::Melee, 0, 0.0f, 0.0f);
+    registry_.emplace<AttackIntent>(entity, false, AttackKind::Melee, 0, 0.0f, 0.0f,
+                                    DefaultProjectileHitRadius);
     registry_.emplace<AttackDefinition>(entity, config.attack.kind, config.attack.damage, config.attack.range,
-                                        config.attack.cooldown_seconds, config.attack.projectile_speed);
+                                        config.attack.cooldown_seconds, config.attack.projectile_speed,
+                                        config.attack.projectile_hit_radius);
     registry_.emplace<AttackCooldown>(entity, DeltaTime{0.0f});
     registry_.emplace<MonsterIdentity>(entity, config.kind);
     registry_.emplace<StatusEffects>(entity);
@@ -99,7 +103,8 @@ battle::ecs::Entity battle::ecs::World::create_projectile(CreateProjectileConfig
     config.context.emitter = entity;
     registry_.emplace<Transform>(entity, config.position, config.direction);
     registry_.emplace<Velocity>(entity, config.direction.x * config.speed, config.direction.y * config.speed);
-    registry_.emplace<Projectile>(entity, config.damage, 0.0f, config.max_distance, config.context);
+    registry_.emplace<Projectile>(entity, config.damage, 0.0f, config.max_distance, config.hit_radius,
+                                  config.context);
 
     return entity;
 }
@@ -174,6 +179,14 @@ void battle::ecs::World::add_damage_applied_event(DamageAppliedEvent event) {
     damage_applied_events().emplace_back(std::move(event));
 }
 
+void battle::ecs::World::add_attack_event(AttackEvent event) {
+    attack_events_.emplace_back(event);
+}
+
+void battle::ecs::World::add_death_event(DeathEvent event) {
+    death_events_.emplace_back(event);
+}
+
 battle::ecs::WorldSnapshot battle::ecs::World::snapshot() const {
     WorldSnapshot snap_shot;
 
@@ -199,12 +212,13 @@ battle::ecs::WorldSnapshot battle::ecs::World::snapshot() const {
             continue;
         }
         if (kind == EntityKind::Projectile) {
-            snap_shot.entities.emplace_back(entity, kind, transform->position, transform->direction, 0, 0,monster_kind);
+            snap_shot.entities.emplace_back(entity, kind, transform->position, transform->direction, 0, 0,
+                                            monster_kind);
             continue;
         }
         if (health) {
             snap_shot.entities.emplace_back(entity, kind, transform->position, transform->direction,
-                                            health->current_health, health->max_health,monster_kind);
+                                            health->current_health, health->max_health, monster_kind);
         }
     }
     return snap_shot;

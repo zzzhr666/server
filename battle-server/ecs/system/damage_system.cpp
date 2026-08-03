@@ -22,8 +22,34 @@ void battle::ecs::damage_system(World& world, DeltaTime) {
                 .context = event.context,
             });
         }
-        if (before_health > 0 && health->current_health == 0 && world.registry().has<MonsterController>(event.target)) {
-            if (auto identity = world.registry().try_get<MonsterIdentity>(event.target)) {
+        if (before_health > 0 && health->current_health == 0) {
+            auto transform = world.registry().try_get<Transform>(event.target);
+            if (!transform) {
+                continue;
+            }
+            if (world.registry().has<PlayerController>(event.target)) {
+                world.add_death_event(DeathEvent{
+                    .victim = event.target,
+                    .killer = event.source,
+                    .kind = DeathEntityKind::Player,
+                    .position = transform->position,
+                    .direction = transform->direction,
+                    .monster_kind = std::nullopt,
+                });
+            }
+            if (world.registry().has<MonsterController>(event.target)) {
+                auto identity = world.registry().try_get<MonsterIdentity>(event.target);
+                if (!identity) {
+                    continue;
+                }
+                world.add_death_event(DeathEvent{
+                    .victim = event.target,
+                    .killer = event.source,
+                    .kind = DeathEntityKind::Monster,
+                    .position = transform->position,
+                    .direction = transform->direction,
+                    .monster_kind = identity->kind,
+                });
                 world.add_kill_event({
                     .killer = event.source,
                     .victim = event.target,

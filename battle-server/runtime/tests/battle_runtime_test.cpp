@@ -151,7 +151,19 @@ TEST(BattleRuntimeTest, ReceiveInputAndTickBroadcastsProjectileSnapshot) {
     runtime.tick(ecs::DeltaTime{0.0f});
 
     ASSERT_EQ(sent_packets.size(), 1);
-    const auto& entities = sent_packets.front().first.snapshot().entities();
+    const auto& snapshot = sent_packets.front().first.snapshot();
+    EXPECT_EQ(snapshot.server_tick(), 1);
+    ASSERT_EQ(snapshot.events_size(), 1);
+    const auto& event = snapshot.events(0);
+    EXPECT_EQ(event.event_id(), 1);
+    ASSERT_EQ(event.payload_case(), v1::BattleEvent::kAttack);
+    EXPECT_EQ(event.attack().attack_kind(), v1::ATTACK_KIND_PROJECTILE);
+    EXPECT_NE(event.attack().attacker_entity(), 0);
+    EXPECT_NE(event.attack().action_id(), 0);
+    EXPECT_FLOAT_EQ(event.attack().x_direction(), 0.0f);
+    EXPECT_FLOAT_EQ(event.attack().y_direction(), 1.0f);
+
+    const auto& entities = snapshot.entities();
     const auto projectile_it = std::ranges::find_if(entities, [](const auto& entity) {
         return entity.kind() == v1::ENTITY_KIND_PROJECTILE;
     });
@@ -452,19 +464,29 @@ TEST(BattleRuntimeTest, TickBroadcastsGameOverAndCleansRoomWhenInstanceEnds) {
     sent_packets.clear();
     runtime.tick(ecs::DeltaTime{0.5f});
 
-    ASSERT_EQ(sent_packets.size(), 1);
-    const auto& packet = sent_packets[0].first;
-    ASSERT_EQ(packet.payload_case(), v1::ServerPacket::kGameOver);
-    EXPECT_EQ(packet.game_over().room_name(), "room-1");
-    EXPECT_EQ(packet.game_over().reason(), "victory");
-    ASSERT_EQ(packet.game_over().player_ids_size(), 1);
-    EXPECT_EQ(packet.game_over().player_ids(0), 1001);
-    ASSERT_EQ(packet.game_over().player_stats_size(), 1);
-    EXPECT_EQ(packet.game_over().player_stats(0).player_id(), 1001);
-    EXPECT_EQ(packet.game_over().player_stats(0).total_kills(), 2);
-    ASSERT_EQ(packet.game_over().player_stats(0).kills_size(), 1);
-    EXPECT_EQ(packet.game_over().player_stats(0).kills(0).monster_kind(), "melee");
-    EXPECT_EQ(packet.game_over().player_stats(0).kills(0).count(), 2);
+    ASSERT_EQ(sent_packets.size(), 2);
+    const auto& final_snapshot_packet = sent_packets[0].first;
+    ASSERT_EQ(final_snapshot_packet.payload_case(), v1::ServerPacket::kSnapshot);
+    const auto& final_snapshot = final_snapshot_packet.snapshot();
+    const auto death_event = std::ranges::find_if(final_snapshot.events(), [](const auto& event) {
+        return event.payload_case() == v1::BattleEvent::kDeath;
+    });
+    ASSERT_NE(death_event, final_snapshot.events().end());
+    EXPECT_EQ(death_event->death().victim_kind(), v1::ENTITY_KIND_MONSTER);
+    EXPECT_EQ(death_event->death().monster_kind(), "melee");
+
+    const auto& game_over_packet = sent_packets[1].first;
+    ASSERT_EQ(game_over_packet.payload_case(), v1::ServerPacket::kGameOver);
+    EXPECT_EQ(game_over_packet.game_over().room_name(), "room-1");
+    EXPECT_EQ(game_over_packet.game_over().reason(), "victory");
+    ASSERT_EQ(game_over_packet.game_over().player_ids_size(), 1);
+    EXPECT_EQ(game_over_packet.game_over().player_ids(0), 1001);
+    ASSERT_EQ(game_over_packet.game_over().player_stats_size(), 1);
+    EXPECT_EQ(game_over_packet.game_over().player_stats(0).player_id(), 1001);
+    EXPECT_EQ(game_over_packet.game_over().player_stats(0).total_kills(), 2);
+    ASSERT_EQ(game_over_packet.game_over().player_stats(0).kills_size(), 1);
+    EXPECT_EQ(game_over_packet.game_over().player_stats(0).kills(0).monster_kind(), "melee");
+    EXPECT_EQ(game_over_packet.game_over().player_stats(0).kills(0).count(), 2);
     EXPECT_FALSE(runtime.receive_input("room-1", 1001, PlayerInput{
                                                    .move_x = 1.0f,
                                                    .move_y = 0.0f,

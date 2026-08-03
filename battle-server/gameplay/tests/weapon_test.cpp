@@ -10,10 +10,11 @@ TEST(WeaponTest, BowDefinitionUsesProjectileAttack) {
 
     EXPECT_EQ(bow.kind, WeaponKind::Bow);
     EXPECT_EQ(bow.attack.kind, ecs::AttackKind::Projectile);
-    EXPECT_EQ(bow.attack.damage, 18);
+    EXPECT_EQ(bow.attack.damage, 30);
     EXPECT_FLOAT_EQ(bow.attack.range, 15.0f);
-    EXPECT_FLOAT_EQ(bow.attack.cooldown_seconds.count(), 0.45f);
+    EXPECT_FLOAT_EQ(bow.attack.cooldown_seconds.count(), 0.30f);
     EXPECT_FLOAT_EQ(bow.attack.projectile_speed, 25.0f);
+    EXPECT_FLOAT_EQ(bow.attack.projectile_hit_radius, 0.85f);
 }
 
 TEST(WeaponTest, BowStringCodecRoundTrips) {

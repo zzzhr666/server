@@ -75,8 +75,11 @@ TEST(WavePlannerTest, PlanWaveCarriesRangedMonsterKitingConfiguration) {
     ASSERT_EQ(configs.size(), 1);
     EXPECT_EQ(configs[0].kind, MonsterKind::Ranged);
     EXPECT_EQ(configs[0].attack.kind, ecs::AttackKind::Projectile);
+    EXPECT_FLOAT_EQ(configs[0].attack.range, 10.5f);
+    EXPECT_FLOAT_EQ(configs[0].attack.cooldown_seconds.count(), 2.0f);
+    EXPECT_FLOAT_EQ(configs[0].attack.projectile_speed, 11.0f);
     ASSERT_TRUE(configs[0].kiting_ai.has_value());
-    EXPECT_FLOAT_EQ(configs[0].kiting_ai->retreat_distance, 5.0f);
+    EXPECT_FLOAT_EQ(configs[0].kiting_ai->retreat_distance, 7.0f);
 }
 
 TEST(WavePlannerTest, DefaultWaveConfigCreatesTenIncreasingWaves) {

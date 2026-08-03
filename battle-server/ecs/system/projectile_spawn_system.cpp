@@ -20,6 +20,7 @@ void battle::ecs::projectile_spawn_system(World& world, DeltaTime delta_seconds)
             .speed = intent->projectile_speed,
             .damage = intent->damage,
             .max_distance = intent->range,
+            .hit_radius = intent->projectile_hit_radius,
             .context = intent->context
         });
     }

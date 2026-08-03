@@ -30,6 +30,7 @@ namespace battle::ecs {
             .range = DefaultPlayerAttackRange,
             .cooldown_seconds = DefaultPlayerAttackCooldown,
             .projectile_speed = 0.0f,
+            .projectile_hit_radius = DefaultProjectileHitRadius,
         };
     };
 
@@ -45,6 +46,7 @@ namespace battle::ecs {
             .range = 1.0f,
             .cooldown_seconds = DeltaTime{1.0f},
             .projectile_speed = 0.0f,
+            .projectile_hit_radius = DefaultProjectileHitRadius,
         };
         std::optional<KitingAI> kiting_ai;
     };
@@ -78,7 +80,7 @@ namespace battle::ecs {
         Direction direction{};
         int current_health{};
         int max_health{};
-        std::optional<MonsterKind>monster_kind;
+        std::optional<MonsterKind> monster_kind;
     };
 
     struct WorldSnapshot {
@@ -91,6 +93,7 @@ namespace battle::ecs {
         float speed{};
         int damage{};
         float max_distance{};
+        float hit_radius{DefaultProjectileHitRadius};
         CombatContext context;
     };
 
@@ -155,6 +158,14 @@ namespace battle::ecs {
             return damage_applied_events_;
         }
 
+        std::vector<AttackEvent>& attack_events() {
+            return attack_events_;
+        }
+
+        std::vector<DeathEvent>& death_events() {
+            return death_events_;
+        }
+
         void clear_kill_events() {
             kill_events_.clear();
         }
@@ -167,11 +178,23 @@ namespace battle::ecs {
             damage_events_.clear();
         }
 
+        void clear_attack_events() {
+            attack_events_.clear();
+        }
+
+        void clear_death_events() {
+            death_events_.clear();
+        }
+
         void add_kill_event(KillEvent event);
 
         void add_damage_event(DamageEvent event);
 
         void add_damage_applied_event(DamageAppliedEvent event);
+
+        void add_attack_event(AttackEvent event);
+
+        void add_death_event(DeathEvent event);
 
         [[nodiscard]] WorldSnapshot snapshot() const;
 
@@ -215,6 +238,8 @@ namespace battle::ecs {
         std::vector<KillEvent> kill_events_;
         std::vector<DamageEvent> damage_events_;
         std::vector<DamageAppliedEvent> damage_applied_events_;
+        std::vector<AttackEvent> attack_events_;
+        std::vector<DeathEvent> death_events_;
 
         SystemScheduler system_scheduler_;
         WorldBounds bounds_;

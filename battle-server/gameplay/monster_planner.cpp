@@ -26,10 +26,10 @@ battle::MonsterDefinition battle::monster_definition(MonsterKind kind) {
                 .damage = 12,
                 .range = RangedMonsterAttackRange,
                 .cooldown_seconds = RangedMonsterAttackCooldown,
-                .projectile_speed = 18.0f,
+                .projectile_speed = RangedMonsterProjectileSpeed,
             },
             .kiting_ai = ecs::KitingAI{
-                .retreat_distance = 5.0f,
+                .retreat_distance = RangedMonsterRetreatDistance,
             }
         };
     default:

@@ -7,8 +7,10 @@ namespace battle {
     constexpr float MeleeMonsterAttackRange = 0.7f;
     constexpr ecs::DeltaTime MeleeMonsterAttackCooldown{1.6f};
 
-    constexpr float RangedMonsterAttackRange = 8.0f;
-    constexpr ecs::DeltaTime RangedMonsterAttackCooldown{1.4f};
+    constexpr float RangedMonsterAttackRange = 10.5f;
+    constexpr ecs::DeltaTime RangedMonsterAttackCooldown{2.0f};
+    constexpr float RangedMonsterProjectileSpeed = 11.0f;
+    constexpr float RangedMonsterRetreatDistance = 7.0f;
 
     struct MonsterDefinition {
         MonsterKind kind{};
