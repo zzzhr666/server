@@ -1,5 +1,6 @@
 #include "runtime/battle_runtime.hpp"
 
+#include <algorithm>
 #include <unordered_map>
 #include <utility>
 #include <vector>
@@ -88,6 +89,127 @@ TEST(BattleRuntimeTest, ReceiveInputAndTickBroadcastsMovedSnapshot) {
         EXPECT_FLOAT_EQ(packet.snapshot().entities(1).x_direction(), 1.0f);
         EXPECT_FLOAT_EQ(packet.snapshot().entities(1).y_direction(), 0.0f);
     }
+}
+
+TEST(BattleRuntimeTest, ReceiveInputAndTickBroadcastsProjectileSnapshot) {
+    RoomManager room_manager;
+    SessionManager session_manager(room_manager);
+    std::vector<std::pair<v1::ServerPacket, UdpEndpoint>> sent_packets;
+    BattleRuntime runtime(
+        room_manager, session_manager,
+        [&sent_packets](const v1::ServerPacket& packet, const UdpEndpoint& endpoint) {
+            sent_packets.emplace_back(packet, endpoint);
+        },
+        [](BattleInstanceConfig config) {
+            config.wave_config = WaveConfig{
+                .waves = {
+                    WaveDefinition{
+                        .groups = {
+                            WaveMonsterGroup{
+                                .kind = MonsterKind::Melee,
+                                .count = 1,
+                            },
+                        },
+                    },
+                },
+            };
+            config.player_config_override = ecs::CreatePlayerConfig{
+                .max_health = 100,
+                .move_speed = 5.0f,
+                .attack = ecs::AttackDefinition{
+                    .kind = ecs::AttackKind::Projectile,
+                    .damage = 30,
+                    .range = 15.0f,
+                    .cooldown_seconds = ecs::DeltaTime{0.5f},
+                    .projectile_speed = 25.0f,
+                },
+            };
+            return std::make_unique<BattleInstance>(std::move(config));
+        });
+
+    ASSERT_EQ(room_manager.create_room({
+                  .room_name = "room-1",
+                  .token = "token-1",
+                  .player_ids = {1001},
+              }).status,
+              CreateRoomStatus::OK);
+    ASSERT_EQ(session_manager.join({
+                  .room_name = "room-1",
+                  .token = "token-1",
+                  .player_id = 1001,
+                  .conv = 1,
+                  .endpoint = endpoint_with_port(7001),
+              }).status,
+              JoinSessionStatus::OK);
+
+    runtime.start_room("room-1");
+    sent_packets.clear();
+    ASSERT_TRUE(runtime.receive_input("room-1", 1001, PlayerInput{
+                                                   .attack_requested = true,
+                                               }));
+
+    runtime.tick(ecs::DeltaTime{0.0f});
+
+    ASSERT_EQ(sent_packets.size(), 1);
+    const auto& entities = sent_packets.front().first.snapshot().entities();
+    const auto projectile_it = std::ranges::find_if(entities, [](const auto& entity) {
+        return entity.kind() == v1::ENTITY_KIND_PROJECTILE;
+    });
+    ASSERT_NE(projectile_it, entities.end());
+    EXPECT_EQ(projectile_it->current_health(), 0);
+    EXPECT_EQ(projectile_it->max_health(), 0);
+}
+
+TEST(BattleRuntimeTest, TickBroadcastsRangedMonsterKind) {
+    RoomManager room_manager;
+    SessionManager session_manager(room_manager);
+    std::vector<std::pair<v1::ServerPacket, UdpEndpoint>> sent_packets;
+    BattleRuntime runtime(
+        room_manager, session_manager,
+        [&sent_packets](const v1::ServerPacket& packet, const UdpEndpoint& endpoint) {
+            sent_packets.emplace_back(packet, endpoint);
+        },
+        [](BattleInstanceConfig config) {
+            config.wave_config = WaveConfig{
+                .waves = {
+                    WaveDefinition{
+                        .groups = {
+                            WaveMonsterGroup{
+                                .kind = MonsterKind::Ranged,
+                                .count = 1,
+                            },
+                        },
+                    },
+                },
+            };
+            return std::make_unique<BattleInstance>(std::move(config));
+        });
+
+    ASSERT_EQ(room_manager.create_room({
+                  .room_name = "room-1",
+                  .token = "token-1",
+                  .player_ids = {1001},
+              }).status,
+              CreateRoomStatus::OK);
+    ASSERT_EQ(session_manager.join({
+                  .room_name = "room-1",
+                  .token = "token-1",
+                  .player_id = 1001,
+                  .conv = 1,
+                  .endpoint = endpoint_with_port(7001),
+              }).status,
+              JoinSessionStatus::OK);
+
+    runtime.start_room("room-1");
+    sent_packets.clear();
+    runtime.tick(ecs::DeltaTime{0.0f});
+
+    ASSERT_EQ(sent_packets.size(), 1);
+    const auto& entities = sent_packets.front().first.snapshot().entities();
+    const auto ranged_monster_it = std::ranges::find_if(entities, [](const auto& entity) {
+        return entity.kind() == v1::ENTITY_KIND_MONSTER && entity.monster_kind() == "ranged";
+    });
+    EXPECT_NE(ranged_monster_it, entities.end());
 }
 
 TEST(BattleRuntimeTest, ReceiveInputReturnsFalseForMissingRoom) {

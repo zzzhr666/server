@@ -380,6 +380,50 @@ TEST(BattleInstanceTest, TickGrantsExperienceForPlayerKill) {
     EXPECT_EQ(progress->pending_upgrade_choices, 0);
 }
 
+TEST(BattleInstanceTest, TickGrantsConfiguredExperienceForRangedMonsterKill) {
+    BattleInstance instance({
+        .room_name = "room-1",
+        .player_ids = {1001},
+        .wave_config = WaveConfig{
+            .waves = {
+                WaveDefinition{
+                    .groups = {
+                        WaveMonsterGroup{
+                            .kind = MonsterKind::Ranged,
+                            .count = 1,
+                        },
+                    },
+                },
+            },
+        },
+        .player_config_override = ecs::CreatePlayerConfig{
+            .max_health = 100,
+            .move_speed = 5.0f,
+            .attack = ecs::AttackDefinition{
+                .kind = ecs::AttackKind::Melee,
+                .damage = 50,
+                .range = 20.0f,
+                .cooldown_seconds = ecs::DeltaTime{0.5f},
+            },
+        },
+        .progression_config = ProgressionConfig{
+            .base_experience_to_next_level = 100,
+            .experience_to_next_level_growth = 50,
+            .melee_experience = 35,
+            .ranged_experience = 45,
+        },
+    });
+
+    ASSERT_TRUE(instance.receive_input(1001, PlayerInput{
+                                                 .attack_requested = true,
+                                             }));
+    instance.tick(ecs::DeltaTime{0.0f});
+
+    const auto progress = instance.player_progress(1001);
+    ASSERT_TRUE(progress.has_value());
+    EXPECT_EQ(progress->experience, 45);
+}
+
 TEST(BattleInstanceTest, TickLevelsUpAndKeepsOverflowExperience) {
     BattleInstance instance({
         .room_name = "room-1",

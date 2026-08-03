@@ -1318,6 +1318,27 @@ TEST(WorldTest, CreateMonsterInitializesAttackComponentsFromConfig) {
     EXPECT_FLOAT_EQ(world.registry().get<AttackCooldown>(entity).remaining_seconds.count(), 0.0f);
 }
 
+TEST(WorldTest, CreateMonsterAttachesConfiguredKitingAIOnly) {
+    World world;
+    const auto ranged_monster = world.create_monster(CreateMonsterConfig{
+        .kind = MonsterKind::Ranged,
+        .max_health = 50,
+        .move_speed = 3.0f,
+        .kiting_ai = KitingAI{
+            .retreat_distance = 5.0f,
+        },
+    });
+    const auto melee_monster = world.create_monster(CreateMonsterConfig{
+        .kind = MonsterKind::Melee,
+        .max_health = 50,
+        .move_speed = 3.0f,
+    });
+
+    ASSERT_TRUE(world.registry().has<KitingAI>(ranged_monster));
+    EXPECT_FLOAT_EQ(world.registry().get<KitingAI>(ranged_monster).retreat_distance, 5.0f);
+    EXPECT_FALSE(world.registry().has<KitingAI>(melee_monster));
+}
+
 TEST(WorldTest, MonsterDoesNotHavePlayerCommand) {
     World world;
     auto entity = world.create_monster(default_monster_config());
@@ -1490,6 +1511,94 @@ TEST(WorldTest, TickMovesMonsterTowardPlayerUsingMonsterMoveSpeed) {
     EXPECT_FLOAT_EQ(transform.position.y, 0.0f);
     EXPECT_FLOAT_EQ(transform.direction.x, 1.0f);
     EXPECT_FLOAT_EQ(transform.direction.y, 0.0f);
+}
+
+TEST(WorldTest, TickRangedMonsterRetreatsWhenPlayerIsTooClose) {
+    World world;
+    world.create_player(CreatePlayerConfig{
+        .position = Position{.x = 0.0f, .y = 0.0f},
+        .max_health = 100,
+        .move_speed = 5.0f,
+    });
+    const auto monster = world.create_monster(CreateMonsterConfig{
+        .kind = MonsterKind::Ranged,
+        .x_position = 4.0f,
+        .y_position = 0.0f,
+        .max_health = 35,
+        .move_speed = 3.5f,
+        .attack = AttackDefinition{
+            .kind = AttackKind::Projectile,
+            .damage = 12,
+            .range = 8.0f,
+            .cooldown_seconds = DeltaTime{1.4f},
+            .projectile_speed = 18.0f,
+        },
+        .kiting_ai = KitingAI{
+            .retreat_distance = 5.0f,
+        },
+    });
+
+    world.tick(DeltaTime{1.0f});
+
+    EXPECT_FLOAT_EQ(world.registry().get<Transform>(monster).position.x, 7.5f);
+    EXPECT_TRUE(world.registry().pool<Projectile>().empty());
+}
+
+TEST(WorldTest, TickRangedMonsterFacesPlayerAndFiresWithinSafeRange) {
+    World world;
+    world.create_player(CreatePlayerConfig{
+        .position = Position{.x = 0.0f, .y = 0.0f},
+        .max_health = 100,
+        .move_speed = 5.0f,
+    });
+    const auto monster = world.create_monster(CreateMonsterConfig{
+        .kind = MonsterKind::Ranged,
+        .x_position = 6.0f,
+        .y_position = 0.0f,
+        .max_health = 35,
+        .move_speed = 3.5f,
+        .attack = AttackDefinition{
+            .kind = AttackKind::Projectile,
+            .damage = 12,
+            .range = 8.0f,
+            .cooldown_seconds = DeltaTime{1.4f},
+            .projectile_speed = 18.0f,
+        },
+        .kiting_ai = KitingAI{
+            .retreat_distance = 5.0f,
+        },
+    });
+
+    world.tick(DeltaTime{0.0f});
+
+    const auto& monster_transform = world.registry().get<Transform>(monster);
+    EXPECT_FLOAT_EQ(monster_transform.direction.x, -1.0f);
+    EXPECT_FLOAT_EQ(monster_transform.direction.y, 0.0f);
+    ASSERT_EQ(world.registry().pool<Projectile>().entities().size(), 1);
+    const auto projectile = world.registry().pool<Projectile>().entities().front();
+    EXPECT_FLOAT_EQ(world.registry().get<Velocity>(projectile).x, -18.0f);
+    EXPECT_FLOAT_EQ(world.registry().get<Velocity>(projectile).y, 0.0f);
+}
+
+TEST(WorldTest, TickMeleeMonsterDoesNotRetreatWithoutKitingAI) {
+    World world;
+    world.create_player(CreatePlayerConfig{
+        .position = Position{.x = 0.0f, .y = 0.0f},
+        .max_health = 100,
+        .move_speed = 5.0f,
+    });
+    const auto monster = world.create_monster(CreateMonsterConfig{
+        .kind = MonsterKind::Melee,
+        .x_position = 4.0f,
+        .y_position = 0.0f,
+        .max_health = 50,
+        .move_speed = 3.0f,
+    });
+
+    world.tick(DeltaTime{1.0f});
+
+    EXPECT_FLOAT_EQ(world.registry().get<Transform>(monster).position.x, 1.0f);
+    EXPECT_FALSE(world.registry().has<KitingAI>(monster));
 }
 
 TEST(WorldTest, TickFrozenMonsterDoesNotMoveTowardPlayer) {

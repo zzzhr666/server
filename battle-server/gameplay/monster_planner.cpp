@@ -15,6 +15,23 @@ battle::MonsterDefinition battle::monster_definition(MonsterKind kind) {
                 .projectile_speed = 0.0f,
             },
         };
+
+        case MonsterKind::Ranged:
+        return {
+            .kind = MonsterKind::Ranged,
+            .base_health = 35,
+            .base_move_speed = 3.5f,
+            .base_attack = {
+                .kind = ecs::AttackKind::Projectile,
+                .damage = 12,
+                .range = RangedMonsterAttackRange,
+                .cooldown_seconds = RangedMonsterAttackCooldown,
+                .projectile_speed = 18.0f,
+            },
+            .kiting_ai = ecs::KitingAI{
+                .retreat_distance = 5.0f,
+            }
+        };
     default:
         return {};
     }

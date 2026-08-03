@@ -60,14 +60,45 @@ TEST(WavePlannerTest, PlanWaveAppliesMonsterAttackDefinition) {
     EXPECT_FLOAT_EQ(configs[0].attack.projectile_speed, 0.0f);
 }
 
+TEST(WavePlannerTest, PlanWaveCarriesRangedMonsterKitingConfiguration) {
+    WavePlanner planner;
+
+    const auto configs = planner.plan_wave(WaveDefinition{
+        .groups = {
+            WaveMonsterGroup{
+                .kind = MonsterKind::Ranged,
+                .count = 1,
+            },
+        },
+    });
+
+    ASSERT_EQ(configs.size(), 1);
+    EXPECT_EQ(configs[0].kind, MonsterKind::Ranged);
+    EXPECT_EQ(configs[0].attack.kind, ecs::AttackKind::Projectile);
+    ASSERT_TRUE(configs[0].kiting_ai.has_value());
+    EXPECT_FLOAT_EQ(configs[0].kiting_ai->retreat_distance, 5.0f);
+}
+
 TEST(WavePlannerTest, DefaultWaveConfigCreatesTenIncreasingWaves) {
     auto config = default_wave_config();
 
     ASSERT_EQ(config.waves.size(), 10);
     ASSERT_EQ(config.waves[0].groups.size(), 1);
-    ASSERT_EQ(config.waves[9].groups.size(), 1);
     EXPECT_EQ(config.waves[0].groups[0].count, 3);
-    EXPECT_EQ(config.waves[9].groups[0].count, 12);
+    EXPECT_EQ(config.waves[0].groups[0].kind, MonsterKind::Melee);
+
+    ASSERT_EQ(config.waves[2].groups.size(), 2);
+    EXPECT_EQ(config.waves[2].groups[0].count, 4);
+    EXPECT_EQ(config.waves[2].groups[1].kind, MonsterKind::Ranged);
+    EXPECT_EQ(config.waves[2].groups[1].count, 1);
+
+    ASSERT_EQ(config.waves[5].groups.size(), 2);
+    EXPECT_EQ(config.waves[5].groups[0].count, 6);
+    EXPECT_EQ(config.waves[5].groups[1].count, 2);
+
+    ASSERT_EQ(config.waves[8].groups.size(), 2);
+    EXPECT_EQ(config.waves[8].groups[0].count, 8);
+    EXPECT_EQ(config.waves[8].groups[1].count, 3);
     EXPECT_GT(config.waves[9].health_multiplier, config.waves[0].health_multiplier);
 }
 

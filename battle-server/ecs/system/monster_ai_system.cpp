@@ -7,7 +7,7 @@
 
 void battle::ecs::monster_ai_system(World& world, DeltaTime) {
     for (auto entity : world.registry().pool<MonsterController>().entities()) {
-        const auto* transform = world.registry().try_get<Transform>(entity);
+        auto* transform = world.registry().try_get<Transform>(entity);
         auto* velocity = world.registry().try_get<Velocity>(entity);
         const auto* stats = world.registry().try_get<CharacterStats>(entity);
         const auto* attack = world.registry().try_get<AttackDefinition>(entity);
@@ -55,15 +55,24 @@ void battle::ecs::monster_ai_system(World& world, DeltaTime) {
         const auto delta_y = target_position.y - y;
         const auto distance = std::sqrt(delta_x * delta_x + delta_y * delta_y);
         const float attack_range = attack ? attack->range : 0.0f;
+        if (distance == 0.0f) {
+            velocity->x = 0.0f;
+            velocity->y = 0.0f;
+            continue;
+        }
+        const float direction_x = delta_x / distance;
+        const float direction_y = delta_y / distance;
+        if (const auto* kiting_ai = world.registry().try_get<KitingAI>(entity); kiting_ai && distance < kiting_ai->
+            retreat_distance) {
+            velocity->x = -direction_x * stats->move_speed;
+            velocity->y = -direction_y * stats->move_speed;
+            continue;
+        }
+        transform->direction = {.x = direction_x, .y = direction_y};
         if (attack_request && distance <= attack_range) {
             velocity->x = 0.0f;
             velocity->y = 0.0f;
             attack_request->requested = true;
-            continue;
-        }
-        if (distance == 0.0f) {
-            velocity->x = 0.0f;
-            velocity->y = 0.0f;
             continue;
         }
 
