@@ -174,4 +174,15 @@ namespace battle::ecs {
         std::vector<BurnStatus> burns;
         std::optional<FreezeStatus> freeze;
     };
+
+    struct Projectile {
+        int damage{};
+        float current_distance{};
+        float max_distance{};
+        CombatContext context;
+    };
+
+    struct KitingAI {
+        float retreat_distance;
+    };
 }

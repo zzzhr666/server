@@ -58,6 +58,176 @@ TEST(WorldTest, CreatePlayerAllowsMultiplePlayerControlledEntities) {
     EXPECT_TRUE(world.registry().has<PlayerController>(second));
 }
 
+TEST(WorldTest, CreateProjectileInitializesMovementAndCombatContext) {
+    World world;
+    auto owner = world.create_player(default_player_config());
+    auto action_state = world.crete_combat_action();
+
+    auto projectile = world.create_projectile(CreateProjectileConfig{
+        .position = Position{.x = 10.0f, .y = 20.0f},
+        .direction = Direction{.x = 0.6f, .y = 0.8f},
+        .speed = 25.0f,
+        .damage = 30,
+        .max_distance = 15.0f,
+        .context = CombatContext{
+            .owner = owner,
+            .action_state = action_state,
+            .effect_id = 7,
+        },
+    });
+
+    ASSERT_TRUE(world.has_entity(projectile));
+    const auto& transform = world.registry().get<Transform>(projectile);
+    const auto& velocity = world.registry().get<Velocity>(projectile);
+    const auto& projectile_component = world.registry().get<Projectile>(projectile);
+
+    EXPECT_FLOAT_EQ(transform.position.x, 10.0f);
+    EXPECT_FLOAT_EQ(transform.position.y, 20.0f);
+    EXPECT_FLOAT_EQ(transform.direction.x, 0.6f);
+    EXPECT_FLOAT_EQ(transform.direction.y, 0.8f);
+    EXPECT_FLOAT_EQ(velocity.x, 15.0f);
+    EXPECT_FLOAT_EQ(velocity.y, 20.0f);
+    EXPECT_EQ(projectile_component.damage, 30);
+    EXPECT_FLOAT_EQ(projectile_component.current_distance, 0.0f);
+    EXPECT_FLOAT_EQ(projectile_component.max_distance, 15.0f);
+    EXPECT_EQ(projectile_component.context.owner, owner);
+    EXPECT_EQ(projectile_component.context.emitter, projectile);
+    EXPECT_EQ(projectile_component.context.action_state, action_state);
+    EXPECT_EQ(projectile_component.context.effect_id, 7);
+}
+
+TEST(WorldTest, TickSpawnsOneProjectileForProjectileAttack) {
+    World world;
+    auto player = world.create_player(CreatePlayerConfig{
+        .position = Position{.x = 10.0f, .y = 20.0f},
+        .max_health = 100,
+        .move_speed = 5.0f,
+        .attack = AttackDefinition{
+            .kind = AttackKind::Projectile,
+            .damage = 30,
+            .range = 15.0f,
+            .cooldown_seconds = DeltaTime{0.5f},
+            .projectile_speed = 25.0f,
+        },
+    });
+
+    ASSERT_TRUE(world.set_player_command(player, PlayerCommand{
+                                                     .move_x = 0.0f,
+                                                     .move_y = 0.0f,
+                                                     .attack_requested = true,
+                                                     .dash_requested = false,
+                                                 }));
+    world.tick(DeltaTime{0.0f});
+
+    ASSERT_EQ(world.registry().pool<Projectile>().entities().size(), 1);
+    const auto projectile = world.registry().pool<Projectile>().entities().front();
+    const auto& transform = world.registry().get<Transform>(projectile);
+    const auto& projectile_component = world.registry().get<Projectile>(projectile);
+    EXPECT_FLOAT_EQ(transform.position.x, 10.0f);
+    EXPECT_FLOAT_EQ(transform.position.y, 20.0f);
+    EXPECT_FLOAT_EQ(transform.direction.x, 0.0f);
+    EXPECT_FLOAT_EQ(transform.direction.y, 1.0f);
+    EXPECT_EQ(projectile_component.damage, 30);
+    EXPECT_FLOAT_EQ(projectile_component.max_distance, 15.0f);
+    EXPECT_EQ(projectile_component.context.owner, player);
+    EXPECT_EQ(projectile_component.context.emitter, projectile);
+
+    world.tick(DeltaTime{0.0f});
+
+    EXPECT_EQ(world.registry().pool<Projectile>().entities().size(), 1);
+}
+
+TEST(WorldTest, TickMovesProjectileAndAccumulatesTravelDistance) {
+    World world;
+    auto projectile = world.create_projectile(CreateProjectileConfig{
+        .position = Position{.x = 0.0f, .y = 0.0f},
+        .direction = Direction{.x = 1.0f, .y = 0.0f},
+        .speed = 10.0f,
+        .damage = 30,
+        .max_distance = 20.0f,
+    });
+
+    world.tick(DeltaTime{1.0f});
+
+    ASSERT_TRUE(world.has_entity(projectile));
+    const auto& transform = world.registry().get<Transform>(projectile);
+    const auto& projectile_component = world.registry().get<Projectile>(projectile);
+    EXPECT_FLOAT_EQ(transform.position.x, 10.0f);
+    EXPECT_FLOAT_EQ(transform.position.y, 0.0f);
+    EXPECT_FLOAT_EQ(projectile_component.current_distance, 10.0f);
+}
+
+TEST(WorldTest, TickDestroysProjectileAtMaximumTravelDistance) {
+    World world;
+    auto projectile = world.create_projectile(CreateProjectileConfig{
+        .position = Position{.x = 0.0f, .y = 0.0f},
+        .direction = Direction{.x = 1.0f, .y = 0.0f},
+        .speed = 10.0f,
+        .damage = 30,
+        .max_distance = 10.0f,
+    });
+
+    world.tick(DeltaTime{1.0f});
+
+    EXPECT_FALSE(world.has_entity(projectile));
+    EXPECT_FALSE(world.registry().has<Projectile>(projectile));
+}
+
+TEST(WorldTest, TickProjectileDamagesEnemyAndIsDestroyedOnHit) {
+    World world;
+    auto player = world.create_player(CreatePlayerConfig{
+        .position = Position{.x = 0.0f, .y = 0.0f},
+        .max_health = 100,
+        .move_speed = 5.0f,
+    });
+    auto monster = world.create_monster(CreateMonsterConfig{
+        .x_position = 1.0f,
+        .y_position = 0.0f,
+        .max_health = 50,
+        .move_speed = 0.0f,
+    });
+    auto projectile = world.create_projectile(CreateProjectileConfig{
+        .position = Position{.x = 1.0f, .y = 0.0f},
+        .direction = Direction{.x = 1.0f, .y = 0.0f},
+        .speed = 0.0f,
+        .damage = 30,
+        .max_distance = 20.0f,
+        .context = CombatContext{.owner = player},
+    });
+
+    world.tick(DeltaTime{0.0f});
+
+    EXPECT_FALSE(world.has_entity(projectile));
+    EXPECT_EQ(world.registry().get<Health>(monster).current_health, 20);
+}
+
+TEST(WorldTest, TickProjectileDoesNotDamageFriendlyPlayer) {
+    World world;
+    auto owner = world.create_player(CreatePlayerConfig{
+        .position = Position{.x = 0.0f, .y = 0.0f},
+        .max_health = 100,
+        .move_speed = 5.0f,
+    });
+    auto teammate = world.create_player(CreatePlayerConfig{
+        .position = Position{.x = 1.0f, .y = 0.0f},
+        .max_health = 100,
+        .move_speed = 5.0f,
+    });
+    auto projectile = world.create_projectile(CreateProjectileConfig{
+        .position = Position{.x = 1.0f, .y = 0.0f},
+        .direction = Direction{.x = 1.0f, .y = 0.0f},
+        .speed = 0.0f,
+        .damage = 30,
+        .max_distance = 20.0f,
+        .context = CombatContext{.owner = owner},
+    });
+
+    world.tick(DeltaTime{0.0f});
+
+    EXPECT_TRUE(world.has_entity(projectile));
+    EXPECT_EQ(world.registry().get<Health>(teammate).current_health, 100);
+}
+
 TEST(WorldTest, CreatePlayerInitializesBlessingInventory) {
     World world;
 
@@ -264,7 +434,7 @@ TEST(WorldTest, TickAllowsAttackAfterCooldownExpires) {
     EXPECT_FLOAT_EQ(world.registry().get<AttackCooldown>(entity).remaining_seconds.count(), 0.75f);
 }
 
-TEST(WorldTest, TickDamagesMonsterInsideAttackRange) {
+TEST(WorldTest, TickDamagesMonsterOnMeleeHalfCircleBoundary) {
     World world;
     auto player = world.create_player(CreatePlayerConfig{
         .position = Position{.x = 0.0f, .y = 0.0f},
@@ -294,6 +464,66 @@ TEST(WorldTest, TickDamagesMonsterInsideAttackRange) {
     EXPECT_TRUE(world.has_entity(monster));
     EXPECT_EQ(world.registry().get<Health>(monster).current_health, 30);
     EXPECT_TRUE(world.damage_events().empty());
+}
+
+TEST(WorldTest, TickDamagesMonsterInFrontOfMeleeAttack) {
+    World world;
+    auto player = world.create_player(CreatePlayerConfig{
+        .position = Position{.x = 0.0f, .y = 0.0f},
+        .max_health = 100,
+        .move_speed = 5.0f,
+        .attack = AttackDefinition{
+            .damage = 20,
+            .range = 2.0f,
+            .cooldown_seconds = DeltaTime{0.5f},
+        },
+    });
+    auto monster = world.create_monster(CreateMonsterConfig{
+        .x_position = 0.0f,
+        .y_position = 1.0f,
+        .max_health = 50,
+        .move_speed = 3.0f,
+    });
+
+    ASSERT_TRUE(world.set_player_command(player, PlayerCommand{
+                                                     .move_x = 0.0f,
+                                                     .move_y = 0.0f,
+                                                     .attack_requested = true,
+                                                     .dash_requested = false,
+                                                 }));
+    world.tick(DeltaTime{0.0f});
+
+    EXPECT_EQ(world.registry().get<Health>(monster).current_health, 30);
+}
+
+TEST(WorldTest, TickDoesNotDamageMonsterBehindMeleeAttack) {
+    World world;
+    auto player = world.create_player(CreatePlayerConfig{
+        .position = Position{.x = 0.0f, .y = 0.0f},
+        .max_health = 100,
+        .move_speed = 5.0f,
+        .attack = AttackDefinition{
+            .damage = 20,
+            .range = 2.0f,
+            .cooldown_seconds = DeltaTime{0.5f},
+        },
+    });
+    auto monster = world.create_monster(CreateMonsterConfig{
+        .x_position = 0.0f,
+        .y_position = -1.0f,
+        .max_health = 50,
+        .move_speed = 3.0f,
+    });
+
+    ASSERT_TRUE(world.set_player_command(player, PlayerCommand{
+                                                     .move_x = 0.0f,
+                                                     .move_y = 0.0f,
+                                                     .attack_requested = true,
+                                                     .dash_requested = false,
+                                                 }));
+    world.tick(DeltaTime{0.0f});
+
+    EXPECT_EQ(world.registry().get<Health>(monster).current_health, 50);
 }
 
 TEST(WorldTest, TickDoesNotDamageMonsterOutsideAttackRange) {
@@ -1509,10 +1739,10 @@ TEST(WorldTest, SnapshotIncludesMovedPlayerTransformAndHealth) {
     const auto& entity_snapshot = snapshot.entities[0];
     EXPECT_EQ(entity_snapshot.entity, entity);
     EXPECT_EQ(entity_snapshot.kind, EntityKind::Player);
-    EXPECT_FLOAT_EQ(entity_snapshot.x_position, 22.0f);
-    EXPECT_FLOAT_EQ(entity_snapshot.y_position, 20.0f);
-    EXPECT_FLOAT_EQ(entity_snapshot.x_direction, 1.0f);
-    EXPECT_FLOAT_EQ(entity_snapshot.y_direction, 0.0f);
+    EXPECT_FLOAT_EQ(entity_snapshot.position.x, 22.0f);
+    EXPECT_FLOAT_EQ(entity_snapshot.position.y, 20.0f);
+    EXPECT_FLOAT_EQ(entity_snapshot.direction.x, 1.0f);
+    EXPECT_FLOAT_EQ(entity_snapshot.direction.y, 0.0f);
     EXPECT_EQ(entity_snapshot.current_health, DefaultPlayerMaxHealth);
     EXPECT_EQ(entity_snapshot.max_health, DefaultPlayerMaxHealth);
 }
@@ -1535,6 +1765,50 @@ TEST(WorldTest, SnapshotIncludesPlayersAndMonsters) {
             EXPECT_EQ(entity_snapshot.kind, EntityKind::Monster);
         }
     }
+}
+
+TEST(WorldTest, SnapshotIncludesProjectileWithoutHealth) {
+    World world;
+    auto projectile = world.create_projectile(CreateProjectileConfig{
+        .position = Position{.x = 3.0f, .y = 4.0f},
+        .direction = Direction{.x = 0.6f, .y = 0.8f},
+        .speed = 10.0f,
+        .damage = 30,
+        .max_distance = 20.0f,
+    });
+
+    const auto snapshot = world.snapshot();
+
+    ASSERT_EQ(snapshot.entities.size(), 1);
+    const auto& entity_snapshot = snapshot.entities.front();
+    EXPECT_EQ(entity_snapshot.entity, projectile);
+    EXPECT_EQ(entity_snapshot.kind, EntityKind::Projectile);
+    EXPECT_FLOAT_EQ(entity_snapshot.position.x, 3.0f);
+    EXPECT_FLOAT_EQ(entity_snapshot.position.y, 4.0f);
+    EXPECT_FLOAT_EQ(entity_snapshot.direction.x, 0.6f);
+    EXPECT_FLOAT_EQ(entity_snapshot.direction.y, 0.8f);
+    EXPECT_EQ(entity_snapshot.current_health, 0);
+    EXPECT_EQ(entity_snapshot.max_health, 0);
+}
+
+TEST(WorldTest, SnapshotIncludesRangedMonsterKind) {
+    World world;
+    const auto monster = world.create_monster(CreateMonsterConfig{
+        .kind = MonsterKind::Ranged,
+        .x_position = 3.0f,
+        .y_position = 4.0f,
+        .max_health = 35,
+        .move_speed = 3.5f,
+    });
+
+    const auto snapshot = world.snapshot();
+
+    ASSERT_EQ(snapshot.entities.size(), 1);
+    const auto& entity_snapshot = snapshot.entities.front();
+    EXPECT_EQ(entity_snapshot.entity, monster);
+    EXPECT_EQ(entity_snapshot.kind, EntityKind::Monster);
+    ASSERT_TRUE(entity_snapshot.monster_kind.has_value());
+    EXPECT_EQ(entity_snapshot.monster_kind.value(), MonsterKind::Ranged);
 }
 
 TEST(WorldTest, SnapshotExcludesDestroyedEntities) {

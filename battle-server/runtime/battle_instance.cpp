@@ -103,9 +103,9 @@ battle::BattleWorldSnapshot battle::BattleInstance::snapshot() const {
                 player_id = it->second;
             }
         }
-        battle_world_snapshot.entities.emplace_back(snapshot.entity, snapshot.kind, player_id, snapshot.x_position,
-                                                    snapshot.y_position, snapshot.x_direction, snapshot.y_direction,
-                                                    snapshot.current_health, snapshot.max_health);
+        battle_world_snapshot.entities.emplace_back(snapshot.entity, snapshot.kind, player_id, snapshot.position,
+                                                    snapshot.direction,
+                                                    snapshot.current_health, snapshot.max_health,snapshot.monster_kind);
     }
     for (auto [player_id, player_entity] : player_entities_) {
         auto progress = world_.registry().try_get<ecs::PlayerProgress>(player_entity);
@@ -355,6 +355,8 @@ int battle::BattleInstance::experience_for_monster_kind_(MonsterKind kind) const
     switch (kind) {
     case MonsterKind::Melee:
         return progression_config_.melee_experience;
+    case MonsterKind::Ranged:
+        return progression_config_.ranged_experience;
     }
 
     return 0;

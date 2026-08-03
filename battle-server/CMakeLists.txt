@@ -31,38 +31,24 @@ add_library(battle_control
 add_library(battle_ecs
         ecs/world.cpp
         ecs/system/system_scheduler.cpp
-        ecs/system/system_scheduler.hpp
         ecs/system/move_resolve_system.cpp
-        ecs/system/move_resolve_system.hpp
         ecs/system/move_system.cpp
         ecs/system/monster_ai_system.cpp
-        ecs/system/monster_ai_system.hpp
         ecs/system/attack_resolve_system.cpp
-        ecs/system/attack_resolve_system.hpp
         ecs/system/hit_resolve_system.cpp
-        ecs/system/hit_resolve_system.hpp
         ecs/system/damage_system.cpp
-        ecs/system/damage_system.hpp
         ecs/system/death_system.cpp
-        ecs/system/death_system.hpp
         ecs/system/dash_system.cpp
-        ecs/system/dash_system.hpp
         ecs/system/dash_resolve_system.cpp
-        ecs/system/dash_resolve_system.hpp
         ecs/system/blessing_helpers.cpp
-        ecs/system/blessing_helpers.hpp
         ecs/system/damage_modify_system.cpp
-        ecs/system/damage_modify_system.hpp
         ecs/system/blessing_trigger_system.cpp
-        ecs/system/blessing_trigger_system.hpp
         ecs/system/status_effect_system.cpp
-        ecs/system/status_effect_system.hpp
-        ecs/registry.hpp
-        ecs/combat/combat.hpp
         ecs/system/pre_damage_blessing_system.cpp
-        ecs/system/pre_damage_blessing_system.hpp
         ecs/system/combat_tageting.cpp
-        ecs/system/combat_tageting.hpp
+        ecs/system/projectile_spawn_system.cpp
+        ecs/system/projectile_range_system.cpp
+        ecs/system/projectile_hit_system.cpp
 )
 add_library(battle_game
         game/room.cpp
@@ -71,15 +57,10 @@ add_library(battle_game
 add_library(battle_gameplay
         gameplay/spawn_planner.cpp
         gameplay/wave_planner.cpp
-        gameplay/wave_planner.hpp
         gameplay/monster_planner.cpp
-        gameplay/monster_planner.hpp
         gameplay/monster_kind_codec.cpp
-        gameplay/monster_kind_codec.hpp
         gameplay/weapon.cpp
-        gameplay/weapon.hpp
         gameplay/growth.cpp
-        gameplay/growth.hpp
 )
 add_library(battle_session
         session/battle_session.cpp
@@ -190,6 +171,7 @@ target_link_libraries(battle_ecs_tests PRIVATE
 
 add_executable(battle_runtime_tests
         gameplay/tests/spawn_planner_test.cpp
+        gameplay/tests/weapon_test.cpp
         gameplay/tests/wave_planner_test.cpp
         runtime/tests/battle_instance_test.cpp
         runtime/tests/battle_runtime_test.cpp

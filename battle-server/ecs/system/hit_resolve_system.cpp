@@ -4,8 +4,6 @@
 #include "ecs/world.hpp"
 
 
-
-
 void battle::ecs::hit_resolve_system(World& world, DeltaTime) {
     for (auto attacker_entity : world.registry().pool<AttackIntent>().entities()) {
         auto intent = world.registry().try_get<AttackIntent>(attacker_entity);
@@ -17,7 +15,7 @@ void battle::ecs::hit_resolve_system(World& world, DeltaTime) {
         if (!intent->active) {
             continue;
         }
-        if (intent->kind != battle::ecs::AttackKind::Melee) {
+        if (intent->kind != AttackKind::Melee) {
             continue;
         }
         for (auto target_entity : world.registry().pool<Health>().entities()) {
@@ -36,6 +34,12 @@ void battle::ecs::hit_resolve_system(World& world, DeltaTime) {
             float delta_y = transform->position.y - target_transform->position.y;
             float distance = delta_x * delta_x + delta_y * delta_y;
             if (distance > intent->range * intent->range) {
+                continue;
+            }
+            const float to_target_x = target_transform->position.x - transform->position.x;
+            const float to_target_y = target_transform->position.y - transform->position.y;
+            const float facing_dot_target = transform->direction.x * to_target_x + transform->direction.y * to_target_y;
+            if (facing_dot_target < 0.0f) {
                 continue;
             }
             world.add_damage_event(DamageEvent{

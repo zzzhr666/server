@@ -3,7 +3,6 @@
 #include <string>
 #include <string_view>
 
-#include "ecs/time.hpp"
 #include "ecs/component/components.hpp"
 
 
@@ -12,6 +11,7 @@ namespace battle {
         Sword,
         Dagger,
         Axe,
+        Bow
     };
 
     struct WeaponDefinition {

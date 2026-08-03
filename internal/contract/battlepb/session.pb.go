@@ -27,6 +27,7 @@ const (
 	EntityKind_ENTITY_KIND_UNSPECIFIED EntityKind = 0
 	EntityKind_ENTITY_KIND_PLAYER      EntityKind = 1
 	EntityKind_ENTITY_KIND_MONSTER     EntityKind = 2
+	EntityKind_ENTITY_KIND_PROJECTILE  EntityKind = 3
 )
 
 // Enum value maps for EntityKind.
@@ -35,11 +36,13 @@ var (
 		0: "ENTITY_KIND_UNSPECIFIED",
 		1: "ENTITY_KIND_PLAYER",
 		2: "ENTITY_KIND_MONSTER",
+		3: "ENTITY_KIND_PROJECTILE",
 	}
 	EntityKind_value = map[string]int32{
 		"ENTITY_KIND_UNSPECIFIED": 0,
 		"ENTITY_KIND_PLAYER":      1,
 		"ENTITY_KIND_MONSTER":     2,
+		"ENTITY_KIND_PROJECTILE":  3,
 	}
 )
 
@@ -1494,12 +1497,13 @@ const file_proto_battle_v1_session_proto_rawDesc = "" +
 	"\x0eChooseBlessing\x12\x1b\n" +
 	"\troom_name\x18\x01 \x01(\tR\broomName\x12\x1b\n" +
 	"\tplayer_id\x18\x02 \x01(\x03R\bplayerId\x12\x1b\n" +
-	"\toption_id\x18\x03 \x01(\x05R\boptionId*Z\n" +
+	"\toption_id\x18\x03 \x01(\x05R\boptionId*v\n" +
 	"\n" +
 	"EntityKind\x12\x1b\n" +
 	"\x17ENTITY_KIND_UNSPECIFIED\x10\x00\x12\x16\n" +
 	"\x12ENTITY_KIND_PLAYER\x10\x01\x12\x17\n" +
-	"\x13ENTITY_KIND_MONSTER\x10\x02*i\n" +
+	"\x13ENTITY_KIND_MONSTER\x10\x02\x12\x1a\n" +
+	"\x16ENTITY_KIND_PROJECTILE\x10\x03*i\n" +
 	"\vBattlePhase\x12\x1c\n" +
 	"\x18BATTLE_PHASE_UNSPECIFIED\x10\x00\x12\x19\n" +
 	"\x15BATTLE_PHASE_FIGHTING\x10\x01\x12!\n" +

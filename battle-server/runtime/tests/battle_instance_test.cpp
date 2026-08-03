@@ -60,10 +60,10 @@ TEST(BattleInstanceTest, ConstructorCreatesPlayersAtPlannedSpawns) {
 
     ASSERT_EQ(snapshot.entities.size(), 2);
 
-    EXPECT_FLOAT_EQ(snapshot.entities[0].x_position, -2.0f);
-    EXPECT_FLOAT_EQ(snapshot.entities[0].y_position, 0.0f);
-    EXPECT_FLOAT_EQ(snapshot.entities[1].x_position, 2.0f);
-    EXPECT_FLOAT_EQ(snapshot.entities[1].y_position, 0.0f);
+    EXPECT_FLOAT_EQ(snapshot.entities[0].position.x, -2.0f);
+    EXPECT_FLOAT_EQ(snapshot.entities[0].position.y, 0.0f);
+    EXPECT_FLOAT_EQ(snapshot.entities[1].position.x, 2.0f);
+    EXPECT_FLOAT_EQ(snapshot.entities[1].position.y, 0.0f);
 }
 
 TEST(BattleInstanceTest, ReceiveInputReturnsFalseForUnknownPlayer) {
@@ -94,12 +94,12 @@ TEST(BattleInstanceTest, ReceiveInputAndTickMovesOnlyTargetPlayer) {
     auto snapshot = instance.snapshot();
 
     ASSERT_EQ(snapshot.entities.size(), 2);
-    EXPECT_FLOAT_EQ(snapshot.entities[0].x_position, -2.0f);
-    EXPECT_FLOAT_EQ(snapshot.entities[0].y_position, 0.0f);
-    EXPECT_FLOAT_EQ(snapshot.entities[1].x_position, 2.0f + ecs::DefaultPlayerMoveSpeed);
-    EXPECT_FLOAT_EQ(snapshot.entities[1].y_position, 0.0f);
-    EXPECT_FLOAT_EQ(snapshot.entities[1].x_direction, 1.0f);
-    EXPECT_FLOAT_EQ(snapshot.entities[1].y_direction, 0.0f);
+    EXPECT_FLOAT_EQ(snapshot.entities[0].position.x, -2.0f);
+    EXPECT_FLOAT_EQ(snapshot.entities[0].position.y, 0.0f);
+    EXPECT_FLOAT_EQ(snapshot.entities[1].position.x, 2.0f + ecs::DefaultPlayerMoveSpeed);
+    EXPECT_FLOAT_EQ(snapshot.entities[1].position.y, 0.0f);
+    EXPECT_FLOAT_EQ(snapshot.entities[1].direction.x, 1.0f);
+    EXPECT_FLOAT_EQ(snapshot.entities[1].direction.y, 0.0f);
 }
 
 TEST(BattleInstanceTest, TickClampsPlayerToConfiguredWorldBounds) {
@@ -124,8 +124,8 @@ TEST(BattleInstanceTest, TickClampsPlayerToConfiguredWorldBounds) {
     auto snapshot = instance.snapshot();
 
     ASSERT_EQ(snapshot.entities.size(), 1);
-    EXPECT_FLOAT_EQ(snapshot.entities[0].x_position, 1.0f);
-    EXPECT_FLOAT_EQ(snapshot.entities[0].y_position, 0.0f);
+    EXPECT_FLOAT_EQ(snapshot.entities[0].position.x, 1.0f);
+    EXPECT_FLOAT_EQ(snapshot.entities[0].position.y, 0.0f);
 }
 
 TEST(BattleInstanceTest, ConstructorAppliesConfiguredPlayerWeapon) {
@@ -160,6 +160,42 @@ TEST(BattleInstanceTest, ConstructorAppliesConfiguredPlayerWeapon) {
 
     EXPECT_TRUE(instance.ended());
     EXPECT_EQ(instance.end_reason(), BattleEndReason::Victory);
+}
+
+TEST(BattleInstanceTest, ConstructorAppliesBowWeaponAndSpawnsProjectile) {
+    BattleInstance instance({
+        .room_name = "room-1",
+        .player_ids = {1001},
+        .wave_config = WaveConfig{
+            .waves = {
+                WaveDefinition{
+                    .groups = {
+                        WaveMonsterGroup{
+                            .kind = MonsterKind::Melee,
+                            .count = 1,
+                        },
+                    },
+                },
+            },
+        },
+        .player_loadouts = {
+            {1001, std::make_pair(WeaponKind::Bow, GrowthLevels{})},
+        },
+    });
+
+    ASSERT_TRUE(instance.receive_input(1001, PlayerInput{
+                                                 .attack_requested = true,
+                                             }));
+    instance.tick(ecs::DeltaTime{0.0f});
+
+    const auto snapshot = instance.snapshot();
+    int projectile_count = 0;
+    for (const auto& entity : snapshot.entities) {
+        if (entity.kind == ecs::EntityKind::Projectile) {
+            ++projectile_count;
+        }
+    }
+    EXPECT_EQ(projectile_count, 1);
 }
 
 TEST(BattleInstanceTest, FirstTickSpawnsFirstConfiguredWave) {

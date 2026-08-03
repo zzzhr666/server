@@ -8,6 +8,7 @@
 #include "battle_instance.hpp"
 #include "game/game_manager.hpp"
 #include "gameplay/growth.hpp"
+#include "gameplay/monster_kind_codec.hpp"
 #include "gameplay/weapon.hpp"
 #include "net/packet_codec.hpp"
 #include "session/battle_session.hpp"
@@ -20,7 +21,10 @@ namespace {
             return battle::v1::ENTITY_KIND_PLAYER;
         case battle::ecs::EntityKind::Monster:
             return battle::v1::ENTITY_KIND_MONSTER;
+        case battle::ecs::EntityKind::Projectile:
+            return battle::v1::ENTITY_KIND_PROJECTILE;
         case battle::ecs::EntityKind::Unknown:
+            return battle::v1::ENTITY_KIND_UNSPECIFIED;
         default:
             return battle::v1::ENTITY_KIND_UNSPECIFIED;
         }
@@ -111,12 +115,15 @@ namespace {
             entity_snapshot->set_entity(entity.entity.packed());
             entity_snapshot->set_kind(to_proto_entity_kind(entity.kind));
             entity_snapshot->set_player_id(entity.player_id);
-            entity_snapshot->set_x_position(entity.x_position);
-            entity_snapshot->set_y_position(entity.y_position);
-            entity_snapshot->set_x_direction(entity.x_direction);
-            entity_snapshot->set_y_direction(entity.y_direction);
+            entity_snapshot->set_x_position(entity.position.x);
+            entity_snapshot->set_y_position(entity.position.y);
+            entity_snapshot->set_x_direction(entity.direction.x);
+            entity_snapshot->set_y_direction(entity.direction.y);
             entity_snapshot->set_current_health(entity.current_health);
             entity_snapshot->set_max_health(entity.max_health);
+            if (entity.monster_kind.has_value()) {
+                entity_snapshot->set_monster_kind(battle::monster_kind_to_string(entity.monster_kind.value()));
+            }
         }
 
         for (const auto& progress : snapshot.player_progress) {
@@ -188,7 +195,7 @@ void battle::BattleRuntime::start_room(const std::string& room_name) {
     for (const auto& session : sessions) {
         player_ids.push_back(session->player_id());
     }
-    std::unordered_map<std::int64_t, std::pair<WeaponKind,GrowthLevels>> player_loadouts;
+    std::unordered_map<std::int64_t, std::pair<WeaponKind, GrowthLevels>> player_loadouts;
     player_loadouts.reserve(configured_loadouts.size());
     for (const auto& loadout : configured_loadouts) {
         auto weapon_kind = weapon_kind_from_string(loadout.weapon);
@@ -201,7 +208,7 @@ void battle::BattleRuntime::start_room(const std::string& room_name) {
             .health_level = loadout.health_level,
             .move_speed_level = loadout.move_speed_level,
         };
-        player_loadouts.emplace(loadout.player_id, std::make_pair(weapon_kind.value(),growth_level));
+        player_loadouts.emplace(loadout.player_id, std::make_pair(weapon_kind.value(), growth_level));
     }
 
     auto instance = instance_factory_(BattleInstanceConfig{

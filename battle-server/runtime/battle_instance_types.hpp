@@ -18,6 +18,7 @@ namespace battle {
         int base_experience_to_next_level = 100;
         int experience_to_next_level_growth = 50;
         int melee_experience = 35;
+        int ranged_experience = 45;
     };
 
 
@@ -66,12 +67,11 @@ namespace battle {
         ecs::Entity entity;
         ecs::EntityKind kind{};
         std::int64_t player_id{};
-        float x_position{};
-        float y_position{};
-        float x_direction{};
-        float y_direction{};
+        ecs::Position position{};
+        ecs::Direction direction{};
         int current_health{};
         int max_health{};
+        std::optional<MonsterKind>monster_kind{};
     };
 
     struct PlayerBattleStats {

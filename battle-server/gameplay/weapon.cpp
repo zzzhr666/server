@@ -35,6 +35,17 @@ battle::WeaponDefinition battle::weapon_definition(WeaponKind kind) {
                 .projectile_speed = 0.0f,
             },
         };
+    case WeaponKind::Bow:
+        return {
+            .kind = WeaponKind::Bow,
+            .attack = {
+                .kind = ecs::AttackKind::Projectile,
+                .damage = 18,
+                .range = 15.0f,
+                .cooldown_seconds = ecs::DeltaTime{0.45f},
+                .projectile_speed = 25.0f
+            }
+        };
     default:
         return {};
     }
@@ -50,6 +61,9 @@ std::optional<battle::WeaponKind> battle::weapon_kind_from_string(std::string_vi
     if (value == "axe") {
         return WeaponKind::Axe;
     }
+    if (value == "bow") {
+        return WeaponKind::Bow;
+    }
 
     return std::nullopt;
 }
@@ -62,6 +76,8 @@ std::string battle::weapon_kind_to_string(WeaponKind kind) {
         return "dagger";
     case WeaponKind::Axe:
         return "axe";
+    case WeaponKind::Bow:
+        return "bow";
     }
     return {};
 }

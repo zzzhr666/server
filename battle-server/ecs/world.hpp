@@ -34,7 +34,7 @@ namespace battle::ecs {
     };
 
     struct CreateMonsterConfig {
-        battle::MonsterKind kind = battle::MonsterKind::Melee;
+        MonsterKind kind = MonsterKind::Melee;
         float x_position{};
         float y_position{};
         int max_health{};
@@ -46,6 +46,7 @@ namespace battle::ecs {
             .cooldown_seconds = DeltaTime{1.0f},
             .projectile_speed = 0.0f,
         };
+        std::optional<KitingAI> kiting_ai;
     };
 
     struct WorldBounds {
@@ -67,21 +68,30 @@ namespace battle::ecs {
         Unknown,
         Player,
         Monster,
+        Projectile,
     };
 
     struct EntitySnapshot {
         Entity entity;
         EntityKind kind{};
-        float x_position{};
-        float y_position{};
-        float x_direction{};
-        float y_direction{};
+        Position position{};
+        Direction direction{};
         int current_health{};
         int max_health{};
+        std::optional<MonsterKind>monster_kind;
     };
 
     struct WorldSnapshot {
         std::vector<EntitySnapshot> entities;
+    };
+
+    struct CreateProjectileConfig {
+        Position position{};
+        Direction direction{};
+        float speed{};
+        int damage{};
+        float max_distance{};
+        CombatContext context;
     };
 
     using WorldRegistry = Registry<
@@ -104,7 +114,9 @@ namespace battle::ecs {
         MonsterIdentity,
         PlayerProgress,
         BlessingInventory,
-        StatusEffects
+        StatusEffects,
+        Projectile,
+        KitingAI
     >;
 
     class World {
@@ -117,6 +129,8 @@ namespace battle::ecs {
         Entity create_player(CreatePlayerConfig config);
 
         Entity create_monster(CreateMonsterConfig config);
+
+        Entity create_projectile(CreateProjectileConfig config);
 
         int random_percent() {
             return percent_distribution_(random_engine_);

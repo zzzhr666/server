@@ -151,6 +151,7 @@ enum EntityKind : int {
   ENTITY_KIND_UNSPECIFIED = 0,
   ENTITY_KIND_PLAYER = 1,
   ENTITY_KIND_MONSTER = 2,
+  ENTITY_KIND_PROJECTILE = 3,
   EntityKind_INT_MIN_SENTINEL_DO_NOT_USE_ =
       ::std::numeric_limits<::int32_t>::min(),
   EntityKind_INT_MAX_SENTINEL_DO_NOT_USE_ =
@@ -161,11 +162,11 @@ extern const uint32_t EntityKind_internal_data_[];
 inline constexpr EntityKind EntityKind_MIN =
     static_cast<EntityKind>(0);
 inline constexpr EntityKind EntityKind_MAX =
-    static_cast<EntityKind>(2);
+    static_cast<EntityKind>(3);
 inline bool EntityKind_IsValid(int value) {
-  return 0 <= value && value <= 2;
+  return 0 <= value && value <= 3;
 }
-inline constexpr int EntityKind_ARRAYSIZE = 2 + 1;
+inline constexpr int EntityKind_ARRAYSIZE = 3 + 1;
 const ::google::protobuf::EnumDescriptor* PROTOBUF_NONNULL EntityKind_descriptor();
 template <typename T>
 const ::std::string& EntityKind_Name(T value) {
@@ -176,7 +177,7 @@ const ::std::string& EntityKind_Name(T value) {
 }
 template <>
 inline const ::std::string& EntityKind_Name(EntityKind value) {
-  return ::google::protobuf::internal::NameOfDenseEnum<EntityKind_descriptor, 0, 2>(
+  return ::google::protobuf::internal::NameOfDenseEnum<EntityKind_descriptor, 0, 3>(
       static_cast<int>(value));
 }
 inline bool EntityKind_Parse(

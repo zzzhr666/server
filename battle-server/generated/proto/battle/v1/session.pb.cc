@@ -799,24 +799,25 @@ const char descriptor_table_protodef_proto_2fbattle_2fv1_2fsession_2eproto[] ABS
     "essings\030\007 \003(\0132&.battle.v1.PlayerBlessing"
     "StateSnapshot\"I\n\016ChooseBlessing\022\021\n\troom_"
     "name\030\001 \001(\t\022\021\n\tplayer_id\030\002 \001(\003\022\021\n\toption_"
-    "id\030\003 \001(\005*Z\n\nEntityKind\022\033\n\027ENTITY_KIND_UN"
+    "id\030\003 \001(\005*v\n\nEntityKind\022\033\n\027ENTITY_KIND_UN"
     "SPECIFIED\020\000\022\026\n\022ENTITY_KIND_PLAYER\020\001\022\027\n\023E"
-    "NTITY_KIND_MONSTER\020\002*i\n\013BattlePhase\022\034\n\030B"
-    "ATTLE_PHASE_UNSPECIFIED\020\000\022\031\n\025BATTLE_PHAS"
-    "E_FIGHTING\020\001\022!\n\035BATTLE_PHASE_REWARD_SELE"
-    "CTION\020\002*\303\001\n\nBlessingId\022\033\n\027BLESSING_ID_UN"
-    "SPECIFIED\020\000\022\033\n\027BLESSING_ID_BURN_ON_HIT\020\001"
-    "\022\032\n\026BLESSING_ID_LIFE_STEAL\020\002\022\035\n\031BLESSING"
-    "_ID_FREEZE_ON_HIT\020\003\022\037\n\033BLESSING_ID_CRITI"
-    "CAL_STRIKE\020\004\022\037\n\033BLESSING_ID_CHAIN_LIGHTN"
-    "ING\020\005B,Z*server/internal/contract/battle"
-    "pb;battlepbb\006proto3"
+    "NTITY_KIND_MONSTER\020\002\022\032\n\026ENTITY_KIND_PROJ"
+    "ECTILE\020\003*i\n\013BattlePhase\022\034\n\030BATTLE_PHASE_"
+    "UNSPECIFIED\020\000\022\031\n\025BATTLE_PHASE_FIGHTING\020\001"
+    "\022!\n\035BATTLE_PHASE_REWARD_SELECTION\020\002*\303\001\n\n"
+    "BlessingId\022\033\n\027BLESSING_ID_UNSPECIFIED\020\000\022"
+    "\033\n\027BLESSING_ID_BURN_ON_HIT\020\001\022\032\n\026BLESSING"
+    "_ID_LIFE_STEAL\020\002\022\035\n\031BLESSING_ID_FREEZE_O"
+    "N_HIT\020\003\022\037\n\033BLESSING_ID_CRITICAL_STRIKE\020\004"
+    "\022\037\n\033BLESSING_ID_CHAIN_LIGHTNING\020\005B,Z*ser"
+    "ver/internal/contract/battlepb;battlepbb"
+    "\006proto3"
 };
 static ::absl::once_flag descriptor_table_proto_2fbattle_2fv1_2fsession_2eproto_once;
 PROTOBUF_CONSTINIT const ::_pbi::DescriptorTable descriptor_table_proto_2fbattle_2fv1_2fsession_2eproto = {
     false,
     false,
-    2619,
+    2647,
     descriptor_table_protodef_proto_2fbattle_2fv1_2fsession_2eproto,
     "proto/battle/v1/session.proto",
     &descriptor_table_proto_2fbattle_2fv1_2fsession_2eproto_once,
@@ -836,7 +837,7 @@ const ::google::protobuf::EnumDescriptor* PROTOBUF_NONNULL EntityKind_descriptor
   return file_level_enum_descriptors_proto_2fbattle_2fv1_2fsession_2eproto[0];
 }
 PROTOBUF_CONSTINIT const uint32_t EntityKind_internal_data_[] = {
-    196608u, 0u, };
+    262144u, 0u, };
 const ::google::protobuf::EnumDescriptor* PROTOBUF_NONNULL BattlePhase_descriptor() {
   ::google::protobuf::internal::AssignDescriptors(&descriptor_table_proto_2fbattle_2fv1_2fsession_2eproto);
   return file_level_enum_descriptors_proto_2fbattle_2fv1_2fsession_2eproto[1];

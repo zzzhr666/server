@@ -74,6 +74,7 @@ enum EntityKind {
   ENTITY_KIND_UNSPECIFIED = 0;
   ENTITY_KIND_PLAYER = 1;
   ENTITY_KIND_MONSTER = 2;
+  ENTITY_KIND_PROJECTILE = 3;
 }
 
 message EntitySnapshot{
