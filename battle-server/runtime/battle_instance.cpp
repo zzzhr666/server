@@ -17,9 +17,6 @@ namespace {
         battle::BlessingID::ChainLightning,
     };
 
-    bool contains_blessing(const std::vector<battle::BlessingID>& blessings, battle::BlessingID blessing_id) {
-        return std::ranges::find(blessings, blessing_id) != blessings.end();
-    }
 }
 
 battle::BattleInstance::BattleInstance(BattleInstanceConfig config)
@@ -418,8 +415,6 @@ int battle::BattleInstance::experience_to_next_level_(int level) const {
 }
 
 std::vector<battle::BlessingOption> battle::BattleInstance::generate_blessing_options_(std::int64_t player_id) {
-
-
     auto candidates = AllBlessingIDs;
     std::ranges::shuffle(candidates, reward_random_engine_);
 
