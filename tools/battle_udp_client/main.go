@@ -40,7 +40,9 @@ func main() {
 	if err != nil {
 		log.Fatalf("dial UDP: %v", err)
 	}
-	defer conn.Close()
+	defer func() {
+		_ = conn.Close()
+	}()
 
 	hello := &battlepb.ClientPacket{
 		Payload: &battlepb.ClientPacket_Hello{
@@ -68,8 +70,7 @@ func main() {
 		}
 		n, err := conn.Read(buffer)
 		if err != nil {
-			var netErr net.Error
-			if errors.As(err, &netErr) && netErr.Timeout() {
+			if netErr, ok := errors.AsType[net.Error](err); ok && netErr.Timeout() {
 				if *exitOnTimeout {
 					log.Fatalf("read packet: %v", err)
 				}

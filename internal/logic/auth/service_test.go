@@ -309,12 +309,9 @@ func (f *fakeAuthRepository) RegisterAccount(_ context.Context, input RegisterAc
 		ExpiresAt: input.SessionExpiresAt,
 	}
 
-	accountCopy := *account
-	playerCopy := *player
-	sessionCopy := *session
-	f.accounts[account.Username] = &accountCopy
-	f.players[player.ID] = &playerCopy
-	f.sessions[session.Token] = &sessionCopy
+	f.accounts[account.Username] = new(*account)
+	f.players[player.ID] = new(*player)
+	f.sessions[session.Token] = new(*session)
 
 	return &RegisterAccountResult{
 		Account: account,
@@ -327,8 +324,7 @@ func (f *fakeAuthRepository) CreateAccount(_ context.Context, account *Account) 
 	if _, ok := f.accounts[account.Username]; ok {
 		return ErrAccountExists
 	}
-	cp := *account
-	f.accounts[account.Username] = &cp
+	f.accounts[account.Username] = new(*account)
 	return nil
 }
 
@@ -337,13 +333,11 @@ func (f *fakeAuthRepository) GetAccount(_ context.Context, username string) (*Ac
 	if !ok {
 		return nil, ErrAccountNotFound
 	}
-	cp := *account
-	return &cp, nil
+	return new(*account), nil
 }
 
 func (f *fakeAuthRepository) CreateSession(_ context.Context, session *Session) error {
-	cp := *session
-	f.sessions[session.Token] = &cp
+	f.sessions[session.Token] = new(*session)
 	return nil
 }
 
@@ -352,8 +346,7 @@ func (f *fakeAuthRepository) GetSession(_ context.Context, token string) (*Sessi
 	if !ok || time.Now().After(session.ExpiresAt) {
 		return nil, ErrSessionNotFound
 	}
-	cp := *session
-	return &cp, nil
+	return new(*session), nil
 }
 
 func (f *fakeAuthRepository) DeleteSession(_ context.Context, token string) error {
@@ -396,6 +389,5 @@ func (f *fakePlayerService) Get(_ context.Context, id int64) (*playerpkg.Player,
 	if !ok {
 		return nil, playerpkg.ErrNotFound
 	}
-	cp := *player
-	return &cp, nil
+	return new(*player), nil
 }

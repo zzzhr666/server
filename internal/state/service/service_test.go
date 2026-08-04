@@ -358,8 +358,7 @@ func newTestService(stores *fakeStores) *Service {
 }
 
 func (f *fakeStores) CreateAccount(_ context.Context, account *statecontract.Account) error {
-	cp := *account
-	f.accounts[account.Username] = &cp
+	f.accounts[account.Username] = new(*account)
 	return nil
 }
 
@@ -368,13 +367,11 @@ func (f *fakeStores) GetAccount(_ context.Context, username string) (*statecontr
 	if !ok {
 		return nil, statecontract.ErrAccountNotFound
 	}
-	cp := *account
-	return &cp, nil
+	return new(*account), nil
 }
 
 func (f *fakeStores) CreateSession(_ context.Context, session *statecontract.Session) error {
-	cp := *session
-	f.sessions[session.Token] = &cp
+	f.sessions[session.Token] = new(*session)
 	return nil
 }
 
@@ -383,8 +380,7 @@ func (f *fakeStores) GetSession(_ context.Context, token string) (*statecontract
 	if !ok {
 		return nil, statecontract.ErrSessionNotFound
 	}
-	cp := *session
-	return &cp, nil
+	return new(*session), nil
 }
 
 func (f *fakeStores) DeleteSession(_ context.Context, token string) error {
@@ -393,8 +389,7 @@ func (f *fakeStores) DeleteSession(_ context.Context, token string) error {
 }
 
 func (f *fakeStores) CreatePlayer(_ context.Context, player *statecontract.Player) error {
-	cp := *player
-	f.players[player.ID] = &cp
+	f.players[player.ID] = new(*player)
 	return nil
 }
 
@@ -403,8 +398,7 @@ func (f *fakeStores) GetPlayer(_ context.Context, id int64) (*statecontract.Play
 	if !ok {
 		return nil, statecontract.ErrPlayerNotFound
 	}
-	cp := *player
-	return &cp, nil
+	return new(*player), nil
 }
 
 func (f *fakeStores) NextPlayerID(_ context.Context) (int64, error) {
@@ -461,8 +455,7 @@ func (f *fakeStores) RegisterAccount(ctx context.Context, input statecontract.Re
 }
 
 func (f *fakeStores) SetPresence(_ context.Context, presence *statecontract.Presence, _ time.Duration) error {
-	cp := *presence
-	f.presences[presence.PlayerID] = &cp
+	f.presences[presence.PlayerID] = new(*presence)
 	return nil
 }
 
@@ -471,8 +464,7 @@ func (f *fakeStores) GetPresence(_ context.Context, playerID int64) (*statecontr
 	if !ok {
 		return nil, statecontract.ErrPresenceNotFound
 	}
-	cp := *presence
-	return &cp, nil
+	return new(*presence), nil
 }
 
 func (f *fakeStores) ClearPresence(_ context.Context, playerID int64, serverName string) error {

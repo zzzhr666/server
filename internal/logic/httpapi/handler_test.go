@@ -1173,8 +1173,7 @@ func (s *fakeAuthService) GetSession(ctx context.Context, token string) (*auth.S
 	if !ok {
 		return nil, auth.ErrSessionNotFound
 	}
-	cp := *session
-	return &cp, nil
+	return new(*session), nil
 }
 
 func (s *fakeAuthService) newSession(playerID int64) *auth.Session {
@@ -1192,8 +1191,7 @@ func clonePlayer(player *playerpkg.Player) *playerpkg.Player {
 	if player == nil {
 		return nil
 	}
-	cp := *player
-	return &cp
+	return new(*player)
 }
 
 var _ auth.Service = (*fakeAuthService)(nil)
@@ -1259,8 +1257,7 @@ func (f *fakePresenceService) Get(ctx context.Context, playerID int64) (*presenc
 	if !ok {
 		return nil, presence.ErrNotFound
 	}
-	cp := *p
-	return &cp, nil
+	return new(*p), nil
 }
 
 func (f *fakePresenceService) MarkOffline(ctx context.Context, playerID int64, serverName string) error {
@@ -1353,8 +1350,7 @@ func (f *fakeGrowthService) Get(ctx context.Context, playerID int64) (*growth.Gr
 	if f.growth == nil {
 		return nil, growth.ErrGrowthNotFound
 	}
-	cp := *f.growth
-	return &cp, nil
+	return new(*f.growth), nil
 }
 
 func (f *fakeGrowthService) Upgrade(ctx context.Context, playerID int64, upgradeType growth.UpgradeType) (*growth.UpgradeResult, error) {

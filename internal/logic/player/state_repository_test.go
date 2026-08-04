@@ -101,8 +101,7 @@ func (f *fakeStateClient) DeleteSession(_ context.Context, _ string) error {
 }
 
 func (f *fakeStateClient) CreatePlayer(_ context.Context, player *statecontract.Player) error {
-	cp := *player
-	f.players[player.ID] = &cp
+	f.players[player.ID] = new(*player)
 	return nil
 }
 
@@ -111,8 +110,7 @@ func (f *fakeStateClient) GetPlayer(_ context.Context, id int64) (*statecontract
 	if !ok {
 		return nil, statecontract.ErrPlayerNotFound
 	}
-	cp := *player
-	return &cp, nil
+	return new(*player), nil
 }
 
 func (f *fakeStateClient) NextPlayerID(_ context.Context) (int64, error) {

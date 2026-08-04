@@ -187,8 +187,7 @@ func (f *fakeStateClient) CreateAccount(_ context.Context, account *statecontrac
 	if _, ok := f.accounts[account.Username]; ok {
 		return statecontract.ErrAccountExists
 	}
-	cp := *account
-	f.accounts[account.Username] = &cp
+	f.accounts[account.Username] = new(*account)
 	return nil
 }
 
@@ -215,12 +214,9 @@ func (f *fakeStateClient) RegisterAccount(_ context.Context, input statecontract
 		ExpiresAt: input.SessionExpiresAt,
 	}
 
-	accountCopy := *account
-	playerCopy := *player
-	sessionCopy := *session
-	f.accounts[account.Username] = &accountCopy
-	f.players[player.ID] = &playerCopy
-	f.sessions[session.Token] = &sessionCopy
+	f.accounts[account.Username] = new(*account)
+	f.players[player.ID] = new(*player)
+	f.sessions[session.Token] = new(*session)
 
 	return &statecontract.RegisterAccountResult{
 		Account: account,
@@ -234,13 +230,11 @@ func (f *fakeStateClient) GetAccount(_ context.Context, username string) (*state
 	if !ok {
 		return nil, statecontract.ErrAccountNotFound
 	}
-	cp := *account
-	return &cp, nil
+	return new(*account), nil
 }
 
 func (f *fakeStateClient) CreateSession(_ context.Context, session *statecontract.Session) error {
-	cp := *session
-	f.sessions[session.Token] = &cp
+	f.sessions[session.Token] = new(*session)
 	return nil
 }
 
@@ -249,8 +243,7 @@ func (f *fakeStateClient) GetSession(_ context.Context, token string) (*statecon
 	if !ok {
 		return nil, statecontract.ErrSessionNotFound
 	}
-	cp := *session
-	return &cp, nil
+	return new(*session), nil
 }
 
 func (f *fakeStateClient) DeleteSession(_ context.Context, token string) error {
