@@ -51,6 +51,17 @@ func (s *Server) StartMatch(ctx context.Context, req *rcenterpb.StartMatchReques
 
 }
 
+// ResumeMatch returns the active battle assignment for a player.
+func (s *Server) ResumeMatch(ctx context.Context, request *rcenterpb.ResumeMatchRequest) (*rcenterpb.ResumeMatchResponse, error) {
+	res, err := s.center.ResumeMatch(ctx, request.GetPlayerId())
+	if err != nil {
+		return nil, mapRCenterError(err)
+	}
+	return &rcenterpb.ResumeMatchResponse{
+		Result: rcenterproto.ToProtoMatchResult(res),
+	}, nil
+}
+
 // CancelMatch handles queue cancellation requests.
 func (s *Server) CancelMatch(ctx context.Context, req *rcenterpb.CancelMatchRequest) (*rcenterpb.CancelMatchResponse, error) {
 	err := s.center.CancelMatch(ctx, req.GetPlayerId())

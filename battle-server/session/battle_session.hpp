@@ -1,6 +1,7 @@
 #pragma once
 
-#include <cstdint>
+#include <chrono>
+#include <mutex>
 #include <string>
 #include <string_view>
 
@@ -9,7 +10,8 @@
 namespace battle {
     enum class BattleSessionState:std::uint8_t {
         Connected = 0,
-        Closed = 1,
+        Disconnected,
+        Closed,
     };
 
     class BattleSession {
@@ -25,20 +27,33 @@ namespace battle {
         }
 
         [[nodiscard]] BattleSessionState state() const {
+            std::lock_guard<std::mutex> lock(mutex_);
             return state_;
         }
 
         [[nodiscard]] std::uint32_t conv() const {
+            std::lock_guard<std::mutex> lock(mutex_);
             return conv_;
         }
 
-        [[nodiscard]] const UdpEndpoint& endpoint() const {
+        [[nodiscard]] UdpEndpoint endpoint() const {
+            std::lock_guard<std::mutex> lock(mutex_);
             return endpoint_;
         }
 
         void close() {
+            std::lock_guard<std::mutex> lock(mutex_);
             state_ = BattleSessionState::Closed;
         }
+
+        void rebind(std::uint32_t conv, UdpEndpoint endpoint);
+
+        bool touch(const UdpEndpoint& endpoint);
+
+        void mark_disconnected();
+
+        bool mark_disconnected_if_stale(std::chrono::steady_clock::time_point now,
+                                        std::chrono::steady_clock::duration idle_timeout);
 
     private:
         std::string room_name_;
@@ -46,5 +61,7 @@ namespace battle {
         BattleSessionState state_;
         std::uint32_t conv_;
         UdpEndpoint endpoint_;
+        std::chrono::steady_clock::time_point last_seen_at_;
+        mutable std::mutex mutex_;
     };
 }

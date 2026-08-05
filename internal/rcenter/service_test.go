@@ -187,6 +187,97 @@ func TestServiceStartMatchCreatesRoomForSecondPlayer(t *testing.T) {
 	}
 }
 
+func TestServiceStartMatchStoresActiveMatchForAllPlayers(t *testing.T) {
+	svc := newTestService()
+	mustRegisterBattleNode(t, svc, BattleNode{
+		Name:        "battle-1",
+		KCPAddr:     "127.0.0.1:7001",
+		ControlAddr: "127.0.0.1:9101",
+		MaxPlayers:  100,
+	})
+
+	if _, err := svc.StartMatch(context.Background(), 7, "axe"); err != nil {
+		t.Fatalf("first StartMatch returned error: %v", err)
+	}
+	matched, err := svc.StartMatch(context.Background(), 8, "dagger")
+	if err != nil {
+		t.Fatalf("second StartMatch returned error: %v", err)
+	}
+
+	for _, playerID := range matched.PlayerIDs {
+		activeMatch, ok := svc.activeMatches[playerID]
+		if !ok {
+			t.Fatalf("active match missing for player %d", playerID)
+		}
+		if activeMatch.RoomName != matched.RoomName || activeMatch.Token != matched.Token ||
+			activeMatch.BattleNodeName != matched.BattleNodeName || activeMatch.BattleKCPAddr != matched.BattleKCPAddr {
+			t.Fatalf("active match = %+v, want match result data", activeMatch)
+		}
+		if !reflect.DeepEqual(activeMatch.PlayerIDs, matched.PlayerIDs) {
+			t.Fatalf("active player ids = %v, want %v", activeMatch.PlayerIDs, matched.PlayerIDs)
+		}
+		if !reflect.DeepEqual(activeMatch.PlayerLoadouts, matched.PlayerLoadouts) {
+			t.Fatalf("active loadouts = %+v, want %+v", activeMatch.PlayerLoadouts, matched.PlayerLoadouts)
+		}
+		if activeMatch.CreatedAt.IsZero() {
+			t.Fatal("active match creation time is zero")
+		}
+	}
+
+	matched.PlayerIDs[0] = 99
+	matched.PlayerLoadouts[0].Weapon = "changed"
+	activeMatch := svc.activeMatches[7]
+	if activeMatch.PlayerIDs[0] != 7 || activeMatch.PlayerLoadouts[0].Weapon != "axe" {
+		t.Fatalf("active match shares slices with returned result: %+v", activeMatch)
+	}
+}
+
+func TestServiceResumeMatchReturnsActiveMatch(t *testing.T) {
+	svc := newTestService()
+	mustRegisterBattleNode(t, svc, BattleNode{
+		Name:        "battle-1",
+		KCPAddr:     "127.0.0.1:7001",
+		ControlAddr: "127.0.0.1:9101",
+		MaxPlayers:  100,
+	})
+	if _, err := svc.StartMatch(context.Background(), 7, "axe"); err != nil {
+		t.Fatalf("first StartMatch returned error: %v", err)
+	}
+	matched, err := svc.StartMatch(context.Background(), 8, "dagger")
+	if err != nil {
+		t.Fatalf("second StartMatch returned error: %v", err)
+	}
+
+	resumed, err := svc.ResumeMatch(context.Background(), 7)
+	if err != nil {
+		t.Fatalf("ResumeMatch returned error: %v", err)
+	}
+	if !reflect.DeepEqual(resumed, matched) {
+		t.Fatalf("resumed match = %+v, want %+v", resumed, matched)
+	}
+
+	resumed.PlayerIDs[0] = 99
+	resumed.PlayerLoadouts[0].Weapon = "changed"
+	activeMatch := svc.activeMatches[7]
+	if activeMatch.PlayerIDs[0] != 7 || activeMatch.PlayerLoadouts[0].Weapon != "axe" {
+		t.Fatalf("active match shares slices with resumed result: %+v", activeMatch)
+	}
+}
+
+func TestServiceResumeMatchRejectsMissingActiveMatch(t *testing.T) {
+	_, err := newTestService().ResumeMatch(context.Background(), 7)
+	if !errors.Is(err, ErrActiveMatchNotFound) {
+		t.Fatalf("ResumeMatch error = %v, want %v", err, ErrActiveMatchNotFound)
+	}
+}
+
+func TestServiceResumeMatchRejectsInvalidPlayer(t *testing.T) {
+	_, err := newTestService().ResumeMatch(context.Background(), 0)
+	if !errors.Is(err, ErrInvalidPlayerID) {
+		t.Fatalf("ResumeMatch error = %v, want %v", err, ErrInvalidPlayerID)
+	}
+}
+
 func TestServiceStartMatchReturnsCreateRoomError(t *testing.T) {
 	wantErr := errors.New("battle create failed")
 	battleRooms := &fakeBattleRoomCreator{createRoomErr: wantErr}
@@ -308,6 +399,11 @@ func TestServiceFinishMatchAllowsPlayersToMatchAgain(t *testing.T) {
 
 	if err := svc.FinishMatch(context.Background(), FinishMatchInput{PlayerIDs: matched.PlayerIDs}); err != nil {
 		t.Fatalf("FinishMatch returned error: %v", err)
+	}
+	for _, playerID := range matched.PlayerIDs {
+		if _, ok := svc.activeMatches[playerID]; ok {
+			t.Fatalf("active match remains for player %d after FinishMatch", playerID)
+		}
 	}
 
 	result, err := svc.StartMatch(context.Background(), 7, "")

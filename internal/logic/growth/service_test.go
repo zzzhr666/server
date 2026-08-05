@@ -113,6 +113,30 @@ func TestUpgradeUsesConfiguredRule(t *testing.T) {
 	}
 }
 
+func TestUpgradeOptionsReturnsNextCostsAndCaps(t *testing.T) {
+	service := NewService(&fakeGrowthRepository{}, DefaultUpgradeRules())
+
+	options, err := service.UpgradeOptions(&Growth{
+		PlayerID:         7,
+		AttackLevel:      2,
+		AttackSpeedLevel: 10,
+		HealthLevel:      3,
+		MoveSpeedLevel:   1,
+	})
+	if err != nil {
+		t.Fatalf("UpgradeOptions returned error: %v", err)
+	}
+	if len(options) != 4 {
+		t.Fatalf("options length = %d, want 4", len(options))
+	}
+	if options[0].Type != UpgradeAttack || options[0].CurrentLevel != 2 || options[0].NextCost != 150 || options[0].MaxLevel != 10 {
+		t.Fatalf("attack option = %+v, want level=2 next cost=150 max=10", options[0])
+	}
+	if options[1].Type != UpgradeAttackSpeed || options[1].CurrentLevel != 10 || options[1].NextCost != 0 || options[1].MaxLevel != 10 {
+		t.Fatalf("attack speed option = %+v, want maxed option", options[1])
+	}
+}
+
 type fakeGrowthRepository struct {
 	growth        *Growth
 	upgradeInput  UpgradePersistInput

@@ -281,16 +281,23 @@ TEST(WorldTest, CreatePlayerInitializesStatusEffects) {
 }
 
 TEST(WorldTest, BlessingConfigScalesEffectValuesWithLevel) {
-    EXPECT_EQ(life_steal_percent(1), 50);
-    EXPECT_EQ(life_steal_percent(2), 60);
-    EXPECT_EQ(critical_strike_percent(1), 25);
-    EXPECT_EQ(critical_strike_percent(3), 35);
-    EXPECT_EQ(burn_damage_per_tick(1), 5);
-    EXPECT_EQ(burn_damage_per_tick(2), 8);
-    EXPECT_FLOAT_EQ(burn_duration_seconds(2).count(), 3.5f);
-    EXPECT_EQ(freeze_percent(1), 50);
-    EXPECT_EQ(freeze_percent(2), 60);
-    EXPECT_FLOAT_EQ(freeze_duration_seconds(2).count(), 2.25f);
+    EXPECT_EQ(life_steal_percent(1), 8);
+    EXPECT_EQ(life_steal_percent(5), 16);
+    EXPECT_EQ(critical_strike_percent(1), 15);
+    EXPECT_EQ(critical_strike_percent(5), 31);
+    EXPECT_EQ(critical_strike_damage_percent(1), 175);
+    EXPECT_EQ(critical_strike_damage_percent(5), 235);
+    EXPECT_EQ(burn_damage_per_tick(1), 6);
+    EXPECT_EQ(burn_damage_per_tick(5), 14);
+    EXPECT_FLOAT_EQ(burn_duration_seconds(5).count(), 4.5f);
+    EXPECT_EQ(freeze_percent(1), 15);
+    EXPECT_EQ(freeze_percent(5), 31);
+    EXPECT_FLOAT_EQ(freeze_duration_seconds(5).count(), 1.6f);
+    EXPECT_EQ(chain_lightning_damage_percent(1), 50);
+    EXPECT_EQ(chain_lightning_damage_percent(5), 90);
+    EXPECT_EQ(chain_lightning_target_count(1), 1);
+    EXPECT_EQ(chain_lightning_target_count(5), 5);
+    EXPECT_FLOAT_EQ(ChainLightningConfig::JumpRadius, 9.0f);
 }
 
 TEST(WorldTest, CreatePlayerInitializesAttackComponentsFromConfig) {
@@ -746,7 +753,7 @@ TEST(WorldTest, LifeStealHealsSourceFromAppliedAttackDamage) {
     });
     world.tick(DeltaTime{0.0f});
 
-    EXPECT_EQ(world.registry().get<Health>(player).current_health, 50);
+    EXPECT_EQ(world.registry().get<Health>(player).current_health, 41);
     EXPECT_TRUE(world.damage_applied_events().empty());
 }
 
@@ -785,7 +792,7 @@ TEST(WorldTest, LifeStealClampsHealingToMaxHealth) {
     world.add_damage_applied_event(DamageAppliedEvent{
         .source = player,
         .target = monster,
-        .amount = 20,
+        .amount = 100,
         .source_kind = DamageSourceKind::Attack,
     });
     world.tick(DeltaTime{0.0f});
@@ -828,7 +835,7 @@ TEST(WorldTest, FreezeOnHitAddsFreezeStatusToTarget) {
     auto monster = world.create_monster(default_monster_config());
     world.registry().get<BlessingInventory>(player).blessings.emplace_back(BlessingStack{
         .blessing_id = BlessingID::FreezeOnHit,
-        .level = 1,
+        .level = 23,
     });
 
     world.add_damage_applied_event(DamageAppliedEvent{
@@ -842,7 +849,7 @@ TEST(WorldTest, FreezeOnHitAddsFreezeStatusToTarget) {
     EXPECT_FALSE(world.registry().get<StatusEffects>(player).freeze.has_value());
     const auto& freeze = world.registry().get<StatusEffects>(monster).freeze;
     ASSERT_TRUE(freeze.has_value());
-    EXPECT_FLOAT_EQ(freeze->remaining_seconds.count(), freeze_duration_seconds(1).count());
+    EXPECT_FLOAT_EQ(freeze->remaining_seconds.count(), freeze_duration_seconds(23).count());
     EXPECT_TRUE(world.registry().get<StatusEffects>(monster).burns.empty());
     EXPECT_TRUE(world.damage_applied_events().empty());
 }
@@ -952,26 +959,26 @@ TEST(WorldTest, FreezeStatusExpiresAndIsRemoved) {
     EXPECT_FALSE(world.registry().get<StatusEffects>(monster).freeze.has_value());
 }
 
-TEST(WorldTest, CriticalStrikeCanDoubleAttackDamage) {
+TEST(WorldTest, CriticalStrikeUsesConfiguredDamagePercent) {
     World world({damage_modify_system, damage_system}, DefaultWorldBounds, 5);
     auto player = world.create_player(default_player_config());
     auto monster = world.create_monster(default_monster_config());
     world.registry().get<BlessingInventory>(player).blessings.emplace_back(BlessingStack{
         .blessing_id = BlessingID::CriticalStrike,
-        .level = 1,
+        .level = 23,
     });
 
     world.add_damage_event(DamageEvent{
         .source = player,
         .target = monster,
-        .base_damage = 15,
-        .modified_damage = 15,
+        .base_damage = 5,
+        .modified_damage = 5,
         .source_kind = DamageSourceKind::Attack,
     });
     world.tick(DeltaTime{0.0f});
 
     ASSERT_TRUE(world.has_entity(monster));
-    EXPECT_EQ(world.registry().get<Health>(monster).current_health, 20);
+    EXPECT_EQ(world.registry().get<Health>(monster).current_health, 25);
     EXPECT_TRUE(world.damage_events().empty());
 }
 

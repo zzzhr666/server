@@ -5,7 +5,7 @@
 
 #include "weapon.hpp"
 
-battle::ecs::CreatePlayerConfig battle::SpawnPlanner::player_spawn(std::size_t index) const {
+battle::ecs::CreatePlayerConfig battle::SpawnPlanner::player_spawn(std::size_t index) const { //NOLINT
     index %= 4;
     auto weapon = weapon_definition(WeaponKind::Sword);
     ecs::CreatePlayerConfig config{
@@ -38,7 +38,7 @@ battle::ecs::CreatePlayerConfig battle::SpawnPlanner::player_spawn(std::size_t i
 }
 
 
-battle::ecs::CreateMonsterConfig battle::SpawnPlanner::monster_spawn(std::size_t index, std::size_t count) const {
+battle::ecs::CreateMonsterConfig battle::SpawnPlanner::monster_spawn(std::size_t index, std::size_t count) const { //NOLINT
     if (count == 0) {
         count = 1;
     }

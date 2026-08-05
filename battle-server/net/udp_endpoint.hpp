@@ -1,5 +1,4 @@
 #pragma once
-#include <cstdint>
 #include <string>
 #include <arpa/inet.h>
 #include <netinet/in.h>
@@ -7,10 +6,15 @@
 namespace battle {
     struct UdpEndpoint {
         sockaddr_in addr{};
-        std::string ip()const;
-        std::uint16_t port()const;
-    };
+        [[nodiscard]] std::string ip() const;
+        [[nodiscard]] std::uint16_t port() const;
 
+        bool operator==(const UdpEndpoint& other) const {
+            return addr.sin_family == other.addr.sin_family &&
+                addr.sin_addr.s_addr == other.addr.sin_addr.s_addr &&
+                addr.sin_port == other.addr.sin_port;
+        }
+    };
 }
 
 

@@ -11,6 +11,7 @@ service RCenterService {
   rpc StartMatch(StartMatchRequest) returns (StartMatchResponse);
   rpc CancelMatch(CancelMatchRequest) returns (CancelMatchResponse);
   rpc FinishMatch(FinishMatchRequest) returns (FinishMatchResponse);
+  rpc ResumeMatch(ResumeMatchRequest) returns (ResumeMatchResponse);
 }
 
 message BattleNode {
@@ -81,4 +82,12 @@ message FinishMatchResponse {}
 message PlayerLoadout {
   int64 player_id = 1;
   string weapon = 2;
+}
+
+message ResumeMatchRequest {
+  int64 player_id = 1;
+}
+
+message ResumeMatchResponse {
+  MatchResult result = 1;
 }

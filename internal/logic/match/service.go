@@ -9,12 +9,14 @@ import (
 type Repository interface {
 	StartMatch(ctx context.Context, playerID int64, weapon string) (*rcenter.MatchResult, error)
 	CancelMatch(ctx context.Context, playerID int64) error
+	ResumeMatch(ctx context.Context, playerID int64) (*rcenter.MatchResult, error)
 }
 
 // Service defines matchmaking actions exposed to logic HTTP and WebSocket handlers.
 type Service interface {
 	Start(ctx context.Context, playerID int64, weapon string) (*rcenter.MatchResult, error)
 	Cancel(ctx context.Context, playerID int64) error
+	Resume(ctx context.Context, playerID int64) (*rcenter.MatchResult, error)
 }
 
 // GameMatchService validates logic requests before delegating to rcenter.
@@ -45,6 +47,17 @@ func (g *GameMatchService) Cancel(ctx context.Context, playerID int64) error {
 		return rcenter.ErrInvalidPlayerID
 	}
 	return g.matchRepo.CancelMatch(ctx, playerID)
+}
+
+// Resume returns the active battle assignment available to a player.
+func (g *GameMatchService) Resume(ctx context.Context, playerID int64) (*rcenter.MatchResult, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
+	if playerID <= 0 {
+		return nil, rcenter.ErrInvalidPlayerID
+	}
+	return g.matchRepo.ResumeMatch(ctx, playerID)
 }
 
 // NewService creates a logic match service backed by a rcenter repository.

@@ -12,7 +12,7 @@ namespace battle::ecs {
         SystemScheduler();
         SystemScheduler(std::initializer_list<sysFunc> funcs);
         void add_system(sysFunc func);
-        void tick(World& world, DeltaTime delta_time);
+        void tick(World& world, DeltaTime delta_time) const;
     private:
         std::vector<sysFunc> systems_;
     };

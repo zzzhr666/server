@@ -452,6 +452,7 @@ type ClientPacket struct {
 	//	*ClientPacket_Hello
 	//	*ClientPacket_Input
 	//	*ClientPacket_ChooseBlessing
+	//	*ClientPacket_Heartbeat
 	Payload       isClientPacket_Payload `protobuf_oneof:"payload"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -521,6 +522,15 @@ func (x *ClientPacket) GetChooseBlessing() *ChooseBlessing {
 	return nil
 }
 
+func (x *ClientPacket) GetHeartbeat() *ClientHeartbeat {
+	if x != nil {
+		if x, ok := x.Payload.(*ClientPacket_Heartbeat); ok {
+			return x.Heartbeat
+		}
+	}
+	return nil
+}
+
 type isClientPacket_Payload interface {
 	isClientPacket_Payload()
 }
@@ -537,11 +547,17 @@ type ClientPacket_ChooseBlessing struct {
 	ChooseBlessing *ChooseBlessing `protobuf:"bytes,3,opt,name=choose_blessing,json=chooseBlessing,proto3,oneof"`
 }
 
+type ClientPacket_Heartbeat struct {
+	Heartbeat *ClientHeartbeat `protobuf:"bytes,4,opt,name=heartbeat,proto3,oneof"`
+}
+
 func (*ClientPacket_Hello) isClientPacket_Payload() {}
 
 func (*ClientPacket_Input) isClientPacket_Payload() {}
 
 func (*ClientPacket_ChooseBlessing) isClientPacket_Payload() {}
+
+func (*ClientPacket_Heartbeat) isClientPacket_Payload() {}
 
 type ServerPacket struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -1727,6 +1743,58 @@ func (x *ChooseBlessing) GetOptionId() int32 {
 	return 0
 }
 
+type ClientHeartbeat struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	RoomName      string                 `protobuf:"bytes,1,opt,name=room_name,json=roomName,proto3" json:"room_name,omitempty"`
+	PlayerId      int64                  `protobuf:"varint,2,opt,name=player_id,json=playerId,proto3" json:"player_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ClientHeartbeat) Reset() {
+	*x = ClientHeartbeat{}
+	mi := &file_proto_battle_v1_session_proto_msgTypes[20]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ClientHeartbeat) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ClientHeartbeat) ProtoMessage() {}
+
+func (x *ClientHeartbeat) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_battle_v1_session_proto_msgTypes[20]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ClientHeartbeat.ProtoReflect.Descriptor instead.
+func (*ClientHeartbeat) Descriptor() ([]byte, []int) {
+	return file_proto_battle_v1_session_proto_rawDescGZIP(), []int{20}
+}
+
+func (x *ClientHeartbeat) GetRoomName() string {
+	if x != nil {
+		return x.RoomName
+	}
+	return ""
+}
+
+func (x *ClientHeartbeat) GetPlayerId() int64 {
+	if x != nil {
+		return x.PlayerId
+	}
+	return 0
+}
+
 var File_proto_battle_v1_session_proto protoreflect.FileDescriptor
 
 const file_proto_battle_v1_session_proto_rawDesc = "" +
@@ -1745,11 +1813,12 @@ const file_proto_battle_v1_session_proto_rawDesc = "" +
 	"player_ids\x18\x02 \x03(\x03R\tplayerIds\"5\n" +
 	"\x05Error\x12\x12\n" +
 	"\x04code\x18\x01 \x01(\tR\x04code\x12\x18\n" +
-	"\amessage\x18\x02 \x01(\tR\amessage\"\xbf\x01\n" +
+	"\amessage\x18\x02 \x01(\tR\amessage\"\xfb\x01\n" +
 	"\fClientPacket\x12.\n" +
 	"\x05hello\x18\x01 \x01(\v2\x16.battle.v1.ClientHelloH\x00R\x05hello\x12.\n" +
 	"\x05input\x18\x02 \x01(\v2\x16.battle.v1.ClientInputH\x00R\x05input\x12D\n" +
-	"\x0fchoose_blessing\x18\x03 \x01(\v2\x19.battle.v1.ChooseBlessingH\x00R\x0echooseBlessingB\t\n" +
+	"\x0fchoose_blessing\x18\x03 \x01(\v2\x19.battle.v1.ChooseBlessingH\x00R\x0echooseBlessing\x12:\n" +
+	"\theartbeat\x18\x04 \x01(\v2\x1a.battle.v1.ClientHeartbeatH\x00R\theartbeatB\t\n" +
 	"\apayload\"\x96\x02\n" +
 	"\fServerPacket\x12.\n" +
 	"\x05hello\x18\x01 \x01(\v2\x16.battle.v1.ServerHelloH\x00R\x05hello\x125\n" +
@@ -1860,7 +1929,10 @@ const file_proto_battle_v1_session_proto_rawDesc = "" +
 	"\x0eChooseBlessing\x12\x1b\n" +
 	"\troom_name\x18\x01 \x01(\tR\broomName\x12\x1b\n" +
 	"\tplayer_id\x18\x02 \x01(\x03R\bplayerId\x12\x1b\n" +
-	"\toption_id\x18\x03 \x01(\x05R\boptionId*v\n" +
+	"\toption_id\x18\x03 \x01(\x05R\boptionId\"K\n" +
+	"\x0fClientHeartbeat\x12\x1b\n" +
+	"\troom_name\x18\x01 \x01(\tR\broomName\x12\x1b\n" +
+	"\tplayer_id\x18\x02 \x01(\x03R\bplayerId*v\n" +
 	"\n" +
 	"EntityKind\x12\x1b\n" +
 	"\x17ENTITY_KIND_UNSPECIFIED\x10\x00\x12\x16\n" +
@@ -1898,7 +1970,7 @@ func file_proto_battle_v1_session_proto_rawDescGZIP() []byte {
 }
 
 var file_proto_battle_v1_session_proto_enumTypes = make([]protoimpl.EnumInfo, 4)
-var file_proto_battle_v1_session_proto_msgTypes = make([]protoimpl.MessageInfo, 20)
+var file_proto_battle_v1_session_proto_msgTypes = make([]protoimpl.MessageInfo, 21)
 var file_proto_battle_v1_session_proto_goTypes = []any{
 	(EntityKind)(0),                     // 0: battle.v1.EntityKind
 	(BattlePhase)(0),                    // 1: battle.v1.BattlePhase
@@ -1924,37 +1996,39 @@ var file_proto_battle_v1_session_proto_goTypes = []any{
 	(*BattleEvent)(nil),                 // 21: battle.v1.BattleEvent
 	(*WorldSnapshot)(nil),               // 22: battle.v1.WorldSnapshot
 	(*ChooseBlessing)(nil),              // 23: battle.v1.ChooseBlessing
+	(*ClientHeartbeat)(nil),             // 24: battle.v1.ClientHeartbeat
 }
 var file_proto_battle_v1_session_proto_depIdxs = []int32{
 	4,  // 0: battle.v1.ClientPacket.hello:type_name -> battle.v1.ClientHello
 	13, // 1: battle.v1.ClientPacket.input:type_name -> battle.v1.ClientInput
 	23, // 2: battle.v1.ClientPacket.choose_blessing:type_name -> battle.v1.ChooseBlessing
-	5,  // 3: battle.v1.ServerPacket.hello:type_name -> battle.v1.ServerHello
-	6,  // 4: battle.v1.ServerPacket.game_start:type_name -> battle.v1.GameStart
-	7,  // 5: battle.v1.ServerPacket.error:type_name -> battle.v1.Error
-	10, // 6: battle.v1.ServerPacket.game_over:type_name -> battle.v1.GameOver
-	22, // 7: battle.v1.ServerPacket.snapshot:type_name -> battle.v1.WorldSnapshot
-	11, // 8: battle.v1.GameOver.player_stats:type_name -> battle.v1.PlayerBattleStats
-	12, // 9: battle.v1.PlayerBattleStats.kills:type_name -> battle.v1.MonsterKillCount
-	0,  // 10: battle.v1.EntitySnapshot.kind:type_name -> battle.v1.EntityKind
-	2,  // 11: battle.v1.BlessingOptionSnapshot.blessing_id:type_name -> battle.v1.BlessingId
-	2,  // 12: battle.v1.PlayerBlessingSnapshot.blessing_id:type_name -> battle.v1.BlessingId
-	17, // 13: battle.v1.PlayerBlessingStateSnapshot.blessings:type_name -> battle.v1.PlayerBlessingSnapshot
-	16, // 14: battle.v1.PlayerBlessingStateSnapshot.current_options:type_name -> battle.v1.BlessingOptionSnapshot
-	3,  // 15: battle.v1.AttackEvent.attack_kind:type_name -> battle.v1.AttackKind
-	0,  // 16: battle.v1.DeathEvent.victim_kind:type_name -> battle.v1.EntityKind
-	19, // 17: battle.v1.BattleEvent.attack:type_name -> battle.v1.AttackEvent
-	20, // 18: battle.v1.BattleEvent.death:type_name -> battle.v1.DeathEvent
-	14, // 19: battle.v1.WorldSnapshot.entities:type_name -> battle.v1.EntitySnapshot
-	1,  // 20: battle.v1.WorldSnapshot.phase:type_name -> battle.v1.BattlePhase
-	15, // 21: battle.v1.WorldSnapshot.player_progress:type_name -> battle.v1.PlayerProgressSnapshot
-	18, // 22: battle.v1.WorldSnapshot.player_blessings:type_name -> battle.v1.PlayerBlessingStateSnapshot
-	21, // 23: battle.v1.WorldSnapshot.events:type_name -> battle.v1.BattleEvent
-	24, // [24:24] is the sub-list for method output_type
-	24, // [24:24] is the sub-list for method input_type
-	24, // [24:24] is the sub-list for extension type_name
-	24, // [24:24] is the sub-list for extension extendee
-	0,  // [0:24] is the sub-list for field type_name
+	24, // 3: battle.v1.ClientPacket.heartbeat:type_name -> battle.v1.ClientHeartbeat
+	5,  // 4: battle.v1.ServerPacket.hello:type_name -> battle.v1.ServerHello
+	6,  // 5: battle.v1.ServerPacket.game_start:type_name -> battle.v1.GameStart
+	7,  // 6: battle.v1.ServerPacket.error:type_name -> battle.v1.Error
+	10, // 7: battle.v1.ServerPacket.game_over:type_name -> battle.v1.GameOver
+	22, // 8: battle.v1.ServerPacket.snapshot:type_name -> battle.v1.WorldSnapshot
+	11, // 9: battle.v1.GameOver.player_stats:type_name -> battle.v1.PlayerBattleStats
+	12, // 10: battle.v1.PlayerBattleStats.kills:type_name -> battle.v1.MonsterKillCount
+	0,  // 11: battle.v1.EntitySnapshot.kind:type_name -> battle.v1.EntityKind
+	2,  // 12: battle.v1.BlessingOptionSnapshot.blessing_id:type_name -> battle.v1.BlessingId
+	2,  // 13: battle.v1.PlayerBlessingSnapshot.blessing_id:type_name -> battle.v1.BlessingId
+	17, // 14: battle.v1.PlayerBlessingStateSnapshot.blessings:type_name -> battle.v1.PlayerBlessingSnapshot
+	16, // 15: battle.v1.PlayerBlessingStateSnapshot.current_options:type_name -> battle.v1.BlessingOptionSnapshot
+	3,  // 16: battle.v1.AttackEvent.attack_kind:type_name -> battle.v1.AttackKind
+	0,  // 17: battle.v1.DeathEvent.victim_kind:type_name -> battle.v1.EntityKind
+	19, // 18: battle.v1.BattleEvent.attack:type_name -> battle.v1.AttackEvent
+	20, // 19: battle.v1.BattleEvent.death:type_name -> battle.v1.DeathEvent
+	14, // 20: battle.v1.WorldSnapshot.entities:type_name -> battle.v1.EntitySnapshot
+	1,  // 21: battle.v1.WorldSnapshot.phase:type_name -> battle.v1.BattlePhase
+	15, // 22: battle.v1.WorldSnapshot.player_progress:type_name -> battle.v1.PlayerProgressSnapshot
+	18, // 23: battle.v1.WorldSnapshot.player_blessings:type_name -> battle.v1.PlayerBlessingStateSnapshot
+	21, // 24: battle.v1.WorldSnapshot.events:type_name -> battle.v1.BattleEvent
+	25, // [25:25] is the sub-list for method output_type
+	25, // [25:25] is the sub-list for method input_type
+	25, // [25:25] is the sub-list for extension type_name
+	25, // [25:25] is the sub-list for extension extendee
+	0,  // [0:25] is the sub-list for field type_name
 }
 
 func init() { file_proto_battle_v1_session_proto_init() }
@@ -1966,6 +2040,7 @@ func file_proto_battle_v1_session_proto_init() {
 		(*ClientPacket_Hello)(nil),
 		(*ClientPacket_Input)(nil),
 		(*ClientPacket_ChooseBlessing)(nil),
+		(*ClientPacket_Heartbeat)(nil),
 	}
 	file_proto_battle_v1_session_proto_msgTypes[5].OneofWrappers = []any{
 		(*ServerPacket_Hello)(nil),
@@ -1984,7 +2059,7 @@ func file_proto_battle_v1_session_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_battle_v1_session_proto_rawDesc), len(file_proto_battle_v1_session_proto_rawDesc)),
 			NumEnums:      4,
-			NumMessages:   20,
+			NumMessages:   21,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

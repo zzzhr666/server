@@ -3,6 +3,7 @@ package httpapi
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	statecontract "server/internal/contract/state"
@@ -432,6 +433,9 @@ func TestGetGrowthHTTP(t *testing.T) {
 	if resp.PlayerID != 7 || resp.AttackLevel != 2 || resp.HealthLevel != 3 {
 		t.Fatalf("growth response = %+v, want player=7 attack=2 health=3", resp)
 	}
+	if len(resp.UpgradeOptions) != 4 || resp.UpgradeOptions[0].Type != "attack" || resp.UpgradeOptions[0].NextCost != 150 {
+		t.Fatalf("upgrade options = %+v, want attack next cost 150", resp.UpgradeOptions)
+	}
 }
 
 func TestUpgradeGrowthHTTP(t *testing.T) {
@@ -472,6 +476,9 @@ func TestUpgradeGrowthHTTP(t *testing.T) {
 	}
 	if resp.Cost != 150 || resp.RemainingCoins != 850 || resp.Growth.AttackLevel != 3 {
 		t.Fatalf("upgrade response = %+v, want cost=150 remaining=850 attack=3", resp)
+	}
+	if len(resp.Growth.UpgradeOptions) != 4 || resp.Growth.UpgradeOptions[0].NextCost != 200 {
+		t.Fatalf("upgrade options = %+v, want attack next cost 200", resp.Growth.UpgradeOptions)
 	}
 }
 
@@ -890,6 +897,121 @@ func TestPushMatchResultPublishesToRemoteLogicServer(t *testing.T) {
 	}
 }
 
+func TestWebSocketAutomaticallySendsResumedMatch(t *testing.T) {
+	auths := newFakeAuthService()
+	session := auths.newSession(7)
+	presences := newFakePresenceService()
+	matches := &fakeMatchService{resumeResult: matchedResult()}
+	server := httptest.NewServer(newTestHandlerWithMatch(auths, presences, matches).Routes())
+	defer server.Close()
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+	conn, _, err := websocket.Dial(ctx, "ws"+strings.TrimPrefix(server.URL, "http")+"/ws", &websocket.DialOptions{
+		HTTPHeader: http.Header{"token": []string{session.Token}},
+	})
+	if err != nil {
+		t.Fatalf("websocket dial: %v", err)
+	}
+	defer func() { _ = conn.CloseNow() }()
+
+	var result matchResultMessage
+	if err := wsjson.Read(ctx, conn, &result); err != nil {
+		t.Fatalf("read resumed match: %v", err)
+	}
+	if matches.resumedPlayerID != 7 {
+		t.Fatalf("resumed player id = %d, want 7", matches.resumedPlayerID)
+	}
+	assertMatchResultMessage(t, result)
+}
+
+func TestWebSocketDoesNotSendMatchResultWithoutActiveMatch(t *testing.T) {
+	auths := newFakeAuthService()
+	session := auths.newSession(7)
+	presences := newFakePresenceService()
+	server := httptest.NewServer(newTestHandlerWithMatch(auths, presences, &fakeMatchService{}).Routes())
+	defer server.Close()
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+	conn, _, err := websocket.Dial(ctx, "ws"+strings.TrimPrefix(server.URL, "http")+"/ws", &websocket.DialOptions{
+		HTTPHeader: http.Header{"token": []string{session.Token}},
+	})
+	if err != nil {
+		t.Fatalf("websocket dial: %v", err)
+	}
+	defer func() { _ = conn.CloseNow() }()
+
+	readCtx, readCancel := context.WithTimeout(context.Background(), 50*time.Millisecond)
+	defer readCancel()
+	var result matchResultMessage
+	if err := wsjson.Read(readCtx, conn, &result); !errors.Is(err, context.DeadlineExceeded) {
+		t.Fatalf("read error = %v, want context deadline exceeded", err)
+	}
+}
+
+func TestWebSocketMatchResumeWritesMatchResult(t *testing.T) {
+	auths := newFakeAuthService()
+	session := auths.newSession(7)
+	presences := newFakePresenceService()
+	matches := &fakeMatchService{resumeResult: matchedResult()}
+	server := httptest.NewServer(newTestHandlerWithMatch(auths, presences, matches).Routes())
+	defer server.Close()
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+	conn, _, err := websocket.Dial(ctx, "ws"+strings.TrimPrefix(server.URL, "http")+"/ws", &websocket.DialOptions{
+		HTTPHeader: http.Header{"token": []string{session.Token}},
+	})
+	if err != nil {
+		t.Fatalf("websocket dial: %v", err)
+	}
+	defer func() { _ = conn.CloseNow() }()
+
+	var automatic matchResultMessage
+	if err := wsjson.Read(ctx, conn, &automatic); err != nil {
+		t.Fatalf("read automatic match result: %v", err)
+	}
+	if err := conn.Write(ctx, websocket.MessageText, []byte(`{"type":"match_resume"}`)); err != nil {
+		t.Fatalf("write match resume: %v", err)
+	}
+	var resumed matchResultMessage
+	if err := wsjson.Read(ctx, conn, &resumed); err != nil {
+		t.Fatalf("read resumed match result: %v", err)
+	}
+	assertMatchResultMessage(t, resumed)
+}
+
+func TestWebSocketMatchResumeWritesMatchError(t *testing.T) {
+	auths := newFakeAuthService()
+	session := auths.newSession(7)
+	presences := newFakePresenceService()
+	matches := &fakeMatchService{resumeErr: rcenter.ErrNoAvailableBattleNode}
+	server := httptest.NewServer(newTestHandlerWithMatch(auths, presences, matches).Routes())
+	defer server.Close()
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+	conn, _, err := websocket.Dial(ctx, "ws"+strings.TrimPrefix(server.URL, "http")+"/ws", &websocket.DialOptions{
+		HTTPHeader: http.Header{"token": []string{session.Token}},
+	})
+	if err != nil {
+		t.Fatalf("websocket dial: %v", err)
+	}
+	defer func() { _ = conn.CloseNow() }()
+	if err := conn.Write(ctx, websocket.MessageText, []byte(`{"type":"match_resume"}`)); err != nil {
+		t.Fatalf("write match resume: %v", err)
+	}
+
+	var result matchErrorMessage
+	if err := wsjson.Read(ctx, conn, &result); err != nil {
+		t.Fatalf("read match error: %v", err)
+	}
+	if result.Type != serverEventMatchError || result.Error != rcenter.ErrNoAvailableBattleNode.Error() {
+		t.Fatalf("match error = %+v, want resume error", result)
+	}
+}
+
 func TestWebSocketMatchStartWritesMatchResult(t *testing.T) {
 	auths := newFakeAuthService()
 	session := auths.newSession(7)
@@ -952,6 +1074,25 @@ func TestWebSocketMatchStartWritesMatchResult(t *testing.T) {
 	}
 	if result.BattleKCPAddr != "127.0.0.1:7001" {
 		t.Fatalf("battle kcp addr = %q, want 127.0.0.1:7001", result.BattleKCPAddr)
+	}
+}
+
+func matchedResult() *rcenter.MatchResult {
+	return &rcenter.MatchResult{
+		Status:         rcenter.MatchStatusMatched,
+		RoomName:       "room-1",
+		Token:          "token-1",
+		BattleNodeName: "battle-1",
+		BattleKCPAddr:  "127.0.0.1:7001",
+	}
+}
+
+func assertMatchResultMessage(t *testing.T, result matchResultMessage) {
+	t.Helper()
+	if result.Type != serverEventMatchResult || result.Status != string(rcenter.MatchStatusMatched) ||
+		result.RoomName != "room-1" || result.Token != "token-1" || result.BattleNodeName != "battle-1" ||
+		result.BattleKCPAddr != "127.0.0.1:7001" {
+		t.Fatalf("match result = %+v, want matched room credentials", result)
 	}
 }
 
@@ -1292,8 +1433,11 @@ type fakeMatchService struct {
 	playerID         int64
 	weapon           string
 	canceledPlayerID int64
+	resumedPlayerID  int64
 	result           *rcenter.MatchResult
+	resumeResult     *rcenter.MatchResult
 	err              error
+	resumeErr        error
 }
 
 func (f *fakeMatchService) Start(ctx context.Context, playerID int64, weapon string) (*rcenter.MatchResult, error) {
@@ -1316,6 +1460,20 @@ func (f *fakeMatchService) Cancel(ctx context.Context, playerID int64) error {
 	return f.err
 }
 
+func (f *fakeMatchService) Resume(ctx context.Context, playerID int64) (*rcenter.MatchResult, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
+	f.resumedPlayerID = playerID
+	if f.resumeErr != nil {
+		return nil, f.resumeErr
+	}
+	if f.resumeResult == nil {
+		return nil, rcenter.ErrActiveMatchNotFound
+	}
+	return f.resumeResult, nil
+}
+
 var _ match.Service = (*fakeMatchService)(nil)
 
 type fakeGrowthService struct {
@@ -1326,6 +1484,7 @@ type fakeGrowthService struct {
 	upgradeType     growth.UpgradeType
 	upgradeResult   *growth.UpgradeResult
 	upgradeErr      error
+	upgradeOptions  []growth.UpgradeOption
 }
 
 func newFakeGrowthService() *fakeGrowthService {
@@ -1363,6 +1522,18 @@ func (f *fakeGrowthService) Upgrade(ctx context.Context, playerID int64, upgrade
 		return nil, f.upgradeErr
 	}
 	return f.upgradeResult, nil
+}
+
+func (f *fakeGrowthService) UpgradeOptions(current *growth.Growth) ([]growth.UpgradeOption, error) {
+	if f.upgradeOptions != nil {
+		return f.upgradeOptions, nil
+	}
+	return []growth.UpgradeOption{
+		{Type: growth.UpgradeAttack, CurrentLevel: current.AttackLevel, NextCost: int64(50*current.AttackLevel + 50), MaxLevel: 10},
+		{Type: growth.UpgradeAttackSpeed, CurrentLevel: current.AttackSpeedLevel, NextCost: int64(60*current.AttackSpeedLevel + 60), MaxLevel: 10},
+		{Type: growth.UpgradeHealth, CurrentLevel: current.HealthLevel, NextCost: int64(45*current.HealthLevel + 45), MaxLevel: 10},
+		{Type: growth.UpgradeMoveSpeed, CurrentLevel: current.MoveSpeedLevel, NextCost: int64(55*current.MoveSpeedLevel + 55), MaxLevel: 10},
+	}, nil
 }
 
 var _ growth.Service = (*fakeGrowthService)(nil)

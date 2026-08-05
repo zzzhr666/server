@@ -8,6 +8,7 @@ import (
 type rCenterClient interface {
 	StartMatch(ctx context.Context, playerID int64, weapon string) (*rcenter.MatchResult, error)
 	CancelMatch(ctx context.Context, playerID int64) error
+	ResumeMatch(ctx context.Context, playerID int64) (*rcenter.MatchResult, error)
 }
 
 // RCenterRepository adapts the rcenter client to the logic match repository.
@@ -28,4 +29,9 @@ func (r *RCenterRepository) StartMatch(ctx context.Context, playerID int64, weap
 // CancelMatch forwards match cancellation requests to rcenter.
 func (r *RCenterRepository) CancelMatch(ctx context.Context, playerID int64) error {
 	return r.client.CancelMatch(ctx, playerID)
+}
+
+// ResumeMatch forwards an active battle assignment lookup to rcenter.
+func (r *RCenterRepository) ResumeMatch(ctx context.Context, playerID int64) (*rcenter.MatchResult, error) {
+	return r.client.ResumeMatch(ctx, playerID)
 }

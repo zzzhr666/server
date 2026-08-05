@@ -32,7 +32,7 @@ redis-server
 首次配置 C++ battle-server：
 
 ```bash
-cmake -S battle-server -B battle-server/cmake-build-debug-wsl
+cmake -S battle-server -B battle-server/cmake-build-release-wsl
 ```
 
 启动本地服务，不启用 nginx：

@@ -3,8 +3,6 @@
 #include "control_handler.hpp"
 #include "proto/battle/v1/battle.grpc.pb.h"
 
-#include <grpcpp/grpcpp.h>
-
 namespace battle {
     /// BattleControlServiceImpl adapts protobuf control RPCs to ControlHandler.
     class BattleControlServiceImpl final : public v1::BattleControlService::Service {

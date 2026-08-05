@@ -1,4 +1,5 @@
 #pragma once
+#include <chrono>
 #include <string>
 
 namespace battle {
@@ -11,6 +12,8 @@ namespace battle {
         int max_players;
         int tick_rate;
         std::string rcenter_addr;
+        std::chrono::seconds session_idle_timeout_seconds;
+        std::chrono::seconds all_players_disconnected_timeout;
     };
 
     /// DefaultConfig returns development defaults for a single local battle node.

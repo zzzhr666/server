@@ -44,10 +44,27 @@ func TestRCenterRepositoryCancelMatch(t *testing.T) {
 	}
 }
 
+func TestRCenterRepositoryResumeMatch(t *testing.T) {
+	client := &fakeRCenterClient{result: &rcenter.MatchResult{Status: rcenter.MatchStatusMatched, RoomName: "room-1"}}
+	repo := NewRCenterRepository(client)
+
+	result, err := repo.ResumeMatch(context.Background(), 7)
+	if err != nil {
+		t.Fatalf("ResumeMatch returned error: %v", err)
+	}
+	if client.resumedPlayerID != 7 {
+		t.Fatalf("client resumed player id = %d, want 7", client.resumedPlayerID)
+	}
+	if result.RoomName != "room-1" {
+		t.Fatalf("room name = %q, want room-1", result.RoomName)
+	}
+}
+
 type fakeRCenterClient struct {
 	playerID         int64
 	weapon           string
 	canceledPlayerID int64
+	resumedPlayerID  int64
 	result           *rcenter.MatchResult
 	err              error
 }
@@ -64,4 +81,12 @@ func (f *fakeRCenterClient) StartMatch(ctx context.Context, playerID int64, weap
 func (f *fakeRCenterClient) CancelMatch(ctx context.Context, playerID int64) error {
 	f.canceledPlayerID = playerID
 	return f.err
+}
+
+func (f *fakeRCenterClient) ResumeMatch(ctx context.Context, playerID int64) (*rcenter.MatchResult, error) {
+	f.resumedPlayerID = playerID
+	if f.err != nil {
+		return nil, f.err
+	}
+	return f.result, nil
 }

@@ -16,6 +16,6 @@ void battle::ecs::damage_modify_system(World& world, DeltaTime) {
         if (!roll_percent(world, critical_strike_percent(blessing->level))) {
             continue;
         }
-        damage_event.modified_damage *= CriticalStrikeConfig::DamageMultiplier;
+        damage_event.modified_damage = damage_event.modified_damage * critical_strike_damage_percent(blessing->level) / 100;
     }
 }

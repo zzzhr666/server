@@ -2,7 +2,6 @@
 
 #include <utility>
 #include <vector>
-#include <cstdint>
 #include <chrono>
 #include <type_traits>
 #include <variant>
@@ -212,10 +211,13 @@ namespace {
 
 battle::BattleRuntime::BattleRuntime(RoomManager& room_manager, SessionManager& session_manager,
                                      SendPacketCallback send_packet_callback, BattleInstanceFactory factory,
-                                     FinishMatchCallback finish_match_callback, int tick_rate)
+                                     FinishMatchCallback finish_match_callback, int tick_rate,
+                                     std::chrono::seconds session_idle_timeout_seconds,
+                                     std::chrono::seconds all_players_disconnected_timeout_seconds)
     : room_manager_(room_manager), session_manager_(session_manager),
       send_packet_(std::move(send_packet_callback)), finish_match_callback_(std::move(finish_match_callback)),
-      running_(false), instance_factory_(std::move(factory)), tick_interval_(tick_interval_from_rate(tick_rate)) {
+      running_(false), instance_factory_(std::move(factory)), tick_interval_(tick_interval_from_rate(tick_rate)),
+      session_idle_timeout_(session_idle_timeout_seconds),all_players_disconnected_timeout_(all_players_disconnected_timeout_seconds) {
     if (!instance_factory_) {
         instance_factory_ = [](BattleInstanceConfig config) {
             return std::make_unique<BattleInstance>(std::move(config));
@@ -274,7 +276,7 @@ void battle::BattleRuntime::start_room(const std::string& room_name) {
         instances_.emplace(room_name, std::move(instance));
     }
 
-    for (const auto& session : sessions) {
+    for (const auto& session : session_manager_.connected_sessions_in_room(room_name)) {
         send_packet_(game_start_packet, session->endpoint());
     }
 }
@@ -283,15 +285,17 @@ void battle::BattleRuntime::tick(ecs::DeltaTime delta_time) {
     std::vector<v1::ServerPacket> packets;
     std::vector<UdpEndpoint> endpoints;
     std::vector<std::pair<std::string, BattleEndReason>> end_state;
+    const auto now = std::chrono::steady_clock::now();
+    session_manager_.mark_stale_sessions(now, session_idle_timeout_);
+    std::vector<std::string> empty_rooms;
     {
         std::lock_guard<std::mutex> lock(mutex_);
         for (auto& [room_name, instance] : instances_) {
             instance->tick(delta_time);
-
+            auto connected_sessions = session_manager_.connected_sessions_in_room(room_name);
             auto snapshot = instance->snapshot();
             const auto packet = make_snapshot(room_name, snapshot);
-            auto sessions = session_manager_.sessions_in_room(room_name);
-            for (auto& session : sessions) {
+            for (const auto& session : connected_sessions) {
                 packets.emplace_back(packet);
                 endpoints.push_back(session->endpoint());
             }
@@ -299,6 +303,17 @@ void battle::BattleRuntime::tick(ecs::DeltaTime delta_time) {
             if (instance->ended()) {
                 auto reason = instance->end_reason();
                 end_state.emplace_back(room_name, reason);
+                continue;
+            }
+
+            if (!connected_sessions.empty()) {
+                all_disconnected_since_.erase(room_name);
+                continue;
+            }
+
+            const auto [it, inserted] = all_disconnected_since_.try_emplace(room_name, now);
+            if (!inserted && now - it->second >= all_players_disconnected_timeout_) {
+                empty_rooms.emplace_back(room_name);
             }
         }
     }
@@ -308,6 +323,9 @@ void battle::BattleRuntime::tick(ecs::DeltaTime delta_time) {
 
     for (const auto& [room_name,reason] : end_state) {
         end_room(room_name, battle_end_reason_to_string(reason));
+    }
+    for (const auto& room_name : empty_rooms) {
+        end_room(room_name, "all_players_disconnected");
     }
 }
 
@@ -373,14 +391,18 @@ battle::EndRoomResult battle::BattleRuntime::end_room(const std::string& room_na
         }
         settlement = it->second->settlement();
         auto sessions = session_manager_.sessions_in_room(room_name);
+        auto connected_sessions = session_manager_.connected_sessions_in_room(room_name);
 
         player_ids.reserve(sessions.size());
         for (const auto& session : sessions) {
             player_ids.push_back(session->player_id());
-            endpoints.push_back(session->endpoint());
+        }
+        for (const auto&session : connected_sessions) {
+            endpoints.emplace_back(session->endpoint());
         }
         packet = make_game_over(room_name, player_ids, reason, to_packet_player_stats(settlement));
         instances_.erase(it);
+        all_disconnected_since_.erase(room_name);
     }
     for (auto& endpoint : endpoints) {
         send_packet_(packet, endpoint);
@@ -392,6 +414,7 @@ battle::EndRoomResult battle::BattleRuntime::end_room(const std::string& room_na
         .room_name = room_name,
         .player_ids = player_ids,
         .settlement = settlement,
+        .reason = reason,
     };
     if (finish_match_callback_) {
         finish_match_callback_(finished_battle);

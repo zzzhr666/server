@@ -19,7 +19,7 @@ namespace battle {
     };
 
     struct WeaponDefinition {
-        WeaponKind kind;
+        WeaponKind kind{};
         ecs::AttackDefinition attack;
     };
 

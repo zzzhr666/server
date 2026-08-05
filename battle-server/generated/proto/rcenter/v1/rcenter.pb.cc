@@ -54,6 +54,31 @@ struct StartMatchRequestDefaultTypeInternal {
 
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT
     PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 StartMatchRequestDefaultTypeInternal _StartMatchRequest_default_instance_;
+
+inline constexpr ResumeMatchRequest::Impl_::Impl_(
+    ::_pbi::ConstantInitialized) noexcept
+      : _cached_size_{0},
+        player_id_{::int64_t{0}} {}
+
+template <typename>
+PROTOBUF_CONSTEXPR ResumeMatchRequest::ResumeMatchRequest(::_pbi::ConstantInitialized)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(ResumeMatchRequest_class_data_.base()),
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(),
+#endif  // PROTOBUF_CUSTOM_VTABLE
+      _impl_(::_pbi::ConstantInitialized()) {
+}
+struct ResumeMatchRequestDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR ResumeMatchRequestDefaultTypeInternal() : _instance(::_pbi::ConstantInitialized{}) {}
+  ~ResumeMatchRequestDefaultTypeInternal() {}
+  union {
+    ResumeMatchRequest _instance;
+  };
+};
+
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT
+    PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 ResumeMatchRequestDefaultTypeInternal _ResumeMatchRequest_default_instance_;
 template <typename>
 PROTOBUF_CONSTEXPR RegisterBattleNodeResponse::RegisterBattleNodeResponse(::_pbi::ConstantInitialized)
 #if defined(PROTOBUF_CUSTOM_VTABLE)
@@ -388,6 +413,31 @@ struct StartMatchResponseDefaultTypeInternal {
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT
     PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 StartMatchResponseDefaultTypeInternal _StartMatchResponse_default_instance_;
 
+inline constexpr ResumeMatchResponse::Impl_::Impl_(
+    ::_pbi::ConstantInitialized) noexcept
+      : _cached_size_{0},
+        result_{nullptr} {}
+
+template <typename>
+PROTOBUF_CONSTEXPR ResumeMatchResponse::ResumeMatchResponse(::_pbi::ConstantInitialized)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(ResumeMatchResponse_class_data_.base()),
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(),
+#endif  // PROTOBUF_CUSTOM_VTABLE
+      _impl_(::_pbi::ConstantInitialized()) {
+}
+struct ResumeMatchResponseDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR ResumeMatchResponseDefaultTypeInternal() : _instance(::_pbi::ConstantInitialized{}) {}
+  ~ResumeMatchResponseDefaultTypeInternal() {}
+  union {
+    ResumeMatchResponse _instance;
+  };
+};
+
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT
+    PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 ResumeMatchResponseDefaultTypeInternal _ResumeMatchResponse_default_instance_;
+
 inline constexpr FinishMatchRequest::Impl_::Impl_(
     ::_pbi::ConstantInitialized) noexcept
       : _cached_size_{0},
@@ -518,6 +568,16 @@ const ::uint32_t
         PROTOBUF_FIELD_OFFSET(::rcenter::v1::PlayerLoadout, _impl_.weapon_),
         1,
         0,
+        0x081, // bitmap
+        PROTOBUF_FIELD_OFFSET(::rcenter::v1::ResumeMatchRequest, _impl_._has_bits_),
+        4, // hasbit index offset
+        PROTOBUF_FIELD_OFFSET(::rcenter::v1::ResumeMatchRequest, _impl_.player_id_),
+        0,
+        0x081, // bitmap
+        PROTOBUF_FIELD_OFFSET(::rcenter::v1::ResumeMatchResponse, _impl_._has_bits_),
+        4, // hasbit index offset
+        PROTOBUF_FIELD_OFFSET(::rcenter::v1::ResumeMatchResponse, _impl_.result_),
+        0,
 };
 
 static const ::_pbi::MigrationSchema
@@ -537,6 +597,8 @@ static const ::_pbi::MigrationSchema
         {77, sizeof(::rcenter::v1::MonsterKillCount)},
         {84, sizeof(::rcenter::v1::FinishMatchResponse)},
         {85, sizeof(::rcenter::v1::PlayerLoadout)},
+        {92, sizeof(::rcenter::v1::ResumeMatchRequest)},
+        {97, sizeof(::rcenter::v1::ResumeMatchResponse)},
 };
 static const ::_pb::Message* PROTOBUF_NONNULL const file_default_instances[] = {
     &::rcenter::v1::_BattleNode_default_instance_._instance,
@@ -554,6 +616,8 @@ static const ::_pb::Message* PROTOBUF_NONNULL const file_default_instances[] = {
     &::rcenter::v1::_MonsterKillCount_default_instance_._instance,
     &::rcenter::v1::_FinishMatchResponse_default_instance_._instance,
     &::rcenter::v1::_PlayerLoadout_default_instance_._instance,
+    &::rcenter::v1::_ResumeMatchRequest_default_instance_._instance,
+    &::rcenter::v1::_ResumeMatchResponse_default_instance_._instance,
 };
 const char descriptor_table_protodef_proto_2frcenter_2fv1_2frcenter_2eproto[] ABSL_ATTRIBUTE_SECTION_VARIABLE(
     protodesc_cold) = {
@@ -584,31 +648,36 @@ const char descriptor_table_protodef_proto_2frcenter_2fv1_2frcenter_2eproto[] AB
     "\"7\n\020MonsterKillCount\022\024\n\014monster_kind\030\001 \001"
     "(\t\022\r\n\005count\030\002 \001(\005\"\025\n\023FinishMatchResponse"
     "\"2\n\rPlayerLoadout\022\021\n\tplayer_id\030\001 \001(\003\022\016\n\006"
-    "weapon\030\002 \001(\t2\276\003\n\016RCenterService\022c\n\022Regis"
-    "terBattleNode\022%.rcenter.v1.RegisterBattl"
-    "eNodeRequest\032&.rcenter.v1.RegisterBattle"
-    "NodeResponse\022Z\n\017ListBattleNodes\022\".rcente"
-    "r.v1.ListBattleNodesRequest\032#.rcenter.v1"
-    ".ListBattleNodesResponse\022K\n\nStartMatch\022\035"
-    ".rcenter.v1.StartMatchRequest\032\036.rcenter."
-    "v1.StartMatchResponse\022N\n\013CancelMatch\022\036.r"
-    "center.v1.CancelMatchRequest\032\037.rcenter.v"
-    "1.CancelMatchResponse\022N\n\013FinishMatch\022\036.r"
-    "center.v1.FinishMatchRequest\032\037.rcenter.v"
-    "1.FinishMatchResponseB.Z,server/internal"
-    "/contract/rcenterpb;rcenterpbb\006proto3"
+    "weapon\030\002 \001(\t\"\'\n\022ResumeMatchRequest\022\021\n\tpl"
+    "ayer_id\030\001 \001(\003\">\n\023ResumeMatchResponse\022\'\n\006"
+    "result\030\001 \001(\0132\027.rcenter.v1.MatchResult2\216\004"
+    "\n\016RCenterService\022c\n\022RegisterBattleNode\022%"
+    ".rcenter.v1.RegisterBattleNodeRequest\032&."
+    "rcenter.v1.RegisterBattleNodeResponse\022Z\n"
+    "\017ListBattleNodes\022\".rcenter.v1.ListBattle"
+    "NodesRequest\032#.rcenter.v1.ListBattleNode"
+    "sResponse\022K\n\nStartMatch\022\035.rcenter.v1.Sta"
+    "rtMatchRequest\032\036.rcenter.v1.StartMatchRe"
+    "sponse\022N\n\013CancelMatch\022\036.rcenter.v1.Cance"
+    "lMatchRequest\032\037.rcenter.v1.CancelMatchRe"
+    "sponse\022N\n\013FinishMatch\022\036.rcenter.v1.Finis"
+    "hMatchRequest\032\037.rcenter.v1.FinishMatchRe"
+    "sponse\022N\n\013ResumeMatch\022\036.rcenter.v1.Resum"
+    "eMatchRequest\032\037.rcenter.v1.ResumeMatchRe"
+    "sponseB.Z,server/internal/contract/rcent"
+    "erpb;rcenterpbb\006proto3"
 };
 static ::absl::once_flag descriptor_table_proto_2frcenter_2fv1_2frcenter_2eproto_once;
 PROTOBUF_CONSTINIT const ::_pbi::DescriptorTable descriptor_table_proto_2frcenter_2fv1_2frcenter_2eproto = {
     false,
     false,
-    1597,
+    1782,
     descriptor_table_protodef_proto_2frcenter_2fv1_2frcenter_2eproto,
     "proto/rcenter/v1/rcenter.proto",
     &descriptor_table_proto_2frcenter_2fv1_2frcenter_2eproto_once,
     nullptr,
     0,
-    15,
+    17,
     schemas,
     file_default_instances,
     TableStruct_proto_2frcenter_2fv1_2frcenter_2eproto::offsets,
@@ -4594,6 +4663,500 @@ void PlayerLoadout::InternalSwap(PlayerLoadout* PROTOBUF_RESTRICT PROTOBUF_NONNU
 }
 
 ::google::protobuf::Metadata PlayerLoadout::GetMetadata() const {
+  return ::google::protobuf::Message::GetMetadataImpl(GetClassData()->full());
+}
+// ===================================================================
+
+class ResumeMatchRequest::_Internal {
+ public:
+  using HasBits =
+      decltype(::std::declval<ResumeMatchRequest>()._impl_._has_bits_);
+  static constexpr ::int32_t kHasBitsOffset =
+      8 * PROTOBUF_FIELD_OFFSET(ResumeMatchRequest, _impl_._has_bits_);
+};
+
+ResumeMatchRequest::ResumeMatchRequest(::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(arena, ResumeMatchRequest_class_data_.base()) {
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(arena) {
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  SharedCtor(arena);
+  // @@protoc_insertion_point(arena_constructor:rcenter.v1.ResumeMatchRequest)
+}
+ResumeMatchRequest::ResumeMatchRequest(
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const ResumeMatchRequest& from)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(arena, ResumeMatchRequest_class_data_.base()),
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(arena),
+#endif  // PROTOBUF_CUSTOM_VTABLE
+      _impl_(from._impl_) {
+  _internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
+      from._internal_metadata_);
+}
+PROTOBUF_NDEBUG_INLINE ResumeMatchRequest::Impl_::Impl_(
+    ::google::protobuf::internal::InternalVisibility visibility,
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
+      : _cached_size_{0} {}
+
+inline void ResumeMatchRequest::SharedCtor(::_pb::Arena* PROTOBUF_NULLABLE arena) {
+  new (&_impl_) Impl_(internal_visibility(), arena);
+  _impl_.player_id_ = {};
+}
+ResumeMatchRequest::~ResumeMatchRequest() {
+  // @@protoc_insertion_point(destructor:rcenter.v1.ResumeMatchRequest)
+  SharedDtor(*this);
+}
+inline void ResumeMatchRequest::SharedDtor(MessageLite& self) {
+  ResumeMatchRequest& this_ = static_cast<ResumeMatchRequest&>(self);
+  this_._internal_metadata_.Delete<::google::protobuf::UnknownFieldSet>();
+  ABSL_DCHECK(this_.GetArena() == nullptr);
+  this_._impl_.~Impl_();
+}
+
+inline void* PROTOBUF_NONNULL ResumeMatchRequest::PlacementNew_(
+    const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena) {
+  return ::new (mem) ResumeMatchRequest(arena);
+}
+constexpr auto ResumeMatchRequest::InternalNewImpl_() {
+  return ::google::protobuf::internal::MessageCreator::ZeroInit(sizeof(ResumeMatchRequest),
+                                            alignof(ResumeMatchRequest));
+}
+constexpr auto ResumeMatchRequest::InternalGenerateClassData_() {
+  return ::google::protobuf::internal::ClassDataFull{
+      ::google::protobuf::internal::ClassData{
+          &_ResumeMatchRequest_default_instance_._instance,
+          &_table_.header,
+          nullptr,  // OnDemandRegisterArenaDtor
+          nullptr,  // IsInitialized
+          &ResumeMatchRequest::MergeImpl,
+          ::google::protobuf::Message::GetNewImpl<ResumeMatchRequest>(),
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+          &ResumeMatchRequest::SharedDtor,
+          ::google::protobuf::Message::GetClearImpl<ResumeMatchRequest>(), &ResumeMatchRequest::ByteSizeLong,
+              &ResumeMatchRequest::_InternalSerialize,
+#endif  // PROTOBUF_CUSTOM_VTABLE
+          PROTOBUF_FIELD_OFFSET(ResumeMatchRequest, _impl_._cached_size_),
+          false,
+      },
+      &ResumeMatchRequest::kDescriptorMethods,
+      &descriptor_table_proto_2frcenter_2fv1_2frcenter_2eproto,
+      nullptr,  // tracker
+  };
+}
+
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 const
+    ::google::protobuf::internal::ClassDataFull ResumeMatchRequest_class_data_ =
+        ResumeMatchRequest::InternalGenerateClassData_();
+
+PROTOBUF_ATTRIBUTE_WEAK const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL
+ResumeMatchRequest::GetClassData() const {
+  ::google::protobuf::internal::PrefetchToLocalCache(&ResumeMatchRequest_class_data_);
+  ::google::protobuf::internal::PrefetchToLocalCache(ResumeMatchRequest_class_data_.tc_table);
+  return ResumeMatchRequest_class_data_.base();
+}
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
+const ::_pbi::TcParseTable<0, 1, 0, 0, 2>
+ResumeMatchRequest::_table_ = {
+  {
+    PROTOBUF_FIELD_OFFSET(ResumeMatchRequest, _impl_._has_bits_),
+    0, // no _extensions_
+    1, 0,  // max_field_number, fast_idx_mask
+    offsetof(decltype(_table_), field_lookup_table),
+    4294967294,  // skipmap
+    offsetof(decltype(_table_), field_entries),
+    1,  // num_field_entries
+    0,  // num_aux_entries
+    offsetof(decltype(_table_), field_names),  // no aux_entries
+    ResumeMatchRequest_class_data_.base(),
+    nullptr,  // post_loop_handler
+    ::_pbi::TcParser::GenericFallback,  // fallback
+    #ifdef PROTOBUF_PREFETCH_PARSE_TABLE
+    ::_pbi::TcParser::GetTable<::rcenter::v1::ResumeMatchRequest>(),  // to_prefetch
+    #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
+  }, {{
+    // int64 player_id = 1;
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint64_t, offsetof(ResumeMatchRequest, _impl_.player_id_), 0>(),
+     {8, 0, 0, PROTOBUF_FIELD_OFFSET(ResumeMatchRequest, _impl_.player_id_)}},
+  }}, {{
+    65535, 65535
+  }}, {{
+    // int64 player_id = 1;
+    {PROTOBUF_FIELD_OFFSET(ResumeMatchRequest, _impl_.player_id_), _Internal::kHasBitsOffset + 0, 0,
+    (0 | ::_fl::kFcOptional | ::_fl::kInt64)},
+  }},
+  // no aux_entries
+  {{
+  }},
+};
+PROTOBUF_NOINLINE void ResumeMatchRequest::Clear() {
+// @@protoc_insertion_point(message_clear_start:rcenter.v1.ResumeMatchRequest)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  ::uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  _impl_.player_id_ = ::int64_t{0};
+  _impl_._has_bits_.Clear();
+  _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
+}
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+::uint8_t* PROTOBUF_NONNULL ResumeMatchRequest::_InternalSerialize(
+    const ::google::protobuf::MessageLite& base, ::uint8_t* PROTOBUF_NONNULL target,
+    ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) {
+  const ResumeMatchRequest& this_ = static_cast<const ResumeMatchRequest&>(base);
+#else   // PROTOBUF_CUSTOM_VTABLE
+::uint8_t* PROTOBUF_NONNULL ResumeMatchRequest::_InternalSerialize(
+    ::uint8_t* PROTOBUF_NONNULL target,
+    ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+  const ResumeMatchRequest& this_ = *this;
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  // @@protoc_insertion_point(serialize_to_array_start:rcenter.v1.ResumeMatchRequest)
+  ::uint32_t cached_has_bits = 0;
+  (void)cached_has_bits;
+
+  // int64 player_id = 1;
+  if ((this_._impl_._has_bits_[0] & 0x00000001u) != 0) {
+    if (this_._internal_player_id() != 0) {
+      target =
+          ::google::protobuf::internal::WireFormatLite::WriteInt64ToArrayWithField<1>(
+              stream, this_._internal_player_id(), target);
+    }
+  }
+
+  if (ABSL_PREDICT_FALSE(this_._internal_metadata_.have_unknown_fields())) {
+    target =
+        ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+            this_._internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:rcenter.v1.ResumeMatchRequest)
+  return target;
+}
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+::size_t ResumeMatchRequest::ByteSizeLong(const MessageLite& base) {
+  const ResumeMatchRequest& this_ = static_cast<const ResumeMatchRequest&>(base);
+#else   // PROTOBUF_CUSTOM_VTABLE
+::size_t ResumeMatchRequest::ByteSizeLong() const {
+  const ResumeMatchRequest& this_ = *this;
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  // @@protoc_insertion_point(message_byte_size_start:rcenter.v1.ResumeMatchRequest)
+  ::size_t total_size = 0;
+
+  ::uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void)cached_has_bits;
+
+   {
+    // int64 player_id = 1;
+    cached_has_bits = this_._impl_._has_bits_[0];
+    if ((cached_has_bits & 0x00000001u) != 0) {
+      if (this_._internal_player_id() != 0) {
+        total_size += ::_pbi::WireFormatLite::Int64SizePlusOne(
+            this_._internal_player_id());
+      }
+    }
+  }
+  return this_.MaybeComputeUnknownFieldsSize(total_size,
+                                             &this_._impl_._cached_size_);
+}
+
+void ResumeMatchRequest::MergeImpl(::google::protobuf::MessageLite& to_msg, const ::google::protobuf::MessageLite& from_msg) {
+  auto* const _this = static_cast<ResumeMatchRequest*>(&to_msg);
+  auto& from = static_cast<const ResumeMatchRequest&>(from_msg);
+  // @@protoc_insertion_point(class_specific_merge_from_start:rcenter.v1.ResumeMatchRequest)
+  ABSL_DCHECK_NE(&from, _this);
+  ::uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  cached_has_bits = from._impl_._has_bits_[0];
+  if ((cached_has_bits & 0x00000001u) != 0) {
+    if (from._internal_player_id() != 0) {
+      _this->_impl_.player_id_ = from._impl_.player_id_;
+    }
+  }
+  _this->_impl_._has_bits_[0] |= cached_has_bits;
+  _this->_internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(from._internal_metadata_);
+}
+
+void ResumeMatchRequest::CopyFrom(const ResumeMatchRequest& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:rcenter.v1.ResumeMatchRequest)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+
+void ResumeMatchRequest::InternalSwap(ResumeMatchRequest* PROTOBUF_RESTRICT PROTOBUF_NONNULL other) {
+  using ::std::swap;
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  swap(_impl_._has_bits_[0], other->_impl_._has_bits_[0]);
+  swap(_impl_.player_id_, other->_impl_.player_id_);
+}
+
+::google::protobuf::Metadata ResumeMatchRequest::GetMetadata() const {
+  return ::google::protobuf::Message::GetMetadataImpl(GetClassData()->full());
+}
+// ===================================================================
+
+class ResumeMatchResponse::_Internal {
+ public:
+  using HasBits =
+      decltype(::std::declval<ResumeMatchResponse>()._impl_._has_bits_);
+  static constexpr ::int32_t kHasBitsOffset =
+      8 * PROTOBUF_FIELD_OFFSET(ResumeMatchResponse, _impl_._has_bits_);
+};
+
+ResumeMatchResponse::ResumeMatchResponse(::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(arena, ResumeMatchResponse_class_data_.base()) {
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(arena) {
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  SharedCtor(arena);
+  // @@protoc_insertion_point(arena_constructor:rcenter.v1.ResumeMatchResponse)
+}
+PROTOBUF_NDEBUG_INLINE ResumeMatchResponse::Impl_::Impl_(
+    ::google::protobuf::internal::InternalVisibility visibility,
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
+    const ::rcenter::v1::ResumeMatchResponse& from_msg)
+      : _has_bits_{from._has_bits_},
+        _cached_size_{0} {}
+
+ResumeMatchResponse::ResumeMatchResponse(
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena,
+    const ResumeMatchResponse& from)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(arena, ResumeMatchResponse_class_data_.base()) {
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(arena) {
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  ResumeMatchResponse* const _this = this;
+  (void)_this;
+  _internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
+      from._internal_metadata_);
+  new (&_impl_) Impl_(internal_visibility(), arena, from._impl_, from);
+  ::uint32_t cached_has_bits = _impl_._has_bits_[0];
+  _impl_.result_ = ((cached_has_bits & 0x00000001u) != 0)
+                ? ::google::protobuf::Message::CopyConstruct(arena, *from._impl_.result_)
+                : nullptr;
+
+  // @@protoc_insertion_point(copy_constructor:rcenter.v1.ResumeMatchResponse)
+}
+PROTOBUF_NDEBUG_INLINE ResumeMatchResponse::Impl_::Impl_(
+    ::google::protobuf::internal::InternalVisibility visibility,
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
+      : _cached_size_{0} {}
+
+inline void ResumeMatchResponse::SharedCtor(::_pb::Arena* PROTOBUF_NULLABLE arena) {
+  new (&_impl_) Impl_(internal_visibility(), arena);
+  _impl_.result_ = {};
+}
+ResumeMatchResponse::~ResumeMatchResponse() {
+  // @@protoc_insertion_point(destructor:rcenter.v1.ResumeMatchResponse)
+  SharedDtor(*this);
+}
+inline void ResumeMatchResponse::SharedDtor(MessageLite& self) {
+  ResumeMatchResponse& this_ = static_cast<ResumeMatchResponse&>(self);
+  this_._internal_metadata_.Delete<::google::protobuf::UnknownFieldSet>();
+  ABSL_DCHECK(this_.GetArena() == nullptr);
+  delete this_._impl_.result_;
+  this_._impl_.~Impl_();
+}
+
+inline void* PROTOBUF_NONNULL ResumeMatchResponse::PlacementNew_(
+    const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena) {
+  return ::new (mem) ResumeMatchResponse(arena);
+}
+constexpr auto ResumeMatchResponse::InternalNewImpl_() {
+  return ::google::protobuf::internal::MessageCreator::ZeroInit(sizeof(ResumeMatchResponse),
+                                            alignof(ResumeMatchResponse));
+}
+constexpr auto ResumeMatchResponse::InternalGenerateClassData_() {
+  return ::google::protobuf::internal::ClassDataFull{
+      ::google::protobuf::internal::ClassData{
+          &_ResumeMatchResponse_default_instance_._instance,
+          &_table_.header,
+          nullptr,  // OnDemandRegisterArenaDtor
+          nullptr,  // IsInitialized
+          &ResumeMatchResponse::MergeImpl,
+          ::google::protobuf::Message::GetNewImpl<ResumeMatchResponse>(),
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+          &ResumeMatchResponse::SharedDtor,
+          ::google::protobuf::Message::GetClearImpl<ResumeMatchResponse>(), &ResumeMatchResponse::ByteSizeLong,
+              &ResumeMatchResponse::_InternalSerialize,
+#endif  // PROTOBUF_CUSTOM_VTABLE
+          PROTOBUF_FIELD_OFFSET(ResumeMatchResponse, _impl_._cached_size_),
+          false,
+      },
+      &ResumeMatchResponse::kDescriptorMethods,
+      &descriptor_table_proto_2frcenter_2fv1_2frcenter_2eproto,
+      nullptr,  // tracker
+  };
+}
+
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 const
+    ::google::protobuf::internal::ClassDataFull ResumeMatchResponse_class_data_ =
+        ResumeMatchResponse::InternalGenerateClassData_();
+
+PROTOBUF_ATTRIBUTE_WEAK const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL
+ResumeMatchResponse::GetClassData() const {
+  ::google::protobuf::internal::PrefetchToLocalCache(&ResumeMatchResponse_class_data_);
+  ::google::protobuf::internal::PrefetchToLocalCache(ResumeMatchResponse_class_data_.tc_table);
+  return ResumeMatchResponse_class_data_.base();
+}
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
+const ::_pbi::TcParseTable<0, 1, 1, 0, 2>
+ResumeMatchResponse::_table_ = {
+  {
+    PROTOBUF_FIELD_OFFSET(ResumeMatchResponse, _impl_._has_bits_),
+    0, // no _extensions_
+    1, 0,  // max_field_number, fast_idx_mask
+    offsetof(decltype(_table_), field_lookup_table),
+    4294967294,  // skipmap
+    offsetof(decltype(_table_), field_entries),
+    1,  // num_field_entries
+    1,  // num_aux_entries
+    offsetof(decltype(_table_), aux_entries),
+    ResumeMatchResponse_class_data_.base(),
+    nullptr,  // post_loop_handler
+    ::_pbi::TcParser::GenericFallback,  // fallback
+    #ifdef PROTOBUF_PREFETCH_PARSE_TABLE
+    ::_pbi::TcParser::GetTable<::rcenter::v1::ResumeMatchResponse>(),  // to_prefetch
+    #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
+  }, {{
+    // .rcenter.v1.MatchResult result = 1;
+    {::_pbi::TcParser::FastMtS1,
+     {10, 0, 0, PROTOBUF_FIELD_OFFSET(ResumeMatchResponse, _impl_.result_)}},
+  }}, {{
+    65535, 65535
+  }}, {{
+    // .rcenter.v1.MatchResult result = 1;
+    {PROTOBUF_FIELD_OFFSET(ResumeMatchResponse, _impl_.result_), _Internal::kHasBitsOffset + 0, 0,
+    (0 | ::_fl::kFcOptional | ::_fl::kMessage | ::_fl::kTvTable)},
+  }},
+  {{
+      {::_pbi::TcParser::GetTable<::rcenter::v1::MatchResult>()},
+  }},
+  {{
+  }},
+};
+PROTOBUF_NOINLINE void ResumeMatchResponse::Clear() {
+// @@protoc_insertion_point(message_clear_start:rcenter.v1.ResumeMatchResponse)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  ::uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  cached_has_bits = _impl_._has_bits_[0];
+  if ((cached_has_bits & 0x00000001u) != 0) {
+    ABSL_DCHECK(_impl_.result_ != nullptr);
+    _impl_.result_->Clear();
+  }
+  _impl_._has_bits_.Clear();
+  _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
+}
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+::uint8_t* PROTOBUF_NONNULL ResumeMatchResponse::_InternalSerialize(
+    const ::google::protobuf::MessageLite& base, ::uint8_t* PROTOBUF_NONNULL target,
+    ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) {
+  const ResumeMatchResponse& this_ = static_cast<const ResumeMatchResponse&>(base);
+#else   // PROTOBUF_CUSTOM_VTABLE
+::uint8_t* PROTOBUF_NONNULL ResumeMatchResponse::_InternalSerialize(
+    ::uint8_t* PROTOBUF_NONNULL target,
+    ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+  const ResumeMatchResponse& this_ = *this;
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  // @@protoc_insertion_point(serialize_to_array_start:rcenter.v1.ResumeMatchResponse)
+  ::uint32_t cached_has_bits = 0;
+  (void)cached_has_bits;
+
+  cached_has_bits = this_._impl_._has_bits_[0];
+  // .rcenter.v1.MatchResult result = 1;
+  if ((cached_has_bits & 0x00000001u) != 0) {
+    target = ::google::protobuf::internal::WireFormatLite::InternalWriteMessage(
+        1, *this_._impl_.result_, this_._impl_.result_->GetCachedSize(), target,
+        stream);
+  }
+
+  if (ABSL_PREDICT_FALSE(this_._internal_metadata_.have_unknown_fields())) {
+    target =
+        ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+            this_._internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:rcenter.v1.ResumeMatchResponse)
+  return target;
+}
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+::size_t ResumeMatchResponse::ByteSizeLong(const MessageLite& base) {
+  const ResumeMatchResponse& this_ = static_cast<const ResumeMatchResponse&>(base);
+#else   // PROTOBUF_CUSTOM_VTABLE
+::size_t ResumeMatchResponse::ByteSizeLong() const {
+  const ResumeMatchResponse& this_ = *this;
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  // @@protoc_insertion_point(message_byte_size_start:rcenter.v1.ResumeMatchResponse)
+  ::size_t total_size = 0;
+
+  ::uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void)cached_has_bits;
+
+   {
+    // .rcenter.v1.MatchResult result = 1;
+    cached_has_bits = this_._impl_._has_bits_[0];
+    if ((cached_has_bits & 0x00000001u) != 0) {
+      total_size += 1 +
+                    ::google::protobuf::internal::WireFormatLite::MessageSize(*this_._impl_.result_);
+    }
+  }
+  return this_.MaybeComputeUnknownFieldsSize(total_size,
+                                             &this_._impl_._cached_size_);
+}
+
+void ResumeMatchResponse::MergeImpl(::google::protobuf::MessageLite& to_msg, const ::google::protobuf::MessageLite& from_msg) {
+  auto* const _this = static_cast<ResumeMatchResponse*>(&to_msg);
+  auto& from = static_cast<const ResumeMatchResponse&>(from_msg);
+  ::google::protobuf::Arena* arena = _this->GetArena();
+  // @@protoc_insertion_point(class_specific_merge_from_start:rcenter.v1.ResumeMatchResponse)
+  ABSL_DCHECK_NE(&from, _this);
+  ::uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  cached_has_bits = from._impl_._has_bits_[0];
+  if ((cached_has_bits & 0x00000001u) != 0) {
+    ABSL_DCHECK(from._impl_.result_ != nullptr);
+    if (_this->_impl_.result_ == nullptr) {
+      _this->_impl_.result_ = ::google::protobuf::Message::CopyConstruct(arena, *from._impl_.result_);
+    } else {
+      _this->_impl_.result_->MergeFrom(*from._impl_.result_);
+    }
+  }
+  _this->_impl_._has_bits_[0] |= cached_has_bits;
+  _this->_internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(from._internal_metadata_);
+}
+
+void ResumeMatchResponse::CopyFrom(const ResumeMatchResponse& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:rcenter.v1.ResumeMatchResponse)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+
+void ResumeMatchResponse::InternalSwap(ResumeMatchResponse* PROTOBUF_RESTRICT PROTOBUF_NONNULL other) {
+  using ::std::swap;
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  swap(_impl_._has_bits_[0], other->_impl_._has_bits_[0]);
+  swap(_impl_.result_, other->_impl_.result_);
+}
+
+::google::protobuf::Metadata ResumeMatchResponse::GetMetadata() const {
   return ::google::protobuf::Message::GetMetadataImpl(GetClassData()->full());
 }
 // @@protoc_insertion_point(namespace_scope)

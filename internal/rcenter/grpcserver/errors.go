@@ -27,7 +27,8 @@ func mapRCenterError(err error) error {
 		return status.Error(codes.FailedPrecondition, err.Error())
 	case errors.Is(err, rcenter.ErrPlayerInGame):
 		return status.Error(codes.FailedPrecondition, err.Error())
-
+	case errors.Is(err, rcenter.ErrActiveMatchNotFound):
+		return status.Error(codes.NotFound, err.Error())
 	default:
 		return status.Error(codes.Internal, err.Error())
 	}

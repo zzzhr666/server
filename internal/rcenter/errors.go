@@ -25,4 +25,7 @@ var (
 	ErrUnavailableCoinClient = errors.New("unavailable coinClient")
 
 	ErrUnavailableGrowthClient = errors.New("unavailable growthClient")
+
+	// ErrActiveMatchNotFound means a player has no resumable battle assignment.
+	ErrActiveMatchNotFound = errors.New("active match not found")
 )

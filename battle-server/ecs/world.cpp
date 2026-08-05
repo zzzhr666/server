@@ -1,6 +1,5 @@
 #include "world.hpp"
 
-#include <cmath>
 #include <utility>
 
 #include "system/attack_resolve_system.hpp"

@@ -1,6 +1,5 @@
 #include "rcenter_client.hpp"
 
-#include <cstdint>
 #include <utility>
 
 #include "game/game_manager.hpp"
@@ -11,7 +10,7 @@ battle::RCenterClient::RCenterClient(std::shared_ptr<grpc::Channel> channel)
     : stub_(rcenter::v1::RCenterService::NewStub(std::move(channel))) {}
 
 battle::RegisterBattleNodeResult battle::RCenterClient::register_battle_node(
-    const Config& config, const RoomManager& room_manager) {
+    const Config& config, const RoomManager& room_manager) const {
     rcenter::v1::RegisterBattleNodeRequest request;
     auto node = request.mutable_node();
     node->set_name(config.node_name);
@@ -28,29 +27,29 @@ battle::RegisterBattleNodeResult battle::RCenterClient::register_battle_node(
                : RegisterBattleNodeResult{.ok = false, .message = status.error_message()};
 }
 
-battle::FinishMatchResult battle::RCenterClient::finish_match(const FinishedBattle& finished) {
+battle::FinishMatchResult battle::RCenterClient::finish_match(const FinishedBattle& finished) const {
     rcenter::v1::FinishMatchRequest request;
-    if (finished.player_ids.empty() || finished.settlement.players.empty() || (finished.settlement.reason !=
-        BattleEndReason::Defeat && finished.settlement.reason != BattleEndReason::Victory)) {
+    if (finished.player_ids.empty() || finished.reason.empty()) {
         return FinishMatchResult{.ok = false, .message = "invalid finish request"};
     }
     for (const auto& player_id : finished.player_ids) {
         request.add_player_ids(player_id);
     }
-    auto& reason = finished.settlement.reason;
-    if (reason == BattleEndReason::Defeat) {
-        request.set_reason("defeat");
-    } else if (reason == BattleEndReason::Victory) {
-        request.set_reason("victory");
-    }
-    for (auto& player : finished.settlement.players) {
-        auto stat = request.add_player_stats();
-        stat->set_player_id(player.player_id);
-        stat->set_total_kills(player.total_kills);
-        for (auto& kill : player.kills) {
-            auto kill_detail = stat->add_kills();
-            kill_detail->set_monster_kind(monster_kind_to_string(kill.monster_kind));
-            kill_detail->set_count(kill.count);
+    request.set_reason(finished.reason);
+
+    if (finished.reason == "victory" || finished.reason == "defeat") {
+        if (finished.settlement.players.empty()) {
+            return FinishMatchResult{.ok = false, .message = "missing settlement players"};
+        }
+        for (const auto& player : finished.settlement.players) {
+            auto stat = request.add_player_stats();
+            stat->set_player_id(player.player_id);
+            stat->set_total_kills(player.total_kills);
+            for (const auto& [monster_kind, count] : player.kills) {
+                auto kill_detail = stat->add_kills();
+                kill_detail->set_monster_kind(monster_kind_to_string(monster_kind));
+                kill_detail->set_count(count);
+            }
         }
     }
 

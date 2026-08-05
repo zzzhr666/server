@@ -4,7 +4,6 @@
 #include <arpa/inet.h>
 #include <cstring>
 #include <unistd.h>
-#include <vector>
 
 #include "packet_codec.hpp"
 #include "runtime/battle_runtime.hpp"
@@ -92,6 +91,10 @@ void battle::UdpServer::run_loop_() {
             handle_choose_blessing_(packet.value(), remote_addr, len);
             break;
         }
+        case v1::ClientPacket::kHeartbeat: {
+            handle_heartbeat_(packet.value(),remote_addr,len);
+            break;
+        }
 
         default: {
             send_packet_(make_error("unexpected_packet", "unexpected packet"), remote_addr, len);
@@ -101,7 +104,7 @@ void battle::UdpServer::run_loop_() {
 }
 
 void battle::UdpServer::send_packet_(const v1::ServerPacket& packet, const sockaddr_in& remote_addr,
-                                     socklen_t remote_addr_len) {
+                                     socklen_t remote_addr_len) const {
     auto bytes = encode_server_packet(packet);
     if (sendto(fd_, bytes.data(), bytes.size(), 0,
                reinterpret_cast<const sockaddr*>(&remote_addr), remote_addr_len) < 0) {
@@ -175,10 +178,14 @@ void battle::UdpServer::handle_hello_(const v1::ClientPacket& packet, const sock
 
 void battle::UdpServer::handle_move_input_(const v1::ClientPacket& packet,
                                            const sockaddr_in& remote_addr,
-                                           socklen_t remote_addr_len) {
+                                           socklen_t remote_addr_len) const {
     const auto& input = packet.input();
     if (input.room_name().empty() || input.player_id() <= 0) {
         send_packet_(make_error("invalid_request", "invalid move input"), remote_addr, remote_addr_len);
+        return;
+    }
+    if (!session_manager_.touch(input.room_name(), input.player_id(),{remote_addr})) {
+        send_packet_(make_error("invalid_session","session is not active"),remote_addr,remote_addr_len);
         return;
     }
     if (!battle_runtime_) {
@@ -198,10 +205,14 @@ void battle::UdpServer::handle_move_input_(const v1::ClientPacket& packet,
 }
 
 void battle::UdpServer::handle_choose_blessing_(const v1::ClientPacket& packet, const sockaddr_in& remote_addr,
-                                                socklen_t remote_addr_len) {
+                                                socklen_t remote_addr_len) const {
     const auto& choose_blessing = packet.choose_blessing();
     if (choose_blessing.room_name().empty() || choose_blessing.player_id() <= 0 || choose_blessing.option_id() < 0) {
         send_packet_(make_error("invalid_request", "invalid choose blessing"), remote_addr, remote_addr_len);
+        return;
+    }
+    if (!session_manager_.touch(choose_blessing.room_name(),choose_blessing.player_id(),{remote_addr})) {
+        send_packet_(make_error("invalid_session", "session is not active"), remote_addr, remote_addr_len);
         return;
     }
     if (!battle_runtime_) {
@@ -215,6 +226,18 @@ void battle::UdpServer::handle_choose_blessing_(const v1::ClientPacket& packet, 
     }
 }
 
-void battle::UdpServer::send_packet(const v1::ServerPacket& packet, const UdpEndpoint& endpoint) {
+void battle::UdpServer::handle_heartbeat_(const v1::ClientPacket& packet, const sockaddr_in& remote_addr,
+    socklen_t remote_addr_len) const {
+    const auto& heartbeat = packet.heartbeat();
+    if (heartbeat.room_name().empty() || heartbeat.player_id() <= 0) {
+        send_packet_(make_error("invalid_request", "invalid heartbeat"), remote_addr, remote_addr_len);
+        return;
+    }
+    if (!session_manager_.touch(heartbeat.room_name(), heartbeat.player_id(),{remote_addr})) {
+        send_packet_(make_error("invalid_session","session is not active"), remote_addr, remote_addr_len);
+    }
+}
+
+void battle::UdpServer::send_packet(const v1::ServerPacket& packet, const UdpEndpoint& endpoint) const {
     send_packet_(packet, endpoint.addr, sizeof(endpoint.addr));
 }

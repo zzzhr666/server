@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	statecontract "server/internal/contract/state"
+	"slices"
 	"sync"
 	"time"
 )
@@ -20,7 +21,7 @@ type waitingPlayer struct {
 	weapon   string
 }
 
-// GameCenterService keeps registered battle nodes and the in-memory match queue.
+// GameCenterService keeps registered battle nodes, the in-memory match queue, and active battle assignments.
 type GameCenterService struct {
 	mu                   sync.Mutex
 	battleNodes          map[string]BattleNode
@@ -30,6 +31,7 @@ type GameCenterService struct {
 	coinClient           statecontract.CoinClient
 	rewardRule           RewardRule
 	growthClient         statecontract.GrowthClient
+	activeMatches        map[int64]ActiveMatch
 }
 
 type ServiceConfig struct {
@@ -52,6 +54,7 @@ func NewService(config ServiceConfig) *GameCenterService {
 		coinClient:           config.CoinClient,
 		rewardRule:           rewardRule,
 		growthClient:         config.GrowthClient,
+		activeMatches:        make(map[int64]ActiveMatch),
 	}
 }
 
@@ -60,6 +63,32 @@ func validateBattleNode(node BattleNode) error {
 		return ErrInvalidBattleNode
 	}
 	return nil
+}
+
+// ResumeMatch returns the active battle connection data assigned to a player.
+func (g *GameCenterService) ResumeMatch(ctx context.Context, playerID int64) (*MatchResult, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
+	if playerID <= 0 {
+		return nil, ErrInvalidPlayerID
+	}
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	res, ok := g.activeMatches[playerID]
+	if !ok {
+		return nil, ErrActiveMatchNotFound
+	}
+
+	return &MatchResult{
+		Status:         MatchStatusMatched,
+		RoomName:       res.RoomName,
+		Token:          res.Token,
+		BattleNodeName: res.BattleNodeName,
+		BattleKCPAddr:  res.BattleKCPAddr,
+		PlayerIDs:      slices.Clone(res.PlayerIDs),
+		PlayerLoadouts: slices.Clone(res.PlayerLoadouts),
+	}, nil
 }
 
 // RegisterBattleNode records or refreshes a battle node that can host rooms.
@@ -141,17 +170,17 @@ func (g *GameCenterService) StartMatch(ctx context.Context, playerID int64, weap
 	}
 	g.mu.Unlock()
 	if g.growthClient == nil {
-		g.clearInGamePlayersWithLock(playerIDs)
+		g.clearGameContext(playerIDs)
 		return nil, ErrUnavailableGrowthClient
 	}
 	waitingGrowth, err := g.growthClient.GetGrowth(ctx, waitingPlayer.playerID)
 	if err != nil {
-		g.clearInGamePlayersWithLock(playerIDs)
+		g.clearGameContext(playerIDs)
 		return nil, err
 	}
 	currentGrowth, err := g.growthClient.GetGrowth(ctx, playerID)
 	if err != nil {
-		g.clearInGamePlayersWithLock(playerIDs)
+		g.clearGameContext(playerIDs)
 		return nil, err
 	}
 
@@ -180,8 +209,23 @@ func (g *GameCenterService) StartMatch(ctx context.Context, playerID int64, weap
 		PlayerIDs:      playerIDs,
 		PlayerLoadouts: playerLoadouts,
 	}); err != nil {
-		g.clearInGamePlayersWithLock(playerIDs)
+		g.clearGameContext(playerIDs)
 		return nil, err
+	}
+
+	activeMatch := ActiveMatch{
+		RoomName:       roomName,
+		Token:          token,
+		BattleNodeName: node.Name,
+		BattleKCPAddr:  node.KCPAddr,
+		PlayerIDs:      slices.Clone(playerIDs),
+		PlayerLoadouts: slices.Clone(playerLoadouts),
+		CreatedAt:      time.Now(),
+	}
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	for _, player := range playerIDs {
+		g.activeMatches[player] = activeMatch
 	}
 
 	return &MatchResult{
@@ -221,7 +265,7 @@ func (g *GameCenterService) FinishMatch(ctx context.Context, input FinishMatchIn
 			return err
 		}
 	}
-	g.clearInGamePlayersWithLock(input.PlayerIDs)
+	g.clearGameContext(input.PlayerIDs)
 	return nil
 }
 
@@ -277,10 +321,11 @@ func newRandomName(prefix string) string {
 	return prefix + "-" + hex.EncodeToString(bytes)
 }
 
-func (g *GameCenterService) clearInGamePlayersWithLock(playIDs []int64) {
+func (g *GameCenterService) clearGameContext(playIDs []int64) {
 	g.mu.Lock()
 	defer g.mu.Unlock()
 	for _, playerID := range playIDs {
 		delete(g.inGamePlayers, playerID)
+		delete(g.activeMatches, playerID)
 	}
 }

@@ -29,6 +29,7 @@ static const char* RCenterService_method_names[] = {
   "/rcenter.v1.RCenterService/StartMatch",
   "/rcenter.v1.RCenterService/CancelMatch",
   "/rcenter.v1.RCenterService/FinishMatch",
+  "/rcenter.v1.RCenterService/ResumeMatch",
 };
 
 std::unique_ptr< RCenterService::Stub> RCenterService::NewStub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, const ::grpc::StubOptions& options) {
@@ -43,6 +44,7 @@ RCenterService::Stub::Stub(const std::shared_ptr< ::grpc::ChannelInterface>& cha
   , rpcmethod_StartMatch_(RCenterService_method_names[2], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
   , rpcmethod_CancelMatch_(RCenterService_method_names[3], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
   , rpcmethod_FinishMatch_(RCenterService_method_names[4], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_ResumeMatch_(RCenterService_method_names[5], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
   {}
 
 ::grpc::Status RCenterService::Stub::RegisterBattleNode(::grpc::ClientContext* context, const ::rcenter::v1::RegisterBattleNodeRequest& request, ::rcenter::v1::RegisterBattleNodeResponse* response) {
@@ -160,6 +162,29 @@ void RCenterService::Stub::async::FinishMatch(::grpc::ClientContext* context, co
   return result;
 }
 
+::grpc::Status RCenterService::Stub::ResumeMatch(::grpc::ClientContext* context, const ::rcenter::v1::ResumeMatchRequest& request, ::rcenter::v1::ResumeMatchResponse* response) {
+  return ::grpc::internal::BlockingUnaryCall< ::rcenter::v1::ResumeMatchRequest, ::rcenter::v1::ResumeMatchResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_ResumeMatch_, context, request, response);
+}
+
+void RCenterService::Stub::async::ResumeMatch(::grpc::ClientContext* context, const ::rcenter::v1::ResumeMatchRequest* request, ::rcenter::v1::ResumeMatchResponse* response, std::function<void(::grpc::Status)> f) {
+  ::grpc::internal::CallbackUnaryCall< ::rcenter::v1::ResumeMatchRequest, ::rcenter::v1::ResumeMatchResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_ResumeMatch_, context, request, response, std::move(f));
+}
+
+void RCenterService::Stub::async::ResumeMatch(::grpc::ClientContext* context, const ::rcenter::v1::ResumeMatchRequest* request, ::rcenter::v1::ResumeMatchResponse* response, ::grpc::ClientUnaryReactor* reactor) {
+  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_ResumeMatch_, context, request, response, reactor);
+}
+
+::grpc::ClientAsyncResponseReader< ::rcenter::v1::ResumeMatchResponse>* RCenterService::Stub::PrepareAsyncResumeMatchRaw(::grpc::ClientContext* context, const ::rcenter::v1::ResumeMatchRequest& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::rcenter::v1::ResumeMatchResponse, ::rcenter::v1::ResumeMatchRequest, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_ResumeMatch_, context, request);
+}
+
+::grpc::ClientAsyncResponseReader< ::rcenter::v1::ResumeMatchResponse>* RCenterService::Stub::AsyncResumeMatchRaw(::grpc::ClientContext* context, const ::rcenter::v1::ResumeMatchRequest& request, ::grpc::CompletionQueue* cq) {
+  auto* result =
+    this->PrepareAsyncResumeMatchRaw(context, request, cq);
+  result->StartCall();
+  return result;
+}
+
 RCenterService::Service::Service() {
   AddMethod(new ::grpc::internal::RpcServiceMethod(
       RCenterService_method_names[0],
@@ -211,6 +236,16 @@ RCenterService::Service::Service() {
              ::rcenter::v1::FinishMatchResponse* resp) {
                return service->FinishMatch(ctx, req, resp);
              }, this)));
+  AddMethod(new ::grpc::internal::RpcServiceMethod(
+      RCenterService_method_names[5],
+      ::grpc::internal::RpcMethod::NORMAL_RPC,
+      new ::grpc::internal::RpcMethodHandler< RCenterService::Service, ::rcenter::v1::ResumeMatchRequest, ::rcenter::v1::ResumeMatchResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
+          [](RCenterService::Service* service,
+             ::grpc::ServerContext* ctx,
+             const ::rcenter::v1::ResumeMatchRequest* req,
+             ::rcenter::v1::ResumeMatchResponse* resp) {
+               return service->ResumeMatch(ctx, req, resp);
+             }, this)));
 }
 
 RCenterService::Service::~Service() {
@@ -245,6 +280,13 @@ RCenterService::Service::~Service() {
 }
 
 ::grpc::Status RCenterService::Service::FinishMatch(::grpc::ServerContext* context, const ::rcenter::v1::FinishMatchRequest* request, ::rcenter::v1::FinishMatchResponse* response) {
+  (void) context;
+  (void) request;
+  (void) response;
+  return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+}
+
+::grpc::Status RCenterService::Service::ResumeMatch(::grpc::ServerContext* context, const ::rcenter::v1::ResumeMatchRequest* request, ::rcenter::v1::ResumeMatchResponse* response) {
   (void) context;
   (void) request;
   (void) response;

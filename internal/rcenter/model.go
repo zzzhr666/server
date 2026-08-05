@@ -57,3 +57,14 @@ type FinishMatchInput struct {
 	Reason      string
 	PlayerStats []PlayerBattleStats
 }
+
+// ActiveMatch stores the battle connection data a matched player can resume.
+type ActiveMatch struct {
+	RoomName       string
+	Token          string
+	BattleNodeName string
+	BattleKCPAddr  string
+	PlayerIDs      []int64
+	PlayerLoadouts []PlayerLoadout
+	CreatedAt      time.Time
+}

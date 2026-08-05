@@ -99,5 +99,7 @@ battle::Config battle::DefaultConfig() {
         .max_players = 100,
         .tick_rate = 60,
         .rcenter_addr = "127.0.0.1:9002",
+        .session_idle_timeout_seconds = std::chrono::seconds{15},
+        .all_players_disconnected_timeout = std::chrono::seconds{90},
     };
 }

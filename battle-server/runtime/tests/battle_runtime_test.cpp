@@ -1,6 +1,7 @@
 #include "runtime/battle_runtime.hpp"
 
 #include <algorithm>
+#include <chrono>
 #include <unordered_map>
 #include <utility>
 #include <vector>
@@ -8,6 +9,7 @@
 #include <gtest/gtest.h>
 
 #include "game/game_manager.hpp"
+#include "session/battle_session.hpp"
 #include "session/session_manager.hpp"
 
 namespace battle {
@@ -343,6 +345,197 @@ TEST(BattleRuntimeTest, EndRoomBroadcastsGameOverAndCleansRoom) {
     ASSERT_EQ(finished_battles.size(), 1);
     EXPECT_EQ(finished_battles[0].room_name, "room-1");
     EXPECT_EQ(finished_battles[0].player_ids, (std::vector<std::int64_t>{1001, 1002}));
+}
+
+TEST(BattleRuntimeTest, TickSkipsSnapshotsForDisconnectedSessions) {
+    RoomManager room_manager;
+    SessionManager session_manager(room_manager);
+    std::vector<std::pair<v1::ServerPacket, UdpEndpoint>> sent_packets;
+    BattleRuntime runtime(room_manager, session_manager,
+                          [&sent_packets](const v1::ServerPacket& packet, const UdpEndpoint& endpoint) {
+                              sent_packets.emplace_back(packet, endpoint);
+                          });
+
+    ASSERT_EQ(room_manager.create_room({
+                  .room_name = "room-1",
+                  .token = "token-1",
+                  .player_ids = {1001},
+              }).status,
+              CreateRoomStatus::OK);
+    ASSERT_EQ(session_manager.join({
+                  .room_name = "room-1",
+                  .token = "token-1",
+                  .player_id = 1001,
+                  .conv = 1,
+                  .endpoint = endpoint_with_port(7001),
+              }).status,
+              JoinSessionStatus::OK);
+    runtime.start_room("room-1");
+    sent_packets.clear();
+
+    const auto stale_at = std::chrono::steady_clock::now() + std::chrono::seconds{15};
+    EXPECT_EQ(session_manager.mark_stale_sessions(stale_at, std::chrono::seconds{15}), 1);
+    EXPECT_TRUE(session_manager.connected_sessions_in_room("room-1").empty());
+
+    runtime.tick(ecs::DeltaTime{0.0f});
+
+    EXPECT_TRUE(sent_packets.empty());
+}
+
+TEST(BattleRuntimeTest, EndRoomNotifiesOnlyConnectedSessionsButFinishesAllPlayers) {
+    RoomManager room_manager;
+    SessionManager session_manager(room_manager);
+    std::vector<std::pair<v1::ServerPacket, UdpEndpoint>> sent_packets;
+    std::vector<FinishedBattle> finished_battles;
+    std::vector<std::int64_t> instance_player_ids;
+    BattleRuntime runtime(
+        room_manager, session_manager,
+        [&sent_packets](const v1::ServerPacket& packet, const UdpEndpoint& endpoint) {
+            sent_packets.emplace_back(packet, endpoint);
+        },
+        [&instance_player_ids](BattleInstanceConfig config) {
+            instance_player_ids = config.player_ids;
+            return std::make_unique<BattleInstance>(std::move(config));
+        },
+        [&finished_battles](const FinishedBattle& finished_battle) {
+            finished_battles.push_back(finished_battle);
+        });
+
+    ASSERT_EQ(room_manager.create_room({
+                  .room_name = "room-1",
+                  .token = "token-1",
+                  .player_ids = {1001, 1002},
+              }).status,
+              CreateRoomStatus::OK);
+    ASSERT_EQ(session_manager.join({
+                  .room_name = "room-1",
+                  .token = "token-1",
+                  .player_id = 1001,
+                  .conv = 1,
+                  .endpoint = endpoint_with_port(7001),
+              }).status,
+              JoinSessionStatus::OK);
+    const auto stale_at = std::chrono::steady_clock::now() + std::chrono::seconds{15};
+    ASSERT_EQ(session_manager.mark_stale_sessions(stale_at, std::chrono::seconds{15}), 1);
+    ASSERT_EQ(session_manager.join({
+                  .room_name = "room-1",
+                  .token = "token-1",
+                  .player_id = 1002,
+                  .conv = 2,
+                  .endpoint = endpoint_with_port(7002),
+              }).status,
+              JoinSessionStatus::OK);
+
+    runtime.start_room("room-1");
+    EXPECT_EQ(instance_player_ids, (std::vector<std::int64_t>{1001, 1002}));
+    sent_packets.clear();
+
+    ASSERT_EQ(runtime.end_room("room-1", "manual_end").status, EndRoomStatus::OK);
+
+    ASSERT_EQ(sent_packets.size(), 1);
+    EXPECT_EQ(sent_packets[0].second, endpoint_with_port(7002));
+    ASSERT_EQ(sent_packets[0].first.payload_case(), v1::ServerPacket::kGameOver);
+    ASSERT_EQ(sent_packets[0].first.game_over().player_ids_size(), 2);
+    EXPECT_EQ(sent_packets[0].first.game_over().player_ids(0), 1001);
+    EXPECT_EQ(sent_packets[0].first.game_over().player_ids(1), 1002);
+    ASSERT_EQ(finished_battles.size(), 1);
+    EXPECT_EQ(finished_battles[0].player_ids, (std::vector<std::int64_t>{1001, 1002}));
+}
+
+TEST(BattleRuntimeTest, AllDisconnectedTimeoutEndsRoomAndFinishesAllPlayers) {
+    RoomManager room_manager;
+    SessionManager session_manager(room_manager);
+    std::vector<FinishedBattle> finished_battles;
+    BattleRuntime runtime(
+        room_manager, session_manager,
+        [](const v1::ServerPacket&, const UdpEndpoint&) {},
+        {},
+        [&finished_battles](const FinishedBattle& finished_battle) {
+            finished_battles.push_back(finished_battle);
+        },
+        60,
+        std::chrono::seconds{0},
+        std::chrono::seconds{0});
+
+    ASSERT_EQ(room_manager.create_room({
+                  .room_name = "room-1",
+                  .token = "token-1",
+                  .player_ids = {1001},
+              }).status,
+              CreateRoomStatus::OK);
+    ASSERT_EQ(session_manager.join({
+                  .room_name = "room-1",
+                  .token = "token-1",
+                  .player_id = 1001,
+                  .conv = 1,
+                  .endpoint = endpoint_with_port(7001),
+              }).status,
+              JoinSessionStatus::OK);
+    runtime.start_room("room-1");
+
+    runtime.tick(ecs::DeltaTime{0.0f});
+    EXPECT_TRUE(finished_battles.empty());
+    runtime.tick(ecs::DeltaTime{0.0f});
+
+    ASSERT_EQ(finished_battles.size(), 1);
+    EXPECT_EQ(finished_battles[0].reason, "all_players_disconnected");
+    EXPECT_EQ(finished_battles[0].player_ids, (std::vector<std::int64_t>{1001}));
+    EXPECT_EQ(room_manager.active_rooms(), 0);
+    EXPECT_TRUE(session_manager.sessions_in_room("room-1").empty());
+}
+
+TEST(BattleRuntimeTest, ReconnectedPlayerClearsAllDisconnectedTimeout) {
+    RoomManager room_manager;
+    SessionManager session_manager(room_manager);
+    std::vector<FinishedBattle> finished_battles;
+    BattleRuntime runtime(
+        room_manager, session_manager,
+        [](const v1::ServerPacket&, const UdpEndpoint&) {},
+        {},
+        [&finished_battles](const FinishedBattle& finished_battle) {
+            finished_battles.push_back(finished_battle);
+        },
+        60,
+        std::chrono::hours{1},
+        std::chrono::seconds{0});
+
+    ASSERT_EQ(room_manager.create_room({
+                  .room_name = "room-1",
+                  .token = "token-1",
+                  .player_ids = {1001},
+              }).status,
+              CreateRoomStatus::OK);
+    ASSERT_EQ(session_manager.join({
+                  .room_name = "room-1",
+                  .token = "token-1",
+                  .player_id = 1001,
+                  .conv = 1,
+                  .endpoint = endpoint_with_port(7001),
+              }).status,
+              JoinSessionStatus::OK);
+    runtime.start_room("room-1");
+
+    ASSERT_EQ(session_manager.mark_stale_sessions(std::chrono::steady_clock::now() + std::chrono::hours{2},
+                                                  std::chrono::hours{1}),
+              1);
+    runtime.tick(ecs::DeltaTime{0.0f});
+    ASSERT_TRUE(finished_battles.empty());
+
+    const auto rejoined = session_manager.join({
+        .room_name = "room-1",
+        .token = "token-1",
+        .player_id = 1001,
+        .conv = 2,
+        .endpoint = endpoint_with_port(7002),
+    });
+    ASSERT_EQ(rejoined.status, JoinSessionStatus::AlreadyJoined);
+    ASSERT_EQ(rejoined.session->state(), BattleSessionState::Connected);
+    EXPECT_EQ(rejoined.session->endpoint(), endpoint_with_port(7002));
+
+    runtime.tick(ecs::DeltaTime{0.0f});
+    runtime.tick(ecs::DeltaTime{0.0f});
+    EXPECT_TRUE(finished_battles.empty());
+    EXPECT_EQ(room_manager.active_rooms(), 1);
 }
 
 TEST(BattleRuntimeTest, TickBroadcastsGameOverAndCleansRoomWhenInstanceEnds) {

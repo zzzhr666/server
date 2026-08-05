@@ -330,6 +330,34 @@ struct ClientHelloDefaultTypeInternal {
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT
     PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 ClientHelloDefaultTypeInternal _ClientHello_default_instance_;
 
+inline constexpr ClientHeartbeat::Impl_::Impl_(
+    ::_pbi::ConstantInitialized) noexcept
+      : _cached_size_{0},
+        room_name_(
+            &::google::protobuf::internal::fixed_address_empty_string,
+            ::_pbi::ConstantInitialized()),
+        player_id_{::int64_t{0}} {}
+
+template <typename>
+PROTOBUF_CONSTEXPR ClientHeartbeat::ClientHeartbeat(::_pbi::ConstantInitialized)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(ClientHeartbeat_class_data_.base()),
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(),
+#endif  // PROTOBUF_CUSTOM_VTABLE
+      _impl_(::_pbi::ConstantInitialized()) {
+}
+struct ClientHeartbeatDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR ClientHeartbeatDefaultTypeInternal() : _instance(::_pbi::ConstantInitialized{}) {}
+  ~ClientHeartbeatDefaultTypeInternal() {}
+  union {
+    ClientHeartbeat _instance;
+  };
+};
+
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT
+    PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 ClientHeartbeatDefaultTypeInternal _ClientHeartbeat_default_instance_;
+
 inline constexpr ChooseBlessing::Impl_::Impl_(
     ::_pbi::ConstantInitialized) noexcept
       : _cached_size_{0},
@@ -658,6 +686,7 @@ const ::uint32_t
         ::_pbi::kInvalidFieldOffsetTag,
         ::_pbi::kInvalidFieldOffsetTag,
         ::_pbi::kInvalidFieldOffsetTag,
+        ::_pbi::kInvalidFieldOffsetTag,
         PROTOBUF_FIELD_OFFSET(::battle::v1::ClientPacket, _impl_.payload_),
         0x004, // bitmap
         PROTOBUF_FIELD_OFFSET(::battle::v1::ServerPacket, _impl_._oneof_case_[0]),
@@ -841,6 +870,13 @@ const ::uint32_t
         0,
         1,
         2,
+        0x081, // bitmap
+        PROTOBUF_FIELD_OFFSET(::battle::v1::ClientHeartbeat, _impl_._has_bits_),
+        5, // hasbit index offset
+        PROTOBUF_FIELD_OFFSET(::battle::v1::ClientHeartbeat, _impl_.room_name_),
+        PROTOBUF_FIELD_OFFSET(::battle::v1::ClientHeartbeat, _impl_.player_id_),
+        0,
+        1,
 };
 
 static const ::_pbi::MigrationSchema
@@ -850,21 +886,22 @@ static const ::_pbi::MigrationSchema
         {16, sizeof(::battle::v1::GameStart)},
         {23, sizeof(::battle::v1::Error)},
         {30, sizeof(::battle::v1::ClientPacket)},
-        {36, sizeof(::battle::v1::ServerPacket)},
-        {44, sizeof(::battle::v1::GameOver)},
-        {55, sizeof(::battle::v1::PlayerBattleStats)},
-        {64, sizeof(::battle::v1::MonsterKillCount)},
-        {71, sizeof(::battle::v1::ClientInput)},
-        {86, sizeof(::battle::v1::EntitySnapshot)},
-        {109, sizeof(::battle::v1::PlayerProgressSnapshot)},
-        {122, sizeof(::battle::v1::BlessingOptionSnapshot)},
-        {129, sizeof(::battle::v1::PlayerBlessingSnapshot)},
-        {136, sizeof(::battle::v1::PlayerBlessingStateSnapshot)},
-        {145, sizeof(::battle::v1::AttackEvent)},
-        {158, sizeof(::battle::v1::DeathEvent)},
-        {177, sizeof(::battle::v1::BattleEvent)},
-        {188, sizeof(::battle::v1::WorldSnapshot)},
-        {209, sizeof(::battle::v1::ChooseBlessing)},
+        {37, sizeof(::battle::v1::ServerPacket)},
+        {45, sizeof(::battle::v1::GameOver)},
+        {56, sizeof(::battle::v1::PlayerBattleStats)},
+        {65, sizeof(::battle::v1::MonsterKillCount)},
+        {72, sizeof(::battle::v1::ClientInput)},
+        {87, sizeof(::battle::v1::EntitySnapshot)},
+        {110, sizeof(::battle::v1::PlayerProgressSnapshot)},
+        {123, sizeof(::battle::v1::BlessingOptionSnapshot)},
+        {130, sizeof(::battle::v1::PlayerBlessingSnapshot)},
+        {137, sizeof(::battle::v1::PlayerBlessingStateSnapshot)},
+        {146, sizeof(::battle::v1::AttackEvent)},
+        {159, sizeof(::battle::v1::DeathEvent)},
+        {178, sizeof(::battle::v1::BattleEvent)},
+        {189, sizeof(::battle::v1::WorldSnapshot)},
+        {210, sizeof(::battle::v1::ChooseBlessing)},
+        {219, sizeof(::battle::v1::ClientHeartbeat)},
 };
 static const ::_pb::Message* PROTOBUF_NONNULL const file_default_instances[] = {
     &::battle::v1::_ClientHello_default_instance_._instance,
@@ -887,6 +924,7 @@ static const ::_pb::Message* PROTOBUF_NONNULL const file_default_instances[] = {
     &::battle::v1::_BattleEvent_default_instance_._instance,
     &::battle::v1::_WorldSnapshot_default_instance_._instance,
     &::battle::v1::_ChooseBlessing_default_instance_._instance,
+    &::battle::v1::_ClientHeartbeat_default_instance_._instance,
 };
 const char descriptor_table_protodef_proto_2fbattle_2fv1_2fsession_2eproto[] ABSL_ATTRIBUTE_SECTION_VARIABLE(
     protodesc_cold) = {
@@ -896,95 +934,97 @@ const char descriptor_table_protodef_proto_2fbattle_2fv1_2fsession_2eproto[] ABS
     "Hello\022\014\n\004conv\030\001 \001(\r\022\017\n\007message\030\002 \001(\t\"2\n\t"
     "GameStart\022\021\n\troom_name\030\001 \001(\t\022\022\n\nplayer_i"
     "ds\030\002 \003(\003\"&\n\005Error\022\014\n\004code\030\001 \001(\t\022\017\n\007messa"
-    "ge\030\002 \001(\t\"\241\001\n\014ClientPacket\022\'\n\005hello\030\001 \001(\013"
+    "ge\030\002 \001(\t\"\322\001\n\014ClientPacket\022\'\n\005hello\030\001 \001(\013"
     "2\026.battle.v1.ClientHelloH\000\022\'\n\005input\030\002 \001("
     "\0132\026.battle.v1.ClientInputH\000\0224\n\017choose_bl"
     "essing\030\003 \001(\0132\031.battle.v1.ChooseBlessingH"
-    "\000B\t\n\007payload\"\351\001\n\014ServerPacket\022\'\n\005hello\030\001"
-    " \001(\0132\026.battle.v1.ServerHelloH\000\022*\n\ngame_s"
-    "tart\030\002 \001(\0132\024.battle.v1.GameStartH\000\022!\n\005er"
-    "ror\030\003 \001(\0132\020.battle.v1.ErrorH\000\022(\n\tgame_ov"
-    "er\030\004 \001(\0132\023.battle.v1.GameOverH\000\022,\n\010snaps"
-    "hot\030\005 \001(\0132\030.battle.v1.WorldSnapshotH\000B\t\n"
-    "\007payload\"u\n\010GameOver\022\021\n\troom_name\030\001 \001(\t\022"
-    "\022\n\nplayer_ids\030\002 \003(\003\022\016\n\006reason\030\003 \001(\t\0222\n\014p"
-    "layer_stats\030\004 \003(\0132\034.battle.v1.PlayerBatt"
-    "leStats\"g\n\021PlayerBattleStats\022\021\n\tplayer_i"
-    "d\030\001 \001(\003\022\023\n\013total_kills\030\002 \001(\005\022*\n\005kills\030\003 "
-    "\003(\0132\033.battle.v1.MonsterKillCount\"7\n\020Mons"
-    "terKillCount\022\024\n\014monster_kind\030\001 \001(\t\022\r\n\005co"
-    "unt\030\002 \001(\005\"{\n\013ClientInput\022\021\n\troom_name\030\001 "
-    "\001(\t\022\021\n\tplayer_id\030\002 \001(\003\022\t\n\001x\030\003 \001(\002\022\t\n\001y\030\004"
-    " \001(\002\022\030\n\020attack_requested\030\005 \001(\010\022\026\n\016dash_r"
-    "equested\030\006 \001(\010\"\354\001\n\016EntitySnapshot\022\016\n\006ent"
-    "ity\030\001 \001(\004\022\022\n\nx_position\030\002 \001(\002\022\022\n\ny_posit"
-    "ion\030\003 \001(\002\022\023\n\013x_direction\030\004 \001(\002\022\023\n\013y_dire"
-    "ction\030\005 \001(\002\022\026\n\016current_health\030\006 \001(\005\022\022\n\nm"
-    "ax_health\030\007 \001(\005\022#\n\004kind\030\010 \001(\0162\025.battle.v"
-    "1.EntityKind\022\021\n\tplayer_id\030\t \001(\003\022\024\n\014monst"
-    "er_kind\030\n \001(\t\"\221\001\n\026PlayerProgressSnapshot"
-    "\022\021\n\tplayer_id\030\001 \001(\003\022\r\n\005level\030\002 \001(\005\022\022\n\nex"
-    "perience\030\003 \001(\005\022 \n\030experience_to_next_lev"
-    "el\030\004 \001(\005\022\037\n\027pending_upgrade_choices\030\005 \001("
-    "\005\"W\n\026BlessingOptionSnapshot\022\021\n\toption_id"
-    "\030\001 \001(\005\022*\n\013blessing_id\030\002 \001(\0162\025.battle.v1."
-    "BlessingId\"S\n\026PlayerBlessingSnapshot\022*\n\013"
-    "blessing_id\030\001 \001(\0162\025.battle.v1.BlessingId"
-    "\022\r\n\005level\030\002 \001(\005\"\242\001\n\033PlayerBlessingStateS"
-    "napshot\022\021\n\tplayer_id\030\001 \001(\003\0224\n\tblessings\030"
-    "\002 \003(\0132!.battle.v1.PlayerBlessingSnapshot"
-    "\022:\n\017current_options\030\003 \003(\0132!.battle.v1.Bl"
-    "essingOptionSnapshot\"\217\001\n\013AttackEvent\022\027\n\017"
-    "attacker_entity\030\001 \001(\004\022\021\n\taction_id\030\002 \001(\004"
-    "\022*\n\013attack_kind\030\003 \001(\0162\025.battle.v1.Attack"
-    "Kind\022\023\n\013x_direction\030\004 \001(\002\022\023\n\013y_direction"
-    "\030\005 \001(\002\"\316\001\n\nDeathEvent\022\025\n\rvictim_entity\030\001"
-    " \001(\004\022*\n\013victim_kind\030\002 \001(\0162\025.battle.v1.En"
-    "tityKind\022\024\n\014monster_kind\030\003 \001(\t\022\022\n\nx_posi"
-    "tion\030\004 \001(\002\022\022\n\ny_position\030\005 \001(\002\022\023\n\013x_dire"
-    "ction\030\006 \001(\002\022\023\n\013y_direction\030\007 \001(\002\022\025\n\rkill"
-    "er_entity\030\010 \001(\004\"|\n\013BattleEvent\022\020\n\010event_"
-    "id\030\001 \001(\004\022(\n\006attack\030\002 \001(\0132\026.battle.v1.Att"
-    "ackEventH\000\022&\n\005death\030\003 \001(\0132\025.battle.v1.De"
-    "athEventH\000B\t\n\007payload\"\363\002\n\rWorldSnapshot\022"
-    "\021\n\troom_name\030\001 \001(\t\022+\n\010entities\030\002 \003(\0132\031.b"
-    "attle.v1.EntitySnapshot\022\024\n\014current_wave\030"
-    "\003 \001(\005\022%\n\005phase\030\004 \001(\0162\026.battle.v1.BattleP"
-    "hase\022*\n\"reward_selection_remaining_secon"
-    "ds\030\005 \001(\002\022:\n\017player_progress\030\006 \003(\0132!.batt"
-    "le.v1.PlayerProgressSnapshot\022@\n\020player_b"
-    "lessings\030\007 \003(\0132&.battle.v1.PlayerBlessin"
-    "gStateSnapshot\022\023\n\013server_tick\030\010 \001(\004\022&\n\006e"
-    "vents\030\t \003(\0132\026.battle.v1.BattleEvent\"I\n\016C"
-    "hooseBlessing\022\021\n\troom_name\030\001 \001(\t\022\021\n\tplay"
-    "er_id\030\002 \001(\003\022\021\n\toption_id\030\003 \001(\005*v\n\nEntity"
-    "Kind\022\033\n\027ENTITY_KIND_UNSPECIFIED\020\000\022\026\n\022ENT"
-    "ITY_KIND_PLAYER\020\001\022\027\n\023ENTITY_KIND_MONSTER"
-    "\020\002\022\032\n\026ENTITY_KIND_PROJECTILE\020\003*i\n\013Battle"
-    "Phase\022\034\n\030BATTLE_PHASE_UNSPECIFIED\020\000\022\031\n\025B"
-    "ATTLE_PHASE_FIGHTING\020\001\022!\n\035BATTLE_PHASE_R"
-    "EWARD_SELECTION\020\002*\303\001\n\nBlessingId\022\033\n\027BLES"
-    "SING_ID_UNSPECIFIED\020\000\022\033\n\027BLESSING_ID_BUR"
-    "N_ON_HIT\020\001\022\032\n\026BLESSING_ID_LIFE_STEAL\020\002\022\035"
-    "\n\031BLESSING_ID_FREEZE_ON_HIT\020\003\022\037\n\033BLESSIN"
-    "G_ID_CRITICAL_STRIKE\020\004\022\037\n\033BLESSING_ID_CH"
-    "AIN_LIGHTNING\020\005*\\\n\nAttackKind\022\033\n\027ATTACK_"
-    "KIND_UNSPECIFIED\020\000\022\025\n\021ATTACK_KIND_MELEE\020"
-    "\001\022\032\n\026ATTACK_KIND_PROJECTILE\020\002B,Z*server/"
-    "internal/contract/battlepb;battlepbb\006pro"
-    "to3"
+    "\000\022/\n\theartbeat\030\004 \001(\0132\032.battle.v1.ClientH"
+    "eartbeatH\000B\t\n\007payload\"\351\001\n\014ServerPacket\022\'"
+    "\n\005hello\030\001 \001(\0132\026.battle.v1.ServerHelloH\000\022"
+    "*\n\ngame_start\030\002 \001(\0132\024.battle.v1.GameStar"
+    "tH\000\022!\n\005error\030\003 \001(\0132\020.battle.v1.ErrorH\000\022("
+    "\n\tgame_over\030\004 \001(\0132\023.battle.v1.GameOverH\000"
+    "\022,\n\010snapshot\030\005 \001(\0132\030.battle.v1.WorldSnap"
+    "shotH\000B\t\n\007payload\"u\n\010GameOver\022\021\n\troom_na"
+    "me\030\001 \001(\t\022\022\n\nplayer_ids\030\002 \003(\003\022\016\n\006reason\030\003"
+    " \001(\t\0222\n\014player_stats\030\004 \003(\0132\034.battle.v1.P"
+    "layerBattleStats\"g\n\021PlayerBattleStats\022\021\n"
+    "\tplayer_id\030\001 \001(\003\022\023\n\013total_kills\030\002 \001(\005\022*\n"
+    "\005kills\030\003 \003(\0132\033.battle.v1.MonsterKillCoun"
+    "t\"7\n\020MonsterKillCount\022\024\n\014monster_kind\030\001 "
+    "\001(\t\022\r\n\005count\030\002 \001(\005\"{\n\013ClientInput\022\021\n\troo"
+    "m_name\030\001 \001(\t\022\021\n\tplayer_id\030\002 \001(\003\022\t\n\001x\030\003 \001"
+    "(\002\022\t\n\001y\030\004 \001(\002\022\030\n\020attack_requested\030\005 \001(\010\022"
+    "\026\n\016dash_requested\030\006 \001(\010\"\354\001\n\016EntitySnapsh"
+    "ot\022\016\n\006entity\030\001 \001(\004\022\022\n\nx_position\030\002 \001(\002\022\022"
+    "\n\ny_position\030\003 \001(\002\022\023\n\013x_direction\030\004 \001(\002\022"
+    "\023\n\013y_direction\030\005 \001(\002\022\026\n\016current_health\030\006"
+    " \001(\005\022\022\n\nmax_health\030\007 \001(\005\022#\n\004kind\030\010 \001(\0162\025"
+    ".battle.v1.EntityKind\022\021\n\tplayer_id\030\t \001(\003"
+    "\022\024\n\014monster_kind\030\n \001(\t\"\221\001\n\026PlayerProgres"
+    "sSnapshot\022\021\n\tplayer_id\030\001 \001(\003\022\r\n\005level\030\002 "
+    "\001(\005\022\022\n\nexperience\030\003 \001(\005\022 \n\030experience_to"
+    "_next_level\030\004 \001(\005\022\037\n\027pending_upgrade_cho"
+    "ices\030\005 \001(\005\"W\n\026BlessingOptionSnapshot\022\021\n\t"
+    "option_id\030\001 \001(\005\022*\n\013blessing_id\030\002 \001(\0162\025.b"
+    "attle.v1.BlessingId\"S\n\026PlayerBlessingSna"
+    "pshot\022*\n\013blessing_id\030\001 \001(\0162\025.battle.v1.B"
+    "lessingId\022\r\n\005level\030\002 \001(\005\"\242\001\n\033PlayerBless"
+    "ingStateSnapshot\022\021\n\tplayer_id\030\001 \001(\003\0224\n\tb"
+    "lessings\030\002 \003(\0132!.battle.v1.PlayerBlessin"
+    "gSnapshot\022:\n\017current_options\030\003 \003(\0132!.bat"
+    "tle.v1.BlessingOptionSnapshot\"\217\001\n\013Attack"
+    "Event\022\027\n\017attacker_entity\030\001 \001(\004\022\021\n\taction"
+    "_id\030\002 \001(\004\022*\n\013attack_kind\030\003 \001(\0162\025.battle."
+    "v1.AttackKind\022\023\n\013x_direction\030\004 \001(\002\022\023\n\013y_"
+    "direction\030\005 \001(\002\"\316\001\n\nDeathEvent\022\025\n\rvictim"
+    "_entity\030\001 \001(\004\022*\n\013victim_kind\030\002 \001(\0162\025.bat"
+    "tle.v1.EntityKind\022\024\n\014monster_kind\030\003 \001(\t\022"
+    "\022\n\nx_position\030\004 \001(\002\022\022\n\ny_position\030\005 \001(\002\022"
+    "\023\n\013x_direction\030\006 \001(\002\022\023\n\013y_direction\030\007 \001("
+    "\002\022\025\n\rkiller_entity\030\010 \001(\004\"|\n\013BattleEvent\022"
+    "\020\n\010event_id\030\001 \001(\004\022(\n\006attack\030\002 \001(\0132\026.batt"
+    "le.v1.AttackEventH\000\022&\n\005death\030\003 \001(\0132\025.bat"
+    "tle.v1.DeathEventH\000B\t\n\007payload\"\363\002\n\rWorld"
+    "Snapshot\022\021\n\troom_name\030\001 \001(\t\022+\n\010entities\030"
+    "\002 \003(\0132\031.battle.v1.EntitySnapshot\022\024\n\014curr"
+    "ent_wave\030\003 \001(\005\022%\n\005phase\030\004 \001(\0162\026.battle.v"
+    "1.BattlePhase\022*\n\"reward_selection_remain"
+    "ing_seconds\030\005 \001(\002\022:\n\017player_progress\030\006 \003"
+    "(\0132!.battle.v1.PlayerProgressSnapshot\022@\n"
+    "\020player_blessings\030\007 \003(\0132&.battle.v1.Play"
+    "erBlessingStateSnapshot\022\023\n\013server_tick\030\010"
+    " \001(\004\022&\n\006events\030\t \003(\0132\026.battle.v1.BattleE"
+    "vent\"I\n\016ChooseBlessing\022\021\n\troom_name\030\001 \001("
+    "\t\022\021\n\tplayer_id\030\002 \001(\003\022\021\n\toption_id\030\003 \001(\005\""
+    "7\n\017ClientHeartbeat\022\021\n\troom_name\030\001 \001(\t\022\021\n"
+    "\tplayer_id\030\002 \001(\003*v\n\nEntityKind\022\033\n\027ENTITY"
+    "_KIND_UNSPECIFIED\020\000\022\026\n\022ENTITY_KIND_PLAYE"
+    "R\020\001\022\027\n\023ENTITY_KIND_MONSTER\020\002\022\032\n\026ENTITY_K"
+    "IND_PROJECTILE\020\003*i\n\013BattlePhase\022\034\n\030BATTL"
+    "E_PHASE_UNSPECIFIED\020\000\022\031\n\025BATTLE_PHASE_FI"
+    "GHTING\020\001\022!\n\035BATTLE_PHASE_REWARD_SELECTIO"
+    "N\020\002*\303\001\n\nBlessingId\022\033\n\027BLESSING_ID_UNSPEC"
+    "IFIED\020\000\022\033\n\027BLESSING_ID_BURN_ON_HIT\020\001\022\032\n\026"
+    "BLESSING_ID_LIFE_STEAL\020\002\022\035\n\031BLESSING_ID_"
+    "FREEZE_ON_HIT\020\003\022\037\n\033BLESSING_ID_CRITICAL_"
+    "STRIKE\020\004\022\037\n\033BLESSING_ID_CHAIN_LIGHTNING\020"
+    "\005*\\\n\nAttackKind\022\033\n\027ATTACK_KIND_UNSPECIFI"
+    "ED\020\000\022\025\n\021ATTACK_KIND_MELEE\020\001\022\032\n\026ATTACK_KI"
+    "ND_PROJECTILE\020\002B,Z*server/internal/contr"
+    "act/battlepb;battlepbb\006proto3"
 };
 static ::absl::once_flag descriptor_table_proto_2fbattle_2fv1_2fsession_2eproto_once;
 PROTOBUF_CONSTINIT const ::_pbi::DescriptorTable descriptor_table_proto_2fbattle_2fv1_2fsession_2eproto = {
     false,
     false,
-    3283,
+    3389,
     descriptor_table_protodef_proto_2fbattle_2fv1_2fsession_2eproto,
     "proto/battle/v1/session.proto",
     &descriptor_table_proto_2fbattle_2fv1_2fsession_2eproto_once,
     nullptr,
     0,
-    20,
+    21,
     schemas,
     file_default_instances,
     TableStruct_proto_2fbattle_2fv1_2fsession_2eproto::offsets,
@@ -2312,6 +2352,19 @@ void ClientPacket::set_allocated_choose_blessing(::battle::v1::ChooseBlessing* P
   }
   // @@protoc_insertion_point(field_set_allocated:battle.v1.ClientPacket.choose_blessing)
 }
+void ClientPacket::set_allocated_heartbeat(::battle::v1::ClientHeartbeat* PROTOBUF_NULLABLE heartbeat) {
+  ::google::protobuf::Arena* message_arena = GetArena();
+  clear_payload();
+  if (heartbeat) {
+    ::google::protobuf::Arena* submessage_arena = heartbeat->GetArena();
+    if (message_arena != submessage_arena) {
+      heartbeat = ::google::protobuf::internal::GetOwnedMessage(message_arena, heartbeat, submessage_arena);
+    }
+    set_has_heartbeat();
+    _impl_.payload_.heartbeat_ = heartbeat;
+  }
+  // @@protoc_insertion_point(field_set_allocated:battle.v1.ClientPacket.heartbeat)
+}
 ClientPacket::ClientPacket(::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
 #if defined(PROTOBUF_CUSTOM_VTABLE)
     : ::google::protobuf::Message(arena, ClientPacket_class_data_.base()) {
@@ -2353,6 +2406,9 @@ ClientPacket::ClientPacket(
         break;
       case kChooseBlessing:
         _impl_.payload_.choose_blessing_ = ::google::protobuf::Message::CopyConstruct(arena, *from._impl_.payload_.choose_blessing_);
+        break;
+      case kHeartbeat:
+        _impl_.payload_.heartbeat_ = ::google::protobuf::Message::CopyConstruct(arena, *from._impl_.payload_.heartbeat_);
         break;
   }
 
@@ -2410,6 +2466,14 @@ void ClientPacket::clear_payload() {
       }
       break;
     }
+    case kHeartbeat: {
+      if (GetArena() == nullptr) {
+        delete _impl_.payload_.heartbeat_;
+      } else if (::google::protobuf::internal::DebugHardenClearOneofMessageOnArena()) {
+        ::google::protobuf::internal::MaybePoisonAfterClear(_impl_.payload_.heartbeat_);
+      }
+      break;
+    }
     case PAYLOAD_NOT_SET: {
       break;
     }
@@ -2461,17 +2525,17 @@ ClientPacket::GetClassData() const {
   return ClientPacket_class_data_.base();
 }
 PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
-const ::_pbi::TcParseTable<0, 3, 3, 0, 2>
+const ::_pbi::TcParseTable<0, 4, 4, 0, 2>
 ClientPacket::_table_ = {
   {
     0,  // no _has_bits_
     0, // no _extensions_
-    3, 0,  // max_field_number, fast_idx_mask
+    4, 0,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
-    4294967288,  // skipmap
+    4294967280,  // skipmap
     offsetof(decltype(_table_), field_entries),
-    3,  // num_field_entries
-    3,  // num_aux_entries
+    4,  // num_field_entries
+    4,  // num_aux_entries
     offsetof(decltype(_table_), aux_entries),
     ClientPacket_class_data_.base(),
     nullptr,  // post_loop_handler
@@ -2493,11 +2557,15 @@ ClientPacket::_table_ = {
     // .battle.v1.ChooseBlessing choose_blessing = 3;
     {PROTOBUF_FIELD_OFFSET(ClientPacket, _impl_.payload_.choose_blessing_), _Internal::kOneofCaseOffset + 0, 2,
     (0 | ::_fl::kFcOneof | ::_fl::kMessage | ::_fl::kTvTable)},
+    // .battle.v1.ClientHeartbeat heartbeat = 4;
+    {PROTOBUF_FIELD_OFFSET(ClientPacket, _impl_.payload_.heartbeat_), _Internal::kOneofCaseOffset + 0, 3,
+    (0 | ::_fl::kFcOneof | ::_fl::kMessage | ::_fl::kTvTable)},
   }},
   {{
       {::_pbi::TcParser::GetTable<::battle::v1::ClientHello>()},
       {::_pbi::TcParser::GetTable<::battle::v1::ClientInput>()},
       {::_pbi::TcParser::GetTable<::battle::v1::ChooseBlessing>()},
+      {::_pbi::TcParser::GetTable<::battle::v1::ClientHeartbeat>()},
   }},
   {{
   }},
@@ -2547,6 +2615,12 @@ PROTOBUF_NOINLINE void ClientPacket::Clear() {
           stream);
       break;
     }
+    case kHeartbeat: {
+      target = ::google::protobuf::internal::WireFormatLite::InternalWriteMessage(
+          4, *this_._impl_.payload_.heartbeat_, this_._impl_.payload_.heartbeat_->GetCachedSize(), target,
+          stream);
+      break;
+    }
     default:
       break;
   }
@@ -2590,6 +2664,12 @@ PROTOBUF_NOINLINE void ClientPacket::Clear() {
     case kChooseBlessing: {
       total_size += 1 +
                     ::google::protobuf::internal::WireFormatLite::MessageSize(*this_._impl_.payload_.choose_blessing_);
+      break;
+    }
+    // .battle.v1.ClientHeartbeat heartbeat = 4;
+    case kHeartbeat: {
+      total_size += 1 +
+                    ::google::protobuf::internal::WireFormatLite::MessageSize(*this_._impl_.payload_.heartbeat_);
       break;
     }
     case PAYLOAD_NOT_SET: {
@@ -2641,6 +2721,14 @@ void ClientPacket::MergeImpl(::google::protobuf::MessageLite& to_msg, const ::go
           _this->_impl_.payload_.choose_blessing_ = ::google::protobuf::Message::CopyConstruct(arena, *from._impl_.payload_.choose_blessing_);
         } else {
           _this->_impl_.payload_.choose_blessing_->MergeFrom(*from._impl_.payload_.choose_blessing_);
+        }
+        break;
+      }
+      case kHeartbeat: {
+        if (oneof_needs_init) {
+          _this->_impl_.payload_.heartbeat_ = ::google::protobuf::Message::CopyConstruct(arena, *from._impl_.payload_.heartbeat_);
+        } else {
+          _this->_impl_.payload_.heartbeat_->MergeFrom(*from._impl_.payload_.heartbeat_);
         }
         break;
       }
@@ -8547,6 +8635,302 @@ void ChooseBlessing::InternalSwap(ChooseBlessing* PROTOBUF_RESTRICT PROTOBUF_NON
 }
 
 ::google::protobuf::Metadata ChooseBlessing::GetMetadata() const {
+  return ::google::protobuf::Message::GetMetadataImpl(GetClassData()->full());
+}
+// ===================================================================
+
+class ClientHeartbeat::_Internal {
+ public:
+  using HasBits =
+      decltype(::std::declval<ClientHeartbeat>()._impl_._has_bits_);
+  static constexpr ::int32_t kHasBitsOffset =
+      8 * PROTOBUF_FIELD_OFFSET(ClientHeartbeat, _impl_._has_bits_);
+};
+
+ClientHeartbeat::ClientHeartbeat(::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(arena, ClientHeartbeat_class_data_.base()) {
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(arena) {
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  SharedCtor(arena);
+  // @@protoc_insertion_point(arena_constructor:battle.v1.ClientHeartbeat)
+}
+PROTOBUF_NDEBUG_INLINE ClientHeartbeat::Impl_::Impl_(
+    ::google::protobuf::internal::InternalVisibility visibility,
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
+    const ::battle::v1::ClientHeartbeat& from_msg)
+      : _has_bits_{from._has_bits_},
+        _cached_size_{0},
+        room_name_(arena, from.room_name_) {}
+
+ClientHeartbeat::ClientHeartbeat(
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena,
+    const ClientHeartbeat& from)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(arena, ClientHeartbeat_class_data_.base()) {
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(arena) {
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  ClientHeartbeat* const _this = this;
+  (void)_this;
+  _internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
+      from._internal_metadata_);
+  new (&_impl_) Impl_(internal_visibility(), arena, from._impl_, from);
+  _impl_.player_id_ = from._impl_.player_id_;
+
+  // @@protoc_insertion_point(copy_constructor:battle.v1.ClientHeartbeat)
+}
+PROTOBUF_NDEBUG_INLINE ClientHeartbeat::Impl_::Impl_(
+    ::google::protobuf::internal::InternalVisibility visibility,
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
+      : _cached_size_{0},
+        room_name_(arena) {}
+
+inline void ClientHeartbeat::SharedCtor(::_pb::Arena* PROTOBUF_NULLABLE arena) {
+  new (&_impl_) Impl_(internal_visibility(), arena);
+  _impl_.player_id_ = {};
+}
+ClientHeartbeat::~ClientHeartbeat() {
+  // @@protoc_insertion_point(destructor:battle.v1.ClientHeartbeat)
+  SharedDtor(*this);
+}
+inline void ClientHeartbeat::SharedDtor(MessageLite& self) {
+  ClientHeartbeat& this_ = static_cast<ClientHeartbeat&>(self);
+  this_._internal_metadata_.Delete<::google::protobuf::UnknownFieldSet>();
+  ABSL_DCHECK(this_.GetArena() == nullptr);
+  this_._impl_.room_name_.Destroy();
+  this_._impl_.~Impl_();
+}
+
+inline void* PROTOBUF_NONNULL ClientHeartbeat::PlacementNew_(
+    const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena) {
+  return ::new (mem) ClientHeartbeat(arena);
+}
+constexpr auto ClientHeartbeat::InternalNewImpl_() {
+  return ::google::protobuf::internal::MessageCreator::CopyInit(sizeof(ClientHeartbeat),
+                                            alignof(ClientHeartbeat));
+}
+constexpr auto ClientHeartbeat::InternalGenerateClassData_() {
+  return ::google::protobuf::internal::ClassDataFull{
+      ::google::protobuf::internal::ClassData{
+          &_ClientHeartbeat_default_instance_._instance,
+          &_table_.header,
+          nullptr,  // OnDemandRegisterArenaDtor
+          nullptr,  // IsInitialized
+          &ClientHeartbeat::MergeImpl,
+          ::google::protobuf::Message::GetNewImpl<ClientHeartbeat>(),
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+          &ClientHeartbeat::SharedDtor,
+          ::google::protobuf::Message::GetClearImpl<ClientHeartbeat>(), &ClientHeartbeat::ByteSizeLong,
+              &ClientHeartbeat::_InternalSerialize,
+#endif  // PROTOBUF_CUSTOM_VTABLE
+          PROTOBUF_FIELD_OFFSET(ClientHeartbeat, _impl_._cached_size_),
+          false,
+      },
+      &ClientHeartbeat::kDescriptorMethods,
+      &descriptor_table_proto_2fbattle_2fv1_2fsession_2eproto,
+      nullptr,  // tracker
+  };
+}
+
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 const
+    ::google::protobuf::internal::ClassDataFull ClientHeartbeat_class_data_ =
+        ClientHeartbeat::InternalGenerateClassData_();
+
+PROTOBUF_ATTRIBUTE_WEAK const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL
+ClientHeartbeat::GetClassData() const {
+  ::google::protobuf::internal::PrefetchToLocalCache(&ClientHeartbeat_class_data_);
+  ::google::protobuf::internal::PrefetchToLocalCache(ClientHeartbeat_class_data_.tc_table);
+  return ClientHeartbeat_class_data_.base();
+}
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
+const ::_pbi::TcParseTable<1, 2, 0, 43, 2>
+ClientHeartbeat::_table_ = {
+  {
+    PROTOBUF_FIELD_OFFSET(ClientHeartbeat, _impl_._has_bits_),
+    0, // no _extensions_
+    2, 8,  // max_field_number, fast_idx_mask
+    offsetof(decltype(_table_), field_lookup_table),
+    4294967292,  // skipmap
+    offsetof(decltype(_table_), field_entries),
+    2,  // num_field_entries
+    0,  // num_aux_entries
+    offsetof(decltype(_table_), field_names),  // no aux_entries
+    ClientHeartbeat_class_data_.base(),
+    nullptr,  // post_loop_handler
+    ::_pbi::TcParser::GenericFallback,  // fallback
+    #ifdef PROTOBUF_PREFETCH_PARSE_TABLE
+    ::_pbi::TcParser::GetTable<::battle::v1::ClientHeartbeat>(),  // to_prefetch
+    #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
+  }, {{
+    // int64 player_id = 2;
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint64_t, offsetof(ClientHeartbeat, _impl_.player_id_), 1>(),
+     {16, 1, 0, PROTOBUF_FIELD_OFFSET(ClientHeartbeat, _impl_.player_id_)}},
+    // string room_name = 1;
+    {::_pbi::TcParser::FastUS1,
+     {10, 0, 0, PROTOBUF_FIELD_OFFSET(ClientHeartbeat, _impl_.room_name_)}},
+  }}, {{
+    65535, 65535
+  }}, {{
+    // string room_name = 1;
+    {PROTOBUF_FIELD_OFFSET(ClientHeartbeat, _impl_.room_name_), _Internal::kHasBitsOffset + 0, 0,
+    (0 | ::_fl::kFcOptional | ::_fl::kUtf8String | ::_fl::kRepAString)},
+    // int64 player_id = 2;
+    {PROTOBUF_FIELD_OFFSET(ClientHeartbeat, _impl_.player_id_), _Internal::kHasBitsOffset + 1, 0,
+    (0 | ::_fl::kFcOptional | ::_fl::kInt64)},
+  }},
+  // no aux_entries
+  {{
+    "\31\11\0\0\0\0\0\0"
+    "battle.v1.ClientHeartbeat"
+    "room_name"
+  }},
+};
+PROTOBUF_NOINLINE void ClientHeartbeat::Clear() {
+// @@protoc_insertion_point(message_clear_start:battle.v1.ClientHeartbeat)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  ::uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  cached_has_bits = _impl_._has_bits_[0];
+  if ((cached_has_bits & 0x00000001u) != 0) {
+    _impl_.room_name_.ClearNonDefaultToEmpty();
+  }
+  _impl_.player_id_ = ::int64_t{0};
+  _impl_._has_bits_.Clear();
+  _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
+}
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+::uint8_t* PROTOBUF_NONNULL ClientHeartbeat::_InternalSerialize(
+    const ::google::protobuf::MessageLite& base, ::uint8_t* PROTOBUF_NONNULL target,
+    ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) {
+  const ClientHeartbeat& this_ = static_cast<const ClientHeartbeat&>(base);
+#else   // PROTOBUF_CUSTOM_VTABLE
+::uint8_t* PROTOBUF_NONNULL ClientHeartbeat::_InternalSerialize(
+    ::uint8_t* PROTOBUF_NONNULL target,
+    ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+  const ClientHeartbeat& this_ = *this;
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  // @@protoc_insertion_point(serialize_to_array_start:battle.v1.ClientHeartbeat)
+  ::uint32_t cached_has_bits = 0;
+  (void)cached_has_bits;
+
+  // string room_name = 1;
+  if ((this_._impl_._has_bits_[0] & 0x00000001u) != 0) {
+    if (!this_._internal_room_name().empty()) {
+      const ::std::string& _s = this_._internal_room_name();
+      ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+          _s.data(), static_cast<int>(_s.length()), ::google::protobuf::internal::WireFormatLite::SERIALIZE, "battle.v1.ClientHeartbeat.room_name");
+      target = stream->WriteStringMaybeAliased(1, _s, target);
+    }
+  }
+
+  // int64 player_id = 2;
+  if ((this_._impl_._has_bits_[0] & 0x00000002u) != 0) {
+    if (this_._internal_player_id() != 0) {
+      target =
+          ::google::protobuf::internal::WireFormatLite::WriteInt64ToArrayWithField<2>(
+              stream, this_._internal_player_id(), target);
+    }
+  }
+
+  if (ABSL_PREDICT_FALSE(this_._internal_metadata_.have_unknown_fields())) {
+    target =
+        ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+            this_._internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:battle.v1.ClientHeartbeat)
+  return target;
+}
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+::size_t ClientHeartbeat::ByteSizeLong(const MessageLite& base) {
+  const ClientHeartbeat& this_ = static_cast<const ClientHeartbeat&>(base);
+#else   // PROTOBUF_CUSTOM_VTABLE
+::size_t ClientHeartbeat::ByteSizeLong() const {
+  const ClientHeartbeat& this_ = *this;
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  // @@protoc_insertion_point(message_byte_size_start:battle.v1.ClientHeartbeat)
+  ::size_t total_size = 0;
+
+  ::uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void)cached_has_bits;
+
+  ::_pbi::Prefetch5LinesFrom7Lines(&this_);
+  cached_has_bits = this_._impl_._has_bits_[0];
+  if ((cached_has_bits & 0x00000003u) != 0) {
+    // string room_name = 1;
+    if ((cached_has_bits & 0x00000001u) != 0) {
+      if (!this_._internal_room_name().empty()) {
+        total_size += 1 + ::google::protobuf::internal::WireFormatLite::StringSize(
+                                        this_._internal_room_name());
+      }
+    }
+    // int64 player_id = 2;
+    if ((cached_has_bits & 0x00000002u) != 0) {
+      if (this_._internal_player_id() != 0) {
+        total_size += ::_pbi::WireFormatLite::Int64SizePlusOne(
+            this_._internal_player_id());
+      }
+    }
+  }
+  return this_.MaybeComputeUnknownFieldsSize(total_size,
+                                             &this_._impl_._cached_size_);
+}
+
+void ClientHeartbeat::MergeImpl(::google::protobuf::MessageLite& to_msg, const ::google::protobuf::MessageLite& from_msg) {
+  auto* const _this = static_cast<ClientHeartbeat*>(&to_msg);
+  auto& from = static_cast<const ClientHeartbeat&>(from_msg);
+  // @@protoc_insertion_point(class_specific_merge_from_start:battle.v1.ClientHeartbeat)
+  ABSL_DCHECK_NE(&from, _this);
+  ::uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  cached_has_bits = from._impl_._has_bits_[0];
+  if ((cached_has_bits & 0x00000003u) != 0) {
+    if ((cached_has_bits & 0x00000001u) != 0) {
+      if (!from._internal_room_name().empty()) {
+        _this->_internal_set_room_name(from._internal_room_name());
+      } else {
+        if (_this->_impl_.room_name_.IsDefault()) {
+          _this->_internal_set_room_name("");
+        }
+      }
+    }
+    if ((cached_has_bits & 0x00000002u) != 0) {
+      if (from._internal_player_id() != 0) {
+        _this->_impl_.player_id_ = from._impl_.player_id_;
+      }
+    }
+  }
+  _this->_impl_._has_bits_[0] |= cached_has_bits;
+  _this->_internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(from._internal_metadata_);
+}
+
+void ClientHeartbeat::CopyFrom(const ClientHeartbeat& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:battle.v1.ClientHeartbeat)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+
+void ClientHeartbeat::InternalSwap(ClientHeartbeat* PROTOBUF_RESTRICT PROTOBUF_NONNULL other) {
+  using ::std::swap;
+  auto* arena = GetArena();
+  ABSL_DCHECK_EQ(arena, other->GetArena());
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  swap(_impl_._has_bits_[0], other->_impl_._has_bits_[0]);
+  ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.room_name_, &other->_impl_.room_name_, arena);
+  swap(_impl_.player_id_, other->_impl_.player_id_);
+}
+
+::google::protobuf::Metadata ClientHeartbeat::GetMetadata() const {
   return ::google::protobuf::Message::GetMetadataImpl(GetClassData()->full());
 }
 // @@protoc_insertion_point(namespace_scope)

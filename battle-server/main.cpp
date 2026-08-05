@@ -34,7 +34,9 @@ int main() {
                 std::cerr << "failed to finish match in rcenter: " << res.message << std::endl;
             }
         },
-        config.tick_rate
+        config.tick_rate,
+        config.session_idle_timeout_seconds,
+        config.all_players_disconnected_timeout
     };
     udp_server.set_runtime(battle_runtime);
 

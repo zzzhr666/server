@@ -16,6 +16,15 @@ type UpgradeResult struct {
 	Cost           int64
 }
 
+// UpgradeOption describes the next purchasable level for one growth attribute.
+// NextCost is zero when the attribute has reached MaxLevel.
+type UpgradeOption struct {
+	Type         UpgradeType
+	CurrentLevel int32
+	NextCost     int64
+	MaxLevel     int32
+}
+
 const (
 	UpgradeAttack      UpgradeType = iota
 	UpgradeAttackSpeed UpgradeType = iota

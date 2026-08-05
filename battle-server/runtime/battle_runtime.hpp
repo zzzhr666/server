@@ -21,7 +21,6 @@
 #include "battle_instance.hpp"
 
 namespace battle {
-
     class SessionManager;
     class RoomManager;
     class BattleInstance;
@@ -32,6 +31,7 @@ namespace battle {
         std::string room_name;
         std::vector<std::int64_t> player_ids;
         BattleSettlement settlement;
+        std::string reason;
     };
 
     class BattleRuntime {
@@ -40,7 +40,9 @@ namespace battle {
         using FinishMatchCallback = std::function<void(const FinishedBattle&)>;
         BattleRuntime(RoomManager& room_manager, SessionManager& session_manager,
                       SendPacketCallback send_packet_callback, BattleInstanceFactory factory = {},
-                      FinishMatchCallback finish_match_callback = {}, int tick_rate = 60);
+                      FinishMatchCallback finish_match_callback = {}, int tick_rate = 60,
+                      std::chrono::seconds session_idle_timeout_seconds = std::chrono::seconds{15},
+                      std::chrono::seconds all_players_disconnected_timeout_seconds = std::chrono::seconds{90});
         ~BattleRuntime();
 
         void start_room(const std::string& room_name);
@@ -69,5 +71,8 @@ namespace battle {
         std::thread tick_thread_;
         BattleInstanceFactory instance_factory_;
         std::chrono::steady_clock::duration tick_interval_;
+        std::chrono::seconds session_idle_timeout_;
+        std::chrono::seconds all_players_disconnected_timeout_;
+        std::unordered_map<std::string,std::chrono::steady_clock::time_point>all_disconnected_since_;
     };
 }

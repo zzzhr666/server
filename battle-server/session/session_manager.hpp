@@ -1,12 +1,12 @@
 #pragma once
 
 
-#include <cstdint>
 #include <memory>
 #include <string>
 #include <mutex>
 #include <unordered_map>
 #include <vector>
+#include <chrono>
 
 #include "net/udp_endpoint.hpp"
 
@@ -48,11 +48,19 @@ namespace battle {
         std::vector<std::shared_ptr<BattleSession>> sessions_in_room(std::string_view room_name) const;
 
         void remove_room(std::string_view room_name);
+
+        bool touch(std::string_view room_name, std::int64_t player_id, const UdpEndpoint& endpoint);
+
+        std::size_t mark_stale_sessions(std::chrono::steady_clock::time_point now,
+                                        std::chrono::steady_clock::duration idle_timeout);
+
+        std::vector<std::shared_ptr<BattleSession>> connected_sessions_in_room(std::string_view room_name) const;
+
     private:
         RoomManager& room_manager_;
         mutable std::mutex mutex_;
-        std::unordered_map<std::int64_t,std::shared_ptr<BattleSession>>sessions_by_player_;
-        std::unordered_map<std::uint32_t,std::shared_ptr<BattleSession>>sessions_by_conv_;
-        std::unordered_map<std::string,std::vector<std::shared_ptr<BattleSession>>>sessions_by_room_;
+        std::unordered_map<std::int64_t, std::shared_ptr<BattleSession>> sessions_by_player_;
+        std::unordered_map<std::uint32_t, std::shared_ptr<BattleSession>> sessions_by_conv_;
+        std::unordered_map<std::string, std::vector<std::shared_ptr<BattleSession>>> sessions_by_room_;
     };
 }

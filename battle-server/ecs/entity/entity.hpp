@@ -32,7 +32,7 @@ namespace battle::ecs {
     inline constexpr Entity NullEntity{};
 }
 
-namespace std {
+namespace std { //NOLINT
     template <>
     struct hash<battle::ecs::Entity> {
         size_t operator()(const battle::ecs::Entity& entity) const noexcept {

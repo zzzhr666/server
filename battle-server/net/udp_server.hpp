@@ -20,7 +20,7 @@ namespace battle {
 
         void set_runtime(BattleRuntime& battle_runtime);
 
-        void send_packet(const v1::ServerPacket& packet, const UdpEndpoint& endpoint);
+        void send_packet(const v1::ServerPacket& packet, const UdpEndpoint& endpoint) const;
 
         bool start();
 
@@ -33,17 +33,19 @@ namespace battle {
             return next_conv_.fetch_add(1);
         }
 
-        void send_packet_(const v1::ServerPacket& packet, const sockaddr_in& remote_addr, socklen_t remote_addr_len);
+        void send_packet_(const v1::ServerPacket& packet, const sockaddr_in& remote_addr, socklen_t remote_addr_len) const;
 
         bool parse_listen_addr_(sockaddr_in& out) const;
 
         void handle_hello_(const v1::ClientPacket& packet, const sockaddr_in& remote_addr, socklen_t remote_addr_len);
 
         void handle_move_input_(const v1::ClientPacket& packet, const sockaddr_in& remote_addr,
-                                socklen_t remote_addr_len);
+                                socklen_t remote_addr_len) const;
 
         void handle_choose_blessing_(const v1::ClientPacket& packet, const sockaddr_in& remote_addr,
-                                     socklen_t remote_addr_len);
+                                     socklen_t remote_addr_len) const;
+
+        void handle_heartbeat_(const v1::ClientPacket& packet, const sockaddr_in& remote_addr,socklen_t remote_addr_len) const;
 
     private:
         std::string listen_addr_;

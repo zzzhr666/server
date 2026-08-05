@@ -1,6 +1,5 @@
 #include "attack_resolve_system.hpp"
 
-#include <algorithm>
 #include "ecs/world.hpp"
 
 void battle::ecs::attack_resolve_system(World& world, DeltaTime delta_time) {

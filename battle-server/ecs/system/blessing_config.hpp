@@ -8,9 +8,10 @@ namespace battle::ecs {
     }
 
     struct CriticalStrikeConfig {
-        static constexpr int BasePercent = 25;
-        static constexpr int PercentPerLevel = 5;
-        static constexpr int DamageMultiplier = 2;
+        static constexpr int BasePercent = 15;
+        static constexpr int PercentPerLevel = 4;
+        static constexpr int BaseDamagePercent = 175;
+        static constexpr int DamagePercentPerLevel = 15;
     };
 
     constexpr int critical_strike_percent(int level) {
@@ -18,9 +19,14 @@ namespace battle::ecs {
             CriticalStrikeConfig::PercentPerLevel;
     }
 
+    constexpr int critical_strike_damage_percent(int level) {
+        return CriticalStrikeConfig::BaseDamagePercent + (normalized_blessing_level(level) - 1) *
+            CriticalStrikeConfig::DamagePercentPerLevel;
+    }
+
     struct LifeStealConfig {
-        static constexpr int BasePercent = 50;
-        static constexpr int PercentPerLevel = 10;
+        static constexpr int BasePercent = 8;
+        static constexpr int PercentPerLevel = 2;
     };
 
     constexpr int life_steal_percent(int level) {
@@ -28,19 +34,19 @@ namespace battle::ecs {
     }
 
     struct BurnOnHitConfig {
-        static constexpr int BaseDamagePerTick = 5;
-        static constexpr int DamagePerTickPerLevel = 3;
-        static constexpr DeltaTime BaseDurationSeconds = DeltaTime{3.0f};
+        static constexpr int BaseDamagePerTick = 6;
+        static constexpr int DamagePerTickPerLevel = 2;
+        static constexpr DeltaTime BaseDurationSeconds = DeltaTime{2.5f};
         static constexpr DeltaTime DurationSecondsPerLevel = DeltaTime{0.5f};
         static constexpr DeltaTime TickIntervalSeconds = DeltaTime{1.0f};
     };
 
     struct ChainLightningConfig {
-        static constexpr int BaseDamagePercent = 40;
+        static constexpr int BaseDamagePercent = 50;
         static constexpr int DamagePercentPerLevel = 10;
-        static constexpr int BaseSecondaryTargets = 2;
-        static constexpr int LevelsPerExtraTarget = 2;
-        static constexpr float JumpRadius = 25.0f;
+        static constexpr int BaseSecondaryTargets = 1;
+        static constexpr int LevelsPerExtraTarget = 1;
+        static constexpr float JumpRadius = 9.0f;
     };
 
     constexpr int burn_damage_per_tick(int level) {
@@ -54,10 +60,10 @@ namespace battle::ecs {
     }
 
     struct FreezeOnHitConfig {
-        static constexpr int BasePercent = 50;
-        static constexpr int PercentPerLevel = 10;
-        static constexpr DeltaTime BaseDurationSeconds = DeltaTime{2.0f};
-        static constexpr DeltaTime DurationSecondsPerLevel = DeltaTime{0.25f};
+        static constexpr int BasePercent = 15;
+        static constexpr int PercentPerLevel = 4;
+        static constexpr DeltaTime BaseDurationSeconds = DeltaTime{1.0f};
+        static constexpr DeltaTime DurationSecondsPerLevel = DeltaTime{0.15f};
     };
 
     constexpr int freeze_percent(int level) {

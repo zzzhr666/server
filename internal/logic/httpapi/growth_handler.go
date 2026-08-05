@@ -7,13 +7,38 @@ import (
 	"server/internal/logic/growth"
 )
 
-func toGrowthResponse(g *growth.Growth) growthResponse {
+func toGrowthResponse(g *growth.Growth, options []growth.UpgradeOption) growthResponse {
+	responseOptions := make([]growthUpgradeOptionResponse, 0, len(options))
+	for _, option := range options {
+		responseOptions = append(responseOptions, growthUpgradeOptionResponse{
+			Type:         upgradeTypeName(option.Type),
+			CurrentLevel: option.CurrentLevel,
+			NextCost:     option.NextCost,
+			MaxLevel:     option.MaxLevel,
+		})
+	}
 	return growthResponse{
 		PlayerID:         g.PlayerID,
 		AttackLevel:      g.AttackLevel,
 		AttackSpeedLevel: g.AttackSpeedLevel,
 		HealthLevel:      g.HealthLevel,
 		MoveSpeedLevel:   g.MoveSpeedLevel,
+		UpgradeOptions:   responseOptions,
+	}
+}
+
+func upgradeTypeName(upgradeType growth.UpgradeType) string {
+	switch upgradeType {
+	case growth.UpgradeAttack:
+		return "attack"
+	case growth.UpgradeAttackSpeed:
+		return "attack_speed"
+	case growth.UpgradeHealth:
+		return "health"
+	case growth.UpgradeMoveSpeed:
+		return "move_speed"
+	default:
+		return "unknown"
 	}
 }
 
@@ -58,7 +83,12 @@ func (h *Handler) handleGetGrowth(w http.ResponseWriter, r *http.Request) {
 		writeGrowthError(w, err)
 		return
 	}
-	writeJSON(w, http.StatusOK, toGrowthResponse(g))
+	options, err := h.growthService.UpgradeOptions(g)
+	if err != nil {
+		writeGrowthError(w, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, toGrowthResponse(g, options))
 }
 
 func (h *Handler) handleUpgrade(w http.ResponseWriter, r *http.Request) {
@@ -83,8 +113,13 @@ func (h *Handler) handleUpgrade(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	options, err := h.growthService.UpgradeOptions(result.Growth)
+	if err != nil {
+		writeGrowthError(w, err)
+		return
+	}
 	writeJSON(w, http.StatusOK, upgradeGrowthResponse{
-		Growth:         toGrowthResponse(result.Growth),
+		Growth:         toGrowthResponse(result.Growth, options),
 		RemainingCoins: result.RemainingCoins,
 		Cost:           result.Cost,
 	})

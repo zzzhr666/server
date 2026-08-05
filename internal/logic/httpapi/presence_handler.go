@@ -3,6 +3,7 @@ package httpapi
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"log"
 	"net/http"
 	statecontract "server/internal/contract/state"
@@ -59,6 +60,9 @@ func (h *Handler) handleWebSocket(w http.ResponseWriter, r *http.Request) {
 		}
 		h.publishFriendPresenceChanged(ctx, session.PlayerID, false, presence.StatusOffline)
 	}()
+	if err := h.sendResumedMatch(context.Background(), conn, session.PlayerID); err != nil && !errors.Is(err, rcenter.ErrActiveMatchNotFound) {
+		log.Printf("match resume failed: player_id = %d err = %v", session.PlayerID, err)
+	}
 
 	for {
 		readCtx, cancel := context.WithTimeout(context.Background(), websocketReadTimeout)
@@ -117,8 +121,39 @@ func (h *Handler) handleWebSocket(w http.ResponseWriter, r *http.Request) {
 			_ = wsjson.Write(context.Background(), conn, matchCancelMessage{
 				Type: serverEventMatchCanceled,
 			})
+		case messageTypeMatchResume:
+			if h.matchService == nil {
+				continue
+			}
+			err := h.sendResumedMatch(context.Background(), conn, session.PlayerID)
+			if err != nil {
+				_ = wsjson.Write(context.Background(), conn, matchErrorMessage{
+					Type:  serverEventMatchError,
+					Error: err.Error(),
+				})
+				continue
+			}
 		}
 	}
+}
+
+// sendResumedMatch sends a player's active battle assignment to its WebSocket connection.
+func (h *Handler) sendResumedMatch(ctx context.Context, conn *websocket.Conn, playerID int64) error {
+	if h.matchService == nil {
+		return nil
+	}
+	res, err := h.matchService.Resume(ctx, playerID)
+	if err != nil {
+		return err
+	}
+	return wsjson.Write(ctx, conn, matchResultMessage{
+		Type:           serverEventMatchResult,
+		Status:         string(res.Status),
+		RoomName:       res.RoomName,
+		Token:          res.Token,
+		BattleNodeName: res.BattleNodeName,
+		BattleKCPAddr:  res.BattleKCPAddr,
+	})
 }
 
 // pushMatchResultToPlayers sends a matched result to the other players in the room.

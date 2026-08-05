@@ -32,6 +32,17 @@ func (c *Client) StartMatch(ctx context.Context, playerID int64, weapon string) 
 	return rcenterproto.FromProtoMatchResult(res.Result), nil
 }
 
+// ResumeMatch retrieves a player's active battle assignment from rcenter.
+func (c *Client) ResumeMatch(ctx context.Context, playerID int64) (*rcenter.MatchResult, error) {
+	res, err := c.client.ResumeMatch(ctx, &rcenterpb.ResumeMatchRequest{
+		PlayerId: playerID,
+	})
+	if err != nil {
+		return nil, mapGRPCError(err)
+	}
+	return rcenterproto.FromProtoMatchResult(res.Result), nil
+}
+
 // CancelMatch asks rcenter to remove one player from the waiting queue.
 func (c *Client) CancelMatch(ctx context.Context, playerID int64) error {
 	_, err := c.client.CancelMatch(ctx, &rcenterpb.CancelMatchRequest{
@@ -103,6 +114,11 @@ func mapGRPCError(err error) error {
 			return rcenter.ErrPlayerNotWaiting
 		case rcenter.ErrPlayerInGame.Error():
 			return rcenter.ErrPlayerInGame
+		}
+	case codes.NotFound:
+		switch st.Message() {
+		case rcenter.ErrActiveMatchNotFound.Error():
+			return rcenter.ErrActiveMatchNotFound
 		}
 
 	}

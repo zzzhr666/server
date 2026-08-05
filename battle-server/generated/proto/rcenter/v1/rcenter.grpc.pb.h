@@ -72,6 +72,13 @@ class RCenterService final {
     std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::rcenter::v1::FinishMatchResponse>> PrepareAsyncFinishMatch(::grpc::ClientContext* context, const ::rcenter::v1::FinishMatchRequest& request, ::grpc::CompletionQueue* cq) {
       return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::rcenter::v1::FinishMatchResponse>>(PrepareAsyncFinishMatchRaw(context, request, cq));
     }
+    virtual ::grpc::Status ResumeMatch(::grpc::ClientContext* context, const ::rcenter::v1::ResumeMatchRequest& request, ::rcenter::v1::ResumeMatchResponse* response) = 0;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::rcenter::v1::ResumeMatchResponse>> AsyncResumeMatch(::grpc::ClientContext* context, const ::rcenter::v1::ResumeMatchRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::rcenter::v1::ResumeMatchResponse>>(AsyncResumeMatchRaw(context, request, cq));
+    }
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::rcenter::v1::ResumeMatchResponse>> PrepareAsyncResumeMatch(::grpc::ClientContext* context, const ::rcenter::v1::ResumeMatchRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::rcenter::v1::ResumeMatchResponse>>(PrepareAsyncResumeMatchRaw(context, request, cq));
+    }
     class async_interface {
      public:
       virtual ~async_interface() {}
@@ -85,6 +92,8 @@ class RCenterService final {
       virtual void CancelMatch(::grpc::ClientContext* context, const ::rcenter::v1::CancelMatchRequest* request, ::rcenter::v1::CancelMatchResponse* response, ::grpc::ClientUnaryReactor* reactor) = 0;
       virtual void FinishMatch(::grpc::ClientContext* context, const ::rcenter::v1::FinishMatchRequest* request, ::rcenter::v1::FinishMatchResponse* response, std::function<void(::grpc::Status)>) = 0;
       virtual void FinishMatch(::grpc::ClientContext* context, const ::rcenter::v1::FinishMatchRequest* request, ::rcenter::v1::FinishMatchResponse* response, ::grpc::ClientUnaryReactor* reactor) = 0;
+      virtual void ResumeMatch(::grpc::ClientContext* context, const ::rcenter::v1::ResumeMatchRequest* request, ::rcenter::v1::ResumeMatchResponse* response, std::function<void(::grpc::Status)>) = 0;
+      virtual void ResumeMatch(::grpc::ClientContext* context, const ::rcenter::v1::ResumeMatchRequest* request, ::rcenter::v1::ResumeMatchResponse* response, ::grpc::ClientUnaryReactor* reactor) = 0;
     };
     typedef class async_interface experimental_async_interface;
     virtual class async_interface* async() { return nullptr; }
@@ -100,6 +109,8 @@ class RCenterService final {
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::rcenter::v1::CancelMatchResponse>* PrepareAsyncCancelMatchRaw(::grpc::ClientContext* context, const ::rcenter::v1::CancelMatchRequest& request, ::grpc::CompletionQueue* cq) = 0;
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::rcenter::v1::FinishMatchResponse>* AsyncFinishMatchRaw(::grpc::ClientContext* context, const ::rcenter::v1::FinishMatchRequest& request, ::grpc::CompletionQueue* cq) = 0;
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::rcenter::v1::FinishMatchResponse>* PrepareAsyncFinishMatchRaw(::grpc::ClientContext* context, const ::rcenter::v1::FinishMatchRequest& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::rcenter::v1::ResumeMatchResponse>* AsyncResumeMatchRaw(::grpc::ClientContext* context, const ::rcenter::v1::ResumeMatchRequest& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::rcenter::v1::ResumeMatchResponse>* PrepareAsyncResumeMatchRaw(::grpc::ClientContext* context, const ::rcenter::v1::ResumeMatchRequest& request, ::grpc::CompletionQueue* cq) = 0;
   };
   class Stub final : public StubInterface {
    public:
@@ -139,6 +150,13 @@ class RCenterService final {
     std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::rcenter::v1::FinishMatchResponse>> PrepareAsyncFinishMatch(::grpc::ClientContext* context, const ::rcenter::v1::FinishMatchRequest& request, ::grpc::CompletionQueue* cq) {
       return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::rcenter::v1::FinishMatchResponse>>(PrepareAsyncFinishMatchRaw(context, request, cq));
     }
+    ::grpc::Status ResumeMatch(::grpc::ClientContext* context, const ::rcenter::v1::ResumeMatchRequest& request, ::rcenter::v1::ResumeMatchResponse* response) override;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::rcenter::v1::ResumeMatchResponse>> AsyncResumeMatch(::grpc::ClientContext* context, const ::rcenter::v1::ResumeMatchRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::rcenter::v1::ResumeMatchResponse>>(AsyncResumeMatchRaw(context, request, cq));
+    }
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::rcenter::v1::ResumeMatchResponse>> PrepareAsyncResumeMatch(::grpc::ClientContext* context, const ::rcenter::v1::ResumeMatchRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::rcenter::v1::ResumeMatchResponse>>(PrepareAsyncResumeMatchRaw(context, request, cq));
+    }
     class async final :
       public StubInterface::async_interface {
      public:
@@ -152,6 +170,8 @@ class RCenterService final {
       void CancelMatch(::grpc::ClientContext* context, const ::rcenter::v1::CancelMatchRequest* request, ::rcenter::v1::CancelMatchResponse* response, ::grpc::ClientUnaryReactor* reactor) override;
       void FinishMatch(::grpc::ClientContext* context, const ::rcenter::v1::FinishMatchRequest* request, ::rcenter::v1::FinishMatchResponse* response, std::function<void(::grpc::Status)>) override;
       void FinishMatch(::grpc::ClientContext* context, const ::rcenter::v1::FinishMatchRequest* request, ::rcenter::v1::FinishMatchResponse* response, ::grpc::ClientUnaryReactor* reactor) override;
+      void ResumeMatch(::grpc::ClientContext* context, const ::rcenter::v1::ResumeMatchRequest* request, ::rcenter::v1::ResumeMatchResponse* response, std::function<void(::grpc::Status)>) override;
+      void ResumeMatch(::grpc::ClientContext* context, const ::rcenter::v1::ResumeMatchRequest* request, ::rcenter::v1::ResumeMatchResponse* response, ::grpc::ClientUnaryReactor* reactor) override;
      private:
       friend class Stub;
       explicit async(Stub* stub): stub_(stub) { }
@@ -173,11 +193,14 @@ class RCenterService final {
     ::grpc::ClientAsyncResponseReader< ::rcenter::v1::CancelMatchResponse>* PrepareAsyncCancelMatchRaw(::grpc::ClientContext* context, const ::rcenter::v1::CancelMatchRequest& request, ::grpc::CompletionQueue* cq) override;
     ::grpc::ClientAsyncResponseReader< ::rcenter::v1::FinishMatchResponse>* AsyncFinishMatchRaw(::grpc::ClientContext* context, const ::rcenter::v1::FinishMatchRequest& request, ::grpc::CompletionQueue* cq) override;
     ::grpc::ClientAsyncResponseReader< ::rcenter::v1::FinishMatchResponse>* PrepareAsyncFinishMatchRaw(::grpc::ClientContext* context, const ::rcenter::v1::FinishMatchRequest& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientAsyncResponseReader< ::rcenter::v1::ResumeMatchResponse>* AsyncResumeMatchRaw(::grpc::ClientContext* context, const ::rcenter::v1::ResumeMatchRequest& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientAsyncResponseReader< ::rcenter::v1::ResumeMatchResponse>* PrepareAsyncResumeMatchRaw(::grpc::ClientContext* context, const ::rcenter::v1::ResumeMatchRequest& request, ::grpc::CompletionQueue* cq) override;
     const ::grpc::internal::RpcMethod rpcmethod_RegisterBattleNode_;
     const ::grpc::internal::RpcMethod rpcmethod_ListBattleNodes_;
     const ::grpc::internal::RpcMethod rpcmethod_StartMatch_;
     const ::grpc::internal::RpcMethod rpcmethod_CancelMatch_;
     const ::grpc::internal::RpcMethod rpcmethod_FinishMatch_;
+    const ::grpc::internal::RpcMethod rpcmethod_ResumeMatch_;
   };
   static std::unique_ptr<Stub> NewStub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, const ::grpc::StubOptions& options = ::grpc::StubOptions());
 
@@ -190,6 +213,7 @@ class RCenterService final {
     virtual ::grpc::Status StartMatch(::grpc::ServerContext* context, const ::rcenter::v1::StartMatchRequest* request, ::rcenter::v1::StartMatchResponse* response);
     virtual ::grpc::Status CancelMatch(::grpc::ServerContext* context, const ::rcenter::v1::CancelMatchRequest* request, ::rcenter::v1::CancelMatchResponse* response);
     virtual ::grpc::Status FinishMatch(::grpc::ServerContext* context, const ::rcenter::v1::FinishMatchRequest* request, ::rcenter::v1::FinishMatchResponse* response);
+    virtual ::grpc::Status ResumeMatch(::grpc::ServerContext* context, const ::rcenter::v1::ResumeMatchRequest* request, ::rcenter::v1::ResumeMatchResponse* response);
   };
   template <class BaseClass>
   class WithAsyncMethod_RegisterBattleNode : public BaseClass {
@@ -291,7 +315,27 @@ class RCenterService final {
       ::grpc::Service::RequestAsyncUnary(4, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
-  typedef WithAsyncMethod_RegisterBattleNode<WithAsyncMethod_ListBattleNodes<WithAsyncMethod_StartMatch<WithAsyncMethod_CancelMatch<WithAsyncMethod_FinishMatch<Service > > > > > AsyncService;
+  template <class BaseClass>
+  class WithAsyncMethod_ResumeMatch : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithAsyncMethod_ResumeMatch() {
+      ::grpc::Service::MarkMethodAsync(5);
+    }
+    ~WithAsyncMethod_ResumeMatch() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status ResumeMatch(::grpc::ServerContext* /*context*/, const ::rcenter::v1::ResumeMatchRequest* /*request*/, ::rcenter::v1::ResumeMatchResponse* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    void RequestResumeMatch(::grpc::ServerContext* context, ::rcenter::v1::ResumeMatchRequest* request, ::grpc::ServerAsyncResponseWriter< ::rcenter::v1::ResumeMatchResponse>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+      ::grpc::Service::RequestAsyncUnary(5, context, request, response, new_call_cq, notification_cq, tag);
+    }
+  };
+  typedef WithAsyncMethod_RegisterBattleNode<WithAsyncMethod_ListBattleNodes<WithAsyncMethod_StartMatch<WithAsyncMethod_CancelMatch<WithAsyncMethod_FinishMatch<WithAsyncMethod_ResumeMatch<Service > > > > > > AsyncService;
   template <class BaseClass>
   class WithCallbackMethod_RegisterBattleNode : public BaseClass {
    private:
@@ -427,7 +471,34 @@ class RCenterService final {
     virtual ::grpc::ServerUnaryReactor* FinishMatch(
       ::grpc::CallbackServerContext* /*context*/, const ::rcenter::v1::FinishMatchRequest* /*request*/, ::rcenter::v1::FinishMatchResponse* /*response*/)  { return nullptr; }
   };
-  typedef WithCallbackMethod_RegisterBattleNode<WithCallbackMethod_ListBattleNodes<WithCallbackMethod_StartMatch<WithCallbackMethod_CancelMatch<WithCallbackMethod_FinishMatch<Service > > > > > CallbackService;
+  template <class BaseClass>
+  class WithCallbackMethod_ResumeMatch : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithCallbackMethod_ResumeMatch() {
+      ::grpc::Service::MarkMethodCallback(5,
+          new ::grpc::internal::CallbackUnaryHandler< ::rcenter::v1::ResumeMatchRequest, ::rcenter::v1::ResumeMatchResponse>(
+            [this](
+                   ::grpc::CallbackServerContext* context, const ::rcenter::v1::ResumeMatchRequest* request, ::rcenter::v1::ResumeMatchResponse* response) { return this->ResumeMatch(context, request, response); }));}
+    void SetMessageAllocatorFor_ResumeMatch(
+        ::grpc::MessageAllocator< ::rcenter::v1::ResumeMatchRequest, ::rcenter::v1::ResumeMatchResponse>* allocator) {
+      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(5);
+      static_cast<::grpc::internal::CallbackUnaryHandler< ::rcenter::v1::ResumeMatchRequest, ::rcenter::v1::ResumeMatchResponse>*>(handler)
+              ->SetMessageAllocator(allocator);
+    }
+    ~WithCallbackMethod_ResumeMatch() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status ResumeMatch(::grpc::ServerContext* /*context*/, const ::rcenter::v1::ResumeMatchRequest* /*request*/, ::rcenter::v1::ResumeMatchResponse* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    virtual ::grpc::ServerUnaryReactor* ResumeMatch(
+      ::grpc::CallbackServerContext* /*context*/, const ::rcenter::v1::ResumeMatchRequest* /*request*/, ::rcenter::v1::ResumeMatchResponse* /*response*/)  { return nullptr; }
+  };
+  typedef WithCallbackMethod_RegisterBattleNode<WithCallbackMethod_ListBattleNodes<WithCallbackMethod_StartMatch<WithCallbackMethod_CancelMatch<WithCallbackMethod_FinishMatch<WithCallbackMethod_ResumeMatch<Service > > > > > > CallbackService;
   typedef CallbackService ExperimentalCallbackService;
   template <class BaseClass>
   class WithGenericMethod_RegisterBattleNode : public BaseClass {
@@ -510,6 +581,23 @@ class RCenterService final {
     }
     // disable synchronous version of this method
     ::grpc::Status FinishMatch(::grpc::ServerContext* /*context*/, const ::rcenter::v1::FinishMatchRequest* /*request*/, ::rcenter::v1::FinishMatchResponse* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+  };
+  template <class BaseClass>
+  class WithGenericMethod_ResumeMatch : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithGenericMethod_ResumeMatch() {
+      ::grpc::Service::MarkMethodGeneric(5);
+    }
+    ~WithGenericMethod_ResumeMatch() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status ResumeMatch(::grpc::ServerContext* /*context*/, const ::rcenter::v1::ResumeMatchRequest* /*request*/, ::rcenter::v1::ResumeMatchResponse* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
@@ -612,6 +700,26 @@ class RCenterService final {
     }
     void RequestFinishMatch(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
       ::grpc::Service::RequestAsyncUnary(4, context, request, response, new_call_cq, notification_cq, tag);
+    }
+  };
+  template <class BaseClass>
+  class WithRawMethod_ResumeMatch : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithRawMethod_ResumeMatch() {
+      ::grpc::Service::MarkMethodRaw(5);
+    }
+    ~WithRawMethod_ResumeMatch() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status ResumeMatch(::grpc::ServerContext* /*context*/, const ::rcenter::v1::ResumeMatchRequest* /*request*/, ::rcenter::v1::ResumeMatchResponse* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    void RequestResumeMatch(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+      ::grpc::Service::RequestAsyncUnary(5, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -722,6 +830,28 @@ class RCenterService final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     virtual ::grpc::ServerUnaryReactor* FinishMatch(
+      ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)  { return nullptr; }
+  };
+  template <class BaseClass>
+  class WithRawCallbackMethod_ResumeMatch : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithRawCallbackMethod_ResumeMatch() {
+      ::grpc::Service::MarkMethodRawCallback(5,
+          new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
+            [this](
+                   ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->ResumeMatch(context, request, response); }));
+    }
+    ~WithRawCallbackMethod_ResumeMatch() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status ResumeMatch(::grpc::ServerContext* /*context*/, const ::rcenter::v1::ResumeMatchRequest* /*request*/, ::rcenter::v1::ResumeMatchResponse* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    virtual ::grpc::ServerUnaryReactor* ResumeMatch(
       ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)  { return nullptr; }
   };
   template <class BaseClass>
@@ -859,9 +989,36 @@ class RCenterService final {
     // replace default version of method with streamed unary
     virtual ::grpc::Status StreamedFinishMatch(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::rcenter::v1::FinishMatchRequest,::rcenter::v1::FinishMatchResponse>* server_unary_streamer) = 0;
   };
-  typedef WithStreamedUnaryMethod_RegisterBattleNode<WithStreamedUnaryMethod_ListBattleNodes<WithStreamedUnaryMethod_StartMatch<WithStreamedUnaryMethod_CancelMatch<WithStreamedUnaryMethod_FinishMatch<Service > > > > > StreamedUnaryService;
+  template <class BaseClass>
+  class WithStreamedUnaryMethod_ResumeMatch : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithStreamedUnaryMethod_ResumeMatch() {
+      ::grpc::Service::MarkMethodStreamed(5,
+        new ::grpc::internal::StreamedUnaryHandler<
+          ::rcenter::v1::ResumeMatchRequest, ::rcenter::v1::ResumeMatchResponse>(
+            [this](::grpc::ServerContext* context,
+                   ::grpc::ServerUnaryStreamer<
+                     ::rcenter::v1::ResumeMatchRequest, ::rcenter::v1::ResumeMatchResponse>* streamer) {
+                       return this->StreamedResumeMatch(context,
+                         streamer);
+                  }));
+    }
+    ~WithStreamedUnaryMethod_ResumeMatch() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable regular version of this method
+    ::grpc::Status ResumeMatch(::grpc::ServerContext* /*context*/, const ::rcenter::v1::ResumeMatchRequest* /*request*/, ::rcenter::v1::ResumeMatchResponse* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    // replace default version of method with streamed unary
+    virtual ::grpc::Status StreamedResumeMatch(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::rcenter::v1::ResumeMatchRequest,::rcenter::v1::ResumeMatchResponse>* server_unary_streamer) = 0;
+  };
+  typedef WithStreamedUnaryMethod_RegisterBattleNode<WithStreamedUnaryMethod_ListBattleNodes<WithStreamedUnaryMethod_StartMatch<WithStreamedUnaryMethod_CancelMatch<WithStreamedUnaryMethod_FinishMatch<WithStreamedUnaryMethod_ResumeMatch<Service > > > > > > StreamedUnaryService;
   typedef Service SplitStreamedService;
-  typedef WithStreamedUnaryMethod_RegisterBattleNode<WithStreamedUnaryMethod_ListBattleNodes<WithStreamedUnaryMethod_StartMatch<WithStreamedUnaryMethod_CancelMatch<WithStreamedUnaryMethod_FinishMatch<Service > > > > > StreamedService;
+  typedef WithStreamedUnaryMethod_RegisterBattleNode<WithStreamedUnaryMethod_ListBattleNodes<WithStreamedUnaryMethod_StartMatch<WithStreamedUnaryMethod_CancelMatch<WithStreamedUnaryMethod_FinishMatch<WithStreamedUnaryMethod_ResumeMatch<Service > > > > > > StreamedService;
 };
 
 }  // namespace v1

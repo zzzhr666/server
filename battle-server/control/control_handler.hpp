@@ -10,12 +10,12 @@ namespace battle {
         ControlHandler(RoomManager& room_manager, BattleRuntime& battle_runtime);
 
         /// Handles a control-plane request to reserve a room.
-        CreateRoomResult create_room(CreateRoomRequest request);
+        [[nodiscard]] CreateRoomResult create_room(const CreateRoomRequest& request) const;
 
         /// Handles a control-plane request to mark a player as joined.
-        JoinRoomResult join_room(JoinRoomRequest request);
+        [[nodiscard]] JoinRoomResult join_room(const JoinRoomRequest& request) const;
 
-        EndRoomResult end_room(EndRoomRequest request);
+        [[nodiscard]] EndRoomResult end_room(const EndRoomRequest& request) const;
 
     private:
         RoomManager& room_manager_;

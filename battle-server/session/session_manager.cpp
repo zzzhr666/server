@@ -1,5 +1,7 @@
 #include "session_manager.hpp"
 
+#include <ranges>
+
 #include "battle_session.hpp"
 #include "game/game_manager.hpp"
 #include "game/room.hpp"
@@ -39,26 +41,62 @@ battle::JoinSessionResult battle::SessionManager::join(JoinSessionRequest reques
             .session = nullptr
         };
     }
-
+    std::shared_ptr<BattleSession> existing_session;
     {
         std::lock_guard<std::mutex> lock(mutex_);
         if (const auto it = sessions_by_player_.find(request.player_id); it != sessions_by_player_.end()) {
-            return {
-                .status = JoinSessionStatus::AlreadyJoined,
-                .message = "existing session",
-                .all_players_joined = false,
-                .session = it->second
-            };
-        }
-        if (const auto it = sessions_by_conv_.find(request.conv); it != sessions_by_conv_.end()) {
-            return {
-                .status = JoinSessionStatus::AlreadyJoined,
-                .message = "existing session",
-                .all_players_joined = false,
-                .session = it->second
-            };
+            existing_session = it->second;
         }
     }
+    if (existing_session) {
+        if (existing_session->room_name() != request.room_name) {
+            return {
+                .status = JoinSessionStatus::PlayerNotAllowed,
+                .message = "invalid request",
+                .all_players_joined = false,
+                .session = nullptr
+            };
+        }
+        if (!room_manager_.can_join(request.room_name, request.player_id, request.token)) {
+            return {
+                .status = JoinSessionStatus::InvalidToken,
+                .message = "invalid token",
+                .all_players_joined = false,
+                .session = nullptr,
+            };
+        }
+        std::lock_guard<std::mutex> lock(mutex_);
+        const auto player_it = sessions_by_player_.find(request.player_id);
+        if (player_it == sessions_by_player_.end() || player_it->second != existing_session) {
+            return {
+                .status = JoinSessionStatus::RoomNotFound,
+                .message = "session no longer exists",
+                .all_players_joined = false,
+                .session = nullptr,
+            };
+        }
+        const auto conv_it = sessions_by_conv_.find(request.conv);
+        if (conv_it != sessions_by_conv_.end() && conv_it->second != existing_session) {
+            return {
+                .status = JoinSessionStatus::InternalError,
+                .message = "conversation already in use",
+                .all_players_joined = false,
+                .session = nullptr,
+            };
+        }
+        const auto old_conv = existing_session->conv();
+        sessions_by_conv_.erase(old_conv);
+
+        existing_session->rebind(request.conv, request.endpoint);
+        sessions_by_conv_[request.conv] = existing_session;
+        return {
+            .status = JoinSessionStatus::AlreadyJoined,
+            .message = "session reconnected",
+            .all_players_joined = false,
+            .session = existing_session,
+        };
+    }
+
     JoinRoomResult res = room_manager_.join_room({
         .room_name = request.room_name,
         .token = request.token,
@@ -145,4 +183,46 @@ void battle::SessionManager::remove_room(std::string_view room_name) {
         session->close();
     }
     sessions_by_room_.erase(it);
+}
+
+bool battle::SessionManager::touch(std::string_view room_name, std::int64_t player_id, const UdpEndpoint& endpoint) {
+    std::lock_guard<std::mutex> lock(mutex_);
+    const auto it = sessions_by_player_.find(player_id);
+    if (it == sessions_by_player_.end()) {
+        return false;
+    }
+    const auto& session = it->second;
+    return session->room_name() == room_name ? session->touch(endpoint) : false;
+}
+
+std::size_t battle::SessionManager::mark_stale_sessions(std::chrono::steady_clock::time_point now,
+                                                        std::chrono::steady_clock::duration idle_timeout) {
+    std::vector<std::shared_ptr<BattleSession>> sessions;
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        sessions.reserve(sessions_by_player_.size());
+        for (const auto& session : sessions_by_player_ | std::views::values) {
+            sessions.emplace_back(session);
+        }
+    }
+    std::size_t disconnected_count = 0;
+    for (const auto& session : sessions) {
+        if (session->mark_disconnected_if_stale(now,idle_timeout)) {
+            ++disconnected_count;
+        }
+    }
+    return disconnected_count;
+}
+
+std::vector<std::shared_ptr<battle::BattleSession>> battle::SessionManager::connected_sessions_in_room(
+    std::string_view room_name) const {
+    auto sessions = sessions_in_room(room_name);
+    std::vector<std::shared_ptr<BattleSession>>connected_sessions;
+    connected_sessions.reserve(sessions.size());
+    for (const auto& session : sessions) {
+        if (session->state() == BattleSessionState::Connected) {
+            connected_sessions.emplace_back(session);
+        }
+    }
+    return connected_sessions;
 }

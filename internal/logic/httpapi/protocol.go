@@ -43,6 +43,7 @@ const (
 	messageTypeHeartbeat   = "heartbeat"
 	messageTypeMatchStart  = "match_start"
 	messageTypeMatchCancel = "match_cancel"
+	messageTypeMatchResume = "match_resume"
 )
 
 const (
@@ -131,11 +132,19 @@ type matchCancelMessage struct {
 }
 
 type growthResponse struct {
-	PlayerID         int64 `json:"player_id"`
-	AttackLevel      int32 `json:"attack_level"`
-	AttackSpeedLevel int32 `json:"attack_speed_level"`
-	HealthLevel      int32 `json:"health_level"`
-	MoveSpeedLevel   int32 `json:"move_speed_level"`
+	PlayerID         int64                         `json:"player_id"`
+	AttackLevel      int32                         `json:"attack_level"`
+	AttackSpeedLevel int32                         `json:"attack_speed_level"`
+	HealthLevel      int32                         `json:"health_level"`
+	MoveSpeedLevel   int32                         `json:"move_speed_level"`
+	UpgradeOptions   []growthUpgradeOptionResponse `json:"upgrade_options"`
+}
+
+type growthUpgradeOptionResponse struct {
+	Type         string `json:"type"`
+	CurrentLevel int32  `json:"current_level"`
+	NextCost     int64  `json:"next_cost"`
+	MaxLevel     int32  `json:"max_level"`
 }
 
 type upgradeGrowthRequest struct {

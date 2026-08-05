@@ -7,6 +7,7 @@ import (
 type Service interface {
 	Upgrade(ctx context.Context, playerID int64, upgradeType UpgradeType) (*UpgradeResult, error)
 	Get(ctx context.Context, playerID int64) (*Growth, error)
+	UpgradeOptions(growth *Growth) ([]UpgradeOption, error)
 }
 
 type Repository interface {
@@ -85,4 +86,42 @@ func (g *GameGrowthService) Get(ctx context.Context, playerID int64) (*Growth, e
 	}
 	return g.repo.Get(ctx, playerID)
 
+}
+
+// UpgradeOptions returns the current level, next price, and level cap for every growth attribute.
+func (g *GameGrowthService) UpgradeOptions(current *Growth) ([]UpgradeOption, error) {
+	if current == nil {
+		return nil, ErrInvalidGrowthLevel
+	}
+
+	types := []UpgradeType{
+		UpgradeAttack,
+		UpgradeAttackSpeed,
+		UpgradeHealth,
+		UpgradeMoveSpeed,
+	}
+	options := make([]UpgradeOption, 0, len(types))
+	for _, upgradeType := range types {
+		rule, ok := g.rules[upgradeType]
+		if !ok {
+			return nil, ErrInvalidUpgradeType
+		}
+		level, err := current.LevelOf(upgradeType)
+		if err != nil {
+			return nil, err
+		}
+		option := UpgradeOption{
+			Type:         upgradeType,
+			CurrentLevel: level,
+			MaxLevel:     rule.MaxLevel,
+		}
+		if level < rule.MaxLevel {
+			option.NextCost, err = rule.CostForLevel(level)
+			if err != nil {
+				return nil, err
+			}
+		}
+		options = append(options, option)
+	}
+	return options, nil
 }

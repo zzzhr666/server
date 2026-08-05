@@ -70,6 +70,47 @@ func TestClientStartMatch(t *testing.T) {
 	}
 }
 
+func TestClientResumeMatch(t *testing.T) {
+	grpcCenter := &fakeRCenterServiceClient{
+		resumeMatchResponse: &rcenterpb.ResumeMatchResponse{
+			Result: &rcenterpb.MatchResult{
+				Status:         string(rcenter.MatchStatusMatched),
+				RoomName:       "room-1",
+				Token:          "token-1",
+				BattleNodeName: "battle-1",
+				BattleKcpAddr:  "127.0.0.1:7001",
+				PlayerIds:      []int64{7, 8},
+			},
+		},
+	}
+	client := NewClient(grpcCenter)
+
+	result, err := client.ResumeMatch(context.Background(), 7)
+	if err != nil {
+		t.Fatalf("ResumeMatch returned error: %v", err)
+	}
+	if grpcCenter.resumeMatchRequest.GetPlayerId() != 7 {
+		t.Fatalf("player id = %d, want 7", grpcCenter.resumeMatchRequest.GetPlayerId())
+	}
+	if result.Status != rcenter.MatchStatusMatched || result.RoomName != "room-1" || result.Token != "token-1" {
+		t.Fatalf("result = %+v, want matched room credentials", result)
+	}
+	if !reflect.DeepEqual(result.PlayerIDs, []int64{7, 8}) {
+		t.Fatalf("player ids = %v, want [7 8]", result.PlayerIDs)
+	}
+}
+
+func TestClientResumeMatchMapsActiveMatchNotFound(t *testing.T) {
+	client := NewClient(&fakeRCenterServiceClient{
+		err: status.Error(codes.NotFound, rcenter.ErrActiveMatchNotFound.Error()),
+	})
+
+	_, err := client.ResumeMatch(context.Background(), 7)
+	if !errors.Is(err, rcenter.ErrActiveMatchNotFound) {
+		t.Fatalf("ResumeMatch error = %v, want %v", err, rcenter.ErrActiveMatchNotFound)
+	}
+}
+
 func TestClientStartMatchMapsInvalidPlayer(t *testing.T) {
 	client := NewClient(&fakeRCenterServiceClient{
 		err: status.Error(codes.InvalidArgument, rcenter.ErrInvalidPlayerID.Error()),
@@ -294,6 +335,8 @@ type fakeRCenterServiceClient struct {
 	listBattleNodesResponse   *rcenterpb.ListBattleNodesResponse
 	startMatchRequest         *rcenterpb.StartMatchRequest
 	startMatchResponse        *rcenterpb.StartMatchResponse
+	resumeMatchRequest        *rcenterpb.ResumeMatchRequest
+	resumeMatchResponse       *rcenterpb.ResumeMatchResponse
 	cancelMatchRequest        *rcenterpb.CancelMatchRequest
 	finishMatchRequest        *rcenterpb.FinishMatchRequest
 }
@@ -319,6 +362,14 @@ func (f *fakeRCenterServiceClient) StartMatch(ctx context.Context, in *rcenterpb
 		return nil, f.err
 	}
 	return f.startMatchResponse, nil
+}
+
+func (f *fakeRCenterServiceClient) ResumeMatch(ctx context.Context, in *rcenterpb.ResumeMatchRequest, opts ...grpc.CallOption) (*rcenterpb.ResumeMatchResponse, error) {
+	f.resumeMatchRequest = in
+	if f.err != nil {
+		return nil, f.err
+	}
+	return f.resumeMatchResponse, nil
 }
 
 func (f *fakeRCenterServiceClient) CancelMatch(ctx context.Context, in *rcenterpb.CancelMatchRequest, opts ...grpc.CallOption) (*rcenterpb.CancelMatchResponse, error) {

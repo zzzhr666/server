@@ -2,8 +2,6 @@
 
 #include <memory>
 #include <string>
-#include <cstdint>
-#include <vector>
 
 #include <grpcpp/grpcpp.h>
 #include "generated/proto/rcenter/v1/rcenter.grpc.pb.h"
@@ -28,9 +26,9 @@ namespace battle {
     public:
         explicit RCenterClient(std::shared_ptr<grpc::Channel> channel);
 
-        RegisterBattleNodeResult register_battle_node(const Config& config, const RoomManager& room_manager);
+        [[nodiscard]] RegisterBattleNodeResult register_battle_node(const Config& config, const RoomManager& room_manager) const;
 
-        FinishMatchResult finish_match(const FinishedBattle& finished);
+        [[nodiscard]] FinishMatchResult finish_match(const FinishedBattle& finished) const;
 
     private:
         std::unique_ptr<rcenter::v1::RCenterService::Stub> stub_;

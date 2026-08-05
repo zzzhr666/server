@@ -107,6 +107,49 @@ func TestStartMatchCreatesMatchedResult(t *testing.T) {
 	}
 }
 
+func TestResumeMatchReturnsMatchedResult(t *testing.T) {
+	server := NewServer(newTestCenterService())
+	mustRegisterBattleNode(t, server, &rcenterpb.BattleNode{
+		Name:        "battle-1",
+		KcpAddr:     "127.0.0.1:7001",
+		ControlAddr: "127.0.0.1:9101",
+		MaxPlayers:  100,
+	})
+	if _, err := server.StartMatch(context.Background(), &rcenterpb.StartMatchRequest{PlayerId: 7, Weapon: "axe"}); err != nil {
+		t.Fatalf("first StartMatch returned error: %v", err)
+	}
+	matched, err := server.StartMatch(context.Background(), &rcenterpb.StartMatchRequest{PlayerId: 8, Weapon: "dagger"})
+	if err != nil {
+		t.Fatalf("second StartMatch returned error: %v", err)
+	}
+
+	resumed, err := server.ResumeMatch(context.Background(), &rcenterpb.ResumeMatchRequest{PlayerId: 7})
+	if err != nil {
+		t.Fatalf("ResumeMatch returned error: %v", err)
+	}
+	if !reflect.DeepEqual(resumed.GetResult(), matched.GetResult()) {
+		t.Fatalf("resumed result = %+v, want %+v", resumed.GetResult(), matched.GetResult())
+	}
+}
+
+func TestResumeMatchMissingActiveMatchMapsToNotFound(t *testing.T) {
+	server := NewServer(newTestCenterService())
+
+	_, err := server.ResumeMatch(context.Background(), &rcenterpb.ResumeMatchRequest{PlayerId: 7})
+	if status.Code(err) != codes.NotFound {
+		t.Fatalf("ResumeMatch code = %v, want %v", status.Code(err), codes.NotFound)
+	}
+}
+
+func TestResumeMatchInvalidPlayerMapsToInvalidArgument(t *testing.T) {
+	server := NewServer(newTestCenterService())
+
+	_, err := server.ResumeMatch(context.Background(), &rcenterpb.ResumeMatchRequest{})
+	if status.Code(err) != codes.InvalidArgument {
+		t.Fatalf("ResumeMatch code = %v, want %v", status.Code(err), codes.InvalidArgument)
+	}
+}
+
 func TestRegisterBattleNodeInvalidInputMapsToInvalidArgument(t *testing.T) {
 	server := NewServer(newTestCenterService())
 
