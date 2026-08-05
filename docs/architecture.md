@@ -1,139 +1,227 @@
 # Architecture
 
-这个项目由 Go 大厅服务和 C++ 战斗服务组成。Go 侧处理账号、好友、在线状态和匹配；C++ 侧处理战斗房间、UDP 会话和局内 ECS。
+项目由局外 Go 服务与局内 C++ 战斗服组成。局外侧负责长期玩家状态和对局调度；局内侧负责短生命周期的房间、UDP 会话和确定的 ECS tick。
 
-## Runtime
+## 运行拓扑
 
 ```mermaid
 flowchart LR
-    client["Client"]
-    nginx["nginx :8080<br/>optional"]
-    logic1["logic-server<br/>:8081"]
-    logic2["logic-server<br/>:8082"]
-    state["state-server<br/>gRPC :9001"]
-    rcenter["rcenter-server<br/>gRPC :9002"]
-    battle["battle-server<br/>gRPC :9101<br/>UDP :7001"]
-    redis[("Redis<br/>:6379")]
+    C[Client]
+    N[nginx :8080\noptional]
+    L1[logic-server :8081]
+    L2[logic-server :8082]
+    S[state-server :9001]
+    R[(Redis :6379)]
+    RC[rcenter-server :9002]
+    B[battle-server\ncontrol :9101\nUDP :7001]
 
-    client -->|"HTTP / WebSocket"| nginx
-    nginx --> logic1
-    nginx --> logic2
-    client -.->|"direct HTTP / WS"| logic1
-    client -.->|"direct HTTP / WS"| logic2
-    logic1 -->|"state gRPC"| state
-    logic2 -->|"state gRPC"| state
-    state -->|"game:* keys"| redis
-    logic1 -->|"match gRPC"| rcenter
-    logic2 -->|"match gRPC"| rcenter
-    battle -->|"register node"| rcenter
-    rcenter -->|"create room"| battle
-    client -->|"battle UDP"| battle
+    C -->|HTTP / WebSocket| N
+    N --> L1
+    N --> L2
+    C -. direct HTTP / WS .-> L1
+    C -. direct HTTP / WS .-> L2
+    L1 -->|state gRPC| S
+    L2 -->|state gRPC| S
+    S -->|game:* keys| R
+    L1 -->|match gRPC| RC
+    L2 -->|match gRPC| RC
+    B -->|register / finish match| RC
+    RC -->|BattleControl gRPC| B
+    C -->|UDP packets| B
 ```
 
-## Responsibilities
+## 服务职责与状态归属
 
-| 模块 | 职责 |
-| --- | --- |
-| `logic-server` | 对客户端暴露 HTTP/WS；处理认证、好友、在线状态、匹配入口 |
-| `state-server` | 对内暴露 state gRPC；统一访问 Redis |
-| `rcenter-server` | 保存 battle 节点列表；维护匹配队列；通知 battle-server 创建房间 |
-| `battle-server` | 管理房间；校验 UDP hello；接收移动输入；运行 ECS；广播快照 |
-| `Redis` | 保存账号、玩家、session、presence、好友和实时事件 |
-| `nginx` | 本地代理入口，把请求分发给多个 logic-server |
+| 服务 | 职责 | 持久状态 |
+| --- | --- | --- |
+| `logic-server` | HTTP/JSON、WebSocket、认证、好友、在线状态、成长和匹配请求的协议适配 | 无业务持久状态；连接仅在本实例内存中 |
+| `state-server` | 将局外领域操作映射到 Redis | Redis 是 Go 局外数据的持久来源 |
+| `rcenter-server` | battle 节点注册、双人 FIFO 匹配、活跃对局、结算与奖励 | 节点、队列、活跃对局在内存；进程重启会丢失这些状态 |
+| `battle-server` | 房间、UDP session、tick、ECS、快照和战斗结束 | 房间和世界在内存；不负责账号和好友 |
+| Redis | 账号、玩家、session、成长、金币、好友、在线状态、实时事件 | `game:*` 键 |
 
-## Main Flows
+边界规则：
 
-登录和好友：
+- `logic-server` 不直接读写 Redis，只调用 state gRPC 和 rcenter gRPC。
+- rcenter 不解析 UDP 包，也不运行 ECS。
+- `battle-server/net` 不承载玩法规则；网络事件交给 `session` 和 `runtime`。
+- protobuf 源码只在 `proto/`；Go 和 C++ 生成代码由脚本生成。
+
+## 局外逻辑
+
+### 账号、社交与成长
 
 ```mermaid
 sequenceDiagram
     participant C as Client
     participant L as logic-server
     participant S as state-server
-    participant R as Redis
+    participant D as Redis
 
-    C->>L: HTTP /auth or /friends
-    L->>S: state gRPC
-    S->>R: read/write game:* keys
-    R-->>S: data
-    S-->>L: result
-    L-->>C: JSON
+    C->>L: HTTP auth / friends / growth
+    L->>S: state gRPC request
+    S->>D: read or write game:* key
+    D-->>S: domain data
+    S-->>L: gRPC result
+    L-->>C: JSON response
 ```
 
-匹配和进战斗：
+局外成长初始等级均为 1，最高 10：攻击每级 `+8%`、攻速每级 `+6%`、生命每级 `+10%`、移速每级 `+3%`。rcenter 在创建房间前读取所有匹配玩家的成长等级，并连同武器一起传给 battle-server。
+
+成长升级价格由 `internal/logic/growth` 配置，`GET /growth` 和升级成功响应均返回每项的当前等级、下一级价格和上限。客户端不应自行推导价格。
+
+### WebSocket、在线状态与匹配
 
 ```mermaid
 sequenceDiagram
-    participant C as Client
+    participant C1 as Player A
     participant L as logic-server
+    participant S as state-server / Redis
     participant RC as rcenter-server
     participant B as battle-server
+    participant C2 as Player B
 
-    B->>RC: RegisterBattleNode
-    C->>L: WebSocket match_start
-    L->>RC: StartMatch(player_id)
-    RC->>B: CreateRoom(room_name, token, player_ids)
-    RC-->>L: room_name, token, battle_kcp_addr
-    L-->>C: match_result
-    C->>B: UDP hello(room_name, player_id, token)
-    B-->>C: game_start / snapshot
+    C1->>L: WS connect with token
+    L->>S: MarkOnline
+    L->>RC: ResumeMatch(player A)
+    RC-->>L: active match or active match not found
+    L-->>C1: match_result when active
+    C1->>L: match_start with weapon
+    L->>RC: StartMatch(A, weapon)
+    RC-->>L: waiting
+    L-->>C1: match_result waiting
+    C2->>L: match_start with weapon
+    L->>RC: StartMatch(B, weapon)
+    RC->>S: GetGrowth(A), GetGrowth(B)
+    RC->>B: CreateRoom(room, token, players, loadouts)
+    B-->>RC: room reserved
+    RC-->>L: matched room assignment
+    L-->>C1: match_result matched
+    L-->>C2: match_result matched
 ```
 
-局内 tick：
+`rcenter-server` 将第一名玩家放入队列；第二名玩家到来时与队头组成房间。成功创建房间后，为每个玩家写入同一份 `ActiveMatch`，其中包含 `room_name`、token、battle 节点、UDP 地址、玩家列表和局外 loadout。
+
+logic WebSocket 建立时会自动调用 `ResumeMatch`。客户端也可显式发送 `match_resume`，用于从战斗主动返回大厅后重新进入旧对局。没有活跃对局时，恢复会返回 `active match not found`；客户端应清除本地旧 match 并恢复正常匹配。
+
+## 局内逻辑
+
+### 进入房间与战斗数据流
+
+```mermaid
+flowchart TD
+    MR[WebSocket match_result\nroom, token, UDP address]
+    H[Client UDP ClientHello]
+    SM[SessionManager]
+    RM[RoomManager]
+    RT[BattleRuntime]
+    BI[BattleInstance]
+    W[ECS World]
+    SS[WorldSnapshot]
+
+    MR --> H
+    H -->|validate room, player, token| SM
+    SM --> RM
+    SM -->|all roster joined or rebind| RT
+    RT --> BI
+    BI --> W
+    W --> SS
+    SS -->|ServerPacket snapshot| H
+```
+
+`CreateRoom` 先在 battle-server 建立允许玩家列表和 token。客户端发送 `ClientHello` 后，`SessionManager` 绑定 player、UDP conversation 和 endpoint。房间第一次所有玩家都加入时启动 `BattleInstance`；已存在的玩家使用新的 UDP conversation 或 endpoint hello 时会重绑为同一 session，而不是创建第二个玩家。
+
+客户端的 `ClientInput` 包含移动、攻击和冲刺请求。客户端应每 5 秒发送 `ClientHeartbeat`。battle-server 默认 60 tick/s，并向所有已连接 session 广播 `WorldSnapshot`。
+
+### ECS tick
+
+`World` 使用固定顺序调度系统。顺序是游戏规则的一部分：
 
 ```mermaid
 flowchart LR
-    udp["UDP packets<br/>hello / move_input"]
-    session["SessionManager"]
-    runtime["BattleRuntime<br/>60 tick/s"]
-    world["ECS World"]
-    systems["Systems<br/>monster AI / move / attack / hit / damage / death"]
-    snapshot["WorldSnapshot"]
-
-    udp --> session
-    session --> runtime
-    runtime --> world
-    world --> systems
-    systems --> snapshot
-    snapshot --> udp
+    MReq[move requests] --> MoveResolve
+    Status[status effects] --> AI
+    MoveResolve --> AI[monster AI]
+    AI --> DashResolve
+    DashResolve --> Dash
+    Dash --> Move
+    Move --> ProjectileHit
+    ProjectileHit --> ProjectileRange
+    ProjectileRange --> AttackResolve
+    AttackResolve --> ProjectileSpawn
+    ProjectileSpawn --> HitResolve
+    HitResolve --> DamageModify
+    DamageModify --> PreDamageBlessing
+    PreDamageBlessing --> Damage
+    Damage --> BlessingTrigger
+    BlessingTrigger --> Death
 ```
 
-## Code Layout
+系统结果包括：
 
-```text
-cmd/
-├── logic-server/
-├── state-server/
-└── rcenter-server/
+- 移动、怪物 AI、冲刺、近战和投射物。
+- 命中、伤害、死亡、击杀统计和战斗事件。
+- 波次生成与玩家经验；每次升级生成 3 个祝福候选。
+- 奖励选择阶段暂停正常战斗，所有待选祝福完成或超时自动选择后进入下一波。
 
-internal/
-├── logic/      # auth / friend / match / player / presence / httpapi
-├── state/      # grpcserver / grpcclient / service / redisstore
-├── rcenter/    # match queue, battle node registry, rcenter gRPC adapter
-├── battle/     # Go battle control gRPC client
-├── contract/   # generated proto code and shared state contracts
-└── platform/   # config and Redis client
+快照包含实体位置和生命、波次、阶段、玩家经验、已持有祝福、待选祝福以及短期保留的攻击/死亡事件。
 
-battle-server/
-├── control/    # C++ battle control gRPC
-├── ecs/        # components, systems, world
-├── game/       # room domain model
-├── gameplay/   # spawn planning
-├── net/        # UDP server and packet codec
-├── runtime/    # battle instance lifecycle and tick loop
-├── session/    # player UDP sessions
-└── platform/   # battle-server config
+### Loadout、武器与祝福
 
-proto/
-├── battle/v1/
-├── rcenter/v1/
-└── state/v1/
+战斗服在创建玩家实体前先应用武器，再应用局外成长。当前初始武器：
+
+| 武器 | 类型 | 伤害 | 攻击间隔 | 范围 | 附加参数 |
+| --- | --- | ---: | ---: | ---: | --- |
+| 长剑 | 近战 | 25 | 0.22 秒 | 3.0 | - |
+| 匕首 | 近战 | 14 | 0.12 秒 | 2.4 | - |
+| 战斧 | 近战 | 40 | 0.45 秒 | 3.5 | - |
+| 弓箭 | 投射物 | 30 | 0.30 秒 | 15.0 | 弹速 25，命中半径 0.85 |
+
+当前祝福及每级数值：
+
+| 祝福 | 1 级 | 每级增加 |
+| --- | --- | --- |
+| 暴击 | 15% 概率，175% 伤害 | 概率 +4%，伤害 +15% |
+| 吸血 | 攻击伤害的 8% | +2% |
+| 燃烧 | 6 伤害/秒，2.5 秒 | +2 伤害/秒，+0.5 秒 |
+| 冰冻 | 15% 概率，1.0 秒 | 概率 +4%，时长 +0.15 秒 |
+| 闪电链 | 50% 原伤害、1 个额外目标、距离 9 | 伤害 +10%，额外目标 +1 |
+
+燃烧命中会按现有机制叠加独立状态；数值调整不改变该机制。
+
+## 断线、恢复与房间销毁
+
+```mermaid
+stateDiagram-v2
+    [*] --> Connected: UDP hello / rebind
+    Connected --> Disconnected: 15s 未收到有效输入或心跳
+    Disconnected --> Connected: 同 player hello，新的 conv/endpoint
+    Connected --> Fighting: room started
+    Fighting --> WaitingForReconnect: 全部 session 断开
+    WaitingForReconnect --> Fighting: 任一 session 重连
+    WaitingForReconnect --> Finished: 90s 后仍无人连接
+    Fighting --> Finished: victory / defeat / explicit end
+    Finished --> [*]: FinishMatch，释放玩家与房间
 ```
 
-## Boundaries
+`BattleRuntime` 每个 tick 先标记过期 session，再检查房间：
 
-- `logic-server` 不直接访问 Redis。
-- `state-server` 是 Go 侧唯一直接访问 Redis 的业务进程。
-- `rcenter-server` 只处理匹配和 battle 节点调度。
-- `battle-server` 不处理账号、好友和 lobby 状态。
-- protobuf 定义放在 `proto/`，生成代码放在 `internal/contract/*pb` 和 `battle-server/generated`。
+1. 只向 `Connected` session 发送快照和 game over 包。
+2. 房间完整 roster 仍保留，用于结束时释放所有玩家，即使部分玩家已断开。
+3. 若所有玩家断开，记录首次无人连接的时间。
+4. 任一玩家重新 hello 后，清除该房间的无人连接计时。
+5. 计时达到 `all_players_disconnected_timeout`（默认 90 秒）时，以 `all_players_disconnected` 结束房间。
+
+战斗结束时，battle-server 调用 rcenter `FinishMatch`。胜利/失败会携带玩家击杀统计并按奖励规则加金币；`all_players_disconnected` 等非胜负原因不携带奖励统计，只释放 `ActiveMatch` 与 in-game 标记，使玩家可以再次匹配。
+
+## 代码导航
+
+| 问题 | 首选位置 |
+| --- | --- |
+| HTTP 或 WebSocket 协议 | `internal/logic/httpapi`、`docs/api.md` |
+| 匹配、恢复或奖励 | `internal/rcenter`、`internal/logic/match` |
+| Redis 状态 | `internal/state`、`internal/logic/*/*repository.go` |
+| Room 与 UDP session | `battle-server/game`、`battle-server/session`、`battle-server/net` |
+| Room 生命周期和结束 | `battle-server/runtime` |
+| 武器、成长、波次 | `battle-server/gameplay` |
+| 局内实体和规则 | `battle-server/ecs`、`battle-server/ecs/design.md` |
