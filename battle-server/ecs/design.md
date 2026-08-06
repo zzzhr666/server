@@ -4,16 +4,7 @@
 
 ## 核心边界
 
-```mermaid
-flowchart LR
-    UDP[UDP packet] --> Session[SessionManager]
-    Session --> Runtime[BattleRuntime]
-    Runtime --> Instance[BattleInstance]
-    Instance --> World[ECS World]
-    World --> Snapshot[WorldSnapshot]
-    Snapshot --> Runtime
-    Runtime --> UDP
-```
+![ECS 核心边界](../../docs/diagrams/ecs-boundary.svg)
 
 - `net` 负责包收发与编解码。
 - `session` 校验 player、room、token 并维护 UDP endpoint、conversation 和连接状态。
@@ -84,16 +75,7 @@ blessing_trigger_system
 death_system
 ```
 
-```mermaid
-flowchart LR
-    Input[Move / attack / dash requests] --> Intent[Move, AI, dash, attack intent]
-    Intent --> Hit[Projectile and melee hit resolution]
-    Hit --> Modify[Critical and chain damage modification]
-    Modify --> Apply[Damage application]
-    Apply --> Trigger[Life steal, burn, freeze]
-    Trigger --> Death[Death and kill events]
-    Status[Status tick] --> Intent
-```
+![战斗处理流水线](../../docs/diagrams/combat-pipeline.svg)
 
 关键规则：
 
@@ -120,15 +102,7 @@ AttackIntent / Projectile
 
 `BattleInstance` 在 `Fighting` 阶段推进 World 并消费 kill events；击杀按怪物种类授予经验。升级会增加 `pending_upgrade_choices`，随后进入 `RewardSelection`：
 
-```mermaid
-stateDiagram-v2
-    [*] --> Fighting
-    Fighting --> RewardSelection: 玩家升级且有待选祝福
-    RewardSelection --> RewardSelection: ChooseBlessing 后仍有待选次数
-    RewardSelection --> Fighting: 所有玩家选择完成
-    RewardSelection --> Fighting: 选择超时，自动选首项
-    Fighting --> Ended: 最终波胜利或所有玩家死亡
-```
+![奖励选择状态](../../docs/diagrams/reward-selection-state.svg)
 
 每名需要选择的玩家会得到 3 个不同祝福候选。候选被选择后，`BlessingInventory` 中对应祝福新增或升一级。祝福状态与候选会被写入 `WorldSnapshot`，客户端据此显示数值说明和选择 UI。
 

@@ -1,0 +1,22 @@
+digraph match_flow {
+    rankdir=LR;
+    node [shape=box, style=rounded];
+    player_a [label="玩家 A"];
+    logic [label="logic-server"];
+    state [label="state-server / Redis"];
+    rcenter [label="rcenter-server"];
+    battle [label="battle-server"];
+    player_b [label="玩家 B"];
+    player_a -> logic [label="WS 连接 / match_start"];
+    logic -> state [label="MarkOnline"];
+    logic -> rcenter [label="ResumeMatch / StartMatch(A)"];
+    rcenter -> player_a [label="等待结果", style=dashed];
+    player_b -> logic [label="match_start(B)"];
+    logic -> rcenter [label="StartMatch(B)"];
+    rcenter -> state [label="读取双方成长"];
+    rcenter -> battle [label="CreateRoom(room, token, loadouts)"];
+    battle -> rcenter [label="房间已预留"];
+    rcenter -> logic [label="matched 对局分配"];
+    logic -> player_a [label="match_result matched"];
+    logic -> player_b [label="match_result matched"];
+}

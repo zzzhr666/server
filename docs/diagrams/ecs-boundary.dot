@@ -1,0 +1,12 @@
+digraph ecs_boundary {
+    rankdir=LR;
+    node [shape=box, style=rounded];
+    udp [label="UDP 包"];
+    session [label="SessionManager"];
+    runtime [label="BattleRuntime"];
+    instance [label="BattleInstance"];
+    world [label="ECS World"];
+    snapshot [label="WorldSnapshot"];
+    udp -> session -> runtime -> instance -> world -> snapshot -> runtime;
+    runtime -> udp [label="快照包"];
+}

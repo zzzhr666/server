@@ -4,31 +4,7 @@
 
 ## 运行拓扑
 
-```mermaid
-flowchart LR
-    C[Client]
-    N[nginx :8080\noptional]
-    L1[logic-server :8081]
-    L2[logic-server :8082]
-    S[state-server :9001]
-    R[(Redis :6379)]
-    RC[rcenter-server :9002]
-    B[battle-server\ncontrol :9101\nUDP :7001]
-
-    C -->|HTTP / WebSocket| N
-    N --> L1
-    N --> L2
-    C -. direct HTTP / WS .-> L1
-    C -. direct HTTP / WS .-> L2
-    L1 -->|state gRPC| S
-    L2 -->|state gRPC| S
-    S -->|game:* keys| R
-    L1 -->|match gRPC| RC
-    L2 -->|match gRPC| RC
-    B -->|register / finish match| RC
-    RC -->|BattleControl gRPC| B
-    C -->|UDP packets| B
-```
+![运行拓扑](diagrams/runtime-topology.svg)
 
 ## 服务职责与状态归属
 
@@ -51,20 +27,7 @@ flowchart LR
 
 ### 账号、社交与成长
 
-```mermaid
-sequenceDiagram
-    participant C as Client
-    participant L as logic-server
-    participant S as state-server
-    participant D as Redis
-
-    C->>L: HTTP auth / friends / growth
-    L->>S: state gRPC request
-    S->>D: read or write game:* key
-    D-->>S: domain data
-    S-->>L: gRPC result
-    L-->>C: JSON response
-```
+![局外逻辑](diagrams/out-of-battle-flow.svg)
 
 局外成长初始等级均为 1，最高 10：攻击每级 `+8%`、攻速每级 `+6%`、生命每级 `+10%`、移速每级 `+3%`。rcenter 在创建房间前读取所有匹配玩家的成长等级，并连同武器一起传给 battle-server。
 
@@ -72,33 +35,7 @@ sequenceDiagram
 
 ### WebSocket、在线状态与匹配
 
-```mermaid
-sequenceDiagram
-    participant C1 as Player A
-    participant L as logic-server
-    participant S as state-server / Redis
-    participant RC as rcenter-server
-    participant B as battle-server
-    participant C2 as Player B
-
-    C1->>L: WS connect with token
-    L->>S: MarkOnline
-    L->>RC: ResumeMatch(player A)
-    RC-->>L: active match or active match not found
-    L-->>C1: match_result when active
-    C1->>L: match_start with weapon
-    L->>RC: StartMatch(A, weapon)
-    RC-->>L: waiting
-    L-->>C1: match_result waiting
-    C2->>L: match_start with weapon
-    L->>RC: StartMatch(B, weapon)
-    RC->>S: GetGrowth(A), GetGrowth(B)
-    RC->>B: CreateRoom(room, token, players, loadouts)
-    B-->>RC: room reserved
-    RC-->>L: matched room assignment
-    L-->>C1: match_result matched
-    L-->>C2: match_result matched
-```
+![匹配流程](diagrams/match-flow.svg)
 
 `rcenter-server` 将第一名玩家放入队列；第二名玩家到来时与队头组成房间。成功创建房间后，为每个玩家写入同一份 `ActiveMatch`，其中包含 `room_name`、token、battle 节点、UDP 地址、玩家列表和局外 loadout。
 
@@ -108,26 +45,7 @@ logic WebSocket 建立时会自动调用 `ResumeMatch`。客户端也可显式�
 
 ### 进入房间与战斗数据流
 
-```mermaid
-flowchart TD
-    MR[WebSocket match_result\nroom, token, UDP address]
-    H[Client UDP ClientHello]
-    SM[SessionManager]
-    RM[RoomManager]
-    RT[BattleRuntime]
-    BI[BattleInstance]
-    W[ECS World]
-    SS[WorldSnapshot]
-
-    MR --> H
-    H -->|validate room, player, token| SM
-    SM --> RM
-    SM -->|all roster joined or rebind| RT
-    RT --> BI
-    BI --> W
-    W --> SS
-    SS -->|ServerPacket snapshot| H
-```
+![战斗数据流](diagrams/battle-data-flow.svg)
 
 `CreateRoom` 先在 battle-server 建立允许玩家列表和 token。客户端发送 `ClientHello` 后，`SessionManager` 绑定 player、UDP conversation 和 endpoint。房间第一次所有玩家都加入时启动 `BattleInstance`；已存在的玩家使用新的 UDP conversation 或 endpoint hello 时会重绑为同一 session，而不是创建第二个玩家。
 
@@ -137,25 +55,7 @@ flowchart TD
 
 `World` 使用固定顺序调度系统。顺序是游戏规则的一部分：
 
-```mermaid
-flowchart LR
-    MReq[move requests] --> MoveResolve
-    Status[status effects] --> AI
-    MoveResolve --> AI[monster AI]
-    AI --> DashResolve
-    DashResolve --> Dash
-    Dash --> Move
-    Move --> ProjectileHit
-    ProjectileHit --> ProjectileRange
-    ProjectileRange --> AttackResolve
-    AttackResolve --> ProjectileSpawn
-    ProjectileSpawn --> HitResolve
-    HitResolve --> DamageModify
-    DamageModify --> PreDamageBlessing
-    PreDamageBlessing --> Damage
-    Damage --> BlessingTrigger
-    BlessingTrigger --> Death
-```
+![ECS tick 顺序](diagrams/ecs-tick-order.svg)
 
 系统结果包括：
 
@@ -191,18 +91,7 @@ flowchart LR
 
 ## 断线、恢复与房间销毁
 
-```mermaid
-stateDiagram-v2
-    [*] --> Connected: UDP hello / rebind
-    Connected --> Disconnected: 15s 未收到有效输入或心跳
-    Disconnected --> Connected: 同 player hello，新的 conv/endpoint
-    Connected --> Fighting: room started
-    Fighting --> WaitingForReconnect: 全部 session 断开
-    WaitingForReconnect --> Fighting: 任一 session 重连
-    WaitingForReconnect --> Finished: 90s 后仍无人连接
-    Fighting --> Finished: victory / defeat / explicit end
-    Finished --> [*]: FinishMatch，释放玩家与房间
-```
+![断线与恢复状态](diagrams/reconnect-state.svg)
 
 `BattleRuntime` 每个 tick 先标记过期 session，再检查房间：
 

@@ -62,6 +62,9 @@ bash scripts/generate_proto.sh
 
 # 删除本项目的 Redis 键
 bash scripts/reset_redis.sh
+
+# 生成统一的 Go、C++ 和 Markdown HTML 文档
+bash scripts/generate_docs.sh
 ```
 
 WebSocket 和 UDP 手工调试工具：

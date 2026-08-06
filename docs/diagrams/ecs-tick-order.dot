@@ -1,0 +1,23 @@
+digraph ecs_tick_order {
+    rankdir=LR;
+    node [shape=box, style=rounded, fontsize=10];
+    move_request [label="移动请求"];
+    move_resolve [label="move_resolve"];
+    status [label="status_effect"];
+    ai [label="monster_ai"];
+    dash_resolve [label="dash_resolve"];
+    dash [label="dash"];
+    move [label="move"];
+    projectile_hit [label="projectile_hit"];
+    projectile_range [label="projectile_range"];
+    attack [label="attack_resolve"];
+    projectile_spawn [label="projectile_spawn"];
+    hit [label="hit_resolve"];
+    damage_modify [label="damage_modify"];
+    pre_damage [label="pre_damage_blessing"];
+    damage [label="damage"];
+    blessing [label="blessing_trigger"];
+    death [label="death"];
+    move_request -> move_resolve -> ai -> dash_resolve -> dash -> move -> projectile_hit -> projectile_range -> attack -> projectile_spawn -> hit -> damage_modify -> pre_damage -> damage -> blessing -> death;
+    status -> ai;
+}

@@ -4,5 +4,7 @@
 
 /AGENTS.md
 /tmp/
+/docs/generated/
+/docs/site/
 /battle-server/cmake-build-*/
 /CMakeFiles/

@@ -1,0 +1,45 @@
+# 统一项目文档配置：C++ 源码由 Doxygen 解析，Go API 由 gomarkdoc 生成 Markdown 后收录。
+PROJECT_NAME           = "游戏服务端"
+PROJECT_BRIEF          = "Go 局外服务与 C++ 局内战斗服"
+OUTPUT_DIRECTORY       = site
+CREATE_SUBDIRS         = NO
+
+INPUT                  = ../README.md \
+                         api.md \
+                         architecture.md \
+                         go-api.dox \
+                         battle-server-overview.dox \
+                         ../battle-server \
+                         generated/go
+RECURSIVE              = YES
+FILE_PATTERNS          = *.md \
+                         *.hpp \
+                         *.cpp
+EXCLUDE                = ../battle-server/generated \
+                         ../battle-server/cmake-build-release-wsl \
+                         site
+EXCLUDE_PATTERNS       = */tests/*
+
+MARKDOWN_SUPPORT       = YES
+USE_MDFILE_AS_MAINPAGE = ../README.md
+EXTRACT_ALL            = NO
+EXTRACT_PRIVATE        = YES
+EXTRACT_STATIC         = YES
+EXTRACT_LOCAL_CLASSES  = YES
+SOURCE_BROWSER         = YES
+INLINE_SOURCES         = NO
+
+GENERATE_HTML          = YES
+HTML_OUTPUT            = html
+GENERATE_TREEVIEW      = YES
+SEARCHENGINE           = YES
+GENERATE_LATEX         = NO
+QUIET                  = YES
+WARN_IF_UNDOCUMENTED   = NO
+
+HAVE_DOT               = YES
+DOT_IMAGE_FORMAT       = svg
+CLASS_DIAGRAMS         = YES
+UML_LOOK               = YES
+CALL_GRAPH             = NO
+CALLER_GRAPH           = NO

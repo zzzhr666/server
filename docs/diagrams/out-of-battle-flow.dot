@@ -1,0 +1,14 @@
+digraph out_of_battle_flow {
+    rankdir=LR;
+    node [shape=box, style=rounded];
+    client [label="客户端"];
+    logic [label="logic-server"];
+    state [label="state-server"];
+    redis [label="Redis", shape=cylinder];
+    client -> logic [label="HTTP：认证 / 好友 / 成长"];
+    logic -> state [label="state gRPC 请求"];
+    state -> redis [label="读写 game:* 键"];
+    redis -> state [label="领域数据"];
+    state -> logic [label="gRPC 结果"];
+    logic -> client [label="JSON 响应"];
+}

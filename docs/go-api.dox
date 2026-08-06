@@ -1,0 +1,33 @@
+/**
+ * \defgroup process_docs 服务器进程
+ * \brief 按可执行服务器进程组织的 Go 与 C++ 文档入口。
+ * \{
+ *
+ * \defgroup go_logic_server logic-server
+ * \brief HTTP、WebSocket 和局外业务入口。
+ * \ingroup process_docs
+ *
+ * \defgroup go_state_server state-server
+ * \brief Redis 状态存储和 state gRPC 服务。
+ * \ingroup process_docs
+ *
+ * \defgroup go_rcenter_server rcenter-server
+ * \brief 战斗节点调度、匹配、活跃对局和结算。
+ * \ingroup process_docs
+ *
+ * \defgroup battle_server battle-server
+ * \brief C++ 房间、UDP 会话、战斗运行时与 ECS。
+ * \ingroup process_docs
+ *
+ * \defgroup go_shared 共享基础设施
+ * \brief 各 Go 进程共用的配置和客户端适配。
+ * \ingroup process_docs
+ * \}
+ */
+
+/**
+ * \page go_api Go API
+ *
+ * Go API 以标准 Go doc 注释为来源。请从“服务器进程”导航展开对应服务，
+ * 而不是从平铺的包名列表查找。
+ */
