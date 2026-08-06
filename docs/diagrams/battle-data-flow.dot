@@ -1,0 +1,20 @@
+digraph battle_data_flow {
+    rankdir=TB;
+    node [shape=box, style=rounded];
+    result [label="WebSocket match_result\\nroom、token、UDP 地址"];
+    hello [label="Client UDP ClientHello"];
+    sessions [label="SessionManager"];
+    rooms [label="RoomManager"];
+    runtime [label="BattleRuntime"];
+    instance [label="BattleInstance"];
+    world [label="ECS World"];
+    snapshot [label="WorldSnapshot"];
+    result -> hello;
+    hello -> sessions [label="校验 room、player、token"];
+    sessions -> rooms;
+    sessions -> runtime [label="roster 完整或重绑"];
+    runtime -> instance;
+    instance -> world;
+    world -> snapshot;
+    snapshot -> hello [label="ServerPacket 快照"];
+}

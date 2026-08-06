@@ -1,0 +1,18 @@
+digraph reconnect_state {
+    rankdir=LR;
+    node [shape=box, style="rounded"];
+    start [shape=point];
+    finish [shape=doublecircle, label="结束"];
+    connected [label="Connected"];
+    disconnected [label="Disconnected"];
+    fighting [label="Fighting"];
+    waiting [label="WaitingForReconnect"];
+    start -> connected [label="UDP hello / rebind"];
+    connected -> disconnected [label="15 秒无有效输入或心跳"];
+    disconnected -> connected [label="同玩家 hello，新 conv/endpoint"];
+    connected -> fighting [label="房间启动"];
+    fighting -> waiting [label="全部 session 断开"];
+    waiting -> fighting [label="任一 session 重连"];
+    waiting -> finish [label="90 秒后仍无人连接"];
+    fighting -> finish [label="胜利 / 失败 / 主动结束"];
+}

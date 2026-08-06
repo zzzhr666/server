@@ -1,0 +1,13 @@
+digraph reward_selection_state {
+    rankdir=LR;
+    node [shape=box, style=rounded];
+    start [shape=point];
+    ended [shape=doublecircle, label="Ended"];
+    fighting [label="Fighting"];
+    selecting [label="RewardSelection"];
+    start -> fighting;
+    fighting -> selecting [label="升级并有待选祝福"];
+    selecting -> selecting [label="选择后仍有待选次数"];
+    selecting -> fighting [label="全部选择完成或超时自动选择"];
+    fighting -> ended [label="最终波胜利或所有玩家死亡"];
+}
