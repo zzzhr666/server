@@ -7,22 +7,22 @@ import (
 	"time"
 )
 
-// StateRepository adapts presence storage to the shared state contract.
+// StateRepository 将在线状态存储适配到共享状态契约。
 type StateRepository struct {
 	stateClient statecontract.PresenceClient
 }
 
-// NewStateRepository creates a presence repository backed by state-server.
+// NewStateRepository 使用 state-server 创建在线状态仓储。
 func NewStateRepository(client statecontract.PresenceClient) *StateRepository {
 	return &StateRepository{stateClient: client}
 }
 
-// SetPresence stores an online-state record through state-server.
+// SetPresence 通过 state-server 存储在线状态记录。
 func (s *StateRepository) SetPresence(ctx context.Context, presence *Presence, ttl time.Duration) error {
 	return mapStateError(s.stateClient.SetPresence(ctx, toStatePresence(presence), ttl))
 }
 
-// GetPresence loads an online-state record through state-server.
+// GetPresence 通过 state-server 读取在线状态记录。
 func (s *StateRepository) GetPresence(ctx context.Context, playerID int64) (*Presence, error) {
 	presence, err := s.stateClient.GetPresence(ctx, playerID)
 	if err != nil {
@@ -31,12 +31,12 @@ func (s *StateRepository) GetPresence(ctx context.Context, playerID int64) (*Pre
 	return fromStatePresence(presence), nil
 }
 
-// ClearPresence removes an online-state record for the owning logic-server.
+// ClearPresence 删除所属 logic-server 的在线状态记录。
 func (s *StateRepository) ClearPresence(ctx context.Context, playerID int64, serverName string) error {
 	return mapStateError(s.stateClient.ClearPresence(ctx, playerID, serverName))
 }
 
-// RefreshPresence extends online state through state-server.
+// RefreshPresence 通过 state-server 延长在线状态。
 func (s *StateRepository) RefreshPresence(ctx context.Context, playerID int64, serverName string, updatedAt time.Time, ttl time.Duration) error {
 	return mapStateError(s.stateClient.RefreshPresence(ctx, playerID, serverName, updatedAt, ttl))
 }

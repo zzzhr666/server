@@ -1,4 +1,4 @@
-# Game Server
+# 游戏服务端
 
 本仓库是一个本地开发用的多人动作游戏服务端。Go 服务负责局外大厅，C++ `battle-server` 负责局内战斗。客户端通过 HTTP/JSON、WebSocket 和 UDP 与服务端交互。
 

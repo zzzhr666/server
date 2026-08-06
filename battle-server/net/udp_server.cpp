@@ -17,6 +17,8 @@ battle::UdpServer::UdpServer(std::string listen_addr, SessionManager& session_ma
       next_conv_(1) {}
 
 bool battle::UdpServer::start() {
+    // UDP socket 必须在地址解析和 bind 都成功后才公开运行状态，
+    // 这样 stop() 与接收线程不会看到半初始化的文件描述符。
     fd_ = socket(AF_INET, SOCK_DGRAM, 0);
     if (fd_ < 0) {
         return false;
@@ -71,6 +73,8 @@ void battle::UdpServer::run_loop_() {
             }
             continue;
         }
+        // 所有 UDP 入口先完成 protobuf 解码；后续处理器只接收结构化数据，
+        // 避免把畸形字节包带入会话或战斗逻辑。
         auto packet = decode_client_packet(std::string_view{buffer, static_cast<std::size_t>(n)});
         if (!packet.has_value()) {
             send_packet_(make_error("bad_packet", "decode client packet failed"), remote_addr, len);
@@ -108,7 +112,7 @@ void battle::UdpServer::send_packet_(const v1::ServerPacket& packet, const socka
     auto bytes = encode_server_packet(packet);
     if (sendto(fd_, bytes.data(), bytes.size(), 0,
                reinterpret_cast<const sockaddr*>(&remote_addr), remote_addr_len) < 0) {
-        //todo： log send failure
+        // TODO: 记录 UDP 包发送失败，便于排查端点或网络问题。
     }
 }
 
@@ -150,6 +154,8 @@ void battle::UdpServer::handle_hello_(const v1::ClientPacket& packet, const sock
         send_packet_(make_error("invalid_request", "invalid hello"), remote_addr, remote_addr_len);
         return;
     }
+    // 每次 hello 分配新的 conversation。对于断线玩家，SessionManager 会原子地
+    // 移除旧 conversation 索引并绑定新端点，从而让 NAT 变化后的客户端恢复同一局。
     auto conv = get_next_conv_();
     auto join_res = session_manager_.join({
         .room_name = hello.room_name(),
@@ -160,6 +166,8 @@ void battle::UdpServer::handle_hello_(const v1::ClientPacket& packet, const sock
     });
     if (join_res.status == JoinSessionStatus::OK) {
         send_packet_(make_server_hello(join_res.session->conv(), "session joined"), remote_addr, remote_addr_len);
+        // 仅完整 roster 第一次入场时启动房间。重连返回 AlreadyJoined，不能重复
+        // 创建 BattleInstance，也不能重新广播一次完整房间的启动流程。
         if (join_res.all_players_joined) {
             if (!battle_runtime_) {
                 send_packet_(make_error("runtime_unavailable", "battle runtime is not attached"), remote_addr,
@@ -184,6 +192,8 @@ void battle::UdpServer::handle_move_input_(const v1::ClientPacket& packet,
         send_packet_(make_error("invalid_request", "invalid move input"), remote_addr, remote_addr_len);
         return;
     }
+    // 输入同时作为保活包。touch 会校验玩家、房间和源 UDP endpoint；因此不能
+    // 伪造其他玩家 ID 来驱动其实体，也不会接受已经重绑前的旧端点。
     if (!session_manager_.touch(input.room_name(), input.player_id(),{remote_addr})) {
         send_packet_(make_error("invalid_session","session is not active"),remote_addr,remote_addr_len);
         return;
@@ -211,6 +221,7 @@ void battle::UdpServer::handle_choose_blessing_(const v1::ClientPacket& packet, 
         send_packet_(make_error("invalid_request", "invalid choose blessing"), remote_addr, remote_addr_len);
         return;
     }
+    // 祝福选择和移动输入采用同一会话认证路径，防止断开或非本房间玩家影响结算阶段。
     if (!session_manager_.touch(choose_blessing.room_name(),choose_blessing.player_id(),{remote_addr})) {
         send_packet_(make_error("invalid_session", "session is not active"), remote_addr, remote_addr_len);
         return;
@@ -233,6 +244,7 @@ void battle::UdpServer::handle_heartbeat_(const v1::ClientPacket& packet, const 
         send_packet_(make_error("invalid_request", "invalid heartbeat"), remote_addr, remote_addr_len);
         return;
     }
+    // 无操作期间依靠心跳维持 Connected 状态；未通过端点校验的心跳不会延长会话寿命。
     if (!session_manager_.touch(heartbeat.room_name(), heartbeat.player_id(),{remote_addr})) {
         send_packet_(make_error("invalid_session","session is not active"), remote_addr, remote_addr_len);
     }

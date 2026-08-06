@@ -1,6 +1,6 @@
 package httpapi
 
-// playerResponse is the JSON representation returned for a player.
+// playerResponse 是 API 返回的玩家 JSON 表示。
 type playerResponse struct {
 	ID       int64  `json:"id"`
 	Nickname string `json:"nickname"`
@@ -10,7 +10,7 @@ type playerResponse struct {
 	Coins    int64  `json:"coins"`
 }
 
-// errorResponse is the JSON body returned for API errors.
+// errorResponse 是 API 错误响应的 JSON 结构。
 type errorResponse struct {
 	Error string `json:"error"`
 }

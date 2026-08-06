@@ -11,14 +11,14 @@ type StateRepository struct {
 	stateClient statecontract.Client
 }
 
-// NewStateRepository creates an auth repository backed by a state-server client.
+// NewStateRepository 使用 state-server 客户端创建认证仓储。
 func NewStateRepository(client statecontract.Client) *StateRepository {
 	return &StateRepository{
 		stateClient: client,
 	}
 }
 
-// RegisterAccount creates account, player, and initial session through state-server.
+// RegisterAccount 通过 state-server 创建账号、玩家和初始会话。
 func (s *StateRepository) RegisterAccount(ctx context.Context, input RegisterAccountInput) (*RegisterAccountResult, error) {
 	result, err := s.stateClient.RegisterAccount(ctx, statecontract.RegisterAccountInput{
 		Username:         input.Username,
@@ -36,12 +36,12 @@ func (s *StateRepository) RegisterAccount(ctx context.Context, input RegisterAcc
 	return fromStateRegisterAccountResult(result), nil
 }
 
-// CreateAccount stores account credentials through state-server.
+// CreateAccount 通过 state-server 存储账号凭据。
 func (s *StateRepository) CreateAccount(ctx context.Context, account *Account) error {
 	return mapStateError(s.stateClient.CreateAccount(ctx, toStateAccount(account)))
 }
 
-// GetAccount loads account credentials through state-server.
+// GetAccount 通过 state-server 读取账号凭据。
 func (s *StateRepository) GetAccount(ctx context.Context, username string) (*Account, error) {
 	account, err := s.stateClient.GetAccount(ctx, username)
 	if err != nil {
@@ -50,12 +50,12 @@ func (s *StateRepository) GetAccount(ctx context.Context, username string) (*Acc
 	return fromStateAccount(account), nil
 }
 
-// CreateSession stores a login session through state-server.
+// CreateSession 通过 state-server 存储登录会话。
 func (s *StateRepository) CreateSession(ctx context.Context, session *Session) error {
 	return mapStateError(s.stateClient.CreateSession(ctx, toStateSession(session)))
 }
 
-// GetSession loads a login session through state-server.
+// GetSession 通过 state-server 读取登录会话。
 func (s *StateRepository) GetSession(ctx context.Context, token string) (*Session, error) {
 	session, err := s.stateClient.GetSession(ctx, token)
 	if err != nil {
@@ -64,7 +64,7 @@ func (s *StateRepository) GetSession(ctx context.Context, token string) (*Sessio
 	return fromStateSession(session), nil
 }
 
-// DeleteSession removes a login session through state-server.
+// DeleteSession 通过 state-server 删除登录会话。
 func (s *StateRepository) DeleteSession(ctx context.Context, token string) error {
 	return mapStateError(s.stateClient.DeleteSession(ctx, token))
 }

@@ -10,12 +10,12 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-// Client adapts generated rcenter gRPC bindings to the domain contract.
+// Client 将生成的 rcenter gRPC 绑定适配到领域契约。
 type Client struct {
 	client rcenterpb.RCenterServiceClient
 }
 
-// NewClient creates an rcenter client from generated gRPC bindings.
+// NewClient 使用生成的 gRPC 绑定创建 rcenter 客户端。
 func NewClient(client rcenterpb.RCenterServiceClient) *Client {
 	return &Client{client: client}
 }
@@ -73,7 +73,7 @@ func (c *Client) RegisterBattleNode(ctx context.Context, node rcenter.BattleNode
 	return mapGRPCError(err)
 }
 
-// ListBattleNodes returns the current rcenter battle node snapshot.
+// ListBattleNodes 返回当前 rcenter 战斗节点快照。
 func (c *Client) ListBattleNodes(ctx context.Context) ([]rcenter.BattleNode, error) {
 	res, err := c.client.ListBattleNodes(ctx, &rcenterpb.ListBattleNodesRequest{})
 	if err != nil {

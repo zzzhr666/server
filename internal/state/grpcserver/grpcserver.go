@@ -9,7 +9,7 @@ import (
 	"google.golang.org/grpc"
 )
 
-// Server exposes state contract operations as protobuf/gRPC methods.
+// Server 以 protobuf/gRPC 方法暴露状态契约操作。
 type Server struct {
 	statepb.UnimplementedStateServiceServer
 	stateClient    statecontract.Client
@@ -61,7 +61,7 @@ func (s *Server) UpgradeGrowth(ctx context.Context, request *statepb.UpgradeGrow
 	}, nil
 }
 
-// CreateAccount handles a gRPC request to create account credentials.
+// CreateAccount 处理创建账号凭据的 gRPC 请求。
 func (s *Server) CreateAccount(ctx context.Context, request *statepb.CreateAccountRequest) (*statepb.CreateAccountResponse, error) {
 	err := s.stateClient.CreateAccount(ctx, stateproto.FromProtoAccount(request.Account))
 	if err != nil {
@@ -70,7 +70,7 @@ func (s *Server) CreateAccount(ctx context.Context, request *statepb.CreateAccou
 	return &statepb.CreateAccountResponse{}, nil
 }
 
-// GetAccount handles a gRPC request to load account credentials.
+// GetAccount 处理读取账号凭据的 gRPC 请求。
 func (s *Server) GetAccount(ctx context.Context, request *statepb.GetAccountRequest) (*statepb.GetAccountResponse, error) {
 	account, err := s.stateClient.GetAccount(ctx, request.GetUsername())
 	if err != nil {
@@ -79,7 +79,7 @@ func (s *Server) GetAccount(ctx context.Context, request *statepb.GetAccountRequ
 	return &statepb.GetAccountResponse{Account: stateproto.ToProtoAccount(account)}, nil
 }
 
-// RegisterAccount handles account, player, and session creation in one call.
+// RegisterAccount 在一次调用中处理账号、玩家和会话创建。
 func (s *Server) RegisterAccount(ctx context.Context, request *statepb.RegisterAccountRequest) (*statepb.RegisterAccountResponse, error) {
 	res, err := s.stateClient.RegisterAccount(ctx, statecontract.RegisterAccountInput{
 		Username:         request.GetUsername(),
@@ -101,7 +101,7 @@ func (s *Server) RegisterAccount(ctx context.Context, request *statepb.RegisterA
 	}, nil
 }
 
-// CreateSession handles a gRPC request to persist a login session.
+// CreateSession 处理持久化登录会话的 gRPC 请求。
 func (s *Server) CreateSession(ctx context.Context, request *statepb.CreateSessionRequest) (*statepb.CreateSessionResponse, error) {
 	err := s.stateClient.CreateSession(ctx, stateproto.FromProtoSession(request.Session))
 	if err != nil {
@@ -110,7 +110,7 @@ func (s *Server) CreateSession(ctx context.Context, request *statepb.CreateSessi
 	return &statepb.CreateSessionResponse{}, nil
 }
 
-// GetSession handles a gRPC request to load a login session.
+// GetSession 处理读取登录会话的 gRPC 请求。
 func (s *Server) GetSession(ctx context.Context, request *statepb.GetSessionRequest) (*statepb.GetSessionResponse, error) {
 	session, err := s.stateClient.GetSession(ctx, request.GetToken())
 	if err != nil {
@@ -119,7 +119,7 @@ func (s *Server) GetSession(ctx context.Context, request *statepb.GetSessionRequ
 	return &statepb.GetSessionResponse{Session: stateproto.ToProtoSession(session)}, nil
 }
 
-// DeleteSession handles a gRPC request to remove a login session.
+// DeleteSession 处理删除登录会话的 gRPC 请求。
 func (s *Server) DeleteSession(ctx context.Context, request *statepb.DeleteSessionRequest) (*statepb.DeleteSessionResponse, error) {
 	err := s.stateClient.DeleteSession(ctx, request.GetToken())
 	if err != nil {
@@ -128,7 +128,7 @@ func (s *Server) DeleteSession(ctx context.Context, request *statepb.DeleteSessi
 	return &statepb.DeleteSessionResponse{}, nil
 }
 
-// CreatePlayer handles a gRPC request to persist player profile state.
+// CreatePlayer 处理持久化玩家档案状态的 gRPC 请求。
 func (s *Server) CreatePlayer(ctx context.Context, request *statepb.CreatePlayerRequest) (*statepb.CreatePlayerResponse, error) {
 	err := s.stateClient.CreatePlayer(ctx, stateproto.FromProtoPlayer(request.Player))
 	if err != nil {
@@ -137,7 +137,7 @@ func (s *Server) CreatePlayer(ctx context.Context, request *statepb.CreatePlayer
 	return &statepb.CreatePlayerResponse{}, nil
 }
 
-// GetPlayer handles a gRPC request to load player profile state.
+// GetPlayer 处理读取玩家档案状态的 gRPC 请求。
 func (s *Server) GetPlayer(ctx context.Context, request *statepb.GetPlayerRequest) (*statepb.GetPlayerResponse, error) {
 	player, err := s.stateClient.GetPlayer(ctx, request.GetId())
 	if err != nil {
@@ -146,7 +146,7 @@ func (s *Server) GetPlayer(ctx context.Context, request *statepb.GetPlayerReques
 	return &statepb.GetPlayerResponse{Player: stateproto.ToProtoPlayer(player)}, nil
 }
 
-// NextPlayerID handles a gRPC request to allocate a player ID.
+// NextPlayerID 处理分配玩家 ID 的 gRPC 请求。
 func (s *Server) NextPlayerID(ctx context.Context, request *statepb.NextPlayerIDRequest) (*statepb.NextPlayerIDResponse, error) {
 	id, err := s.stateClient.NextPlayerID(ctx)
 	if err != nil {
@@ -155,7 +155,7 @@ func (s *Server) NextPlayerID(ctx context.Context, request *statepb.NextPlayerID
 	return &statepb.NextPlayerIDResponse{Id: id}, nil
 }
 
-// SetPresence handles a gRPC request to record online state.
+// SetPresence 处理记录在线状态的 gRPC 请求。
 func (s *Server) SetPresence(ctx context.Context, request *statepb.SetPresenceRequest) (*statepb.SetPresenceResponse, error) {
 	err := s.presenceClient.SetPresence(ctx, stateproto.FromProtoPresence(request.GetPresence()), stateproto.FromProtoDuration(request.GetTtl()))
 	if err != nil {
@@ -164,7 +164,7 @@ func (s *Server) SetPresence(ctx context.Context, request *statepb.SetPresenceRe
 	return &statepb.SetPresenceResponse{}, nil
 }
 
-// GetPresence handles a gRPC request to load online state.
+// GetPresence 处理读取在线状态的 gRPC 请求。
 func (s *Server) GetPresence(ctx context.Context, request *statepb.GetPresenceRequest) (*statepb.GetPresenceResponse, error) {
 	presence, err := s.presenceClient.GetPresence(ctx, request.GetPlayerId())
 	if err != nil {
@@ -173,7 +173,7 @@ func (s *Server) GetPresence(ctx context.Context, request *statepb.GetPresenceRe
 	return &statepb.GetPresenceResponse{Presence: stateproto.ToProtoPresence(presence)}, nil
 }
 
-// ClearPresence handles a gRPC request to remove owned online state.
+// ClearPresence 处理删除所属在线状态的 gRPC 请求。
 func (s *Server) ClearPresence(ctx context.Context, request *statepb.ClearPresenceRequest) (*statepb.ClearPresenceResponse, error) {
 	err := s.presenceClient.ClearPresence(ctx, request.GetPlayerId(), request.GetServerName())
 	if err != nil {
@@ -182,7 +182,7 @@ func (s *Server) ClearPresence(ctx context.Context, request *statepb.ClearPresen
 	return &statepb.ClearPresenceResponse{}, nil
 }
 
-// RefreshPresence handles a gRPC request to extend owned online state.
+// RefreshPresence 处理延长所属在线状态的 gRPC 请求。
 func (s *Server) RefreshPresence(ctx context.Context, request *statepb.RefreshPresenceRequest) (*statepb.RefreshPresenceResponse, error) {
 	err := s.presenceClient.RefreshPresence(ctx, request.GetPlayerId(), request.GetServerName(), stateproto.FromProtoTime(request.GetUpdatedAt()), stateproto.FromProtoDuration(request.GetTtl()))
 	if err != nil {
@@ -290,7 +290,7 @@ func (s *Server) SubscribeRealtime(request *statepb.SubscribeRealtimeRequest, g 
 	}
 }
 
-// ServerConfig provides the state clients used by the gRPC adapter.
+// ServerConfig 提供 gRPC 适配器使用的状态客户端。
 type ServerConfig struct {
 	StateClient    statecontract.Client
 	PresenceClient statecontract.PresenceClient
@@ -300,7 +300,7 @@ type ServerConfig struct {
 	CoinClient     statecontract.CoinClient
 }
 
-// NewServer creates a gRPC state server adapter.
+// NewServer 创建 gRPC 状态服务适配器。
 func NewServer(config ServerConfig) *Server {
 	return &Server{
 		stateClient:    config.StateClient,

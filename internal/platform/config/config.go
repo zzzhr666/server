@@ -2,7 +2,7 @@ package config
 
 import "server/internal/platform/redisdb"
 
-// Config contains process defaults for local demo servers.
+// Config 包含本地演示服务进程的默认配置。
 type Config struct {
 	HTTPAddr        string
 	StateGRPCAddr   string
@@ -10,7 +10,7 @@ type Config struct {
 	RCenterGRPCAddr string
 }
 
-// Default returns the local development configuration.
+// Default 返回本地开发环境配置。
 func Default() Config {
 	return Config{
 		HTTPAddr:        ":8080",

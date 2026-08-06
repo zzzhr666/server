@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-// FromProtoBattleNode converts generated protobuf data to a domain battle node.
+// FromProtoBattleNode 将生成的 protobuf 数据转换为领域战斗节点。
 func FromProtoBattleNode(node *rcenterpb.BattleNode) rcenter.BattleNode {
 	return rcenter.BattleNode{
 		Name:          node.GetName(),
@@ -18,7 +18,7 @@ func FromProtoBattleNode(node *rcenterpb.BattleNode) rcenter.BattleNode {
 	}
 }
 
-// ToProtoBattleNode converts a domain battle node to generated protobuf data.
+// ToProtoBattleNode 将领域战斗节点转换为生成的 protobuf 数据。
 func ToProtoBattleNode(node rcenter.BattleNode) *rcenterpb.BattleNode {
 	return &rcenterpb.BattleNode{
 		Name:          node.Name,
@@ -30,7 +30,7 @@ func ToProtoBattleNode(node rcenter.BattleNode) *rcenterpb.BattleNode {
 	}
 }
 
-// ToProtoMatchResult converts a domain match result to generated protobuf data.
+// ToProtoMatchResult 将领域匹配结果转换为生成的 protobuf 数据。
 func ToProtoMatchResult(result *rcenter.MatchResult) *rcenterpb.MatchResult {
 	protoResult := &rcenterpb.MatchResult{
 		Status:         string(result.Status),
@@ -50,7 +50,7 @@ func ToProtoMatchResult(result *rcenter.MatchResult) *rcenterpb.MatchResult {
 	return protoResult
 }
 
-// FromProtoMatchResult converts generated protobuf data to a domain match result.
+// FromProtoMatchResult 将生成的 protobuf 数据转换为领域匹配结果。
 func FromProtoMatchResult(result *rcenterpb.MatchResult) *rcenter.MatchResult {
 	matchResult := &rcenter.MatchResult{
 		Status:         mapStatus(result.GetStatus()),

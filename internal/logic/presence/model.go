@@ -3,16 +3,16 @@ package presence
 import "time"
 
 const (
-	// StatusOnline is the persisted presence status for connected players.
+	// StatusOnline 是已连接玩家持久化的在线状态。
 	StatusOnline = "online"
-	// StatusOffline is the status reported when a player disconnects.
+	// StatusOffline 是玩家断开连接时上报的状态。
 	StatusOffline = "offline"
 )
 
-// DefaultTTL bounds stale online records when a connection is lost.
+// DefaultTTL 用于限制连接丢失后残留在线记录的最长时间。
 const DefaultTTL = 2 * time.Minute
 
-// Presence describes a player's current logic-server connection.
+// Presence 描述玩家当前连接的 logic-server。
 type Presence struct {
 	PlayerID   int64
 	ServerName string

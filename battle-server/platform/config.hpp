@@ -3,7 +3,7 @@
 #include <string>
 
 namespace battle {
-    /// Config contains local battle-server addresses and capacity settings.
+    /// @brief Config 包含本地 battle-server 的地址、容量与超时配置。
     struct Config {
         std::string node_name;
         std::string control_addr;
@@ -16,6 +16,6 @@ namespace battle {
         std::chrono::seconds all_players_disconnected_timeout;
     };
 
-    /// DefaultConfig returns development defaults for a single local battle node.
+    /// @brief DefaultConfig 返回单个本地战斗节点的开发环境默认配置。
     Config DefaultConfig();
 }

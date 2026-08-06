@@ -17,6 +17,8 @@ battle::RegisterBattleNodeResult battle::RCenterClient::register_battle_node(
     node->set_udp_addr(config.udp_addr);
     node->set_control_addr(config.control_addr);
     node->set_max_players(config.max_players);
+    // 容量来自 RoomManager 的预留数，而不是当前 UDP 已连接数。这样等待重连的玩家
+    // 仍占用房间配额，不会在同一节点被超额调度。
     node->set_active_players(static_cast<std::int32_t>(room_manager.active_players()));
     grpc::ClientContext ctx;
     rcenter::v1::RegisterBattleNodeResponse response;
@@ -37,6 +39,8 @@ battle::FinishMatchResult battle::RCenterClient::finish_match(const FinishedBatt
     }
     request.set_reason(finished.reason);
 
+    // 非胜负结束（如全员断线）仅请求 rcenter 释放匹配上下文，不能附带奖励统计；
+    // 胜利或失败必须带完整统计，供 rcenter 以权威规则计算金币。
     if (finished.reason == "victory" || finished.reason == "defeat") {
         if (finished.settlement.players.empty()) {
             return FinishMatchResult{.ok = false, .message = "missing settlement players"};

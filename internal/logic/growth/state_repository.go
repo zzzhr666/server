@@ -6,10 +6,12 @@ import (
 	statecontract "server/internal/contract/state"
 )
 
+// StateRepository 将成长领域的读写操作适配到 state-server。
 type StateRepository struct {
 	client statecontract.GrowthClient
 }
 
+// Upgrade 调用 state-server 原子地校验货币、等级上限并持久化升级结果。
 func (s *StateRepository) Upgrade(ctx context.Context, input UpgradePersistInput) (*UpgradePersistResult, error) {
 	res, err := s.client.UpgradeGrowth(ctx, statecontract.UpgradeGrowthInput{
 		PlayerID:     input.PlayerID,
@@ -26,6 +28,7 @@ func (s *StateRepository) Upgrade(ctx context.Context, input UpgradePersistInput
 	}, nil
 }
 
+// Get 从 state-server 读取玩家成长数据。
 func (s *StateRepository) Get(ctx context.Context, playerID int64) (*Growth, error) {
 	growth, err := s.client.GetGrowth(ctx, playerID)
 	if err != nil {
@@ -34,12 +37,14 @@ func (s *StateRepository) Get(ctx context.Context, playerID int64) (*Growth, err
 	return fromStateGrowth(growth), nil
 }
 
+// NewStateRepository 使用 state-server 成长客户端创建仓储。
 func NewStateRepository(client statecontract.GrowthClient) *StateRepository {
 	return &StateRepository{
 		client: client,
 	}
 }
 
+// mapStateError 将状态层成长错误映射为领域错误。
 func mapStateError(err error) error {
 	switch {
 	case errors.Is(err, statecontract.ErrGrowthNotFound):
@@ -56,6 +61,7 @@ func mapStateError(err error) error {
 	}
 }
 
+// fromStateGrowth 将状态层成长数据转换为领域模型。
 func fromStateGrowth(growth *statecontract.Growth) *Growth {
 	return &Growth{
 		PlayerID:         growth.PlayerID,
@@ -66,6 +72,7 @@ func fromStateGrowth(growth *statecontract.Growth) *Growth {
 	}
 }
 
+// mappingTypeToStr 将领域升级类型转换为状态层字段名。
 func mappingTypeToStr(upgradeType UpgradeType) string {
 	switch upgradeType {
 	case UpgradeAttackSpeed:

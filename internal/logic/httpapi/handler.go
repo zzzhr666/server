@@ -11,7 +11,7 @@ import (
 	"server/internal/logic/presence"
 )
 
-// Handler owns the HTTP and WebSocket routes for a logic-server instance.
+// Handler 持有一个 logic-server 实例的 HTTP 和 WebSocket 路由。
 type Handler struct {
 	authService        auth.Service
 	serverName         string
@@ -25,7 +25,7 @@ type Handler struct {
 	growthService      growth.Service
 }
 
-// HandlerConfig wires logic services into the HTTP adapter.
+// HandlerConfig 将逻辑服务注入 HTTP 适配器。
 type HandlerConfig struct {
 	AuthService     auth.Service
 	ServerName      string
@@ -37,7 +37,7 @@ type HandlerConfig struct {
 	GrowthService   growth.Service
 }
 
-// NewHandler creates an HTTP handler with logic-server services.
+// NewHandler 使用 logic-server 服务创建 HTTP 处理器。
 func NewHandler(handlerConfig HandlerConfig) *Handler {
 	connections := newConnManager()
 	var subscriber *realtimeSubscriber
@@ -65,7 +65,7 @@ func (h *Handler) RunRealtimeSubscriber(ctx context.Context) error {
 	return h.realtimeSubscriber.Run(ctx)
 }
 
-// publishFriendPresenceChanged notifies online friends about player presence changes.
+// publishFriendPresenceChanged 通知在线好友玩家在线状态的变化。
 func (h *Handler) publishFriendPresenceChanged(ctx context.Context, playerID int64, online bool, status string) {
 	if h.realtimeClient == nil {
 		return
@@ -91,7 +91,7 @@ func (h *Handler) publishFriendPresenceChanged(ctx context.Context, playerID int
 	}
 }
 
-// publishFriendRemoved notifies the removed player that removerID is no longer a friend.
+// publishFriendRemoved 通知被删除玩家，removerID 不再是其好友。
 func (h *Handler) publishFriendRemoved(ctx context.Context, removedPlayerID, removerID int64) {
 	if h.realtimeClient == nil {
 		return
@@ -136,6 +136,8 @@ func (h *Handler) replaceExistingConnection(ctx context.Context, playerID int64)
 	if h.realtimeClient == nil {
 		return
 	}
+	// presence 记录的是上一次持有该玩家的 logic-server。向该实例发布事件而不是
+	// 本地直接 Close，才能处理负载均衡后同一账号落在不同进程的情况。
 	existingPresence, err := h.presenceService.Get(ctx, playerID)
 	if err != nil {
 		return

@@ -19,7 +19,7 @@ func main() {
 	ctx := context.Background()
 	cfg := config.Default()
 
-	//prepare redis
+	// 创建 Redis 客户端，状态服务是 Go 侧唯一直接访问 Redis 的进程。
 	redisClient := redisdb.NewClient(cfg.Redis)
 	defer func(redisClient *redis.Client) {
 		if err := redisClient.Close(); err != nil {
@@ -30,10 +30,10 @@ func main() {
 		log.Fatalf("redis ping failed: %v", err)
 	}
 
-	//make store
+	// 将 Redis 访问封装为状态存储实现。
 	store := redisstore.NewStore(redisClient)
 
-	//make service
+	// 组装状态领域服务与其 gRPC 适配器。
 	stateService := service.NewService(service.StoreConfig{
 		Accounts:      store,
 		Sessions:      store,

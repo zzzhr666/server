@@ -14,7 +14,7 @@ import (
 const nextPlayerIDKey = "game:next_player_id"
 const optimisticLockRetries = 3
 
-// Store persists state contract models in Redis.
+// Store 在 Redis 中持久化状态契约模型。
 type Store struct {
 	client *redis.Client
 }
@@ -41,7 +41,7 @@ func (s *Store) AddPlayerCoins(ctx context.Context, input statecontract.AddPlaye
 	}, nil
 }
 
-// CreatePlayer stores a player profile by player ID.
+// CreatePlayer 按玩家 ID 存储玩家档案。
 func (s *Store) CreatePlayer(ctx context.Context, player *statecontract.Player) error {
 	return s.client.HSet(ctx, playerKey(player.ID), map[string]any{
 		"id":       player.ID,
@@ -54,7 +54,7 @@ func (s *Store) CreatePlayer(ctx context.Context, player *statecontract.Player) 
 
 }
 
-// GetPlayer loads a player profile by player ID.
+// GetPlayer 按玩家 ID 读取玩家档案。
 func (s *Store) GetPlayer(ctx context.Context, id int64) (*statecontract.Player, error) {
 	key := playerKey(id)
 	value, err := s.client.HGetAll(ctx, key).Result()
@@ -79,12 +79,12 @@ func (s *Store) GetPlayer(ctx context.Context, id int64) (*statecontract.Player,
 
 }
 
-// NextPlayerID increments and returns the Redis-backed player ID sequence.
+// NextPlayerID 递增并返回 Redis 支持的玩家 ID 序列。
 func (s *Store) NextPlayerID(ctx context.Context) (int64, error) {
 	return s.client.Incr(ctx, nextPlayerIDKey).Result()
 }
 
-// CreateSession stores a session with a Redis TTL derived from ExpiresAt.
+// CreateSession 使用由 ExpiresAt 推导的 Redis TTL 存储会话。
 func (s *Store) CreateSession(ctx context.Context, session *statecontract.Session) error {
 	key := sessionKey(session.Token)
 	ttl := time.Until(session.ExpiresAt)
@@ -103,7 +103,7 @@ func (s *Store) CreateSession(ctx context.Context, session *statecontract.Sessio
 	return err
 }
 
-// GetSession loads a session by token and treats expired sessions as missing.
+// GetSession 按令牌读取会话，并将过期会话视为不存在。
 func (s *Store) GetSession(ctx context.Context, token string) (*statecontract.Session, error) {
 	value, err := s.client.HGetAll(ctx, sessionKey(token)).Result()
 	if err != nil {
@@ -132,12 +132,12 @@ func (s *Store) GetSession(ctx context.Context, token string) (*statecontract.Se
 	return session, nil
 }
 
-// DeleteSession removes a session by token.
+// DeleteSession 按令牌删除会话。
 func (s *Store) DeleteSession(ctx context.Context, token string) error {
 	return s.client.Del(ctx, sessionKey(token)).Err()
 }
 
-// CreateAccount stores account credentials if the username is still unused.
+// CreateAccount 在用户名未被使用时存储账号凭据。
 func (s *Store) CreateAccount(ctx context.Context, account *statecontract.Account) error {
 	key := accountKey(account.Username)
 	return retryOptimisticLock(ctx, func() error {
@@ -162,7 +162,7 @@ func (s *Store) CreateAccount(ctx context.Context, account *statecontract.Accoun
 	})
 }
 
-// GetAccount loads account credentials by username.
+// GetAccount 按用户名读取账号凭据。
 func (s *Store) GetAccount(ctx context.Context, username string) (*statecontract.Account, error) {
 	value, err := s.client.HGetAll(ctx, accountKey(username)).Result()
 	if err != nil {
@@ -182,7 +182,7 @@ func (s *Store) GetAccount(ctx context.Context, username string) (*statecontract
 	}, nil
 }
 
-// SetPresence records a player's current logic-server connection with a TTL.
+// SetPresence 使用 TTL 记录玩家当前连接的 logic-server。
 func (s *Store) SetPresence(ctx context.Context, presence *statecontract.Presence, ttl time.Duration) error {
 	if presence == nil || ttl <= 0 {
 		return statecontract.ErrInvalidPresence
@@ -205,7 +205,7 @@ func (s *Store) SetPresence(ctx context.Context, presence *statecontract.Presenc
 	return err
 }
 
-// GetPresence loads a player's current online-state record.
+// GetPresence 读取玩家当前的在线状态记录。
 func (s *Store) GetPresence(ctx context.Context, playerID int64) (*statecontract.Presence, error) {
 	if playerID <= 0 {
 		return nil, statecontract.ErrInvalidPresence
@@ -234,12 +234,14 @@ func (s *Store) GetPresence(ctx context.Context, playerID int64) (*statecontract
 	}, nil
 }
 
-// ClearPresence deletes a presence record only when serverName still owns it.
+// ClearPresence 仅在 serverName 仍持有记录时删除在线状态。
 func (s *Store) ClearPresence(ctx context.Context, playerID int64, serverName string) error {
 	if playerID <= 0 || serverName == "" {
 		return statecontract.ErrInvalidPresence
 	}
 	key := presenceKey(playerID)
+	// WebSocket 的旧连接可能在新连接写入 presence 后才关闭。WATCH 将“仍由本
+	// serverName 持有”的读取和删除绑定为一次乐观事务，避免旧实例删掉新实例的记录。
 	return retryOptimisticLock(ctx, func() error {
 		return s.client.Watch(ctx, func(tx *redis.Tx) error {
 			storedServerName, err := tx.HGet(ctx, key, "server_name").Result()
@@ -263,12 +265,14 @@ func (s *Store) ClearPresence(ctx context.Context, playerID int64, serverName st
 	})
 }
 
-// RefreshPresence extends a presence TTL only while serverName still owns it.
+// RefreshPresence 仅在 serverName 仍持有记录时延长在线状态 TTL。
 func (s *Store) RefreshPresence(ctx context.Context, playerID int64, serverName string, updatedAt time.Time, ttl time.Duration) error {
 	if playerID <= 0 || serverName == "" || ttl <= 0 {
 		return statecontract.ErrInvalidPresence
 	}
 	key := presenceKey(playerID)
+	// 心跳只能续期当前 logic-server 持有的记录。所有权已经被重连实例替换时返回
+	// ErrPresenceNotFound，让旧 WebSocket 主动退出，而不是把新记录的 TTL 延长。
 	return retryOptimisticLock(ctx, func() error {
 		err := s.client.Watch(ctx, func(tx *redis.Tx) error {
 			storedServerName, err := tx.HGet(ctx, key, "server_name").Result()
@@ -293,9 +297,12 @@ func (s *Store) RefreshPresence(ctx context.Context, playerID int64, serverName 
 	})
 }
 
-// RegisterAccount creates account, player, and session records together.
+// RegisterAccount 一并创建账号、玩家和会话记录。
 func (s *Store) RegisterAccount(ctx context.Context, input statecontract.RegisterAccountInput) (*statecontract.RegisterAccountResult, error) {
 	var result *statecontract.RegisterAccountResult
+	// 用户名唯一性检查、玩家 ID 分配以及账号/玩家/会话/初始成长写入必须处于同一
+	// WATCH + 事务提交范围。发生竞争时 retryOptimisticLock 重新读取，不能留下
+	// 只有账号或只有玩家的半注册状态。
 	err := retryOptimisticLock(ctx, func() error {
 		accountKey := accountKey(input.Username)
 		return s.client.Watch(ctx, func(tx *redis.Tx) error {
@@ -602,7 +609,7 @@ func (s *Store) DeleteFriend(ctx context.Context, playerID, friendPlayerID int64
 	})
 }
 
-// PublishRealtimeToServer publishes an event to one logic-server realtime channel.
+// PublishRealtimeToServer 向一个 logic-server 实时频道发布事件。
 func (s *Store) PublishRealtimeToServer(ctx context.Context, serverName string, event *statecontract.RealtimeEvent) error {
 	if serverName == "" || event == nil || event.Type == "" || event.TargetPlayerID <= 0 {
 		return statecontract.ErrInvalidPresence
@@ -614,7 +621,7 @@ func (s *Store) PublishRealtimeToServer(ctx context.Context, serverName string, 
 	return s.client.Publish(ctx, realtimeChannelKey(serverName), payload).Err()
 }
 
-// SubscribeRealtime subscribes to realtime events addressed to one logic-server.
+// SubscribeRealtime 订阅发送给一个 logic-server 的实时事件。
 func (s *Store) SubscribeRealtime(ctx context.Context, serverName string) (<-chan *statecontract.RealtimeEvent, error) {
 	if serverName == "" {
 		return nil, statecontract.ErrInvalidPresence
@@ -626,6 +633,8 @@ func (s *Store) SubscribeRealtime(ctx context.Context, serverName string) (<-cha
 	}
 	events := make(chan *statecontract.RealtimeEvent, 16)
 	go func() {
+		// pubsub 的生命周期绑定调用方 context。关闭 events 前先关闭 Redis 订阅，
+		// 使 logic-server 停止时不会泄漏 goroutine 或保留无消费者的频道连接。
 		defer close(events)
 		defer func() {
 			_ = pubsub.Close()
@@ -784,12 +793,12 @@ func retryOptimisticLock(ctx context.Context, operation func() error) error {
 	return err
 }
 
-// NewStore creates a Redis-backed state store.
+// NewStore 创建由 Redis 支持的状态存储。
 func NewStore(client *redis.Client) *Store {
 	return &Store{client: client}
 }
 
-// key helper
+// key 构造业务 Redis 键。
 func accountKey(username string) string {
 	return "game:account:" + username
 }

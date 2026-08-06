@@ -1,6 +1,6 @@
 package growth
 
-// DefaultUpgradeRules returns the local demo economy for out-of-battle growth.
+// DefaultUpgradeRules 返回本地演示环境的局外成长经济规则。
 func DefaultUpgradeRules() []UpgradeRule {
 	return []UpgradeRule{
 		{

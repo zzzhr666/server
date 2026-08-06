@@ -27,6 +27,8 @@ battle::JoinRoomResult battle::Room::join(std::int64_t player_id, std::string_vi
         return {.status = JoinRoomStatus::InvalidRequest, .message = "invalid request", .all_players_joined = false};
     }
 
+    // 令牌校验、白名单校验和 joined 集合写入必须处于同一临界区；否则两个并发 hello
+    // 都可能看到玩家尚未加入，并错误地重复触发 all_players_joined。
     std::lock_guard<std::mutex> lock(join_mutex_);
 
     if (token != token_) {

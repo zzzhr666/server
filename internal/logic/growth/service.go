@@ -88,7 +88,7 @@ func (g *GameGrowthService) Get(ctx context.Context, playerID int64) (*Growth, e
 
 }
 
-// UpgradeOptions returns the current level, next price, and level cap for every growth attribute.
+// UpgradeOptions 返回每项成长属性的当前等级、下次价格和等级上限。
 func (g *GameGrowthService) UpgradeOptions(current *Growth) ([]UpgradeOption, error) {
 	if current == nil {
 		return nil, ErrInvalidGrowthLevel

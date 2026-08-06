@@ -11,27 +11,27 @@ type rCenterClient interface {
 	ResumeMatch(ctx context.Context, playerID int64) (*rcenter.MatchResult, error)
 }
 
-// RCenterRepository adapts the rcenter client to the logic match repository.
+// RCenterRepository 将 rcenter 客户端适配为局外匹配仓储。
 type RCenterRepository struct {
 	client rCenterClient
 }
 
-// NewRCenterRepository creates a match repository backed by rcenter gRPC.
+// NewRCenterRepository 使用 rcenter gRPC 客户端创建匹配仓储。
 func NewRCenterRepository(client rCenterClient) *RCenterRepository {
 	return &RCenterRepository{client: client}
 }
 
-// StartMatch forwards match start requests to rcenter.
+// StartMatch 将开始匹配请求转发给 rcenter。
 func (r *RCenterRepository) StartMatch(ctx context.Context, playerID int64, weapon string) (*rcenter.MatchResult, error) {
 	return r.client.StartMatch(ctx, playerID, weapon)
 }
 
-// CancelMatch forwards match cancellation requests to rcenter.
+// CancelMatch 将取消匹配请求转发给 rcenter。
 func (r *RCenterRepository) CancelMatch(ctx context.Context, playerID int64) error {
 	return r.client.CancelMatch(ctx, playerID)
 }
 
-// ResumeMatch forwards an active battle assignment lookup to rcenter.
+// ResumeMatch 将活跃战斗分配查询转发给 rcenter。
 func (r *RCenterRepository) ResumeMatch(ctx context.Context, playerID int64) (*rcenter.MatchResult, error) {
 	return r.client.ResumeMatch(ctx, playerID)
 }

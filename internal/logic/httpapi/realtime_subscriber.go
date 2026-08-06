@@ -19,7 +19,7 @@ func newRealtimeSubscriber(serverName string, client statecontract.RealtimeClien
 	}
 }
 
-// Run subscribes to this logic-server's realtime channel and forwards events locally.
+// Run 订阅当前 logic-server 的实时频道并在本地转发事件。
 func (r *realtimeSubscriber) Run(ctx context.Context) error {
 	events, err := r.client.SubscribeRealtime(ctx, r.serverName)
 	if err != nil {
@@ -36,6 +36,8 @@ func (r *realtimeSubscriber) Run(ctx context.Context) error {
 			if event == nil {
 				continue
 			}
+			// state-server 已按 serverName 路由事件；这里仅负责将跨实例事件落到
+			// 当前进程持有的 WebSocket，不再查询在线状态以避免转发循环。
 			r.pusher.Push(ctx, *event)
 
 		}

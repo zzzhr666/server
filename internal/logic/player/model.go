@@ -1,6 +1,6 @@
 package player
 
-// Player represents a user profile used by login and gameplay systems.
+// Player 表示登录和游戏系统使用的玩家档案。
 type Player struct {
 	ID       int64
 	Nickname string

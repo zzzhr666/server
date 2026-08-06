@@ -5,7 +5,7 @@ import (
 	"server/internal/contract/battlepb"
 )
 
-// CreateRoomInput carries the room payload sent from rcenter to a battle node.
+// CreateRoomInput 携带 rcenter 发送给战斗节点的房间数据。
 type CreateRoomInput struct {
 	RoomName       string
 	Token          string
@@ -13,7 +13,7 @@ type CreateRoomInput struct {
 	PlayerLoadouts []PlayerLoadout
 }
 
-// PlayerLoadout carries one player's selected battle configuration.
+// PlayerLoadout 携带一名玩家选择的战斗配置。
 type PlayerLoadout struct {
 	PlayerID         int64
 	Weapon           string
@@ -23,67 +23,67 @@ type PlayerLoadout struct {
 	MoveSpeedLevel   int32
 }
 
-// CreateRoomStatus is the battle client status normalized for rcenter business code.
+// CreateRoomStatus 是为 rcenter 业务代码归一化的战斗客户端状态。
 type CreateRoomStatus string
 
 const (
-	// CreateRoomStatusOK means the battle node created the room successfully.
+	// CreateRoomStatusOK 表示战斗节点成功创建了房间。
 	CreateRoomStatusOK CreateRoomStatus = "ok"
-	// CreateRoomStatusInvalidRequest means the create request missed required data.
+	// CreateRoomStatusInvalidRequest 表示创建请求缺少必填数据。
 	CreateRoomStatusInvalidRequest CreateRoomStatus = "invalid_request"
-	// CreateRoomStatusAlreadyExists means the requested room already exists.
+	// CreateRoomStatusAlreadyExists 表示请求的房间已经存在。
 	CreateRoomStatusAlreadyExists CreateRoomStatus = "already_exists"
-	// CreateRoomStatusInternalError means the battle node failed internally.
+	// CreateRoomStatusInternalError 表示战斗节点发生内部错误。
 	CreateRoomStatusInternalError CreateRoomStatus = "internal_error"
-	// CreateRoomStatusUnexpected preserves unknown protobuf status values.
+	// CreateRoomStatusUnexpected 保留未知的 protobuf 状态值。
 	CreateRoomStatusUnexpected CreateRoomStatus = "unexpected"
 )
 
-// CreateRoomResult contains the normalized battle room creation response.
+// CreateRoomResult 包含归一化后的战斗房间创建响应。
 type CreateRoomResult struct {
 	Status  CreateRoomStatus
 	Message string
 }
 
-// EndRoomInput carries a control-plane request to end a running battle room.
+// EndRoomInput 携带用于结束运行中战斗房间的控制面请求。
 type EndRoomInput struct {
 	RoomName string
 	Reason   string
 }
 
-// EndRoomStatus is the battle room ending status normalized for tools and callers.
+// EndRoomStatus 是为工具和调用方归一化的战斗房间结束状态。
 type EndRoomStatus string
 
 const (
-	// EndRoomStatusOK means the battle node ended the room successfully.
+	// EndRoomStatusOK 表示战斗节点成功结束了房间。
 	EndRoomStatusOK EndRoomStatus = "ok"
-	// EndRoomStatusInvalidRequest means the end request missed required data.
+	// EndRoomStatusInvalidRequest 表示结束请求缺少必填数据。
 	EndRoomStatusInvalidRequest EndRoomStatus = "invalid_request"
-	// EndRoomStatusRoomNotFound means the battle node has no running instance for the room.
+	// EndRoomStatusRoomNotFound 表示战斗节点没有该房间的运行实例。
 	EndRoomStatusRoomNotFound EndRoomStatus = "room_not_found"
-	// EndRoomStatusInternalError means the battle node failed internally.
+	// EndRoomStatusInternalError 表示战斗节点发生内部错误。
 	EndRoomStatusInternalError EndRoomStatus = "internal_error"
-	// EndRoomStatusUnexpected preserves unknown protobuf status values.
+	// EndRoomStatusUnexpected 保留未知的 protobuf 状态值。
 	EndRoomStatusUnexpected EndRoomStatus = "unexpected"
 )
 
-// EndRoomResult contains the normalized battle room ending response.
+// EndRoomResult 包含归一化后的战斗房间结束响应。
 type EndRoomResult struct {
 	Status  EndRoomStatus
 	Message string
 }
 
-// Client adapts the generated BattleControlService gRPC client for rcenter.
+// Client 将生成的 BattleControlService gRPC 客户端适配给 rcenter。
 type Client struct {
 	client battlepb.BattleControlServiceClient
 }
 
-// NewClient wraps a generated BattleControlService client.
+// NewClient 包装生成的 BattleControlService 客户端。
 func NewClient(client battlepb.BattleControlServiceClient) *Client {
 	return &Client{client: client}
 }
 
-// CreateRoom asks a battle node to reserve a room for matched players.
+// CreateRoom 请求战斗节点为已匹配玩家预留房间。
 func (c *Client) CreateRoom(ctx context.Context, input CreateRoomInput) (*CreateRoomResult, error) {
 	req := &battlepb.CreateRoomRequest{
 		RoomName:  input.RoomName,
@@ -127,7 +127,7 @@ func fromProtoCreateRoomStatus(status battlepb.CreateRoomStatus) CreateRoomStatu
 	}
 }
 
-// EndRoom asks a battle node to end a running room.
+// EndRoom 请求战斗节点结束运行中的房间。
 func (c *Client) EndRoom(ctx context.Context, input EndRoomInput) (*EndRoomResult, error) {
 	res, err := c.client.EndRoom(ctx, &battlepb.EndRoomRequest{
 		RoomName: input.RoomName,

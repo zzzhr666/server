@@ -2,7 +2,7 @@ package httpapi
 
 import "net/http"
 
-// Routes builds all HTTP routes for the game server API.
+// Routes 构建游戏服务 API 的全部 HTTP 路由。
 func (h *Handler) Routes() http.Handler {
 	var mux = http.NewServeMux()
 	mux.HandleFunc("GET /health", h.handleHealth)

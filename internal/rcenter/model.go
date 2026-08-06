@@ -2,7 +2,7 @@ package rcenter
 
 import "time"
 
-// BattleNode describes one battle process that can host matched players.
+// BattleNode 描述一个可承载已匹配玩家的战斗进程。
 type BattleNode struct {
 	Name          string
 	UDPAddr       string
@@ -12,19 +12,19 @@ type BattleNode struct {
 	LastSeen      time.Time
 }
 
-// MatchStatus is the matchmaking state returned to logic servers.
+// MatchStatus 是返回给 logic-server 的匹配状态。
 type MatchStatus string
 
 const (
-	// MatchStatusWaiting means the player is queued and waiting for an opponent.
+	// MatchStatusWaiting 表示玩家正在队列中等待对手。
 	MatchStatusWaiting MatchStatus = "waiting"
-	// MatchStatusMatched means a room and battle node were assigned.
+	// MatchStatusMatched 表示已分配房间和战斗节点。
 	MatchStatusMatched MatchStatus = "matched"
-	// MatchStatusUnexpected preserves unknown status values from remote responses.
+	// MatchStatusUnexpected 保留远程响应中的未知状态值。
 	MatchStatusUnexpected MatchStatus = "unexpected"
 )
 
-// MatchResult contains the matchmaking outcome sent back to matched players.
+// MatchResult 包含发送给已匹配玩家的匹配结果。
 type MatchResult struct {
 	Status         MatchStatus
 	RoomName       string
@@ -35,7 +35,7 @@ type MatchResult struct {
 	PlayerLoadouts []PlayerLoadout
 }
 
-// CreateBattleRoomInput contains the room reservation data sent to a battle node.
+// CreateBattleRoomInput 包含发送给战斗节点的房间预留数据。
 type CreateBattleRoomInput struct {
 	RoomName       string
 	Token          string
@@ -58,7 +58,7 @@ type FinishMatchInput struct {
 	PlayerStats []PlayerBattleStats
 }
 
-// ActiveMatch stores the battle connection data a matched player can resume.
+// ActiveMatch 存储已匹配玩家可以恢复的战斗连接数据。
 type ActiveMatch struct {
 	RoomName       string
 	Token          string

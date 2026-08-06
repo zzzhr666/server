@@ -17,6 +17,8 @@ battle::CreateRoomResult battle::RoomManager::create_room(CreateRoomRequest requ
             .message = "missing player id list"
         };
     }
+    // 房间表写入与 active_players_ 增加必须在同一锁内，rcenter 的节点注册会并发
+    // 读取该容量，用它决定此节点是否还能接收新的匹配房间。
     std::lock_guard<std::mutex> lock(mutex_);
 
     if (const auto it = rooms_.find(request.room_name); it != rooms_.end()) {
@@ -42,6 +44,7 @@ bool battle::RoomManager::close_room(std::string_view room_name) {
     if (it == rooms_.end()) {
         return false;
     }
+    // 只在房间确实存在时释放预留容量，确保重复 EndRoom 不会导致容量计数下溢。
     active_players_ -= it->second->player_count();
     rooms_.erase(it);
     return true;
@@ -57,6 +60,7 @@ bool battle::RoomManager::can_join(std::string_view room_name, std::int64_t play
         }
         room = it->second;
     }
+    // 复制 shared_ptr 后再调用 Room，避免持有管理器锁时进入 Room 的准入锁。
     return room->can_join(player_id, token);
 }
 
@@ -100,5 +104,6 @@ battle::JoinRoomResult battle::RoomManager::join_room(const JoinRoomRequest& req
         }
         room = it->second;
     }
+    // Room 自己序列化 token/白名单/重复加入判定；此处只负责安全地定位房间实例。
     return room->join(request.player_id, request.token);
 }

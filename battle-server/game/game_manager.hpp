@@ -7,35 +7,37 @@
 #include <unordered_map>
 
 namespace battle {
-    /// RoomManager owns active rooms and exposes thread-safe room operations.
+    /// @brief RoomManager 持有活跃房间并提供线程安全的房间操作。
     class RoomManager {
     public:
         RoomManager();
 
-        /// Reserves a new room for the matched players.
+        /// @brief 为已匹配玩家预留新房间。
         CreateRoomResult create_room(CreateRoomRequest request);
 
-        /// Removes a room and releases its reserved player capacity.
+        /// @brief 删除房间并释放其预留的玩家容量。
         bool close_room(std::string_view room_name);
 
-        /// Checks whether a player can enter a room without mutating join state.
+        /// @brief 校验玩家是否可进入房间，不修改加入状态。
         bool can_join(std::string_view room_name, std::int64_t player_id, std::string_view token) const;
 
-        /// Returns immutable battle loadouts configured for a reserved room.
+        /// @brief 返回已预留房间冻结的战斗配置。
         std::vector<PlayerLoadout> player_loadouts(std::string_view room_name) const;
 
-        /// Returns the number of currently reserved rooms.
+        /// @brief 返回当前已预留的房间数。
         std::size_t active_rooms() const;
 
-        /// Returns the number of players reserved across all rooms.
+        /// @brief 返回所有房间合计预留的玩家数。
         std::size_t active_players() const;
 
-        /// Marks a player as joined if the room token and whitelist allow it.
+        /// @brief 当房间令牌和白名单有效时标记玩家已加入。
         JoinRoomResult join_room(const JoinRoomRequest& request);
 
 
     private:
+        /// @brief 保护房间表和容量计数。
         mutable std::mutex mutex_;
+        /// @brief 所有活跃房间预留的玩家总数。
         std::size_t active_players_;
         std::unordered_map<std::string, std::shared_ptr<Room>> rooms_;
     };

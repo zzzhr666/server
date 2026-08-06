@@ -7,20 +7,20 @@ import (
 	"server/internal/rcenter/rcenterproto"
 )
 
-// Server exposes the rcenter domain service through generated gRPC bindings.
+// Server 通过生成的 gRPC 绑定暴露 rcenter 领域服务。
 type Server struct {
 	rcenterpb.UnimplementedRCenterServiceServer
 	center *rcenter.GameCenterService
 }
 
-// NewServer creates a gRPC rcenter server adapter.
+// NewServer 创建 gRPC rcenter 服务适配器。
 func NewServer(center *rcenter.GameCenterService) *Server {
 	return &Server{
 		center: center,
 	}
 }
 
-// RegisterBattleNode handles battle node registration requests.
+// RegisterBattleNode 处理战斗节点注册请求。
 func (s *Server) RegisterBattleNode(ctx context.Context, req *rcenterpb.RegisterBattleNodeRequest) (*rcenterpb.RegisterBattleNodeResponse, error) {
 	if err := s.center.RegisterBattleNode(ctx, rcenterproto.FromProtoBattleNode(req.GetNode())); err != nil {
 		return nil, mapRCenterError(err)
@@ -28,7 +28,7 @@ func (s *Server) RegisterBattleNode(ctx context.Context, req *rcenterpb.Register
 	return &rcenterpb.RegisterBattleNodeResponse{}, nil
 }
 
-// ListBattleNodes handles battle node listing requests.
+// ListBattleNodes 处理战斗节点列表请求。
 func (s *Server) ListBattleNodes(ctx context.Context, req *rcenterpb.ListBattleNodesRequest) (*rcenterpb.ListBattleNodesResponse, error) {
 	currentNodes := s.center.ListBattleNodes()
 	respNodes := make([]*rcenterpb.BattleNode, 0, len(currentNodes))
@@ -41,7 +41,7 @@ func (s *Server) ListBattleNodes(ctx context.Context, req *rcenterpb.ListBattleN
 
 }
 
-// StartMatch handles player matchmaking requests.
+// StartMatch 处理玩家匹配请求。
 func (s *Server) StartMatch(ctx context.Context, req *rcenterpb.StartMatchRequest) (*rcenterpb.StartMatchResponse, error) {
 	res, err := s.center.StartMatch(ctx, req.GetPlayerId(), req.GetWeapon())
 	if err != nil {
@@ -51,7 +51,7 @@ func (s *Server) StartMatch(ctx context.Context, req *rcenterpb.StartMatchReques
 
 }
 
-// ResumeMatch returns the active battle assignment for a player.
+// ResumeMatch 返回玩家的活跃战斗分配。
 func (s *Server) ResumeMatch(ctx context.Context, request *rcenterpb.ResumeMatchRequest) (*rcenterpb.ResumeMatchResponse, error) {
 	res, err := s.center.ResumeMatch(ctx, request.GetPlayerId())
 	if err != nil {
@@ -62,7 +62,7 @@ func (s *Server) ResumeMatch(ctx context.Context, request *rcenterpb.ResumeMatch
 	}, nil
 }
 
-// CancelMatch handles queue cancellation requests.
+// CancelMatch 处理队列取消请求。
 func (s *Server) CancelMatch(ctx context.Context, req *rcenterpb.CancelMatchRequest) (*rcenterpb.CancelMatchResponse, error) {
 	err := s.center.CancelMatch(ctx, req.GetPlayerId())
 	if err != nil {
@@ -71,7 +71,7 @@ func (s *Server) CancelMatch(ctx context.Context, req *rcenterpb.CancelMatchRequ
 	return &rcenterpb.CancelMatchResponse{}, nil
 }
 
-// FinishMatch handles battle completion notifications from battle servers.
+// FinishMatch 处理战斗服发来的战斗完成通知。
 func (s *Server) FinishMatch(ctx context.Context, request *rcenterpb.FinishMatchRequest) (*rcenterpb.FinishMatchResponse, error) {
 	input := rcenter.FinishMatchInput{
 		PlayerIDs: request.GetPlayerIds(),

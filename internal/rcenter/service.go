@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-// BattleNodeController coordinates registered battle nodes over the control plane.
+// BattleNodeController 通过控制面协调已注册的战斗节点。
 type BattleNodeController interface {
 	CreateRoom(ctx context.Context, nodeName string, input CreateBattleRoomInput) error
 	RegisterNode(ctx context.Context, node BattleNode) error
@@ -21,7 +21,7 @@ type waitingPlayer struct {
 	weapon   string
 }
 
-// GameCenterService keeps registered battle nodes, the in-memory match queue, and active battle assignments.
+// GameCenterService 持有已注册战斗节点、内存匹配队列和活跃战斗分配。
 type GameCenterService struct {
 	mu                   sync.Mutex
 	battleNodes          map[string]BattleNode
@@ -41,7 +41,7 @@ type ServiceConfig struct {
 	GrowthClient         statecontract.GrowthClient
 }
 
-// NewService creates an empty in-memory rcenter service.
+// NewService 创建空的内存 rcenter 服务。
 func NewService(config ServiceConfig) *GameCenterService {
 	rewardRule := config.RewardRule
 	if rewardRule.MonsterKillReward == nil {
@@ -65,7 +65,7 @@ func validateBattleNode(node BattleNode) error {
 	return nil
 }
 
-// ResumeMatch returns the active battle connection data assigned to a player.
+// ResumeMatch 返回分配给玩家的活跃战斗连接数据。
 func (g *GameCenterService) ResumeMatch(ctx context.Context, playerID int64) (*MatchResult, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, err
@@ -75,6 +75,8 @@ func (g *GameCenterService) ResumeMatch(ctx context.Context, playerID int64) (*M
 	}
 	g.mu.Lock()
 	defer g.mu.Unlock()
+	// ActiveMatch 独立于 WebSocket 连接保存。返回副本时克隆切片，避免调用方修改
+	// 内存中的共享对局数据，破坏其他玩家的恢复结果。
 	res, ok := g.activeMatches[playerID]
 	if !ok {
 		return nil, ErrActiveMatchNotFound
@@ -91,7 +93,7 @@ func (g *GameCenterService) ResumeMatch(ctx context.Context, playerID int64) (*M
 	}, nil
 }
 
-// RegisterBattleNode records or refreshes a battle node that can host rooms.
+// RegisterBattleNode 记录或刷新一个可承载房间的战斗节点。
 func (g *GameCenterService) RegisterBattleNode(ctx context.Context, node BattleNode) error {
 	if err := ctx.Err(); err != nil {
 		return err
@@ -110,7 +112,7 @@ func (g *GameCenterService) RegisterBattleNode(ctx context.Context, node BattleN
 	return nil
 }
 
-// ListBattleNodes returns a snapshot of registered battle nodes.
+// ListBattleNodes 返回已注册战斗节点的快照。
 func (g *GameCenterService) ListBattleNodes() []BattleNode {
 	g.mu.Lock()
 	defer g.mu.Unlock()
@@ -121,7 +123,7 @@ func (g *GameCenterService) ListBattleNodes() []BattleNode {
 	return nodes
 }
 
-// StartMatch queues a player or pairs them with the oldest waiting player.
+// StartMatch 将玩家入队，或与等待时间最长的玩家配对。
 func (g *GameCenterService) StartMatch(ctx context.Context, playerID int64, weapon string) (*MatchResult, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, err
@@ -130,6 +132,8 @@ func (g *GameCenterService) StartMatch(ctx context.Context, playerID int64, weap
 		return nil, ErrInvalidPlayerID
 	}
 
+	// 锁内只处理内存匹配状态：检查已在局、选节点、FIFO 队列和预占 inGame 标记。
+	// 外部 gRPC 读取成长和创建房间必须在锁外执行，否则慢节点会阻塞所有匹配请求。
 	g.mu.Lock()
 	_, ok := g.inGamePlayers[playerID]
 	if ok {
@@ -148,6 +152,7 @@ func (g *GameCenterService) StartMatch(ctx context.Context, playerID int64, weap
 		}, nil
 	}
 	if len(g.waitingPlayers) == 0 {
+		// 首位玩家仅入 FIFO 队列，不创建房间也不占用 battle 节点容量。
 		g.waitingPlayers = append(g.waitingPlayers, waitingPlayer{
 			playerID: playerID,
 			weapon:   weapon,
@@ -165,10 +170,13 @@ func (g *GameCenterService) StartMatch(ctx context.Context, playerID int64, weap
 	token := newRandomName("token")
 	playerIDs := []int64{waitingPlayer.playerID, playerID}
 
+	// 从队列配对成功后立即预占两名玩家，防止其在创建房间的异步窗口内再次发起匹配。
+	// 任一后续步骤失败都会通过 clearGameContext 回滚此预占。
 	for _, inGamePlayerID := range playerIDs {
 		g.inGamePlayers[inGamePlayerID] = struct{}{}
 	}
 	g.mu.Unlock()
+	// 局外成长在房间创建前读取并随 loadout 下发，战斗服后续无需访问局外状态。
 	if g.growthClient == nil {
 		g.clearGameContext(playerIDs)
 		return nil, ErrUnavailableGrowthClient
@@ -203,6 +211,8 @@ func (g *GameCenterService) StartMatch(ctx context.Context, playerID int64, weap
 		},
 	}
 
+	// CreateRoom 成功才发布 ActiveMatch。这样 WebSocket ResumeMatch 永远不会给客户端
+	// 返回一个 battle-server 尚未预留的房间与 token。
 	if err := g.battleNodeController.CreateRoom(ctx, node.Name, CreateBattleRoomInput{
 		RoomName:       roomName,
 		Token:          token,
@@ -222,6 +232,8 @@ func (g *GameCenterService) StartMatch(ctx context.Context, playerID int64, weap
 		PlayerLoadouts: slices.Clone(playerLoadouts),
 		CreatedAt:      time.Now(),
 	}
+	// 再次加锁后为双方写入同一份 ActiveMatch；连接断开并不删除它，直到 battle-server
+	// 调用 FinishMatch 或创建流程失败回滚，确保任意一方均能恢复到同一对局。
 	g.mu.Lock()
 	defer g.mu.Unlock()
 	for _, player := range playerIDs {
@@ -239,7 +251,7 @@ func (g *GameCenterService) StartMatch(ctx context.Context, playerID int64, weap
 	}, nil
 }
 
-// FinishMatch releases matched players so they can enter matchmaking again.
+// FinishMatch 释放已匹配玩家，使其可再次进入匹配。
 func (g *GameCenterService) FinishMatch(ctx context.Context, input FinishMatchInput) error {
 	if err := ctx.Err(); err != nil {
 		return err
@@ -252,6 +264,8 @@ func (g *GameCenterService) FinishMatch(ctx context.Context, input FinishMatchIn
 	if len(input.PlayerStats) > 0 && g.coinClient == nil {
 		return ErrUnavailableCoinClient
 	}
+	// 只有带统计的胜负结束会产生奖励。断线超时仅携带 PlayerIDs，下面不会写金币，
+	// 但最终仍会清除两名玩家的活跃对局和 inGame 占位。
 	for _, stat := range input.PlayerStats {
 		reward, err := CalculateCoinReward(stat, input.Reason, g.rewardRule)
 		if err != nil {
@@ -293,7 +307,7 @@ func (g *GameCenterService) isWaiting(playerID int64) bool {
 	return false
 }
 
-// CancelMatch removes a waiting player from the match queue.
+// CancelMatch 将等待中的玩家移出匹配队列。
 func (g *GameCenterService) CancelMatch(ctx context.Context, playerID int64) error {
 	if err := ctx.Err(); err != nil {
 		return err
@@ -312,7 +326,7 @@ func (g *GameCenterService) CancelMatch(ctx context.Context, playerID int64) err
 	return ErrPlayerNotWaiting
 }
 
-// newRandomName creates a readable prefix plus random suffix for room names and tokens.
+// newRandomName 为房间名和令牌创建可读前缀加随机后缀。
 func newRandomName(prefix string) string {
 	bytes := make([]byte, 16)
 	if _, err := rand.Read(bytes); err != nil {
@@ -324,6 +338,8 @@ func newRandomName(prefix string) string {
 func (g *GameCenterService) clearGameContext(playIDs []int64) {
 	g.mu.Lock()
 	defer g.mu.Unlock()
+	// 创建房间失败和正常结算都走这里，保证 inGamePlayers 与 activeMatches 始终成对释放，
+	// 否则玩家会永久收到 ErrPlayerInGame 或过期的 ResumeMatch。
 	for _, playerID := range playIDs {
 		delete(g.inGamePlayers, playerID)
 		delete(g.activeMatches, playerID)

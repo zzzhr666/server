@@ -58,7 +58,7 @@ type coinsStore interface {
 	AddPlayerCoins(ctx context.Context, input statecontract.AddPlayerCoinsInput) (*statecontract.AddPlayerCoinsResult, error)
 }
 
-// Service coordinates state operations across the configured stores.
+// Service 协调已配置存储上的状态操作。
 type Service struct {
 	registrations registrationStore
 	accounts      accountStore
@@ -83,67 +83,67 @@ func (s *Service) SubscribeRealtime(ctx context.Context, serverName string) (<-c
 	return s.realtime.SubscribeRealtime(ctx, serverName)
 }
 
-// SetPresence records a player's online state.
+// SetPresence 记录玩家在线状态。
 func (s *Service) SetPresence(ctx context.Context, presence *statecontract.Presence, ttl time.Duration) error {
 	return s.presences.SetPresence(ctx, presence, ttl)
 }
 
-// GetPresence loads a player's online state.
+// GetPresence 读取玩家在线状态。
 func (s *Service) GetPresence(ctx context.Context, playerID int64) (*statecontract.Presence, error) {
 	return s.presences.GetPresence(ctx, playerID)
 }
 
-// ClearPresence removes online state still owned by serverName.
+// ClearPresence 删除仍由 serverName 持有的在线状态。
 func (s *Service) ClearPresence(ctx context.Context, playerID int64, serverName string) error {
 	return s.presences.ClearPresence(ctx, playerID, serverName)
 }
 
-// RefreshPresence extends online state still owned by serverName.
+// RefreshPresence 延长仍由 serverName 持有的在线状态。
 func (s *Service) RefreshPresence(ctx context.Context, playerID int64, serverName string, updatedAt time.Time, ttl time.Duration) error {
 	return s.presences.RefreshPresence(ctx, playerID, serverName, updatedAt, ttl)
 }
 
-// CreatePlayer stores a player profile.
+// CreatePlayer 存储玩家档案。
 func (s *Service) CreatePlayer(ctx context.Context, player *statecontract.Player) error {
 	return s.players.CreatePlayer(ctx, player)
 }
 
-// GetPlayer loads a player profile by ID.
+// GetPlayer 按 ID 读取玩家档案。
 func (s *Service) GetPlayer(ctx context.Context, id int64) (*statecontract.Player, error) {
 	return s.players.GetPlayer(ctx, id)
 }
 
-// NextPlayerID allocates the next player ID.
+// NextPlayerID 分配下一个玩家 ID。
 func (s *Service) NextPlayerID(ctx context.Context) (int64, error) {
 	return s.players.NextPlayerID(ctx)
 }
 
-// CreateSession stores a login session.
+// CreateSession 存储登录会话。
 func (s *Service) CreateSession(ctx context.Context, session *statecontract.Session) error {
 	return s.sessions.CreateSession(ctx, session)
 }
 
-// GetSession loads a login session by token.
+// GetSession 按令牌读取登录会话。
 func (s *Service) GetSession(ctx context.Context, token string) (*statecontract.Session, error) {
 	return s.sessions.GetSession(ctx, token)
 }
 
-// DeleteSession removes a login session.
+// DeleteSession 删除登录会话。
 func (s *Service) DeleteSession(ctx context.Context, token string) error {
 	return s.sessions.DeleteSession(ctx, token)
 }
 
-// CreateAccount stores account credentials.
+// CreateAccount 存储账号凭据。
 func (s *Service) CreateAccount(ctx context.Context, account *statecontract.Account) error {
 	return s.accounts.CreateAccount(ctx, account)
 }
 
-// GetAccount loads account credentials by username.
+// GetAccount 按用户名读取账号凭据。
 func (s *Service) GetAccount(ctx context.Context, username string) (*statecontract.Account, error) {
 	return s.accounts.GetAccount(ctx, username)
 }
 
-// RegisterAccount creates account, player, and session state together.
+// RegisterAccount 一并创建账号、玩家和会话状态。
 func (s *Service) RegisterAccount(ctx context.Context, input statecontract.RegisterAccountInput) (*statecontract.RegisterAccountResult, error) {
 	return s.registrations.RegisterAccount(ctx, input)
 }
@@ -184,7 +184,7 @@ func (s *Service) UpgradeGrowth(ctx context.Context, input statecontract.Upgrade
 	return s.growth.UpgradeGrowth(ctx, input)
 }
 
-// StoreConfig groups the stores required by Service.
+// StoreConfig 聚合 Service 所需的各类存储。
 type StoreConfig struct {
 	Accounts      accountStore
 	Sessions      sessionStore
@@ -197,7 +197,7 @@ type StoreConfig struct {
 	Coins         coinsStore
 }
 
-// NewService creates a state service from store implementations.
+// NewService 使用存储实现创建状态服务。
 func NewService(storeConfig StoreConfig) *Service {
 	return &Service{
 		accounts:      storeConfig.Accounts,

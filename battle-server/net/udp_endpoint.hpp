@@ -4,9 +4,12 @@
 #include <netinet/in.h>
 
 namespace battle {
+    /// @brief UDP 对端的 IPv4 地址和端口。
     struct UdpEndpoint {
         sockaddr_in addr{};
+        /// @brief 返回可读的 IPv4 地址字符串。
         [[nodiscard]] std::string ip() const;
+        /// @brief 返回主机字节序端口号。
         [[nodiscard]] std::uint16_t port() const;
 
         bool operator==(const UdpEndpoint& other) const {

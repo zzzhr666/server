@@ -5,14 +5,14 @@ import (
 	"time"
 )
 
-// Account stores login credentials and the player bound to the username.
+// Account 保存登录凭据及绑定到用户名的玩家。
 type Account struct {
 	Username     string
 	PasswordHash string
 	PlayerID     int64
 }
 
-// Session represents a login session identified by an opaque token.
+// Session 表示由不透明令牌标识的登录会话。
 type Session struct {
 	Token     string
 	PlayerID  int64
@@ -24,7 +24,7 @@ type AuthorizeResult struct {
 	Player  *player.Player
 }
 
-// RegisterInput contains account credentials and the player profile to create.
+// RegisterInput 包含注册账号及创建玩家档案所需的信息。
 type RegisterInput struct {
 	Username      string
 	PlainPassword string
@@ -34,7 +34,7 @@ type RegisterInput struct {
 	Phone         string
 }
 
-// RegisterAccountInput contains validated account, player, and session data for atomic registration.
+// RegisterAccountInput 包含原子注册所需的已校验账号、玩家和会话数据。
 type RegisterAccountInput struct {
 	Username         string
 	PasswordHash     string
@@ -46,14 +46,14 @@ type RegisterAccountInput struct {
 	SessionExpiresAt time.Time
 }
 
-// RegisterAccountResult contains the account, player, and session created during registration.
+// RegisterAccountResult 包含注册过程创建的账号、玩家和会话。
 type RegisterAccountResult struct {
 	Account *Account
 	Player  *player.Player
 	Session *Session
 }
 
-// LoginInput contains account credentials used during login.
+// LoginInput 包含登录时提交的账号凭据。
 type LoginInput struct {
 	Username      string
 	PlainPassword string

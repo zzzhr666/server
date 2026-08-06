@@ -1,4 +1,4 @@
-# API
+# 接口文档
 
 默认直连地址是 `http://localhost:8081`；启用 nginx 时使用 `http://localhost:8080`。
 

@@ -10,14 +10,14 @@ type StateRepository struct {
 	stateClient statecontract.Client
 }
 
-// NewStateRepository creates a player repository backed by a state-server client.
+// NewStateRepository 使用 state-server 客户端创建玩家仓储。
 func NewStateRepository(client statecontract.Client) *StateRepository {
 	return &StateRepository{
 		stateClient: client,
 	}
 }
 
-// NextID allocates the next player ID through state-server.
+// NextID 通过 state-server 分配下一个玩家 ID。
 func (s *StateRepository) NextID(ctx context.Context) (int64, error) {
 	id, err := s.stateClient.NextPlayerID(ctx)
 	if err != nil {
@@ -26,12 +26,12 @@ func (s *StateRepository) NextID(ctx context.Context) (int64, error) {
 	return id, nil
 }
 
-// Create persists a player through state-server.
+// Create 通过 state-server 持久化玩家。
 func (s *StateRepository) Create(ctx context.Context, player *Player) error {
 	return mapStateError(s.stateClient.CreatePlayer(ctx, toStatePlayer(player)))
 }
 
-// Get loads a player through state-server.
+// Get 通过 state-server 读取玩家。
 func (s *StateRepository) Get(ctx context.Context, id int64) (*Player, error) {
 	player, err := s.stateClient.GetPlayer(ctx, id)
 	if err != nil {

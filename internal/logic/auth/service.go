@@ -11,35 +11,35 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-// Service defines account authentication and session operations.
+// Service 定义账号认证与会话管理操作。
 type Service interface {
-	// Register creates an account, creates the bound player, and returns a session.
+	// Register 创建账号和绑定玩家，并返回登录会话。
 	Register(ctx context.Context, input RegisterInput) (*AuthorizeResult, error)
-	// Login validates credentials and creates a new session.
+	// Login 校验凭据并创建新的登录会话。
 	Login(ctx context.Context, input LoginInput) (*AuthorizeResult, error)
-	// Logout deletes a login session by token.
+	// Logout 按令牌删除登录会话。
 	Logout(ctx context.Context, token string) error
-	// GetSession returns a valid login session by token.
+	// GetSession 按令牌返回有效的登录会话。
 	GetSession(ctx context.Context, token string) (*Session, error)
-	// GetCurrentPlayer returns the player bound to a valid session token.
+	// GetCurrentPlayer 返回有效会话令牌绑定的玩家。
 	GetCurrentPlayer(ctx context.Context, token string) (*player.Player, error)
 }
 
-// Repository defines auth persistence operations used by the service layer.
+// Repository 定义认证服务依赖的持久化操作。
 type Repository interface {
-	// RegisterAccount creates account, player, and first session in one state operation.
+	// RegisterAccount 在一次状态操作中创建账号、玩家和首个会话。
 	RegisterAccount(ctx context.Context, input RegisterAccountInput) (*RegisterAccountResult, error)
-	// GetAccount loads an account by username.
+	// GetAccount 按用户名读取账号。
 	GetAccount(ctx context.Context, username string) (*Account, error)
-	// CreateSession stores a login session with its expiration.
+	// CreateSession 持久化带过期时间的登录会话。
 	CreateSession(ctx context.Context, session *Session) error
-	// GetSession loads a non-expired session by token.
+	// GetSession 按令牌读取未过期会话。
 	GetSession(ctx context.Context, token string) (*Session, error)
-	// DeleteSession removes a session token.
+	// DeleteSession 删除一个会话令牌。
 	DeleteSession(ctx context.Context, token string) error
 }
 
-// NewService creates an auth service with auth storage, player creation, and session TTL.
+// NewService 使用认证仓储、玩家服务和会话 TTL 创建认证服务。
 func NewService(authRepo Repository, playerService player.Service, sessionTTL time.Duration) *GameAuthService {
 	return &GameAuthService{
 		authRepo:      authRepo,
@@ -48,14 +48,14 @@ func NewService(authRepo Repository, playerService player.Service, sessionTTL ti
 	}
 }
 
-// GameAuthService implements account registration, login, and session rules.
+// GameAuthService 实现账号注册、登录和会话规则。
 type GameAuthService struct {
 	authRepo      Repository
 	playerService player.Service
 	sessionTTL    time.Duration
 }
 
-// Register creates a player-backed account and immediately creates a login session.
+// Register 创建绑定玩家的账号，并立即创建登录会话。
 func (g *GameAuthService) Register(ctx context.Context, input RegisterInput) (*AuthorizeResult, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, err
@@ -70,6 +70,8 @@ func (g *GameAuthService) Register(ctx context.Context, input RegisterInput) (*A
 		return nil, player.ErrInvalidNickname
 	}
 
+	// 明文密码只在当前调用栈中存在；写入 state-server 的 RegisterAccountInput 仅包含
+	// bcrypt 哈希。账号、玩家和首个会话由状态层原子创建，避免注册成功后无法登录。
 	passwordHash, err := hashPassword(input.PlainPassword)
 	if err != nil {
 		return nil, err
@@ -98,7 +100,7 @@ func (g *GameAuthService) Register(ctx context.Context, input RegisterInput) (*A
 	}, nil
 }
 
-// Login validates username and password then creates a fresh login session.
+// Login 校验用户名和密码后创建新的登录会话。
 func (g *GameAuthService) Login(ctx context.Context, input LoginInput) (*AuthorizeResult, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, err
@@ -109,6 +111,7 @@ func (g *GameAuthService) Login(ctx context.Context, input LoginInput) (*Authori
 	if input.PlainPassword == "" {
 		return nil, ErrInvalidPassword
 	}
+	// 对账号不存在和密码不匹配返回同一个错误，避免通过登录接口枚举已注册用户名。
 	account, err := g.authRepo.GetAccount(ctx, input.Username)
 	if errors.Is(err, ErrAccountNotFound) {
 		return nil, ErrInvalidCredentials
@@ -133,6 +136,8 @@ func (g *GameAuthService) Login(ctx context.Context, input LoginInput) (*Authori
 		ExpiresAt: time.Now().Add(g.sessionTTL),
 	}
 
+	// 每次登录创建独立随机令牌，不复用旧 session；TTL 由 state-server/Redis 执行，
+	// 即使 logic-server 重启也不会让过期会话重新有效。
 	if err := g.authRepo.CreateSession(ctx, session); err != nil {
 		return nil, err
 	}
@@ -143,7 +148,7 @@ func (g *GameAuthService) Login(ctx context.Context, input LoginInput) (*Authori
 	}, nil
 }
 
-// Logout deletes the session identified by token.
+// Logout 删除令牌标识的会话。
 func (g *GameAuthService) Logout(ctx context.Context, token string) error {
 	if err := ctx.Err(); err != nil {
 		return err
@@ -154,7 +159,7 @@ func (g *GameAuthService) Logout(ctx context.Context, token string) error {
 	return g.authRepo.DeleteSession(ctx, token)
 }
 
-// GetSession returns a stored session for a non-empty token.
+// GetSession 返回非空令牌对应的已存储会话。
 func (g *GameAuthService) GetSession(ctx context.Context, token string) (*Session, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, err
@@ -165,7 +170,7 @@ func (g *GameAuthService) GetSession(ctx context.Context, token string) (*Sessio
 	return g.authRepo.GetSession(ctx, token)
 }
 
-// GetCurrentPlayer returns the player bound to a valid session token.
+// GetCurrentPlayer 返回有效会话令牌绑定的玩家。
 func (g *GameAuthService) GetCurrentPlayer(ctx context.Context, token string) (*player.Player, error) {
 	session, err := g.GetSession(ctx, token)
 	if err != nil {

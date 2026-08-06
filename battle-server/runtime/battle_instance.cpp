@@ -31,6 +31,8 @@ battle::BattleInstance::BattleInstance(BattleInstanceConfig config)
       reward_selection_(SelectionTime),
       progression_config_(config.progression_config),
       reward_random_engine_(config.reward_random_seed.value_or(std::random_device{}())) {
+    // 创建玩家时将局外 loadout 固化为 ECS 基础属性。之后每个 tick 只使用内存世界，
+    // 避免局外数据在同一场战斗中变化而破坏对局一致性。
     for (std::size_t i = 0; i < config.player_ids.size(); ++i) {
         if (player_entities_.contains(config.player_ids[i])) {
             continue;
@@ -68,6 +70,8 @@ void battle::BattleInstance::tick(ecs::DeltaTime delta_time) {
     }
     ++server_tick_;
     discard_expired_combat_events_();
+    // 奖励选择阶段暂停 World tick，怪物、投射物和状态效果都不会继续推进；
+    // 只有所有选择完成或超时后，才恢复到下一波。
     if (phase_ == BattlePhase::RewardSelection) {
         tick_reward_selection_(delta_time);
         return;
@@ -210,6 +214,8 @@ bool battle::BattleInstance::choose_blessing(std::int64_t player_id, int option_
         return false;
     }
 
+    // 候选仅在本轮 RewardSelection 有效。应用后立即减少待选次数，剩余次数需要
+    // 重新抽取候选，避免客户端重复使用已消费 option_id。
     add_or_level_up_blessing_(entity_it->second, blessing_state, option_it->blessing_id);
 
     progress->pending_upgrade_choices--;
@@ -253,6 +259,8 @@ void battle::BattleInstance::collect_combat_events_() {
             .expire_tick = server_tick_ + EventHistoryTicks,
         });
     }
+    // World 的事件仅服务于当前 tick；复制到带过期 tick 的队列后立即清空，
+    // 使网络层可重复发送短期历史，而 ECS 不会重复处理同一攻击或死亡。
     world_.clear_attack_events();
     world_.clear_death_events();
 }
@@ -285,6 +293,8 @@ void battle::BattleInstance::consume_kill_events_() {
         if (killer_it == entity_players_.end()) {
             continue;
         }
+        // 只有玩家击杀会进入局内经验和 rcenter 结算统计；怪物或环境来源的事件
+        // 没有 player 映射，因此直接忽略。
         const auto player_id = killer_it->second;
         grant_experience_(player_id, experience_for_monster_kind_(event.monster_kind));
         auto& stats = player_battle_stats_[player_id];
@@ -301,6 +311,7 @@ void battle::BattleInstance::tick_fighting_(ecs::DeltaTime delta_time) {
     world_.tick(delta_time);
     collect_combat_events_();
     consume_kill_events_();
+    // 先判失败，防止“最后一只怪物与最后一名玩家同 tick 死亡”被误结算为胜利。
     if (!world_.has_living_players()) {
         end_battle_(BattleEndReason::Defeat);
         return;
@@ -323,6 +334,8 @@ void battle::BattleInstance::tick_reward_selection_(ecs::DeltaTime delta_time) {
     if (reward_selection_.remaining_seconds.count() > 0.0f) {
         return;
     }
+    // 超时使用各玩家当前候选的首项，保证阶段最终可结束；该路径与手动选择使用
+    // 同一 choose_blessing 校验和应用逻辑。
     apply_default_upgrade_choices_();
     start_next_wave_or_end_();
 }
@@ -331,6 +344,8 @@ void battle::BattleInstance::start_reward_selection_() {
     phase_ = BattlePhase::RewardSelection;
     reward_selection_.remaining_seconds = SelectionTime;
 
+    // 只有拥有待选次数的玩家获得候选。其余玩家显式清空旧选项，避免客户端快照
+    // 在进入新一轮选择时继续显示过期按钮。
     for (auto& [player_id, blessing_state] : player_blessings_) {
         const auto progress = player_progress(player_id);
         if (!progress.has_value() || progress->pending_upgrade_choices <= 0) {
@@ -339,7 +354,6 @@ void battle::BattleInstance::start_reward_selection_() {
         }
         blessing_state.current_options = generate_blessing_options_(player_id);
     }
-    // TODO: Generate upgrade choices and clear stale player selection state.
 }
 
 void battle::BattleInstance::apply_default_upgrade_choices_() {

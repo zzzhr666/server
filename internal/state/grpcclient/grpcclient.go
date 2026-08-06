@@ -11,7 +11,7 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-// Client adapts the generated gRPC client to the state contract interfaces.
+// Client 将生成的 gRPC 客户端适配到状态契约接口。
 type Client struct {
 	grpc statepb.StateServiceClient
 }
@@ -56,7 +56,7 @@ func (c *Client) UpgradeGrowth(ctx context.Context, input state.UpgradeGrowthInp
 	}, nil
 }
 
-// GetAccount loads an account by username through state-server.
+// GetAccount 通过 state-server 按用户名读取账号。
 func (c *Client) GetAccount(ctx context.Context, username string) (*state.Account, error) {
 	res, err := c.grpc.GetAccount(ctx, &statepb.GetAccountRequest{Username: username})
 	if err != nil {
@@ -65,7 +65,7 @@ func (c *Client) GetAccount(ctx context.Context, username string) (*state.Accoun
 	return stateproto.FromProtoAccount(res.GetAccount()), nil
 }
 
-// RegisterAccount creates account, player, and session state in one gRPC call.
+// RegisterAccount 通过一次 gRPC 调用创建账号、玩家和会话状态。
 func (c *Client) RegisterAccount(ctx context.Context, input state.RegisterAccountInput) (*state.RegisterAccountResult, error) {
 	res, err := c.grpc.RegisterAccount(ctx, &statepb.RegisterAccountRequest{
 		Username:         input.Username,
@@ -87,13 +87,13 @@ func (c *Client) RegisterAccount(ctx context.Context, input state.RegisterAccoun
 	}, nil
 }
 
-// CreateSession persists a login session through state-server.
+// CreateSession 通过 state-server 持久化登录会话。
 func (c *Client) CreateSession(ctx context.Context, session *state.Session) error {
 	_, err := c.grpc.CreateSession(ctx, &statepb.CreateSessionRequest{Session: stateproto.ToProtoSession(session)})
 	return mapGRPCError(err)
 }
 
-// GetSession loads a session by token through state-server.
+// GetSession 通过 state-server 按令牌读取会话。
 func (c *Client) GetSession(ctx context.Context, token string) (*state.Session, error) {
 	res, err := c.grpc.GetSession(ctx, &statepb.GetSessionRequest{Token: token})
 	if err != nil {
@@ -102,19 +102,19 @@ func (c *Client) GetSession(ctx context.Context, token string) (*state.Session, 
 	return stateproto.FromProtoSession(res.GetSession()), nil
 }
 
-// DeleteSession removes a login session through state-server.
+// DeleteSession 通过 state-server 删除登录会话。
 func (c *Client) DeleteSession(ctx context.Context, token string) error {
 	_, err := c.grpc.DeleteSession(ctx, &statepb.DeleteSessionRequest{Token: token})
 	return mapGRPCError(err)
 }
 
-// CreatePlayer persists player profile state through state-server.
+// CreatePlayer 通过 state-server 持久化玩家档案状态。
 func (c *Client) CreatePlayer(ctx context.Context, player *state.Player) error {
 	_, err := c.grpc.CreatePlayer(ctx, &statepb.CreatePlayerRequest{Player: stateproto.ToProtoPlayer(player)})
 	return mapGRPCError(err)
 }
 
-// GetPlayer loads a player profile by ID through state-server.
+// GetPlayer 通过 state-server 按 ID 读取玩家档案。
 func (c *Client) GetPlayer(ctx context.Context, id int64) (*state.Player, error) {
 	res, err := c.grpc.GetPlayer(ctx, &statepb.GetPlayerRequest{Id: id})
 	if err != nil {
@@ -123,7 +123,7 @@ func (c *Client) GetPlayer(ctx context.Context, id int64) (*state.Player, error)
 	return stateproto.FromProtoPlayer(res.GetPlayer()), nil
 }
 
-// NextPlayerID allocates the next player ID through state-server.
+// NextPlayerID 通过 state-server 分配下一个玩家 ID。
 func (c *Client) NextPlayerID(ctx context.Context) (int64, error) {
 	res, err := c.grpc.NextPlayerID(ctx, &statepb.NextPlayerIDRequest{})
 	if err != nil {
@@ -132,13 +132,13 @@ func (c *Client) NextPlayerID(ctx context.Context) (int64, error) {
 	return res.GetId(), nil
 }
 
-// CreateAccount persists account credentials through state-server.
+// CreateAccount 通过 state-server 持久化账号凭据。
 func (c *Client) CreateAccount(ctx context.Context, account *state.Account) error {
 	_, err := c.grpc.CreateAccount(ctx, &statepb.CreateAccountRequest{Account: stateproto.ToProtoAccount(account)})
 	return mapGRPCError(err)
 }
 
-// SetPresence records a player's current logic-server connection.
+// SetPresence 记录玩家当前连接的 logic-server。
 func (c *Client) SetPresence(ctx context.Context, presence *state.Presence, ttl time.Duration) error {
 	_, err := c.grpc.SetPresence(ctx, &statepb.SetPresenceRequest{
 		Presence: stateproto.ToProtoPresence(presence),
@@ -147,7 +147,7 @@ func (c *Client) SetPresence(ctx context.Context, presence *state.Presence, ttl 
 	return mapGRPCError(err)
 }
 
-// GetPresence loads a player's current online-state record.
+// GetPresence 读取玩家当前在线状态记录。
 func (c *Client) GetPresence(ctx context.Context, playerID int64) (*state.Presence, error) {
 	res, err := c.grpc.GetPresence(ctx, &statepb.GetPresenceRequest{PlayerId: playerID})
 	if err != nil {
@@ -156,13 +156,13 @@ func (c *Client) GetPresence(ctx context.Context, playerID int64) (*state.Presen
 	return stateproto.FromProtoPresence(res.GetPresence()), nil
 }
 
-// ClearPresence removes a presence record when it still belongs to serverName.
+// ClearPresence 在在线记录仍属于 serverName 时删除它。
 func (c *Client) ClearPresence(ctx context.Context, playerID int64, serverName string) error {
 	_, err := c.grpc.ClearPresence(ctx, &statepb.ClearPresenceRequest{PlayerId: playerID, ServerName: serverName})
 	return mapGRPCError(err)
 }
 
-// RefreshPresence extends a presence record when it still belongs to serverName.
+// RefreshPresence 在在线记录仍属于 serverName 时延长其 TTL。
 func (c *Client) RefreshPresence(ctx context.Context, playerID int64, serverName string, updatedAt time.Time, ttl time.Duration) error {
 	_, err := c.grpc.RefreshPresence(ctx, &statepb.RefreshPresenceRequest{
 		PlayerId:   playerID,
@@ -272,7 +272,7 @@ func (c *Client) SubscribeRealtime(ctx context.Context, serverName string) (<-ch
 	return events, nil
 }
 
-// NewClient creates a state contract client from generated gRPC bindings.
+// NewClient 使用生成的 gRPC 绑定创建状态契约客户端。
 func NewClient(grpcClient statepb.StateServiceClient) *Client {
 	return &Client{grpc: grpcClient}
 }

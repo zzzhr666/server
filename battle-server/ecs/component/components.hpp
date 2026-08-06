@@ -10,8 +10,10 @@
 #include "gameplay/monster_kind.hpp"
 
 namespace battle::ecs {
+    /// @brief 未指定武器参数时使用的投射物命中半径。
     constexpr float DefaultProjectileHitRadius = 0.5f;
 
+    /// @brief 一帧网络输入转换后的玩家动作请求。
     struct PlayerCommand {
         float move_x;
         float move_y;
@@ -19,62 +21,76 @@ namespace battle::ecs {
         bool dash_requested;
     };
 
+    /// @brief 二维坐标或单位方向向量。
     struct Position {
         float x;
         float y;
     };
 
+    /// @brief 实体当前面向或攻击方向。
     struct Direction {
         float x;
         float y;
     };
 
+    /// @brief 实体的位置与朝向组合。
     struct Transform {
         Position position;
         Direction direction;
     };
 
+    /// @brief 实体在本 tick 使用的二维速度。
     struct Velocity {
         float x;
         float y;
     };
 
+    /// @brief 原始移动请求，由客户端或怪物 AI 写入。
     struct MoveRequest {
         float x;
         float y;
     };
 
+    /// @brief 原始攻击请求。
     struct AttackRequest {
         bool requested;
     };
 
+    /// @brief 原始冲刺请求。
     struct DashRequest {
         bool requested;
     };
 
+    /// @brief 归一化后可由移动系统消费的移动意图。
     struct MoveIntent {
         float x;
         float y;
     };
 
+    /// @brief 标记实体为玩家，由玩法系统据此区分阵营。
     struct PlayerController {};
 
+    /// @brief 标记实体为怪物，由玩法系统据此区分阵营。
     struct MonsterController {};
 
+    /// @brief 角色的基础移动属性。
     struct CharacterStats {
         float move_speed;
     };
 
+    /// @brief 实体当前和最大生命值。
     struct Health {
         int current_health;
         int max_health;
     };
 
+    /// @brief 攻击的命中方式。
     enum class AttackKind {
         Melee,
         Projectile,
     };
 
+    /// @brief 当前 tick 解析出的攻击意图及其攻击上下文。
     struct AttackIntent {
         bool active{};
         AttackKind kind{};
@@ -85,11 +101,13 @@ namespace battle::ecs {
         CombatContext context;
     };
 
+    /// @brief 当前 tick 解析出的冲刺意图。
     struct DashIntent {
         bool active;
         float dash_speed_multiplier;
     };
 
+    /// @brief 武器或怪物的基础攻击定义。
     struct AttackDefinition {
         AttackKind kind;
         int damage;
@@ -99,25 +117,30 @@ namespace battle::ecs {
         float projectile_hit_radius{DefaultProjectileHitRadius};
     };
 
+    /// @brief 冲刺的冷却和速度倍率配置。
     struct Dash {
         DeltaTime cooldown_seconds;
         float dash_speed_multiplier;
     };
 
+    /// @brief 攻击距离下一次可用的剩余时间。
     struct AttackCooldown {
         DeltaTime remaining_seconds;
     };
 
+    /// @brief 冲刺距离下一次可用的剩余时间。
     struct DashCooldown {
         DeltaTime remaining_seconds;
     };
 
+    /// @brief 伤害事件的来源类别，用于区分祝福触发规则。
     enum class DamageSourceKind {
         Attack,
         Burn,
         ChainLightning,
     };
 
+    /// @brief 在伤害修正与应用系统之间传递的伤害事件。
     struct DamageEvent {
         Entity source{};
         Entity target{};
@@ -127,16 +150,19 @@ namespace battle::ecs {
         CombatContext context;
     };
 
+    /// @brief 怪物实体的具体种类。
     struct MonsterIdentity {
         MonsterKind kind;
     };
 
+    /// @brief 实体死亡后写入的击杀归属事件。
     struct KillEvent {
         Entity killer;
         Entity victim;
         MonsterKind monster_kind{};
     };
 
+    /// @brief 用于客户端表现的攻击事件。
     struct AttackEvent {
         Entity attacker;
         AttackKind kind{};
@@ -149,6 +175,7 @@ namespace battle::ecs {
         Monster,
     };
 
+    /// @brief 用于客户端表现和局内统计的死亡事件。
     struct DeathEvent {
         Entity victim;
         Entity killer;
@@ -158,6 +185,7 @@ namespace battle::ecs {
         std::optional<MonsterKind> monster_kind;
     };
 
+    /// @brief 玩家局内等级、经验和待选祝福次数。
     struct PlayerProgress {
         int level;
         int experience;
@@ -165,15 +193,18 @@ namespace battle::ecs {
         int pending_upgrade_choices;
     };
 
+    /// @brief 一项已持有祝福及其等级。
     struct BlessingStack {
         BlessingID blessing_id = BlessingID::BurnOnHit;
         int level = 1;
     };
 
+    /// @brief 玩家已拥有的全部祝福。
     struct BlessingInventory {
         std::vector<BlessingStack> blessings;
     };
 
+    /// @brief 伤害实际落地后发出的事件，供祝福触发系统消费。
     struct DamageAppliedEvent {
         Entity source{};
         Entity target{};
@@ -182,6 +213,7 @@ namespace battle::ecs {
         CombatContext context;
     };
 
+    /// @brief 可叠加的燃烧持续伤害状态。
     struct BurnStatus {
         Entity source{};
         DeltaTime remaining_seconds{0.0f};
@@ -190,15 +222,18 @@ namespace battle::ecs {
         int damage_per_tick{};
     };
 
+    /// @brief 冻结控制状态的剩余时间。
     struct FreezeStatus {
         DeltaTime remaining_seconds{0.0f};
     };
 
+    /// @brief 实体当前承受的持续状态集合。
     struct StatusEffects {
         std::vector<BurnStatus> burns;
         std::optional<FreezeStatus> freeze;
     };
 
+    /// @brief 投射物的飞行距离、伤害和攻击归属。
     struct Projectile {
         int damage{};
         float current_distance{};
@@ -207,6 +242,7 @@ namespace battle::ecs {
         CombatContext context;
     };
 
+    /// @brief 远程怪物保持安全距离的 AI 配置。
     struct KitingAI {
         float retreat_distance;
     };

@@ -12,8 +12,14 @@ void battle::NodeRegistrar::start() {
     running_ = true;
     thread_ = std::thread([this]() {
         while (running_) {
-            rcenter_client_.register_battle_node(config_, room_manager_);
-            std::cout << "sent heartbeat..." << std::endl;
+            // 周期上报而非仅启动时注册，使 rcenter 看到最新 active_players，
+            // 并能在临时网络错误后的下一轮恢复节点可调度状态。
+            const auto result = rcenter_client_.register_battle_node(config_, room_manager_);
+            if (result.ok) {
+                std::cout << "sent heartbeat..." << std::endl;
+            } else {
+                std::cerr << "register battle node failed: " << result.message << std::endl;
+            }
             std::this_thread::sleep_for(std::chrono::seconds(3));
         }
     });
@@ -24,6 +30,7 @@ void battle::NodeRegistrar::stop() {
         return;
     }
     running_ = false;
+    // join 保证后台线程停止访问 config、RoomManager 和 gRPC client 后再析构依赖对象。
     if (thread_.joinable()) {
         thread_.join();
     }

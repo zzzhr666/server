@@ -232,12 +232,16 @@ battle::BattleRuntime::~BattleRuntime() {
 void battle::BattleRuntime::start_room(const std::string& room_name) {
     {
         std::lock_guard<std::mutex> lock(mutex_);
+        // all_players_joined 的 hello 可能并发到达。starting_rooms_ 覆盖实例创建
+        // 期间的空窗，instances_ 覆盖创建完成后，二者共同保证每个房间只有一个 World。
         if (starting_rooms_.contains(room_name) || instances_.contains(room_name)) {
             return;
         }
         starting_rooms_.insert(room_name);
     }
 
+    // 在不持有 runtime 锁时读取房间配置和 session，避免锁住 tick 线程；房间启动
+    // 只依赖完整 roster，重连期间连接状态变化不会改变 BattleInstance 的玩家集合。
     auto sessions = session_manager_.sessions_in_room(room_name);
     auto configured_loadouts = room_manager_.player_loadouts(room_name);
 
@@ -248,6 +252,8 @@ void battle::BattleRuntime::start_room(const std::string& room_name) {
     }
     std::unordered_map<std::int64_t, std::pair<WeaponKind, GrowthLevels>> player_loadouts;
     player_loadouts.reserve(configured_loadouts.size());
+    // 武器文本无效时保留 BattleInstance 的默认剑配置，避免一个脏 loadout 阻止整个
+    // 已匹配房间开始；局外成长在此冻结，战斗中不再读取 Redis 或 rcenter。
     for (const auto& loadout : configured_loadouts) {
         auto weapon_kind = weapon_kind_from_string(loadout.weapon);
         if (!weapon_kind.has_value()) {
@@ -276,6 +282,8 @@ void battle::BattleRuntime::start_room(const std::string& room_name) {
         instances_.emplace(room_name, std::move(instance));
     }
 
+    // 只通知当前连接的端点。断线玩家之后 hello 重绑后仍能从普通快照继续同步，
+    // 无需为其保留或重放 GameStart 包。
     for (const auto& session : session_manager_.connected_sessions_in_room(room_name)) {
         send_packet_(game_start_packet, session->endpoint());
     }
@@ -286,6 +294,8 @@ void battle::BattleRuntime::tick(ecs::DeltaTime delta_time) {
     std::vector<UdpEndpoint> endpoints;
     std::vector<std::pair<std::string, BattleEndReason>> end_state;
     const auto now = std::chrono::steady_clock::now();
+    // 会话超时先于房间检查执行。这样同一 tick 内，刚超过阈值的最后一个玩家会
+    // 立即进入“全员断线”计时，而不会多保留一个 tick 的伪连接状态。
     session_manager_.mark_stale_sessions(now, session_idle_timeout_);
     std::vector<std::string> empty_rooms;
     {
@@ -307,16 +317,20 @@ void battle::BattleRuntime::tick(ecs::DeltaTime delta_time) {
             }
 
             if (!connected_sessions.empty()) {
+                // 任何玩家成功重连都会取消无人房间倒计时；房间本身和 ECS 世界不重建。
                 all_disconnected_since_.erase(room_name);
                 continue;
             }
 
+            // 首次全员断线只记录开始时间，不立即结束。超时期间客户端仍可通过 hello
+            // 重绑 session；达到阈值后统一走 end_room，保证资源释放与 FinishMatch 一致。
             const auto [it, inserted] = all_disconnected_since_.try_emplace(room_name, now);
             if (!inserted && now - it->second >= all_players_disconnected_timeout_) {
                 empty_rooms.emplace_back(room_name);
             }
         }
     }
+    // 网络发送放在 runtime 锁外，避免慢 UDP send 阻塞战斗推进、输入和结束清理。
     for (std::size_t i = 0; i < packets.size(); i++) {
         send_packet_(packets[i], endpoints[i]);
     }
@@ -359,6 +373,8 @@ void battle::BattleRuntime::start() {
             last_tick = now;
             tick(delta);
 
+            // 使用绝对下一帧时间减少累积漂移；若单帧明显落后，则重置基准以防持续
+            // 追赶历史 tick 导致 CPU 空转。
             next_tick += tick_interval_;
             std::this_thread::sleep_until(next_tick);
             if (clock::now() > next_tick + tick_interval_) {
@@ -389,6 +405,8 @@ battle::EndRoomResult battle::BattleRuntime::end_room(const std::string& room_na
                 .message = "unable to find instance",
             };
         }
+        // 先取结算和完整 session roster。即使部分玩家已断线，也必须将其 ID 传给
+        // FinishMatch，才能清除 rcenter 的 ActiveMatch 和 inGame 标记。
         settlement = it->second->settlement();
         auto sessions = session_manager_.sessions_in_room(room_name);
         auto connected_sessions = session_manager_.connected_sessions_in_room(room_name);
@@ -401,6 +419,8 @@ battle::EndRoomResult battle::BattleRuntime::end_room(const std::string& room_na
             endpoints.emplace_back(session->endpoint());
         }
         packet = make_game_over(room_name, player_ids, reason, to_packet_player_stats(settlement));
+        // 从实例表和无人倒计时移除后，后续输入立即查不到房间；实际 session 与 Room
+        // 的清理放到锁外，避免跨管理器调用时形成锁顺序问题。
         instances_.erase(it);
         all_disconnected_since_.erase(room_name);
     }
@@ -408,6 +428,7 @@ battle::EndRoomResult battle::BattleRuntime::end_room(const std::string& room_na
         send_packet_(packet, endpoint);
     }
 
+    // GameOver 仅发给仍连接的端点，但 session/room 的资源释放覆盖完整 roster。
     session_manager_.remove_room(room_name);
     room_manager_.close_room(room_name);
     FinishedBattle finished_battle{

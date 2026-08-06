@@ -26,14 +26,14 @@ type battleClientEntry struct {
 	client battleControlClient
 }
 
-// BattleRepository owns cached gRPC control clients for registered battle nodes.
+// BattleRepository 持有已注册战斗节点的缓存 gRPC 控制客户端。
 type BattleRepository struct {
 	mu      sync.Mutex
 	clients map[string]*battleClientEntry
 	factory battleClientFactory
 }
 
-// NewBattleRepository creates a repository that dials battle nodes with gRPC.
+// NewBattleRepository 创建通过 gRPC 连接战斗节点的仓储。
 func NewBattleRepository() *BattleRepository {
 	return newBattleRepositoryWithFactory(newGRPCBattleClient)
 }
@@ -83,7 +83,7 @@ func toBattleGRPCPlayerLoadouts(loadouts []PlayerLoadout) []grpcclient.PlayerLoa
 	return result
 }
 
-// RegisterNode creates or replaces the cached control client for a battle node.
+// RegisterNode 为战斗节点创建或替换缓存控制客户端。
 func (b *BattleRepository) RegisterNode(ctx context.Context, node BattleNode) error {
 	grpcConn, client, err := b.factory(node)
 	if err != nil {

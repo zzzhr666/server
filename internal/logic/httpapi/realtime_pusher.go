@@ -18,7 +18,7 @@ func newLocalRealtimePusher(connections *connManager) *localRealtimePusher {
 	}
 }
 
-// Push writes a realtime event to the target player's local WebSocket connection.
+// Push 将实时事件写入目标玩家的本地 WebSocket 连接。
 func (p *localRealtimePusher) Push(ctx context.Context, event statecontract.RealtimeEvent) bool {
 	writeCtx, cancel := context.WithTimeout(ctx, 3*time.Second)
 	defer cancel()
@@ -29,7 +29,7 @@ func (p *localRealtimePusher) Push(ctx context.Context, event statecontract.Real
 	return p.connections.SendJSON(writeCtx, event.TargetPlayerID, msg)
 }
 
-// toWebSocketEvent converts a state realtime event to the wire message shape.
+// toWebSocketEvent 将状态层实时事件转换为网络消息结构。
 func toWebSocketEvent(event statecontract.RealtimeEvent) any {
 	switch event.Type {
 	case statecontract.RealtimeEventFriendPresenceChanged:

@@ -41,6 +41,8 @@ battle::JoinSessionResult battle::SessionManager::join(JoinSessionRequest reques
             .session = nullptr
         };
     }
+    // 先在锁内取得共享指针，随后在锁外执行房间/令牌校验，避免 SessionManager
+    // 锁与 RoomManager 锁交叉持有。重新加锁时会再次确认对象仍是当前索引值。
     std::shared_ptr<BattleSession> existing_session;
     {
         std::lock_guard<std::mutex> lock(mutex_);
@@ -65,6 +67,8 @@ battle::JoinSessionResult battle::SessionManager::join(JoinSessionRequest reques
                 .session = nullptr,
             };
         }
+        // 同一玩家 hello 到达时是重连而非第二次加入。替换 conv 和 endpoint 前，
+        // 必须先删除旧 conv 索引，保证一个 conversation 永远只指向一个会话。
         std::lock_guard<std::mutex> lock(mutex_);
         const auto player_it = sessions_by_player_.find(request.player_id);
         if (player_it == sessions_by_player_.end() || player_it->second != existing_session) {
@@ -97,6 +101,8 @@ battle::JoinSessionResult battle::SessionManager::join(JoinSessionRequest reques
         };
     }
 
+    // 新玩家必须先获得 Room 的准入许可；只有 Room 成功记录 joined 状态后，
+    // 才创建三个会话索引，避免无效 token 留下半成品 session。
     JoinRoomResult res = room_manager_.join_room({
         .room_name = request.room_name,
         .token = request.token,
@@ -132,6 +138,8 @@ battle::JoinSessionResult battle::SessionManager::join(JoinSessionRequest reques
     auto session = std::make_shared<BattleSession>(std::move(request.room_name), request.player_id, request.conv,
                                                    request.endpoint);
 
+    // Room 准入与插入 session 索引之间可能有并发 hello。这里再次检查，
+    // 让后到请求复用已建立会话，而不是覆盖已有玩家或 conversation。
     std::lock_guard<std::mutex> lock(mutex_);
     if (const auto it = sessions_by_player_.find(session->player_id()); it != sessions_by_player_.end()) {
         return {
@@ -177,6 +185,8 @@ void battle::SessionManager::remove_room(std::string_view room_name) {
     if (it == sessions_by_room_.end()) {
         return;
     }
+    // 关闭顺序同时清理 player、conversation 和 room 三个索引，确保房间结束后
+    // 旧 UDP 包无法通过 touch 恢复已释放的战斗实例。
     for (const auto& session : it->second) {
         sessions_by_conv_.erase(session->conv());
         sessions_by_player_.erase(session->player_id());
@@ -205,6 +215,8 @@ std::size_t battle::SessionManager::mark_stale_sessions(std::chrono::steady_cloc
             sessions.emplace_back(session);
         }
     }
+    // 先复制 shared_ptr 再在锁外切换 session 状态，避免长时间持有管理器锁；
+    // session 自身有 mutex，因此重绑和超时判定仍保持线程安全。
     std::size_t disconnected_count = 0;
     for (const auto& session : sessions) {
         if (session->mark_disconnected_if_stale(now,idle_timeout)) {
