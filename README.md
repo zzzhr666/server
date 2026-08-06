@@ -11,7 +11,7 @@
 | `logic-server` | HTTP/WS `:8081`、`:8082` | 客户端 API、认证、好友、在线状态、局外成长、匹配入口 |
 | `state-server` | gRPC `127.0.0.1:9001` | Go 侧状态服务，唯一直接访问 Redis 的业务进程 |
 | `rcenter-server` | gRPC `127.0.0.1:9002` | battle 节点注册、匹配队列、活跃对局与结算 |
-| `battle-server` | gRPC `127.0.0.1:9101`、UDP `:7001` | 房间、UDP 会话、战斗 tick、ECS 和快照广播 |
+| `battle-server` | `battle-1`: gRPC `127.0.0.1:9101`、UDP `:7001`; `battle-2`: gRPC `127.0.0.1:9102`、UDP `:7002` | 房间、UDP 会话、战斗 tick、ECS 和快照广播 |
 | `nginx` | HTTP/WS `:8080` | 可选的本地代理，转发至两个 logic 实例 |
 | Redis | `127.0.0.1:6379` | 账号、玩家、会话、好友、在线状态、成长与实时事件 |
 
@@ -43,7 +43,9 @@ START_NGINX=0 bash scripts/run.sh
 curl http://localhost:8081/health
 ```
 
-默认启用 nginx 时，使用 `http://localhost:8080` 访问 HTTP 与 WebSocket。脚本会启动两个 logic-server 实例、state-server、rcenter-server 和 battle-server；按 `Ctrl+C` 退出会清理这些由脚本启动的进程。
+默认启用 nginx 时，使用 `http://localhost:8080` 访问 HTTP 与 WebSocket。`scripts/run.sh` 会在后台启动两个 logic-server 实例、state-server、rcenter-server 和两个 battle-server；不带参数时先停止这些服务再启动，`scripts/run.sh start` 只启动，`scripts/run.sh stop` 只停止。服务日志写入 `tmp/logs/`。
+
+两个 battle-server 默认使用 `battle-1`（gRPC `:9101`、UDP `:7001`）和 `battle-2`（gRPC `:9102`、UDP `:7002`）。本地客户端使用默认配置；其他机器访问时，通过 `BATTLE_UDP_PUBLIC_HOST=<可访问IP>` 覆盖下发给客户端的 UDP 主机地址。端口、节点名和容量可用 `BATTLE_1_*`、`BATTLE_2_*` 环境变量覆盖。
 
 ## 常用命令
 

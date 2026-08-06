@@ -115,7 +115,7 @@ type RealtimeEvent struct {
 	RoomName       string
 	MatchToken     string
 	BattleNodeName string
-	BattleKCPAddr  string
+	BattleUDPAddr  string
 	MatchPlayerIDs []int64
 }
 

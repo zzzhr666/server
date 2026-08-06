@@ -5,7 +5,7 @@ import "time"
 // BattleNode describes one battle process that can host matched players.
 type BattleNode struct {
 	Name          string
-	KCPAddr       string
+	UDPAddr       string
 	ControlAddr   string
 	MaxPlayers    int
 	ActivePlayers int
@@ -30,7 +30,7 @@ type MatchResult struct {
 	RoomName       string
 	Token          string
 	BattleNodeName string
-	BattleKCPAddr  string
+	BattleUDPAddr  string
 	PlayerIDs      []int64
 	PlayerLoadouts []PlayerLoadout
 }
@@ -63,7 +63,7 @@ type ActiveMatch struct {
 	RoomName       string
 	Token          string
 	BattleNodeName string
-	BattleKCPAddr  string
+	BattleUDPAddr  string
 	PlayerIDs      []int64
 	PlayerLoadouts []PlayerLoadout
 	CreatedAt      time.Time

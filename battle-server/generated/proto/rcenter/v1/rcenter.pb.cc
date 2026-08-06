@@ -239,7 +239,7 @@ inline constexpr BattleNode::Impl_::Impl_(
         name_(
             &::google::protobuf::internal::fixed_address_empty_string,
             ::_pbi::ConstantInitialized()),
-        kcp_addr_(
+        udp_addr_(
             &::google::protobuf::internal::fixed_address_empty_string,
             ::_pbi::ConstantInitialized()),
         control_addr_(
@@ -339,7 +339,7 @@ inline constexpr MatchResult::Impl_::Impl_(
         battle_node_name_(
             &::google::protobuf::internal::fixed_address_empty_string,
             ::_pbi::ConstantInitialized()),
-        battle_kcp_addr_(
+        battle_udp_addr_(
             &::google::protobuf::internal::fixed_address_empty_string,
             ::_pbi::ConstantInitialized()) {}
 
@@ -480,7 +480,7 @@ const ::uint32_t
         PROTOBUF_FIELD_OFFSET(::rcenter::v1::BattleNode, _impl_._has_bits_),
         9, // hasbit index offset
         PROTOBUF_FIELD_OFFSET(::rcenter::v1::BattleNode, _impl_.name_),
-        PROTOBUF_FIELD_OFFSET(::rcenter::v1::BattleNode, _impl_.kcp_addr_),
+        PROTOBUF_FIELD_OFFSET(::rcenter::v1::BattleNode, _impl_.udp_addr_),
         PROTOBUF_FIELD_OFFSET(::rcenter::v1::BattleNode, _impl_.control_addr_),
         PROTOBUF_FIELD_OFFSET(::rcenter::v1::BattleNode, _impl_.max_players_),
         PROTOBUF_FIELD_OFFSET(::rcenter::v1::BattleNode, _impl_.active_players_),
@@ -498,7 +498,7 @@ const ::uint32_t
         PROTOBUF_FIELD_OFFSET(::rcenter::v1::MatchResult, _impl_.room_name_),
         PROTOBUF_FIELD_OFFSET(::rcenter::v1::MatchResult, _impl_.token_),
         PROTOBUF_FIELD_OFFSET(::rcenter::v1::MatchResult, _impl_.battle_node_name_),
-        PROTOBUF_FIELD_OFFSET(::rcenter::v1::MatchResult, _impl_.battle_kcp_addr_),
+        PROTOBUF_FIELD_OFFSET(::rcenter::v1::MatchResult, _impl_.battle_udp_addr_),
         PROTOBUF_FIELD_OFFSET(::rcenter::v1::MatchResult, _impl_.player_ids_),
         PROTOBUF_FIELD_OFFSET(::rcenter::v1::MatchResult, _impl_.player_loadouts_),
         0,
@@ -622,13 +622,13 @@ static const ::_pb::Message* PROTOBUF_NONNULL const file_default_instances[] = {
 const char descriptor_table_protodef_proto_2frcenter_2fv1_2frcenter_2eproto[] ABSL_ATTRIBUTE_SECTION_VARIABLE(
     protodesc_cold) = {
     "\n\036proto/rcenter/v1/rcenter.proto\022\nrcente"
-    "r.v1\"\207\001\n\nBattleNode\022\014\n\004name\030\001 \001(\t\022\020\n\010kcp"
+    "r.v1\"\207\001\n\nBattleNode\022\014\n\004name\030\001 \001(\t\022\020\n\010udp"
     "_addr\030\002 \001(\t\022\024\n\014control_addr\030\003 \001(\t\022\023\n\013max"
     "_players\030\004 \001(\005\022\026\n\016active_players\030\005 \001(\005\022\026"
     "\n\016last_seen_unix\030\006 \001(\003\"\272\001\n\013MatchResult\022\016"
     "\n\006status\030\001 \001(\t\022\021\n\troom_name\030\002 \001(\t\022\r\n\005tok"
     "en\030\003 \001(\t\022\030\n\020battle_node_name\030\004 \001(\t\022\027\n\017ba"
-    "ttle_kcp_addr\030\005 \001(\t\022\022\n\nplayer_ids\030\006 \003(\003\022"
+    "ttle_udp_addr\030\005 \001(\t\022\022\n\nplayer_ids\030\006 \003(\003\022"
     "2\n\017player_loadouts\030\007 \003(\0132\031.rcenter.v1.Pl"
     "ayerLoadout\"A\n\031RegisterBattleNodeRequest"
     "\022$\n\004node\030\001 \001(\0132\026.rcenter.v1.BattleNode\"\034"
@@ -712,7 +712,7 @@ PROTOBUF_NDEBUG_INLINE BattleNode::Impl_::Impl_(
       : _has_bits_{from._has_bits_},
         _cached_size_{0},
         name_(arena, from.name_),
-        kcp_addr_(arena, from.kcp_addr_),
+        udp_addr_(arena, from.udp_addr_),
         control_addr_(arena, from.control_addr_) {}
 
 BattleNode::BattleNode(
@@ -743,7 +743,7 @@ PROTOBUF_NDEBUG_INLINE BattleNode::Impl_::Impl_(
     ::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
       : _cached_size_{0},
         name_(arena),
-        kcp_addr_(arena),
+        udp_addr_(arena),
         control_addr_(arena) {}
 
 inline void BattleNode::SharedCtor(::_pb::Arena* PROTOBUF_NULLABLE arena) {
@@ -764,7 +764,7 @@ inline void BattleNode::SharedDtor(MessageLite& self) {
   this_._internal_metadata_.Delete<::google::protobuf::UnknownFieldSet>();
   ABSL_DCHECK(this_.GetArena() == nullptr);
   this_._impl_.name_.Destroy();
-  this_._impl_.kcp_addr_.Destroy();
+  this_._impl_.udp_addr_.Destroy();
   this_._impl_.control_addr_.Destroy();
   this_._impl_.~Impl_();
 }
@@ -835,9 +835,9 @@ BattleNode::_table_ = {
     // string name = 1;
     {::_pbi::TcParser::FastUS1,
      {10, 0, 0, PROTOBUF_FIELD_OFFSET(BattleNode, _impl_.name_)}},
-    // string kcp_addr = 2;
+    // string udp_addr = 2;
     {::_pbi::TcParser::FastUS1,
-     {18, 1, 0, PROTOBUF_FIELD_OFFSET(BattleNode, _impl_.kcp_addr_)}},
+     {18, 1, 0, PROTOBUF_FIELD_OFFSET(BattleNode, _impl_.udp_addr_)}},
     // string control_addr = 3;
     {::_pbi::TcParser::FastUS1,
      {26, 2, 0, PROTOBUF_FIELD_OFFSET(BattleNode, _impl_.control_addr_)}},
@@ -857,8 +857,8 @@ BattleNode::_table_ = {
     // string name = 1;
     {PROTOBUF_FIELD_OFFSET(BattleNode, _impl_.name_), _Internal::kHasBitsOffset + 0, 0,
     (0 | ::_fl::kFcOptional | ::_fl::kUtf8String | ::_fl::kRepAString)},
-    // string kcp_addr = 2;
-    {PROTOBUF_FIELD_OFFSET(BattleNode, _impl_.kcp_addr_), _Internal::kHasBitsOffset + 1, 0,
+    // string udp_addr = 2;
+    {PROTOBUF_FIELD_OFFSET(BattleNode, _impl_.udp_addr_), _Internal::kHasBitsOffset + 1, 0,
     (0 | ::_fl::kFcOptional | ::_fl::kUtf8String | ::_fl::kRepAString)},
     // string control_addr = 3;
     {PROTOBUF_FIELD_OFFSET(BattleNode, _impl_.control_addr_), _Internal::kHasBitsOffset + 2, 0,
@@ -878,7 +878,7 @@ BattleNode::_table_ = {
     "\25\4\10\14\0\0\0\0"
     "rcenter.v1.BattleNode"
     "name"
-    "kcp_addr"
+    "udp_addr"
     "control_addr"
   }},
 };
@@ -895,7 +895,7 @@ PROTOBUF_NOINLINE void BattleNode::Clear() {
       _impl_.name_.ClearNonDefaultToEmpty();
     }
     if ((cached_has_bits & 0x00000002u) != 0) {
-      _impl_.kcp_addr_.ClearNonDefaultToEmpty();
+      _impl_.udp_addr_.ClearNonDefaultToEmpty();
     }
     if ((cached_has_bits & 0x00000004u) != 0) {
       _impl_.control_addr_.ClearNonDefaultToEmpty();
@@ -935,12 +935,12 @@ PROTOBUF_NOINLINE void BattleNode::Clear() {
     }
   }
 
-  // string kcp_addr = 2;
+  // string udp_addr = 2;
   if ((this_._impl_._has_bits_[0] & 0x00000002u) != 0) {
-    if (!this_._internal_kcp_addr().empty()) {
-      const ::std::string& _s = this_._internal_kcp_addr();
+    if (!this_._internal_udp_addr().empty()) {
+      const ::std::string& _s = this_._internal_udp_addr();
       ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-          _s.data(), static_cast<int>(_s.length()), ::google::protobuf::internal::WireFormatLite::SERIALIZE, "rcenter.v1.BattleNode.kcp_addr");
+          _s.data(), static_cast<int>(_s.length()), ::google::protobuf::internal::WireFormatLite::SERIALIZE, "rcenter.v1.BattleNode.udp_addr");
       target = stream->WriteStringMaybeAliased(2, _s, target);
     }
   }
@@ -1015,11 +1015,11 @@ PROTOBUF_NOINLINE void BattleNode::Clear() {
                                         this_._internal_name());
       }
     }
-    // string kcp_addr = 2;
+    // string udp_addr = 2;
     if ((cached_has_bits & 0x00000002u) != 0) {
-      if (!this_._internal_kcp_addr().empty()) {
+      if (!this_._internal_udp_addr().empty()) {
         total_size += 1 + ::google::protobuf::internal::WireFormatLite::StringSize(
-                                        this_._internal_kcp_addr());
+                                        this_._internal_udp_addr());
       }
     }
     // string control_addr = 3;
@@ -1075,11 +1075,11 @@ void BattleNode::MergeImpl(::google::protobuf::MessageLite& to_msg, const ::goog
       }
     }
     if ((cached_has_bits & 0x00000002u) != 0) {
-      if (!from._internal_kcp_addr().empty()) {
-        _this->_internal_set_kcp_addr(from._internal_kcp_addr());
+      if (!from._internal_udp_addr().empty()) {
+        _this->_internal_set_udp_addr(from._internal_udp_addr());
       } else {
-        if (_this->_impl_.kcp_addr_.IsDefault()) {
-          _this->_internal_set_kcp_addr("");
+        if (_this->_impl_.udp_addr_.IsDefault()) {
+          _this->_internal_set_udp_addr("");
         }
       }
     }
@@ -1127,7 +1127,7 @@ void BattleNode::InternalSwap(BattleNode* PROTOBUF_RESTRICT PROTOBUF_NONNULL oth
   _internal_metadata_.InternalSwap(&other->_internal_metadata_);
   swap(_impl_._has_bits_[0], other->_impl_._has_bits_[0]);
   ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.name_, &other->_impl_.name_, arena);
-  ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.kcp_addr_, &other->_impl_.kcp_addr_, arena);
+  ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.udp_addr_, &other->_impl_.udp_addr_, arena);
   ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.control_addr_, &other->_impl_.control_addr_, arena);
   ::google::protobuf::internal::memswap<
       PROTOBUF_FIELD_OFFSET(BattleNode, _impl_.last_seen_unix_)
@@ -1172,7 +1172,7 @@ PROTOBUF_NDEBUG_INLINE MatchResult::Impl_::Impl_(
         room_name_(arena, from.room_name_),
         token_(arena, from.token_),
         battle_node_name_(arena, from.battle_node_name_),
-        battle_kcp_addr_(arena, from.battle_kcp_addr_) {}
+        battle_udp_addr_(arena, from.battle_udp_addr_) {}
 
 MatchResult::MatchResult(
     ::google::protobuf::Arena* PROTOBUF_NULLABLE arena,
@@ -1201,7 +1201,7 @@ PROTOBUF_NDEBUG_INLINE MatchResult::Impl_::Impl_(
         room_name_(arena),
         token_(arena),
         battle_node_name_(arena),
-        battle_kcp_addr_(arena) {}
+        battle_udp_addr_(arena) {}
 
 inline void MatchResult::SharedCtor(::_pb::Arena* PROTOBUF_NULLABLE arena) {
   new (&_impl_) Impl_(internal_visibility(), arena);
@@ -1218,7 +1218,7 @@ inline void MatchResult::SharedDtor(MessageLite& self) {
   this_._impl_.room_name_.Destroy();
   this_._impl_.token_.Destroy();
   this_._impl_.battle_node_name_.Destroy();
-  this_._impl_.battle_kcp_addr_.Destroy();
+  this_._impl_.battle_udp_addr_.Destroy();
   this_._impl_.~Impl_();
 }
 
@@ -1313,9 +1313,9 @@ MatchResult::_table_ = {
     // string battle_node_name = 4;
     {::_pbi::TcParser::FastUS1,
      {34, 3, 0, PROTOBUF_FIELD_OFFSET(MatchResult, _impl_.battle_node_name_)}},
-    // string battle_kcp_addr = 5;
+    // string battle_udp_addr = 5;
     {::_pbi::TcParser::FastUS1,
-     {42, 4, 0, PROTOBUF_FIELD_OFFSET(MatchResult, _impl_.battle_kcp_addr_)}},
+     {42, 4, 0, PROTOBUF_FIELD_OFFSET(MatchResult, _impl_.battle_udp_addr_)}},
     // repeated int64 player_ids = 6;
     {::_pbi::TcParser::FastV64P1,
      {50, 63, 0, PROTOBUF_FIELD_OFFSET(MatchResult, _impl_.player_ids_)}},
@@ -1337,8 +1337,8 @@ MatchResult::_table_ = {
     // string battle_node_name = 4;
     {PROTOBUF_FIELD_OFFSET(MatchResult, _impl_.battle_node_name_), _Internal::kHasBitsOffset + 3, 0,
     (0 | ::_fl::kFcOptional | ::_fl::kUtf8String | ::_fl::kRepAString)},
-    // string battle_kcp_addr = 5;
-    {PROTOBUF_FIELD_OFFSET(MatchResult, _impl_.battle_kcp_addr_), _Internal::kHasBitsOffset + 4, 0,
+    // string battle_udp_addr = 5;
+    {PROTOBUF_FIELD_OFFSET(MatchResult, _impl_.battle_udp_addr_), _Internal::kHasBitsOffset + 4, 0,
     (0 | ::_fl::kFcOptional | ::_fl::kUtf8String | ::_fl::kRepAString)},
     // repeated int64 player_ids = 6;
     {PROTOBUF_FIELD_OFFSET(MatchResult, _impl_.player_ids_), -1, 0,
@@ -1357,7 +1357,7 @@ MatchResult::_table_ = {
     "room_name"
     "token"
     "battle_node_name"
-    "battle_kcp_addr"
+    "battle_udp_addr"
   }},
 };
 PROTOBUF_NOINLINE void MatchResult::Clear() {
@@ -1384,7 +1384,7 @@ PROTOBUF_NOINLINE void MatchResult::Clear() {
       _impl_.battle_node_name_.ClearNonDefaultToEmpty();
     }
     if ((cached_has_bits & 0x00000010u) != 0) {
-      _impl_.battle_kcp_addr_.ClearNonDefaultToEmpty();
+      _impl_.battle_udp_addr_.ClearNonDefaultToEmpty();
     }
   }
   _impl_._has_bits_.Clear();
@@ -1446,12 +1446,12 @@ PROTOBUF_NOINLINE void MatchResult::Clear() {
     }
   }
 
-  // string battle_kcp_addr = 5;
+  // string battle_udp_addr = 5;
   if ((this_._impl_._has_bits_[0] & 0x00000010u) != 0) {
-    if (!this_._internal_battle_kcp_addr().empty()) {
-      const ::std::string& _s = this_._internal_battle_kcp_addr();
+    if (!this_._internal_battle_udp_addr().empty()) {
+      const ::std::string& _s = this_._internal_battle_udp_addr();
       ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-          _s.data(), static_cast<int>(_s.length()), ::google::protobuf::internal::WireFormatLite::SERIALIZE, "rcenter.v1.MatchResult.battle_kcp_addr");
+          _s.data(), static_cast<int>(_s.length()), ::google::protobuf::internal::WireFormatLite::SERIALIZE, "rcenter.v1.MatchResult.battle_udp_addr");
       target = stream->WriteStringMaybeAliased(5, _s, target);
     }
   }
@@ -1546,11 +1546,11 @@ PROTOBUF_NOINLINE void MatchResult::Clear() {
                                         this_._internal_battle_node_name());
       }
     }
-    // string battle_kcp_addr = 5;
+    // string battle_udp_addr = 5;
     if ((cached_has_bits & 0x00000010u) != 0) {
-      if (!this_._internal_battle_kcp_addr().empty()) {
+      if (!this_._internal_battle_udp_addr().empty()) {
         total_size += 1 + ::google::protobuf::internal::WireFormatLite::StringSize(
-                                        this_._internal_battle_kcp_addr());
+                                        this_._internal_battle_udp_addr());
       }
     }
   }
@@ -1608,11 +1608,11 @@ void MatchResult::MergeImpl(::google::protobuf::MessageLite& to_msg, const ::goo
       }
     }
     if ((cached_has_bits & 0x00000010u) != 0) {
-      if (!from._internal_battle_kcp_addr().empty()) {
-        _this->_internal_set_battle_kcp_addr(from._internal_battle_kcp_addr());
+      if (!from._internal_battle_udp_addr().empty()) {
+        _this->_internal_set_battle_udp_addr(from._internal_battle_udp_addr());
       } else {
-        if (_this->_impl_.battle_kcp_addr_.IsDefault()) {
-          _this->_internal_set_battle_kcp_addr("");
+        if (_this->_impl_.battle_udp_addr_.IsDefault()) {
+          _this->_internal_set_battle_udp_addr("");
         }
       }
     }
@@ -1641,7 +1641,7 @@ void MatchResult::InternalSwap(MatchResult* PROTOBUF_RESTRICT PROTOBUF_NONNULL o
   ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.room_name_, &other->_impl_.room_name_, arena);
   ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.token_, &other->_impl_.token_, arena);
   ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.battle_node_name_, &other->_impl_.battle_node_name_, arena);
-  ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.battle_kcp_addr_, &other->_impl_.battle_kcp_addr_, arena);
+  ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.battle_udp_addr_, &other->_impl_.battle_udp_addr_, arena);
 }
 
 ::google::protobuf::Metadata MatchResult::GetMetadata() const {

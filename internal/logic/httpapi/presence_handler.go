@@ -104,7 +104,7 @@ func (h *Handler) handleWebSocket(w http.ResponseWriter, r *http.Request) {
 				RoomName:       res.RoomName,
 				Token:          res.Token,
 				BattleNodeName: res.BattleNodeName,
-				BattleKCPAddr:  res.BattleKCPAddr,
+				BattleUDPAddr:  res.BattleUDPAddr,
 			})
 			h.pushMatchResultToPlayers(context.Background(), session.PlayerID, res)
 		case messageTypeMatchCancel:
@@ -152,7 +152,7 @@ func (h *Handler) sendResumedMatch(ctx context.Context, conn *websocket.Conn, pl
 		RoomName:       res.RoomName,
 		Token:          res.Token,
 		BattleNodeName: res.BattleNodeName,
-		BattleKCPAddr:  res.BattleKCPAddr,
+		BattleUDPAddr:  res.BattleUDPAddr,
 	})
 }
 
@@ -167,7 +167,7 @@ func (h *Handler) pushMatchResultToPlayers(ctx context.Context, currentPlayerID 
 		RoomName:       result.RoomName,
 		Token:          result.Token,
 		BattleNodeName: result.BattleNodeName,
-		BattleKCPAddr:  result.BattleKCPAddr,
+		BattleUDPAddr:  result.BattleUDPAddr,
 	}
 	for _, playerID := range result.PlayerIDs {
 		if playerID == currentPlayerID {
@@ -192,7 +192,7 @@ func (h *Handler) pushMatchResultToPlayers(ctx context.Context, currentPlayerID 
 			RoomName:       result.RoomName,
 			MatchToken:     result.Token,
 			BattleNodeName: result.BattleNodeName,
-			BattleKCPAddr:  result.BattleKCPAddr,
+			BattleUDPAddr:  result.BattleUDPAddr,
 			MatchPlayerIDs: result.PlayerIDs,
 		}
 		_ = h.realtimeClient.PublishRealtimeToServer(ctx, playerPresence.ServerName, event)

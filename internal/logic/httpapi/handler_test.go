@@ -872,7 +872,7 @@ func TestPushMatchResultPublishesToRemoteLogicServer(t *testing.T) {
 		RoomName:       "room-1",
 		Token:          "token-1",
 		BattleNodeName: "battle-1",
-		BattleKCPAddr:  "127.0.0.1:7001",
+		BattleUDPAddr:  "127.0.0.1:7001",
 		PlayerIDs:      []int64{7, 8},
 	})
 
@@ -892,7 +892,7 @@ func TestPushMatchResultPublishesToRemoteLogicServer(t *testing.T) {
 	if got.event.MatchStatus != string(rcenter.MatchStatusMatched) || got.event.RoomName != "room-1" || got.event.MatchToken != "token-1" {
 		t.Fatalf("event match fields = %+v, want matched room-1 token-1", got.event)
 	}
-	if got.event.BattleNodeName != "battle-1" || got.event.BattleKCPAddr != "127.0.0.1:7001" {
+	if got.event.BattleNodeName != "battle-1" || got.event.BattleUDPAddr != "127.0.0.1:7001" {
 		t.Fatalf("event battle fields = %+v, want battle-1 127.0.0.1:7001", got.event)
 	}
 }
@@ -1022,7 +1022,7 @@ func TestWebSocketMatchStartWritesMatchResult(t *testing.T) {
 			RoomName:       "room-1",
 			Token:          "token-1",
 			BattleNodeName: "battle-1",
-			BattleKCPAddr:  "127.0.0.1:7001",
+			BattleUDPAddr:  "127.0.0.1:7001",
 		},
 	}
 	testHandler := newTestHandlerWithMatch(auths, presences, matches)
@@ -1072,8 +1072,8 @@ func TestWebSocketMatchStartWritesMatchResult(t *testing.T) {
 	if result.BattleNodeName != "battle-1" {
 		t.Fatalf("battle node name = %q, want battle-1", result.BattleNodeName)
 	}
-	if result.BattleKCPAddr != "127.0.0.1:7001" {
-		t.Fatalf("battle kcp addr = %q, want 127.0.0.1:7001", result.BattleKCPAddr)
+	if result.BattleUDPAddr != "127.0.0.1:7001" {
+		t.Fatalf("battle udp addr = %q, want 127.0.0.1:7001", result.BattleUDPAddr)
 	}
 }
 
@@ -1083,7 +1083,7 @@ func matchedResult() *rcenter.MatchResult {
 		RoomName:       "room-1",
 		Token:          "token-1",
 		BattleNodeName: "battle-1",
-		BattleKCPAddr:  "127.0.0.1:7001",
+		BattleUDPAddr:  "127.0.0.1:7001",
 	}
 }
 
@@ -1091,7 +1091,7 @@ func assertMatchResultMessage(t *testing.T, result matchResultMessage) {
 	t.Helper()
 	if result.Type != serverEventMatchResult || result.Status != string(rcenter.MatchStatusMatched) ||
 		result.RoomName != "room-1" || result.Token != "token-1" || result.BattleNodeName != "battle-1" ||
-		result.BattleKCPAddr != "127.0.0.1:7001" {
+		result.BattleUDPAddr != "127.0.0.1:7001" {
 		t.Fatalf("match result = %+v, want matched room credentials", result)
 	}
 }

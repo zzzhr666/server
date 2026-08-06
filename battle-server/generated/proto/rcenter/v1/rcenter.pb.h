@@ -1872,7 +1872,7 @@ class BattleNode final : public ::google::protobuf::Message
   // accessors -------------------------------------------------------
   enum : int {
     kNameFieldNumber = 1,
-    kKcpAddrFieldNumber = 2,
+    kUdpAddrFieldNumber = 2,
     kControlAddrFieldNumber = 3,
     kMaxPlayersFieldNumber = 4,
     kActivePlayersFieldNumber = 5,
@@ -1893,19 +1893,19 @@ class BattleNode final : public ::google::protobuf::Message
   ::std::string* PROTOBUF_NONNULL _internal_mutable_name();
 
   public:
-  // string kcp_addr = 2;
-  void clear_kcp_addr() ;
-  const ::std::string& kcp_addr() const;
+  // string udp_addr = 2;
+  void clear_udp_addr() ;
+  const ::std::string& udp_addr() const;
   template <typename Arg_ = const ::std::string&, typename... Args_>
-  void set_kcp_addr(Arg_&& arg, Args_... args);
-  ::std::string* PROTOBUF_NONNULL mutable_kcp_addr();
-  [[nodiscard]] ::std::string* PROTOBUF_NULLABLE release_kcp_addr();
-  void set_allocated_kcp_addr(::std::string* PROTOBUF_NULLABLE value);
+  void set_udp_addr(Arg_&& arg, Args_... args);
+  ::std::string* PROTOBUF_NONNULL mutable_udp_addr();
+  [[nodiscard]] ::std::string* PROTOBUF_NULLABLE release_udp_addr();
+  void set_allocated_udp_addr(::std::string* PROTOBUF_NULLABLE value);
 
   private:
-  const ::std::string& _internal_kcp_addr() const;
-  PROTOBUF_ALWAYS_INLINE void _internal_set_kcp_addr(const ::std::string& value);
-  ::std::string* PROTOBUF_NONNULL _internal_mutable_kcp_addr();
+  const ::std::string& _internal_udp_addr() const;
+  PROTOBUF_ALWAYS_INLINE void _internal_set_udp_addr(const ::std::string& value);
+  ::std::string* PROTOBUF_NONNULL _internal_mutable_udp_addr();
 
   public:
   // string control_addr = 3;
@@ -1980,7 +1980,7 @@ class BattleNode final : public ::google::protobuf::Message
     ::google::protobuf::internal::HasBits<1> _has_bits_;
     ::google::protobuf::internal::CachedSize _cached_size_;
     ::google::protobuf::internal::ArenaStringPtr name_;
-    ::google::protobuf::internal::ArenaStringPtr kcp_addr_;
+    ::google::protobuf::internal::ArenaStringPtr udp_addr_;
     ::google::protobuf::internal::ArenaStringPtr control_addr_;
     ::int32_t max_players_;
     ::int32_t active_players_;
@@ -2561,7 +2561,7 @@ class MatchResult final : public ::google::protobuf::Message
     kRoomNameFieldNumber = 2,
     kTokenFieldNumber = 3,
     kBattleNodeNameFieldNumber = 4,
-    kBattleKcpAddrFieldNumber = 5,
+    kBattleUdpAddrFieldNumber = 5,
   };
   // repeated int64 player_ids = 6;
   int player_ids_size() const;
@@ -2658,19 +2658,19 @@ class MatchResult final : public ::google::protobuf::Message
   ::std::string* PROTOBUF_NONNULL _internal_mutable_battle_node_name();
 
   public:
-  // string battle_kcp_addr = 5;
-  void clear_battle_kcp_addr() ;
-  const ::std::string& battle_kcp_addr() const;
+  // string battle_udp_addr = 5;
+  void clear_battle_udp_addr() ;
+  const ::std::string& battle_udp_addr() const;
   template <typename Arg_ = const ::std::string&, typename... Args_>
-  void set_battle_kcp_addr(Arg_&& arg, Args_... args);
-  ::std::string* PROTOBUF_NONNULL mutable_battle_kcp_addr();
-  [[nodiscard]] ::std::string* PROTOBUF_NULLABLE release_battle_kcp_addr();
-  void set_allocated_battle_kcp_addr(::std::string* PROTOBUF_NULLABLE value);
+  void set_battle_udp_addr(Arg_&& arg, Args_... args);
+  ::std::string* PROTOBUF_NONNULL mutable_battle_udp_addr();
+  [[nodiscard]] ::std::string* PROTOBUF_NULLABLE release_battle_udp_addr();
+  void set_allocated_battle_udp_addr(::std::string* PROTOBUF_NULLABLE value);
 
   private:
-  const ::std::string& _internal_battle_kcp_addr() const;
-  PROTOBUF_ALWAYS_INLINE void _internal_set_battle_kcp_addr(const ::std::string& value);
-  ::std::string* PROTOBUF_NONNULL _internal_mutable_battle_kcp_addr();
+  const ::std::string& _internal_battle_udp_addr() const;
+  PROTOBUF_ALWAYS_INLINE void _internal_set_battle_udp_addr(const ::std::string& value);
+  ::std::string* PROTOBUF_NONNULL _internal_mutable_battle_udp_addr();
 
   public:
   // @@protoc_insertion_point(class_scope:rcenter.v1.MatchResult)
@@ -2706,7 +2706,7 @@ class MatchResult final : public ::google::protobuf::Message
     ::google::protobuf::internal::ArenaStringPtr room_name_;
     ::google::protobuf::internal::ArenaStringPtr token_;
     ::google::protobuf::internal::ArenaStringPtr battle_node_name_;
-    ::google::protobuf::internal::ArenaStringPtr battle_kcp_addr_;
+    ::google::protobuf::internal::ArenaStringPtr battle_udp_addr_;
     PROTOBUF_TSAN_DECLARE_MEMBER
   };
   union { Impl_ _impl_; };
@@ -3621,69 +3621,69 @@ inline void BattleNode::set_allocated_name(::std::string* PROTOBUF_NULLABLE valu
   // @@protoc_insertion_point(field_set_allocated:rcenter.v1.BattleNode.name)
 }
 
-// string kcp_addr = 2;
-inline void BattleNode::clear_kcp_addr() {
+// string udp_addr = 2;
+inline void BattleNode::clear_udp_addr() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_.kcp_addr_.ClearToEmpty();
+  _impl_.udp_addr_.ClearToEmpty();
   _impl_._has_bits_[0] &= ~0x00000002u;
 }
-inline const ::std::string& BattleNode::kcp_addr() const
+inline const ::std::string& BattleNode::udp_addr() const
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  // @@protoc_insertion_point(field_get:rcenter.v1.BattleNode.kcp_addr)
-  return _internal_kcp_addr();
+  // @@protoc_insertion_point(field_get:rcenter.v1.BattleNode.udp_addr)
+  return _internal_udp_addr();
 }
 template <typename Arg_, typename... Args_>
-PROTOBUF_ALWAYS_INLINE void BattleNode::set_kcp_addr(Arg_&& arg, Args_... args) {
+PROTOBUF_ALWAYS_INLINE void BattleNode::set_udp_addr(Arg_&& arg, Args_... args) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_._has_bits_[0] |= 0x00000002u;
-  _impl_.kcp_addr_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
-  // @@protoc_insertion_point(field_set:rcenter.v1.BattleNode.kcp_addr)
+  _impl_.udp_addr_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
+  // @@protoc_insertion_point(field_set:rcenter.v1.BattleNode.udp_addr)
 }
-inline ::std::string* PROTOBUF_NONNULL BattleNode::mutable_kcp_addr()
+inline ::std::string* PROTOBUF_NONNULL BattleNode::mutable_udp_addr()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  ::std::string* _s = _internal_mutable_kcp_addr();
-  // @@protoc_insertion_point(field_mutable:rcenter.v1.BattleNode.kcp_addr)
+  ::std::string* _s = _internal_mutable_udp_addr();
+  // @@protoc_insertion_point(field_mutable:rcenter.v1.BattleNode.udp_addr)
   return _s;
 }
-inline const ::std::string& BattleNode::_internal_kcp_addr() const {
+inline const ::std::string& BattleNode::_internal_udp_addr() const {
   ::google::protobuf::internal::TSanRead(&_impl_);
-  return _impl_.kcp_addr_.Get();
+  return _impl_.udp_addr_.Get();
 }
-inline void BattleNode::_internal_set_kcp_addr(const ::std::string& value) {
+inline void BattleNode::_internal_set_udp_addr(const ::std::string& value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_._has_bits_[0] |= 0x00000002u;
-  _impl_.kcp_addr_.Set(value, GetArena());
+  _impl_.udp_addr_.Set(value, GetArena());
 }
-inline ::std::string* PROTOBUF_NONNULL BattleNode::_internal_mutable_kcp_addr() {
+inline ::std::string* PROTOBUF_NONNULL BattleNode::_internal_mutable_udp_addr() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_._has_bits_[0] |= 0x00000002u;
-  return _impl_.kcp_addr_.Mutable( GetArena());
+  return _impl_.udp_addr_.Mutable( GetArena());
 }
-inline ::std::string* PROTOBUF_NULLABLE BattleNode::release_kcp_addr() {
+inline ::std::string* PROTOBUF_NULLABLE BattleNode::release_udp_addr() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  // @@protoc_insertion_point(field_release:rcenter.v1.BattleNode.kcp_addr)
+  // @@protoc_insertion_point(field_release:rcenter.v1.BattleNode.udp_addr)
   if ((_impl_._has_bits_[0] & 0x00000002u) == 0) {
     return nullptr;
   }
   _impl_._has_bits_[0] &= ~0x00000002u;
-  auto* released = _impl_.kcp_addr_.Release();
+  auto* released = _impl_.udp_addr_.Release();
   if (::google::protobuf::internal::DebugHardenForceCopyDefaultString()) {
-    _impl_.kcp_addr_.Set("", GetArena());
+    _impl_.udp_addr_.Set("", GetArena());
   }
   return released;
 }
-inline void BattleNode::set_allocated_kcp_addr(::std::string* PROTOBUF_NULLABLE value) {
+inline void BattleNode::set_allocated_udp_addr(::std::string* PROTOBUF_NULLABLE value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (value != nullptr) {
     _impl_._has_bits_[0] |= 0x00000002u;
   } else {
     _impl_._has_bits_[0] &= ~0x00000002u;
   }
-  _impl_.kcp_addr_.SetAllocated(value, GetArena());
-  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.kcp_addr_.IsDefault()) {
-    _impl_.kcp_addr_.Set("", GetArena());
+  _impl_.udp_addr_.SetAllocated(value, GetArena());
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.udp_addr_.IsDefault()) {
+    _impl_.udp_addr_.Set("", GetArena());
   }
-  // @@protoc_insertion_point(field_set_allocated:rcenter.v1.BattleNode.kcp_addr)
+  // @@protoc_insertion_point(field_set_allocated:rcenter.v1.BattleNode.udp_addr)
 }
 
 // string control_addr = 3;
@@ -4087,69 +4087,69 @@ inline void MatchResult::set_allocated_battle_node_name(::std::string* PROTOBUF_
   // @@protoc_insertion_point(field_set_allocated:rcenter.v1.MatchResult.battle_node_name)
 }
 
-// string battle_kcp_addr = 5;
-inline void MatchResult::clear_battle_kcp_addr() {
+// string battle_udp_addr = 5;
+inline void MatchResult::clear_battle_udp_addr() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_.battle_kcp_addr_.ClearToEmpty();
+  _impl_.battle_udp_addr_.ClearToEmpty();
   _impl_._has_bits_[0] &= ~0x00000010u;
 }
-inline const ::std::string& MatchResult::battle_kcp_addr() const
+inline const ::std::string& MatchResult::battle_udp_addr() const
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  // @@protoc_insertion_point(field_get:rcenter.v1.MatchResult.battle_kcp_addr)
-  return _internal_battle_kcp_addr();
+  // @@protoc_insertion_point(field_get:rcenter.v1.MatchResult.battle_udp_addr)
+  return _internal_battle_udp_addr();
 }
 template <typename Arg_, typename... Args_>
-PROTOBUF_ALWAYS_INLINE void MatchResult::set_battle_kcp_addr(Arg_&& arg, Args_... args) {
+PROTOBUF_ALWAYS_INLINE void MatchResult::set_battle_udp_addr(Arg_&& arg, Args_... args) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_._has_bits_[0] |= 0x00000010u;
-  _impl_.battle_kcp_addr_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
-  // @@protoc_insertion_point(field_set:rcenter.v1.MatchResult.battle_kcp_addr)
+  _impl_.battle_udp_addr_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
+  // @@protoc_insertion_point(field_set:rcenter.v1.MatchResult.battle_udp_addr)
 }
-inline ::std::string* PROTOBUF_NONNULL MatchResult::mutable_battle_kcp_addr()
+inline ::std::string* PROTOBUF_NONNULL MatchResult::mutable_battle_udp_addr()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  ::std::string* _s = _internal_mutable_battle_kcp_addr();
-  // @@protoc_insertion_point(field_mutable:rcenter.v1.MatchResult.battle_kcp_addr)
+  ::std::string* _s = _internal_mutable_battle_udp_addr();
+  // @@protoc_insertion_point(field_mutable:rcenter.v1.MatchResult.battle_udp_addr)
   return _s;
 }
-inline const ::std::string& MatchResult::_internal_battle_kcp_addr() const {
+inline const ::std::string& MatchResult::_internal_battle_udp_addr() const {
   ::google::protobuf::internal::TSanRead(&_impl_);
-  return _impl_.battle_kcp_addr_.Get();
+  return _impl_.battle_udp_addr_.Get();
 }
-inline void MatchResult::_internal_set_battle_kcp_addr(const ::std::string& value) {
+inline void MatchResult::_internal_set_battle_udp_addr(const ::std::string& value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_._has_bits_[0] |= 0x00000010u;
-  _impl_.battle_kcp_addr_.Set(value, GetArena());
+  _impl_.battle_udp_addr_.Set(value, GetArena());
 }
-inline ::std::string* PROTOBUF_NONNULL MatchResult::_internal_mutable_battle_kcp_addr() {
+inline ::std::string* PROTOBUF_NONNULL MatchResult::_internal_mutable_battle_udp_addr() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_._has_bits_[0] |= 0x00000010u;
-  return _impl_.battle_kcp_addr_.Mutable( GetArena());
+  return _impl_.battle_udp_addr_.Mutable( GetArena());
 }
-inline ::std::string* PROTOBUF_NULLABLE MatchResult::release_battle_kcp_addr() {
+inline ::std::string* PROTOBUF_NULLABLE MatchResult::release_battle_udp_addr() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  // @@protoc_insertion_point(field_release:rcenter.v1.MatchResult.battle_kcp_addr)
+  // @@protoc_insertion_point(field_release:rcenter.v1.MatchResult.battle_udp_addr)
   if ((_impl_._has_bits_[0] & 0x00000010u) == 0) {
     return nullptr;
   }
   _impl_._has_bits_[0] &= ~0x00000010u;
-  auto* released = _impl_.battle_kcp_addr_.Release();
+  auto* released = _impl_.battle_udp_addr_.Release();
   if (::google::protobuf::internal::DebugHardenForceCopyDefaultString()) {
-    _impl_.battle_kcp_addr_.Set("", GetArena());
+    _impl_.battle_udp_addr_.Set("", GetArena());
   }
   return released;
 }
-inline void MatchResult::set_allocated_battle_kcp_addr(::std::string* PROTOBUF_NULLABLE value) {
+inline void MatchResult::set_allocated_battle_udp_addr(::std::string* PROTOBUF_NULLABLE value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (value != nullptr) {
     _impl_._has_bits_[0] |= 0x00000010u;
   } else {
     _impl_._has_bits_[0] &= ~0x00000010u;
   }
-  _impl_.battle_kcp_addr_.SetAllocated(value, GetArena());
-  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.battle_kcp_addr_.IsDefault()) {
-    _impl_.battle_kcp_addr_.Set("", GetArena());
+  _impl_.battle_udp_addr_.SetAllocated(value, GetArena());
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.battle_udp_addr_.IsDefault()) {
+    _impl_.battle_udp_addr_.Set("", GetArena());
   }
-  // @@protoc_insertion_point(field_set_allocated:rcenter.v1.MatchResult.battle_kcp_addr)
+  // @@protoc_insertion_point(field_set_allocated:rcenter.v1.MatchResult.battle_udp_addr)
 }
 
 // repeated int64 player_ids = 6;

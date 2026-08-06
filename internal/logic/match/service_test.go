@@ -15,7 +15,7 @@ func TestServiceStart(t *testing.T) {
 			RoomName:       "room-1",
 			Token:          "token-1",
 			BattleNodeName: "battle-1",
-			BattleKCPAddr:  "127.0.0.1:7001",
+			BattleUDPAddr:  "127.0.0.1:7001",
 		},
 	}
 	service := NewService(repo)

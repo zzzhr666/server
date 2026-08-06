@@ -2101,7 +2101,7 @@ type RealtimeEvent struct {
 	MatchStatus    string                 `protobuf:"bytes,6,opt,name=match_status,json=matchStatus,proto3" json:"match_status,omitempty"`
 	RoomName       string                 `protobuf:"bytes,7,opt,name=room_name,json=roomName,proto3" json:"room_name,omitempty"`
 	MatchToken     string                 `protobuf:"bytes,8,opt,name=match_token,json=matchToken,proto3" json:"match_token,omitempty"`
-	BattleKcpAddr  string                 `protobuf:"bytes,9,opt,name=battle_kcp_addr,json=battleKcpAddr,proto3" json:"battle_kcp_addr,omitempty"`
+	BattleUdpAddr  string                 `protobuf:"bytes,9,opt,name=battle_udp_addr,json=battleUdpAddr,proto3" json:"battle_udp_addr,omitempty"`
 	BattleNodeName string                 `protobuf:"bytes,10,opt,name=battle_node_name,json=battleNodeName,proto3" json:"battle_node_name,omitempty"`
 	MatchPlayerIds []int64                `protobuf:"varint,11,rep,packed,name=match_player_ids,json=matchPlayerIds,proto3" json:"match_player_ids,omitempty"`
 	unknownFields  protoimpl.UnknownFields
@@ -2194,9 +2194,9 @@ func (x *RealtimeEvent) GetMatchToken() string {
 	return ""
 }
 
-func (x *RealtimeEvent) GetBattleKcpAddr() string {
+func (x *RealtimeEvent) GetBattleUdpAddr() string {
 	if x != nil {
-		return x.BattleKcpAddr
+		return x.BattleUdpAddr
 	}
 	return ""
 }
@@ -2764,7 +2764,7 @@ const file_proto_state_v1_state_proto_rawDesc = "" +
 	"\troom_name\x18\a \x01(\tR\broomName\x12\x1f\n" +
 	"\vmatch_token\x18\b \x01(\tR\n" +
 	"matchToken\x12&\n" +
-	"\x0fbattle_kcp_addr\x18\t \x01(\tR\rbattleKcpAddr\x12(\n" +
+	"\x0fbattle_udp_addr\x18\t \x01(\tR\rbattleUdpAddr\x12(\n" +
 	"\x10battle_node_name\x18\n" +
 	" \x01(\tR\x0ebattleNodeName\x12(\n" +
 	"\x10match_player_ids\x18\v \x03(\x03R\x0ematchPlayerIds\"h\n" +

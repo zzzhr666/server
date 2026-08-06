@@ -169,7 +169,7 @@ func ToProtoRealtimeEvent(event *statecontract.RealtimeEvent) *statepb.RealtimeE
 		MatchStatus:    event.MatchStatus,
 		RoomName:       event.RoomName,
 		MatchToken:     event.MatchToken,
-		BattleKcpAddr:  event.BattleKCPAddr,
+		BattleUdpAddr:  event.BattleUDPAddr,
 		BattleNodeName: event.BattleNodeName,
 		MatchPlayerIds: event.MatchPlayerIDs,
 	}
@@ -188,7 +188,7 @@ func FromProtoRealtimeEvent(event *statepb.RealtimeEvent) *statecontract.Realtim
 		MatchStatus:    event.GetMatchStatus(),
 		RoomName:       event.GetRoomName(),
 		MatchToken:     event.GetMatchToken(),
-		BattleKCPAddr:  event.GetBattleKcpAddr(),
+		BattleUDPAddr:  event.GetBattleUdpAddr(),
 		BattleNodeName: event.GetBattleNodeName(),
 		MatchPlayerIDs: event.GetMatchPlayerIds(),
 	}

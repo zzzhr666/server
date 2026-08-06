@@ -33,7 +33,7 @@ func TestServiceRegisterBattleNode(t *testing.T) {
 
 	err := svc.RegisterBattleNode(context.Background(), BattleNode{
 		Name:        "battle-1",
-		KCPAddr:     "127.0.0.1:7001",
+		UDPAddr:     "127.0.0.1:7001",
 		ControlAddr: "127.0.0.1:9101",
 		MaxPlayers:  100,
 	})
@@ -64,7 +64,7 @@ func TestServiceRegisterBattleNodeInvalidInput(t *testing.T) {
 
 	err := svc.RegisterBattleNode(context.Background(), BattleNode{
 		Name:       "",
-		KCPAddr:    "127.0.0.1:7001",
+		UDPAddr:    "127.0.0.1:7001",
 		MaxPlayers: 100,
 	})
 	if !errors.Is(err, ErrInvalidBattleNode) {
@@ -79,7 +79,7 @@ func TestServiceStartMatchWaitsForFirstPlayer(t *testing.T) {
 	svc := newTestService()
 	mustRegisterBattleNode(t, svc, BattleNode{
 		Name:        "battle-1",
-		KCPAddr:     "127.0.0.1:7001",
+		UDPAddr:     "127.0.0.1:7001",
 		ControlAddr: "127.0.0.1:9101",
 		MaxPlayers:  100,
 	})
@@ -91,7 +91,7 @@ func TestServiceStartMatchWaitsForFirstPlayer(t *testing.T) {
 	if result.Status != MatchStatusWaiting {
 		t.Fatalf("status = %q, want %q", result.Status, MatchStatusWaiting)
 	}
-	if result.RoomName != "" || result.Token != "" || result.BattleKCPAddr != "" {
+	if result.RoomName != "" || result.Token != "" || result.BattleUDPAddr != "" {
 		t.Fatalf("waiting result should not include room data: %+v", result)
 	}
 }
@@ -120,14 +120,14 @@ func TestServiceStartMatchCreatesRoomForSecondPlayer(t *testing.T) {
 	})
 	mustRegisterBattleNode(t, svc, BattleNode{
 		Name:          "battle-1",
-		KCPAddr:       "127.0.0.1:7001",
+		UDPAddr:       "127.0.0.1:7001",
 		ControlAddr:   "127.0.0.1:9101",
 		MaxPlayers:    100,
 		ActivePlayers: 10,
 	})
 	mustRegisterBattleNode(t, svc, BattleNode{
 		Name:          "battle-2",
-		KCPAddr:       "127.0.0.1:7002",
+		UDPAddr:       "127.0.0.1:7002",
 		ControlAddr:   "127.0.0.1:9102",
 		MaxPlayers:    100,
 		ActivePlayers: 1,
@@ -157,8 +157,8 @@ func TestServiceStartMatchCreatesRoomForSecondPlayer(t *testing.T) {
 	if second.BattleNodeName != "battle-2" {
 		t.Fatalf("battle node name = %q, want battle-2", second.BattleNodeName)
 	}
-	if second.BattleKCPAddr != "127.0.0.1:7002" {
-		t.Fatalf("battle kcp addr = %q, want 127.0.0.1:7002", second.BattleKCPAddr)
+	if second.BattleUDPAddr != "127.0.0.1:7002" {
+		t.Fatalf("battle udp addr = %q, want 127.0.0.1:7002", second.BattleUDPAddr)
 	}
 	if !reflect.DeepEqual(second.PlayerIDs, []int64{7, 8}) {
 		t.Fatalf("player ids = %v, want [7 8]", second.PlayerIDs)
@@ -191,7 +191,7 @@ func TestServiceStartMatchStoresActiveMatchForAllPlayers(t *testing.T) {
 	svc := newTestService()
 	mustRegisterBattleNode(t, svc, BattleNode{
 		Name:        "battle-1",
-		KCPAddr:     "127.0.0.1:7001",
+		UDPAddr:     "127.0.0.1:7001",
 		ControlAddr: "127.0.0.1:9101",
 		MaxPlayers:  100,
 	})
@@ -210,7 +210,7 @@ func TestServiceStartMatchStoresActiveMatchForAllPlayers(t *testing.T) {
 			t.Fatalf("active match missing for player %d", playerID)
 		}
 		if activeMatch.RoomName != matched.RoomName || activeMatch.Token != matched.Token ||
-			activeMatch.BattleNodeName != matched.BattleNodeName || activeMatch.BattleKCPAddr != matched.BattleKCPAddr {
+			activeMatch.BattleNodeName != matched.BattleNodeName || activeMatch.BattleUDPAddr != matched.BattleUDPAddr {
 			t.Fatalf("active match = %+v, want match result data", activeMatch)
 		}
 		if !reflect.DeepEqual(activeMatch.PlayerIDs, matched.PlayerIDs) {
@@ -236,7 +236,7 @@ func TestServiceResumeMatchReturnsActiveMatch(t *testing.T) {
 	svc := newTestService()
 	mustRegisterBattleNode(t, svc, BattleNode{
 		Name:        "battle-1",
-		KCPAddr:     "127.0.0.1:7001",
+		UDPAddr:     "127.0.0.1:7001",
 		ControlAddr: "127.0.0.1:9101",
 		MaxPlayers:  100,
 	})
@@ -288,7 +288,7 @@ func TestServiceStartMatchReturnsCreateRoomError(t *testing.T) {
 	})
 	mustRegisterBattleNode(t, svc, BattleNode{
 		Name:        "battle-1",
-		KCPAddr:     "127.0.0.1:7001",
+		UDPAddr:     "127.0.0.1:7001",
 		ControlAddr: "127.0.0.1:9101",
 		MaxPlayers:  100,
 	})
@@ -320,7 +320,7 @@ func TestServiceStartMatchDoesNotQueueSamePlayerTwice(t *testing.T) {
 	svc := newTestService()
 	mustRegisterBattleNode(t, svc, BattleNode{
 		Name:        "battle-1",
-		KCPAddr:     "127.0.0.1:7001",
+		UDPAddr:     "127.0.0.1:7001",
 		ControlAddr: "127.0.0.1:9101",
 		MaxPlayers:  100,
 	})
@@ -354,7 +354,7 @@ func TestServiceStartMatchRejectsPlayerInGame(t *testing.T) {
 	svc := newTestService()
 	mustRegisterBattleNode(t, svc, BattleNode{
 		Name:        "battle-1",
-		KCPAddr:     "127.0.0.1:7001",
+		UDPAddr:     "127.0.0.1:7001",
 		ControlAddr: "127.0.0.1:9101",
 		MaxPlayers:  100,
 	})
@@ -384,7 +384,7 @@ func TestServiceFinishMatchAllowsPlayersToMatchAgain(t *testing.T) {
 	svc := newTestService()
 	mustRegisterBattleNode(t, svc, BattleNode{
 		Name:        "battle-1",
-		KCPAddr:     "127.0.0.1:7001",
+		UDPAddr:     "127.0.0.1:7001",
 		ControlAddr: "127.0.0.1:9101",
 		MaxPlayers:  100,
 	})
@@ -432,7 +432,7 @@ func TestServiceFinishMatchAddsCoinRewards(t *testing.T) {
 	})
 	mustRegisterBattleNode(t, svc, BattleNode{
 		Name:        "battle-1",
-		KCPAddr:     "127.0.0.1:7001",
+		UDPAddr:     "127.0.0.1:7001",
 		ControlAddr: "127.0.0.1:9101",
 		MaxPlayers:  100,
 	})
@@ -489,7 +489,7 @@ func TestServiceFinishMatchRejectsRewardsWithoutCoinClient(t *testing.T) {
 	svc := newTestService()
 	mustRegisterBattleNode(t, svc, BattleNode{
 		Name:        "battle-1",
-		KCPAddr:     "127.0.0.1:7001",
+		UDPAddr:     "127.0.0.1:7001",
 		ControlAddr: "127.0.0.1:9101",
 		MaxPlayers:  100,
 	})
@@ -528,7 +528,7 @@ func TestServiceFinishMatchReturnsCoinErrorWithoutReleasingPlayers(t *testing.T)
 	})
 	mustRegisterBattleNode(t, svc, BattleNode{
 		Name:        "battle-1",
-		KCPAddr:     "127.0.0.1:7001",
+		UDPAddr:     "127.0.0.1:7001",
 		ControlAddr: "127.0.0.1:9101",
 		MaxPlayers:  100,
 	})
@@ -588,7 +588,7 @@ func TestServiceCancelMatchRemovesWaitingPlayer(t *testing.T) {
 	svc := newTestService()
 	mustRegisterBattleNode(t, svc, BattleNode{
 		Name:        "battle-1",
-		KCPAddr:     "127.0.0.1:7001",
+		UDPAddr:     "127.0.0.1:7001",
 		ControlAddr: "127.0.0.1:9101",
 		MaxPlayers:  100,
 	})

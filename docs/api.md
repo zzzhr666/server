@@ -134,7 +134,7 @@
   "room_name":"room-1001-1002",
   "token":"room-token",
   "battle_node_name":"battle-demo",
-  "battle_kcp_addr":"127.0.0.1:7001"
+  "battle_udp_addr":"127.0.0.1:7001"
 }
 ```
 
@@ -180,7 +180,7 @@
 
 UDP payload 使用 `proto/battle/v1/session.proto` 的 `ClientPacket` 与 `ServerPacket`。
 
-1. 收到 WebSocket `matched` 后，向 `battle_kcp_addr` 发送 `ClientHello(room_name, player_id, token)`。
+1. 收到 WebSocket `matched` 后，向 `battle_udp_addr` 发送 `ClientHello(room_name, player_id, token)`。
 2. 收到 `ServerHello` 后保存服务器分配的 conversation，开始接收快照。
 3. 每 5 秒发送 `ClientHeartbeat`，并按输入状态发送 `ClientInput`。
 4. 在 `BATTLE_PHASE_REWARD_SELECTION` 时，使用 snapshot 中的 `current_options` 发送 `ChooseBlessing`。

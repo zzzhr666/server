@@ -16,7 +16,7 @@ service RCenterService {
 
 message BattleNode {
   string name = 1;
-  string kcp_addr = 2;
+  string udp_addr = 2;
   string control_addr = 3;
   int32 max_players = 4;
   int32 active_players = 5;
@@ -28,7 +28,7 @@ message MatchResult {
   string room_name = 2;
   string token = 3;
   string battle_node_name = 4;
-  string battle_kcp_addr = 5;
+  string battle_udp_addr = 5;
   repeated int64 player_ids = 6;
   repeated PlayerLoadout player_loadouts = 7;
 }

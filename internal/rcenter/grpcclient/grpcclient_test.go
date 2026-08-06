@@ -22,7 +22,7 @@ func TestClientStartMatch(t *testing.T) {
 				RoomName:       "room-1",
 				Token:          "token-1",
 				BattleNodeName: "battle-1",
-				BattleKcpAddr:  "127.0.0.1:7001",
+				BattleUdpAddr:  "127.0.0.1:7001",
 				PlayerIds:      []int64{7, 8},
 				PlayerLoadouts: []*rcenterpb.PlayerLoadout{
 					{PlayerId: 7, Weapon: "axe"},
@@ -55,8 +55,8 @@ func TestClientStartMatch(t *testing.T) {
 	if result.BattleNodeName != "battle-1" {
 		t.Fatalf("battle node name = %q, want battle-1", result.BattleNodeName)
 	}
-	if result.BattleKCPAddr != "127.0.0.1:7001" {
-		t.Fatalf("battle kcp addr = %q, want 127.0.0.1:7001", result.BattleKCPAddr)
+	if result.BattleUDPAddr != "127.0.0.1:7001" {
+		t.Fatalf("battle udp addr = %q, want 127.0.0.1:7001", result.BattleUDPAddr)
 	}
 	if !reflect.DeepEqual(result.PlayerIDs, []int64{7, 8}) {
 		t.Fatalf("player ids = %v, want [7 8]", result.PlayerIDs)
@@ -78,7 +78,7 @@ func TestClientResumeMatch(t *testing.T) {
 				RoomName:       "room-1",
 				Token:          "token-1",
 				BattleNodeName: "battle-1",
-				BattleKcpAddr:  "127.0.0.1:7001",
+				BattleUdpAddr:  "127.0.0.1:7001",
 				PlayerIds:      []int64{7, 8},
 			},
 		},
@@ -246,7 +246,7 @@ func TestClientRegisterBattleNode(t *testing.T) {
 
 	err := client.RegisterBattleNode(context.Background(), rcenter.BattleNode{
 		Name:          "battle-1",
-		KCPAddr:       "127.0.0.1:7001",
+		UDPAddr:       "127.0.0.1:7001",
 		ControlAddr:   "127.0.0.1:9101",
 		MaxPlayers:    100,
 		ActivePlayers: 3,
@@ -258,8 +258,8 @@ func TestClientRegisterBattleNode(t *testing.T) {
 	if node.GetName() != "battle-1" {
 		t.Fatalf("node name = %q, want battle-1", node.GetName())
 	}
-	if node.GetKcpAddr() != "127.0.0.1:7001" {
-		t.Fatalf("node kcp addr = %q, want 127.0.0.1:7001", node.GetKcpAddr())
+	if node.GetUdpAddr() != "127.0.0.1:7001" {
+		t.Fatalf("node udp addr = %q, want 127.0.0.1:7001", node.GetUdpAddr())
 	}
 	if node.GetControlAddr() != "127.0.0.1:9101" {
 		t.Fatalf("node control addr = %q, want 127.0.0.1:9101", node.GetControlAddr())
@@ -289,7 +289,7 @@ func TestClientListBattleNodes(t *testing.T) {
 			Nodes: []*rcenterpb.BattleNode{
 				{
 					Name:          "battle-1",
-					KcpAddr:       "127.0.0.1:7001",
+					UdpAddr:       "127.0.0.1:7001",
 					ControlAddr:   "127.0.0.1:9101",
 					MaxPlayers:    100,
 					ActivePlayers: 3,
@@ -310,8 +310,8 @@ func TestClientListBattleNodes(t *testing.T) {
 	if node.Name != "battle-1" {
 		t.Fatalf("node name = %q, want battle-1", node.Name)
 	}
-	if node.KCPAddr != "127.0.0.1:7001" {
-		t.Fatalf("node kcp addr = %q, want 127.0.0.1:7001", node.KCPAddr)
+	if node.UDPAddr != "127.0.0.1:7001" {
+		t.Fatalf("node udp addr = %q, want 127.0.0.1:7001", node.UDPAddr)
 	}
 	if node.ControlAddr != "127.0.0.1:9101" {
 		t.Fatalf("node control addr = %q, want 127.0.0.1:9101", node.ControlAddr)

@@ -10,7 +10,7 @@ import (
 func FromProtoBattleNode(node *rcenterpb.BattleNode) rcenter.BattleNode {
 	return rcenter.BattleNode{
 		Name:          node.GetName(),
-		KCPAddr:       node.GetKcpAddr(),
+		UDPAddr:       node.GetUdpAddr(),
 		ControlAddr:   node.GetControlAddr(),
 		MaxPlayers:    int(node.GetMaxPlayers()),
 		ActivePlayers: int(node.GetActivePlayers()),
@@ -22,7 +22,7 @@ func FromProtoBattleNode(node *rcenterpb.BattleNode) rcenter.BattleNode {
 func ToProtoBattleNode(node rcenter.BattleNode) *rcenterpb.BattleNode {
 	return &rcenterpb.BattleNode{
 		Name:          node.Name,
-		KcpAddr:       node.KCPAddr,
+		UdpAddr:       node.UDPAddr,
 		ControlAddr:   node.ControlAddr,
 		MaxPlayers:    int32(node.MaxPlayers),
 		ActivePlayers: int32(node.ActivePlayers),
@@ -37,7 +37,7 @@ func ToProtoMatchResult(result *rcenter.MatchResult) *rcenterpb.MatchResult {
 		RoomName:       result.RoomName,
 		Token:          result.Token,
 		BattleNodeName: result.BattleNodeName,
-		BattleKcpAddr:  result.BattleKCPAddr,
+		BattleUdpAddr:  result.BattleUDPAddr,
 		PlayerIds:      result.PlayerIDs,
 	}
 	protoResult.PlayerLoadouts = make([]*rcenterpb.PlayerLoadout, 0, len(result.PlayerLoadouts))
@@ -57,7 +57,7 @@ func FromProtoMatchResult(result *rcenterpb.MatchResult) *rcenter.MatchResult {
 		RoomName:       result.GetRoomName(),
 		Token:          result.GetToken(),
 		BattleNodeName: result.GetBattleNodeName(),
-		BattleKCPAddr:  result.GetBattleKcpAddr(),
+		BattleUDPAddr:  result.GetBattleUdpAddr(),
 		PlayerIDs:      result.GetPlayerIds(),
 	}
 	matchResult.PlayerLoadouts = make([]rcenter.PlayerLoadout, 0, len(result.GetPlayerLoadouts()))

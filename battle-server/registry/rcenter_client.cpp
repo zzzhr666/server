@@ -14,7 +14,7 @@ battle::RegisterBattleNodeResult battle::RCenterClient::register_battle_node(
     rcenter::v1::RegisterBattleNodeRequest request;
     auto node = request.mutable_node();
     node->set_name(config.node_name);
-    node->set_kcp_addr(config.kcp_addr);
+    node->set_udp_addr(config.udp_addr);
     node->set_control_addr(config.control_addr);
     node->set_max_players(config.max_players);
     node->set_active_players(static_cast<std::int32_t>(room_manager.active_players()));

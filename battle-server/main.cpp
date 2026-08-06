@@ -3,9 +3,11 @@
 #include "game/game_manager.hpp"
 #include "platform/config.hpp"
 
+#include <charconv>
 #include <grpcpp/grpcpp.h>
 #include <iostream>
 #include <memory>
+#include <string_view>
 
 #include "net/udp_server.hpp"
 #include "registry/node_registrar.hpp"
@@ -13,11 +15,81 @@
 #include "runtime/battle_runtime.hpp"
 #include "session/session_manager.hpp"
 
-int main() {
+namespace {
+    enum class CommandLineResult {
+        Ok,
+        Help,
+        Error,
+    };
+
+    void print_usage(std::ostream& out, std::string_view program) {
+        out << "Usage: " << program << " [options]\n"
+            << "  --node-name <name>           Unique battle node name\n"
+            << "  --control-addr <host:port>   BattleControl gRPC listen address\n"
+            << "  --udp-bind-addr <host:port>  UDP listen address\n"
+            << "  --udp-addr <host:port>       UDP address registered for clients\n"
+            << "  --rcenter-addr <host:port>   rcenter gRPC address\n"
+            << "  --max-players <positive-int> Reserved player capacity\n"
+            << "  --help                       Show this help\n";
+    }
+
+    bool parse_positive_int(std::string_view value, int& result) {
+        const auto [end, error] = std::from_chars(value.data(), value.data() + value.size(), result);
+        return error == std::errc{} && end == value.data() + value.size() && result > 0;
+    }
+
+    CommandLineResult parse_command_line(int argc, char* argv[], battle::Config& config) {
+        const auto program = argc > 0 ? std::string_view(argv[0]) : "battle_server";
+        for (int i = 1; i < argc; ++i) {
+            const auto option = std::string_view(argv[i]);
+            if (option == "--help") {
+                print_usage(std::cout, program);
+                return CommandLineResult::Help;
+            }
+            if (i + 1 >= argc) {
+                std::cerr << "missing value for " << option << '\n';
+                print_usage(std::cerr, program);
+                return CommandLineResult::Error;
+            }
+
+            const auto value = std::string_view(argv[++i]);
+            if (option == "--node-name") {
+                config.node_name = value;
+            } else if (option == "--control-addr") {
+                config.control_addr = value;
+            } else if (option == "--udp-bind-addr") {
+                config.udp_bind_addr = value;
+            } else if (option == "--udp-addr") {
+                config.udp_addr = value;
+            } else if (option == "--rcenter-addr") {
+                config.rcenter_addr = value;
+            } else if (option == "--max-players") {
+                if (!parse_positive_int(value, config.max_players)) {
+                    std::cerr << "invalid --max-players value: " << value << '\n';
+                    return CommandLineResult::Error;
+                }
+            } else {
+                std::cerr << "unknown option: " << option << '\n';
+                print_usage(std::cerr, program);
+                return CommandLineResult::Error;
+            }
+        }
+        return CommandLineResult::Ok;
+    }
+}
+
+int main(int argc, char* argv[]) {
     auto config = battle::DefaultConfig();
+    const auto command_line_result = parse_command_line(argc, argv, config);
+    if (command_line_result == CommandLineResult::Help) {
+        return 0;
+    }
+    if (command_line_result == CommandLineResult::Error) {
+        return 1;
+    }
     battle::RoomManager room_manager{};
     battle::SessionManager session_manager{room_manager};
-    battle::UdpServer udp_server{config.kcp_bind_addr, session_manager};
+    battle::UdpServer udp_server{config.udp_bind_addr, session_manager};
     battle::RCenterClient rcenter_client{
         grpc::CreateChannel(config.rcenter_addr, grpc::InsecureChannelCredentials())
     };
@@ -44,7 +116,7 @@ int main() {
     battle::BattleControlServiceImpl service{control_handler};
 
     if (!udp_server.start()) {
-        std::cerr << "failed to start battle udp server on " << config.kcp_bind_addr << std::endl;
+        std::cerr << "failed to start battle udp server on " << config.udp_bind_addr << std::endl;
         return 1;
     }
     battle_runtime.start();
@@ -62,8 +134,8 @@ int main() {
 
     std::cerr << "battle control server listening on: " << config.control_addr
         << "\nnode = " << config.node_name
-        << "\nkcp bind = " << config.kcp_bind_addr
-        << "\nkcp public = " << config.kcp_addr
+        << "\nudp bind = " << config.udp_bind_addr
+        << "\nudp public = " << config.udp_addr
         << "\ntick rate = " << config.tick_rate << std::endl;
 
     auto register_res = rcenter_client.register_battle_node(config, room_manager);

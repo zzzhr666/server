@@ -119,7 +119,7 @@ type matchResultMessage struct {
 	RoomName       string `json:"room_name,omitempty"`
 	Token          string `json:"token,omitempty"`
 	BattleNodeName string `json:"battle_node_name,omitempty"`
-	BattleKCPAddr  string `json:"battle_kcp_addr,omitempty"`
+	BattleUDPAddr  string `json:"battle_udp_addr,omitempty"`
 }
 
 type matchErrorMessage struct {

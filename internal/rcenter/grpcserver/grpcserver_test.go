@@ -19,7 +19,7 @@ func TestRegisterBattleNodeAndList(t *testing.T) {
 	_, err := server.RegisterBattleNode(context.Background(), &rcenterpb.RegisterBattleNodeRequest{
 		Node: &rcenterpb.BattleNode{
 			Name:          "battle-1",
-			KcpAddr:       "127.0.0.1:7001",
+			UdpAddr:       "127.0.0.1:7001",
 			ControlAddr:   "127.0.0.1:9101",
 			MaxPlayers:    100,
 			ActivePlayers: 3,
@@ -40,8 +40,8 @@ func TestRegisterBattleNodeAndList(t *testing.T) {
 	if node.GetName() != "battle-1" {
 		t.Fatalf("node name = %q, want battle-1", node.GetName())
 	}
-	if node.GetKcpAddr() != "127.0.0.1:7001" {
-		t.Fatalf("node kcp addr = %q, want 127.0.0.1:7001", node.GetKcpAddr())
+	if node.GetUdpAddr() != "127.0.0.1:7001" {
+		t.Fatalf("node udp addr = %q, want 127.0.0.1:7001", node.GetUdpAddr())
 	}
 	if node.GetControlAddr() != "127.0.0.1:9101" {
 		t.Fatalf("node control addr = %q, want 127.0.0.1:9101", node.GetControlAddr())
@@ -61,14 +61,14 @@ func TestStartMatchCreatesMatchedResult(t *testing.T) {
 	server := NewServer(newTestCenterService())
 	mustRegisterBattleNode(t, server, &rcenterpb.BattleNode{
 		Name:          "battle-1",
-		KcpAddr:       "127.0.0.1:7001",
+		UdpAddr:       "127.0.0.1:7001",
 		ControlAddr:   "127.0.0.1:9101",
 		MaxPlayers:    100,
 		ActivePlayers: 10,
 	})
 	mustRegisterBattleNode(t, server, &rcenterpb.BattleNode{
 		Name:          "battle-2",
-		KcpAddr:       "127.0.0.1:7002",
+		UdpAddr:       "127.0.0.1:7002",
 		ControlAddr:   "127.0.0.1:9102",
 		MaxPlayers:    100,
 		ActivePlayers: 1,
@@ -99,8 +99,8 @@ func TestStartMatchCreatesMatchedResult(t *testing.T) {
 	if result.GetBattleNodeName() != "battle-2" {
 		t.Fatalf("battle node name = %q, want battle-2", result.GetBattleNodeName())
 	}
-	if result.GetBattleKcpAddr() != "127.0.0.1:7002" {
-		t.Fatalf("battle kcp addr = %q, want 127.0.0.1:7002", result.GetBattleKcpAddr())
+	if result.GetBattleUdpAddr() != "127.0.0.1:7002" {
+		t.Fatalf("battle udp addr = %q, want 127.0.0.1:7002", result.GetBattleUdpAddr())
 	}
 	if !reflect.DeepEqual(result.GetPlayerIds(), []int64{7, 8}) {
 		t.Fatalf("player ids = %v, want [7 8]", result.GetPlayerIds())
@@ -111,7 +111,7 @@ func TestResumeMatchReturnsMatchedResult(t *testing.T) {
 	server := NewServer(newTestCenterService())
 	mustRegisterBattleNode(t, server, &rcenterpb.BattleNode{
 		Name:        "battle-1",
-		KcpAddr:     "127.0.0.1:7001",
+		UdpAddr:     "127.0.0.1:7001",
 		ControlAddr: "127.0.0.1:9101",
 		MaxPlayers:  100,
 	})
@@ -155,7 +155,7 @@ func TestRegisterBattleNodeInvalidInputMapsToInvalidArgument(t *testing.T) {
 
 	_, err := server.RegisterBattleNode(context.Background(), &rcenterpb.RegisterBattleNodeRequest{
 		Node: &rcenterpb.BattleNode{
-			KcpAddr:    "127.0.0.1:7001",
+			UdpAddr:    "127.0.0.1:7001",
 			MaxPlayers: 100,
 		},
 	})
@@ -189,7 +189,7 @@ func TestStartMatchUnavailableGrowthClientMapsToUnavailable(t *testing.T) {
 	}))
 	mustRegisterBattleNode(t, server, &rcenterpb.BattleNode{
 		Name:        "battle-1",
-		KcpAddr:     "127.0.0.1:7001",
+		UdpAddr:     "127.0.0.1:7001",
 		ControlAddr: "127.0.0.1:9101",
 		MaxPlayers:  100,
 	})
@@ -207,7 +207,7 @@ func TestCancelMatch(t *testing.T) {
 	server := NewServer(newTestCenterService())
 	mustRegisterBattleNode(t, server, &rcenterpb.BattleNode{
 		Name:        "battle-1",
-		KcpAddr:     "127.0.0.1:7001",
+		UdpAddr:     "127.0.0.1:7001",
 		ControlAddr: "127.0.0.1:9101",
 		MaxPlayers:  100,
 	})
@@ -233,7 +233,7 @@ func TestFinishMatchAllowsPlayersToMatchAgain(t *testing.T) {
 	server := NewServer(newTestCenterService())
 	mustRegisterBattleNode(t, server, &rcenterpb.BattleNode{
 		Name:        "battle-1",
-		KcpAddr:     "127.0.0.1:7001",
+		UdpAddr:     "127.0.0.1:7001",
 		ControlAddr: "127.0.0.1:9101",
 		MaxPlayers:  100,
 	})

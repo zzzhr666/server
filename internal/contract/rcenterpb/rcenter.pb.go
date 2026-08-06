@@ -24,7 +24,7 @@ const (
 type BattleNode struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	KcpAddr       string                 `protobuf:"bytes,2,opt,name=kcp_addr,json=kcpAddr,proto3" json:"kcp_addr,omitempty"`
+	UdpAddr       string                 `protobuf:"bytes,2,opt,name=udp_addr,json=udpAddr,proto3" json:"udp_addr,omitempty"`
 	ControlAddr   string                 `protobuf:"bytes,3,opt,name=control_addr,json=controlAddr,proto3" json:"control_addr,omitempty"`
 	MaxPlayers    int32                  `protobuf:"varint,4,opt,name=max_players,json=maxPlayers,proto3" json:"max_players,omitempty"`
 	ActivePlayers int32                  `protobuf:"varint,5,opt,name=active_players,json=activePlayers,proto3" json:"active_players,omitempty"`
@@ -70,9 +70,9 @@ func (x *BattleNode) GetName() string {
 	return ""
 }
 
-func (x *BattleNode) GetKcpAddr() string {
+func (x *BattleNode) GetUdpAddr() string {
 	if x != nil {
-		return x.KcpAddr
+		return x.UdpAddr
 	}
 	return ""
 }
@@ -111,7 +111,7 @@ type MatchResult struct {
 	RoomName       string                 `protobuf:"bytes,2,opt,name=room_name,json=roomName,proto3" json:"room_name,omitempty"`
 	Token          string                 `protobuf:"bytes,3,opt,name=token,proto3" json:"token,omitempty"`
 	BattleNodeName string                 `protobuf:"bytes,4,opt,name=battle_node_name,json=battleNodeName,proto3" json:"battle_node_name,omitempty"`
-	BattleKcpAddr  string                 `protobuf:"bytes,5,opt,name=battle_kcp_addr,json=battleKcpAddr,proto3" json:"battle_kcp_addr,omitempty"`
+	BattleUdpAddr  string                 `protobuf:"bytes,5,opt,name=battle_udp_addr,json=battleUdpAddr,proto3" json:"battle_udp_addr,omitempty"`
 	PlayerIds      []int64                `protobuf:"varint,6,rep,packed,name=player_ids,json=playerIds,proto3" json:"player_ids,omitempty"`
 	PlayerLoadouts []*PlayerLoadout       `protobuf:"bytes,7,rep,name=player_loadouts,json=playerLoadouts,proto3" json:"player_loadouts,omitempty"`
 	unknownFields  protoimpl.UnknownFields
@@ -176,9 +176,9 @@ func (x *MatchResult) GetBattleNodeName() string {
 	return ""
 }
 
-func (x *MatchResult) GetBattleKcpAddr() string {
+func (x *MatchResult) GetBattleUdpAddr() string {
 	if x != nil {
-		return x.BattleKcpAddr
+		return x.BattleUdpAddr
 	}
 	return ""
 }
@@ -890,7 +890,7 @@ const file_proto_rcenter_v1_rcenter_proto_rawDesc = "" +
 	"\n" +
 	"BattleNode\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x19\n" +
-	"\bkcp_addr\x18\x02 \x01(\tR\akcpAddr\x12!\n" +
+	"\budp_addr\x18\x02 \x01(\tR\audpAddr\x12!\n" +
 	"\fcontrol_addr\x18\x03 \x01(\tR\vcontrolAddr\x12\x1f\n" +
 	"\vmax_players\x18\x04 \x01(\x05R\n" +
 	"maxPlayers\x12%\n" +
@@ -901,7 +901,7 @@ const file_proto_rcenter_v1_rcenter_proto_rawDesc = "" +
 	"\troom_name\x18\x02 \x01(\tR\broomName\x12\x14\n" +
 	"\x05token\x18\x03 \x01(\tR\x05token\x12(\n" +
 	"\x10battle_node_name\x18\x04 \x01(\tR\x0ebattleNodeName\x12&\n" +
-	"\x0fbattle_kcp_addr\x18\x05 \x01(\tR\rbattleKcpAddr\x12\x1d\n" +
+	"\x0fbattle_udp_addr\x18\x05 \x01(\tR\rbattleUdpAddr\x12\x1d\n" +
 	"\n" +
 	"player_ids\x18\x06 \x03(\x03R\tplayerIds\x12B\n" +
 	"\x0fplayer_loadouts\x18\a \x03(\v2\x19.rcenter.v1.PlayerLoadoutR\x0eplayerLoadouts\"G\n" +

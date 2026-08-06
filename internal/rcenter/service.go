@@ -59,7 +59,7 @@ func NewService(config ServiceConfig) *GameCenterService {
 }
 
 func validateBattleNode(node BattleNode) error {
-	if node.Name == "" || node.KCPAddr == "" || node.ControlAddr == "" || node.MaxPlayers <= 0 {
+	if node.Name == "" || node.UDPAddr == "" || node.ControlAddr == "" || node.MaxPlayers <= 0 {
 		return ErrInvalidBattleNode
 	}
 	return nil
@@ -85,7 +85,7 @@ func (g *GameCenterService) ResumeMatch(ctx context.Context, playerID int64) (*M
 		RoomName:       res.RoomName,
 		Token:          res.Token,
 		BattleNodeName: res.BattleNodeName,
-		BattleKCPAddr:  res.BattleKCPAddr,
+		BattleUDPAddr:  res.BattleUDPAddr,
 		PlayerIDs:      slices.Clone(res.PlayerIDs),
 		PlayerLoadouts: slices.Clone(res.PlayerLoadouts),
 	}, nil
@@ -217,7 +217,7 @@ func (g *GameCenterService) StartMatch(ctx context.Context, playerID int64, weap
 		RoomName:       roomName,
 		Token:          token,
 		BattleNodeName: node.Name,
-		BattleKCPAddr:  node.KCPAddr,
+		BattleUDPAddr:  node.UDPAddr,
 		PlayerIDs:      slices.Clone(playerIDs),
 		PlayerLoadouts: slices.Clone(playerLoadouts),
 		CreatedAt:      time.Now(),
@@ -233,7 +233,7 @@ func (g *GameCenterService) StartMatch(ctx context.Context, playerID int64, weap
 		RoomName:       roomName,
 		Token:          token,
 		BattleNodeName: node.Name,
-		BattleKCPAddr:  node.KCPAddr,
+		BattleUDPAddr:  node.UDPAddr,
 		PlayerIDs:      playerIDs,
 		PlayerLoadouts: playerLoadouts,
 	}, nil

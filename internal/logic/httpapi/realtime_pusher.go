@@ -65,7 +65,7 @@ func toWebSocketEvent(event statecontract.RealtimeEvent) any {
 			RoomName:       event.RoomName,
 			Token:          event.MatchToken,
 			BattleNodeName: event.BattleNodeName,
-			BattleKCPAddr:  event.BattleKCPAddr,
+			BattleUDPAddr:  event.BattleUDPAddr,
 		}
 
 	default:

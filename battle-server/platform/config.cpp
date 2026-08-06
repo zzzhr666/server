@@ -77,16 +77,16 @@ namespace {
         return fallback;
     }
 
-    std::string default_public_kcp_addr() {
-        if (auto env = getenv_string("BATTLE_KCP_PUBLIC_ADDR")) {
+    std::string default_public_udp_addr() {
+        if (auto env = getenv_string("BATTLE_UDP_PUBLIC_ADDR")) {
             return *env;
         }
         auto ip = detect_private_ipv4().value_or("127.0.0.1");
         return ip + ":" + kDefaultBattleUdpPort;
     }
 
-    std::string default_bind_kcp_addr() {
-        return getenv_string("BATTLE_KCP_BIND_ADDR").value_or("0.0.0.0:" + std::string(kDefaultBattleUdpPort));
+    std::string default_bind_udp_addr() {
+        return getenv_string("BATTLE_UDP_BIND_ADDR").value_or("0.0.0.0:" + std::string(kDefaultBattleUdpPort));
     }
 }
 
@@ -94,8 +94,8 @@ battle::Config battle::DefaultConfig() {
     return {
         .node_name = "battle-demo",
         .control_addr = "127.0.0.1:9101",
-        .kcp_bind_addr = default_bind_kcp_addr(),
-        .kcp_addr = default_public_kcp_addr(),
+        .udp_bind_addr = default_bind_udp_addr(),
+        .udp_addr = default_public_udp_addr(),
         .max_players = 100,
         .tick_rate = 60,
         .rcenter_addr = "127.0.0.1:9002",
