@@ -67,15 +67,6 @@ bash scripts/reset_redis.sh
 bash scripts/generate_docs.sh
 ```
 
-WebSocket 和 UDP 手工调试工具：
-
-```bash
-go run ./tools/ws_client -url ws://localhost:8080/ws -token <token>
-go run ./tools/battle_udp_client -addr 127.0.0.1:7001 -room <room> -token <room-token> -player <player-id>
-```
-
-`tools/battle_udp_client` 是调试工具，不是正式客户端实现。
-
 ## 核心行为
 
 - 匹配成功后，rcenter 为每个玩家保存活跃对局信息；WebSocket 连接建立和 `match_resume` 都可恢复该信息。
