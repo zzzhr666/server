@@ -11,14 +11,15 @@
 | 服务 | 职责 | 持久状态 |
 | --- | --- | --- |
 | `logic-server` | HTTP/JSON、WebSocket、认证、好友、在线状态、成长和匹配请求的协议适配 | 无业务持久状态；连接仅在本实例内存中 |
-| `state-server` | 将局外领域操作映射到 Redis | Redis 是 Go 局外数据的持久来源 |
+| `state-server` | 将局外领域操作映射到持久化存储 | Redis 是当前局外数据来源；MongoDB 已作为后续聊天历史存储预置 |
 | `rcenter-server` | battle 节点注册、双人 FIFO 匹配、活跃对局、结算与奖励 | 节点、队列、活跃对局在内存；进程重启会丢失这些状态 |
 | `battle-server` | 房间、UDP session、tick、ECS、快照和战斗结束 | 房间和世界在内存；不负责账号和好友 |
 | Redis | 账号、玩家、session、成长、金币、好友、在线状态、实时事件 | `game:*` 键 |
+| MongoDB | 后续私聊的消息历史、会话摘要与已读游标 | `game-mongo-data` Docker volume；当前未写入业务数据 |
 
 边界规则：
 
-- `logic-server` 不直接读写 Redis，只调用 state gRPC 和 rcenter gRPC。
+- `logic-server` 不直接读写 Redis 或 MongoDB，只调用 state gRPC 和 rcenter gRPC。
 - rcenter 不解析 UDP 包，也不运行 ECS。
 - `battle-server/net` 不承载玩法规则；网络事件交给 `session` 和 `runtime`。
 - protobuf 源码只在 `proto/`；Go 和 C++ 生成代码由脚本生成。
@@ -109,7 +110,7 @@ logic WebSocket 建立时会自动调用 `ResumeMatch`。客户端也可显式�
 | --- | --- |
 | HTTP 或 WebSocket 协议 | `internal/logic/httpapi`、`docs/api.md` |
 | 匹配、恢复或奖励 | `internal/rcenter`、`internal/logic/match` |
-| Redis 状态 | `internal/state`、`internal/logic/*/*repository.go` |
+| 局外持久状态 | `internal/state`、`internal/logic/*/*repository.go` |
 | Room 与 UDP session | `battle-server/game`、`battle-server/session`、`battle-server/net` |
 | Room 生命周期和结束 | `battle-server/runtime` |
 | 武器、成长、波次 | `battle-server/gameplay` |

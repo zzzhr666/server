@@ -1,0 +1,22 @@
+FROM golang:1.26.5-alpine AS build
+
+WORKDIR /src
+
+COPY go.mod go.sum ./
+RUN go mod download
+
+COPY . .
+RUN CGO_ENABLED=0 GOOS=linux go build -trimpath -o /out/rcenter-server ./cmd/rcenter-server
+
+FROM alpine:3.22
+
+RUN addgroup -S app && adduser -S app -G app
+
+WORKDIR /app
+
+COPY --from=build /out/rcenter-server /app/rcenter-server
+
+USER app
+EXPOSE 9002
+
+ENTRYPOINT ["/app/rcenter-server"]

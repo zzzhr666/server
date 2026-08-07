@@ -6,46 +6,46 @@
 
 ## 服务与端口
 
-| 进程 | 默认地址 | 职责 |
+| 服务 | 对宿主机暴露 | 职责 |
 | --- | --- | --- |
-| `logic-server` | HTTP/WS `:8081`、`:8082` | 客户端 API、认证、好友、在线状态、局外成长、匹配入口 |
-| `state-server` | gRPC `127.0.0.1:9001` | Go 侧状态服务，唯一直接访问 Redis 的业务进程 |
-| `rcenter-server` | gRPC `127.0.0.1:9002` | battle 节点注册、匹配队列、活跃对局与结算 |
-| `battle-server` | `battle-1`: gRPC `127.0.0.1:9101`、UDP `:7001`; `battle-2`: gRPC `127.0.0.1:9102`、UDP `:7002` | 房间、UDP 会话、战斗 tick、ECS 和快照广播 |
-| `nginx` | HTTP/WS `:8080` | 可选的本地代理，转发至两个 logic 实例 |
-| Redis | `127.0.0.1:6379` | 账号、玩家、会话、好友、在线状态、成长与实时事件 |
+| `nginx` | HTTP/WS `:8080` | 唯一客户端入口，转发到两个 logic 实例 |
+| `logic-1`、`logic-2` | 否 | 客户端 API、认证、好友、在线状态、局外成长、匹配入口 |
+| `state` | 否 | Go 侧状态服务，唯一直接访问持久化存储的业务进程 |
+| `rcenter` | 否 | battle 节点注册、匹配队列、活跃对局与结算 |
+| `battle-1`、`battle-2` | UDP `:7001`、`:7002` | 房间、UDP 会话、战斗 tick、ECS 和快照广播 |
+| Redis | 否 | 账号、玩家、会话、好友、在线状态、成长与实时事件 |
+| MongoDB | 否 | 单节点 replica set；为后续聊天历史持久化预留 |
 
 ## 快速开始
 
-依赖：Go 1.26.5、Redis、CMake 3.20+、C++ protobuf/gRPC/GTest。nginx 仅在需要 `:8080` 统一入口时需要。
+运行服务依赖 Docker Desktop 和 Docker Compose。Go、CMake、protobuf/gRPC 工具链只在本地运行测试或重新生成协议时需要。
 
-启动 Redis：
-
-```bash
-redis-server
-```
-
-首次配置 C++ Release 构建目录：
+构建并启动全部服务：
 
 ```bash
-cmake -S battle-server -B battle-server/cmake-build-release-wsl -DCMAKE_BUILD_TYPE=Release
-```
-
-启动全部本地服务，不启动 nginx：
-
-```bash
-START_NGINX=0 bash scripts/run.sh
+docker compose up -d --build
 ```
 
 健康检查：
 
 ```bash
-curl http://localhost:8081/health
+curl http://localhost:8080/health
 ```
 
-默认启用 nginx 时，使用 `http://localhost:8080` 访问 HTTP 与 WebSocket。`scripts/run.sh` 会在后台启动两个 logic-server 实例、state-server、rcenter-server 和两个 battle-server；不带参数时先停止这些服务再启动，`scripts/run.sh start` 只启动，`scripts/run.sh stop` 只停止。服务日志写入 `tmp/logs/`。
+查看容器状态和日志：
 
-两个 battle-server 默认使用 `battle-1`（gRPC `:9101`、UDP `:7001`）和 `battle-2`（gRPC `:9102`、UDP `:7002`）。本地客户端使用默认配置；其他机器访问时，通过 `BATTLE_UDP_PUBLIC_HOST=<可访问IP>` 覆盖下发给客户端的 UDP 主机地址。端口、节点名和容量可用 `BATTLE_1_*`、`BATTLE_2_*` 环境变量覆盖。
+```bash
+docker compose ps
+docker compose logs -f nginx logic-1 logic-2
+```
+
+停止服务但保留 Redis 和 MongoDB 数据卷：
+
+```bash
+docker compose down
+```
+
+客户端统一访问 `http://localhost:8080` 与 `ws://localhost:8080/ws`。battle-server 分别在 UDP `:7001` 和 `:7002` 上接受客户端包；本地下发地址为 `127.0.0.1`，其他机器访问时应在 `compose.yaml` 中将 `--udp-addr` 改为宿主机可访问地址。
 
 ## 常用命令
 
@@ -53,7 +53,7 @@ curl http://localhost:8081/health
 # Go 全量测试
 GOCACHE=/tmp/go-build-cache go test ./...
 
-# 构建并运行 C++ 测试
+# 构建并运行 C++ 测试（需要本地 C++ 工具链）
 cmake --build battle-server/cmake-build-release-wsl
 ctest --test-dir battle-server/cmake-build-release-wsl --output-on-failure
 
@@ -70,7 +70,7 @@ bash scripts/generate_docs.sh
 WebSocket 和 UDP 手工调试工具：
 
 ```bash
-go run ./tools/ws_client -url ws://localhost:8081/ws -token <token>
+go run ./tools/ws_client -url ws://localhost:8080/ws -token <token>
 go run ./tools/battle_udp_client -addr 127.0.0.1:7001 -room <room> -token <room-token> -player <player-id>
 ```
 

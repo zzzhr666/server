@@ -1,0 +1,7 @@
+.git/
+.codex/
+.agents/
+tmp/
+battle-server/cmake-build*/
+*.log
+.env

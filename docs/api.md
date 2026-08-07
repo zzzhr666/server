@@ -1,6 +1,6 @@
 # 接口文档
 
-默认直连地址是 `http://localhost:8081`；启用 nginx 时使用 `http://localhost:8080`。
+服务通过 Docker Compose 运行，客户端唯一入口是 `http://localhost:8080`。WebSocket 使用 `ws://localhost:8080/ws`。
 
 受保护 HTTP 请求使用 `Authorization: Bearer <token>`。WebSocket 通过 `GET /ws` 建立，并传入请求头 `token: <token>`。除 `204 No Content` 外，响应均为 JSON；错误格式为：
 

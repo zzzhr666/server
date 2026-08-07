@@ -1,6 +1,9 @@
 package config
 
-import "server/internal/platform/redisdb"
+import (
+	"os"
+	"server/internal/platform/redisdb"
+)
 
 // Config 包含本地演示服务进程的默认配置。
 type Config struct {
@@ -12,10 +15,20 @@ type Config struct {
 
 // Default 返回本地开发环境配置。
 func Default() Config {
+	redisConfig := redisdb.DefaultConfig()
+	redisConfig.Addr = envOrDefault("REDIS_ADDR", redisConfig.Addr)
 	return Config{
-		HTTPAddr:        ":8080",
-		StateGRPCAddr:   "127.0.0.1:9001",
-		Redis:           redisdb.DefaultConfig(),
-		RCenterGRPCAddr: "127.0.0.1:9002",
+		HTTPAddr:        envOrDefault("HTTP_ADDR", ":8080"),
+		StateGRPCAddr:   envOrDefault("STATE_GRPC_ADDR", "127.0.0.1:9001"),
+		Redis:           redisConfig,
+		RCenterGRPCAddr: envOrDefault("RCENTER_GRPC_ADDR", "127.0.0.1:9002"),
 	}
+}
+
+func envOrDefault(name, fallback string) string {
+	value := os.Getenv(name)
+	if value == "" {
+		return fallback
+	}
+	return value
 }
