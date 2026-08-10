@@ -12,7 +12,7 @@ type Repository interface {
 	ResumeMatch(ctx context.Context, playerID int64) (*rcenter.MatchResult, error)
 }
 
-// Service 定义提供给逻辑服 HTTP 和 WebSocket 处理器的匹配操作。
+// Service 定义提供给逻辑服 TCP 实时处理器的匹配操作。
 type Service interface {
 	Start(ctx context.Context, playerID int64, weapon string) (*rcenter.MatchResult, error)
 	Cancel(ctx context.Context, playerID int64) error

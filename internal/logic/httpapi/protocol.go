@@ -34,24 +34,6 @@ type authSessionResponse struct {
 	Player playerResponse `json:"player"`
 }
 
-type websocketMessage struct {
-	Type   string `json:"type"`
-	Weapon string `json:"weapon,omitempty"`
-}
-
-const (
-	messageTypeHeartbeat   = "heartbeat"
-	messageTypeMatchStart  = "match_start"
-	messageTypeMatchCancel = "match_cancel"
-	messageTypeMatchResume = "match_resume"
-)
-
-const (
-	serverEventMatchResult   = "match_result"
-	serverEventMatchError    = "match_error"
-	serverEventMatchCanceled = "match_canceled"
-)
-
 type friendRequestResponse struct {
 	FromPlayerID int64  `json:"from_player_id"`
 	ToPlayerID   int64  `json:"to_player_id"`
@@ -85,50 +67,6 @@ type friendSummaryResponse struct {
 
 type friendSummariesResponse struct {
 	Friends []friendSummaryResponse `json:"friends"`
-}
-
-type friendPresenceChangedMessage struct {
-	Type     string `json:"type"`
-	PlayerID int64  `json:"player_id"`
-	Online   bool   `json:"online"`
-	Status   string `json:"status"`
-}
-
-type friendRemovedMessage struct {
-	Type     string `json:"type"`
-	PlayerID int64  `json:"player_id"`
-}
-
-type friendRequestReceivedMessage struct {
-	Type     string `json:"type"`
-	PlayerID int64  `json:"player_id"`
-}
-
-type friendRequestHandledMessage struct {
-	Type     string `json:"type"`
-	PlayerID int64  `json:"player_id"`
-}
-
-type connectionReplacedMessage struct {
-	Type string `json:"type"`
-}
-
-type matchResultMessage struct {
-	Type           string `json:"type"`
-	Status         string `json:"status"`
-	RoomName       string `json:"room_name,omitempty"`
-	Token          string `json:"token,omitempty"`
-	BattleNodeName string `json:"battle_node_name,omitempty"`
-	BattleUDPAddr  string `json:"battle_udp_addr,omitempty"`
-}
-
-type matchErrorMessage struct {
-	Type  string `json:"type"`
-	Error string `json:"error"`
-}
-
-type matchCancelMessage struct {
-	Type string `json:"type"`
 }
 
 type growthResponse struct {

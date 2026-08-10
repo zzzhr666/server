@@ -2,7 +2,7 @@ package friend
 
 import "context"
 
-// Service 定义 HTTP 和 WebSocket 层可调用的好友业务操作。
+// Service 定义 HTTP 和 TCP 层可调用的好友业务操作。
 type Service interface {
 	// SendRequest 向目标玩家发送好友申请。
 	SendRequest(ctx context.Context, fromPlayerID, toPlayerID int64) error

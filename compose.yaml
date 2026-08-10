@@ -75,6 +75,7 @@ services:
       dockerfile: deploy/docker/Dockerfile.nginx
     ports:
       - "8080:8080"
+      - "8081:8081"
     depends_on:
       logic-1:
         condition: service_started

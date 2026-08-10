@@ -1,7 +1,7 @@
 digraph battle_data_flow {
     rankdir=TB;
     node [shape=box, style=rounded];
-    result [label="WebSocket match_result\\nroom、token、UDP 地址"];
+    result [label="TCP match_result\\nroom、token、UDP 地址"];
     hello [label="Client UDP ClientHello"];
     sessions [label="SessionManager"];
     rooms [label="RoomManager"];

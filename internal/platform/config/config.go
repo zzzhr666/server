@@ -11,6 +11,7 @@ type Config struct {
 	StateGRPCAddr   string
 	Redis           redisdb.Config
 	RCenterGRPCAddr string
+	TCPAddr         string
 }
 
 // Default 返回本地开发环境配置。
@@ -22,6 +23,7 @@ func Default() Config {
 		StateGRPCAddr:   envOrDefault("STATE_GRPC_ADDR", "127.0.0.1:9001"),
 		Redis:           redisConfig,
 		RCenterGRPCAddr: envOrDefault("RCENTER_GRPC_ADDR", "127.0.0.1:9002"),
+		TCPAddr:         envOrDefault("TCP_ADDR", ":8081"),
 	}
 }
 

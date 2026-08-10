@@ -6,6 +6,7 @@ cd "$(dirname "$0")/.."
 go_protos=(
 	proto/state/v1/state.proto
 	proto/rcenter/v1/rcenter.proto
+	proto/realtime/v1/realtime.proto
 	proto/battle/v1/battle.proto
 	proto/battle/v1/session.proto
 )
@@ -25,6 +26,7 @@ battle_cpp_out="battle-server/generated"
 client_csharp_out="${CLIENT_CSHARP_OUT:-/mnt/c/Users/zhanghaoran1/Client/Assets/scripts/Generated}"
 client_csharp_protos=(
 	proto/battle/v1/session.proto
+	proto/realtime/v1/realtime.proto
 )
 
 mkdir -p "$battle_cpp_out" "$client_csharp_out"

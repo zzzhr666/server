@@ -4,7 +4,7 @@
  * \{
  *
  * \defgroup go_logic_server logic-server
- * \brief HTTP、WebSocket 和局外业务入口。
+ * \brief HTTP、TCP 和局外业务入口。
  * \ingroup process_docs
  *
  * \defgroup go_state_server state-server

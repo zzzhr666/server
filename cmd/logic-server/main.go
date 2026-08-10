@@ -4,6 +4,7 @@ import (
 	"context"
 	"flag"
 	"log"
+	"net"
 	"net/http"
 	"server/internal/contract/rcenterpb"
 	"server/internal/contract/statepb"
@@ -14,6 +15,7 @@ import (
 	logicmatch "server/internal/logic/match"
 	"server/internal/logic/player"
 	"server/internal/logic/presence"
+	"server/internal/logic/realtime"
 	"server/internal/platform/config"
 	rcentergrpcclient "server/internal/rcenter/grpcclient"
 	stategrpcclient "server/internal/state/grpcclient"
@@ -92,27 +94,43 @@ func main() {
 	rCenterService := rcentergrpcclient.NewClient(rCenterPBClient)
 	matchRepo := logicmatch.NewRCenterRepository(rCenterService)
 	matchService := logicmatch.NewService(matchRepo)
-	handler := httpapi.NewHandler(httpapi.HandlerConfig{
+	httpHandler := httpapi.NewHandler(httpapi.HandlerConfig{
 		AuthService:     authService,
 		ServerName:      serverName,
 		PresenceService: presenceService,
 		FriendService:   friendService,
 		PlayerService:   playerService,
 		RealtimeClient:  stateService,
-		MatchService:    matchService,
 		GrowthService:   growthService,
 	})
+	tcpHandler := realtime.NewHandler(realtime.HandlerConfig{
+		AuthService:     authService,
+		PresenceService: presenceService,
+		MatchService:    matchService,
+		FriendService:   friendService,
+		ServerName:      serverName,
+		RealtimeClient:  stateService,
+	})
+	tcpListener, err := net.Listen("tcp", cfg.TCPAddr)
+	if err != nil {
+		log.Fatalf("tcp listener failed: %v", err)
+	}
+	tcpServer := realtime.NewServer(tcpListener, tcpHandler)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	go func() {
-		if err := handler.RunRealtimeSubscriber(ctx); err != nil && ctx.Err() == nil {
-			log.Printf("realtime subscriber stopped: %v", err)
+		if err := tcpHandler.RunRealtimeSubscriber(ctx); err != nil && ctx.Err() == nil {
+			log.Fatalf("realtime subscriber failed: %v", err)
 		}
 	}()
-
+	go func() {
+		if err := tcpServer.Serve(ctx); err != nil && ctx.Err() == nil {
+			log.Fatalf("tcp server failed: %v", err)
+		}
+	}()
 	log.Printf("logic-server listening on %s", cfg.HTTPAddr)
-	if err := http.ListenAndServe(cfg.HTTPAddr, handler.Routes()); err != nil {
+	if err := http.ListenAndServe(cfg.HTTPAddr, httpHandler.Routes()); err != nil {
 		log.Fatalf("logic-server stopped: %v", err)
 	}
 }

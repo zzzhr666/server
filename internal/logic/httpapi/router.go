@@ -11,8 +11,6 @@ func (h *Handler) Routes() http.Handler {
 	mux.HandleFunc("POST /auth/logout", h.handleLogoutAuth)
 	mux.HandleFunc("GET /auth/me", h.handleMeAuth)
 
-	mux.HandleFunc("GET /ws", h.handleWebSocket)
-
 	mux.HandleFunc("POST /friends/requests", h.handleSendRequest)
 	mux.HandleFunc("GET /friends/requests/incoming", h.handleListIncomingRequests)
 	mux.HandleFunc("GET /friends/requests/outgoing", h.handleListOutgoingRequests)

@@ -2,4 +2,4 @@ FROM nginx:1.27-alpine
 
 COPY deploy/nginx/logic.docker.conf /etc/nginx/nginx.conf
 
-EXPOSE 8080
+EXPOSE 8080 8081

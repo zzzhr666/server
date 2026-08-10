@@ -17,6 +17,6 @@ WORKDIR /app
 COPY --from=build /out/logic-server /app/logic-server
 
 USER app
-EXPOSE 8080
+EXPOSE 8080 8081
 
 ENTRYPOINT ["/app/logic-server"]

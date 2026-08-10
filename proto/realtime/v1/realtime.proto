@@ -1,0 +1,102 @@
+syntax = "proto3";
+
+package realtime.v1;
+
+option go_package = "server/internal/contract/realtimepb;realtimepb";
+
+// ClientEnvelope 表示客户端在 TCP 连接上发送的一次请求。
+// 首帧 payload 必须是 AuthenticateRequest。
+message ClientEnvelope {
+  // request_id 必须非零，用于关联此请求及其服务端响应。
+  uint64 request_id = 1;
+  oneof payload {
+    AuthenticateRequest authenticate = 10;
+    HeartbeatRequest heartbeat = 11;
+    MatchStartRequest match_start = 12;
+    MatchCancelRequest match_cancel = 13;
+    MatchResumeRequest match_resume = 14;
+  }
+}
+
+// ServerEnvelope 表示服务端响应或主动推送的事件。
+message ServerEnvelope {
+  // request_id 对应客户端请求；服务端主动推送使用零。
+  uint64 request_id = 1;
+  oneof payload {
+    Authenticated authenticated = 10;
+    HeartbeatAck heartbeat_ack = 11;
+    MatchResult match_result = 12;
+    MatchCanceled match_canceled = 13;
+    ProtocolError error = 14;
+    ConnectionReplaced connection_replaced = 15;
+    FriendPresenceChanged friend_presence_changed = 16;
+    FriendRemoved friend_removed = 17;
+    FriendRequestReceived friend_request_received = 18;
+    FriendRequestHandled friend_request_handled = 19;
+  }
+}
+
+message Authenticated {
+  int64 player_id = 1;
+}
+
+message HeartbeatRequest{}
+
+message HeartbeatAck{}
+
+message MatchCancelRequest{}
+
+message MatchResumeRequest{}
+
+message MatchStartRequest{
+  string weapon = 1;
+}
+
+message MatchCanceled {}
+
+message MatchResult {
+  string status = 1;
+  string room_name = 2;
+  string token = 3;
+  string battle_node_name = 4;
+  string battle_udp_addr = 5;
+}
+
+// AuthenticateRequest 必须是新连接发送的第一个 payload。
+message AuthenticateRequest {
+  string token = 1;
+}
+
+enum ErrorCode {
+  UNSPECIFIED = 0;
+  UNAUTHENTICATED = 1;
+  INVALID_ARGUMENT = 2;
+  NOT_FOUND = 3;
+  CONFLICT = 4;
+  INTERNAL = 5;
+}
+
+message ProtocolError {
+  ErrorCode code = 1;
+  string message = 2;
+}
+
+message ConnectionReplaced {}
+
+message FriendPresenceChanged {
+  int64 player_id = 1;
+  bool online = 2;
+  string status = 3;
+}
+
+message FriendRemoved {
+  int64 player_id = 1;
+}
+
+message FriendRequestReceived {
+  int64 player_id = 1;
+}
+
+message FriendRequestHandled {
+  int64 player_id = 1;
+}
