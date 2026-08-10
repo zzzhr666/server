@@ -1,6 +1,6 @@
 # 战斗 ECS 设计
 
-`battle-server/ecs` 是局内模拟层。它不处理 HTTP、WebSocket、玩家账号或 Redis；`runtime` 将网络输入转为 `PlayerCommand`，驱动 `World::tick`，再将 snapshot 转为 UDP protobuf。
+`battle-server/ecs` 是局内模拟层。它不处理 HTTP、TCP、玩家账号或 Redis；`runtime` 将网络输入转为 `PlayerCommand`，驱动 `World::tick`，再将 snapshot 转为 UDP protobuf。
 
 ## 核心边界
 

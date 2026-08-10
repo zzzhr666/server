@@ -240,7 +240,7 @@ func (s *Store) ClearPresence(ctx context.Context, playerID int64, serverName st
 		return statecontract.ErrInvalidPresence
 	}
 	key := presenceKey(playerID)
-	// WebSocket 的旧连接可能在新连接写入 presence 后才关闭。WATCH 将“仍由本
+	// TCP 的旧连接可能在新连接写入 presence 后才关闭。WATCH 将“仍由本
 	// serverName 持有”的读取和删除绑定为一次乐观事务，避免旧实例删掉新实例的记录。
 	return retryOptimisticLock(ctx, func() error {
 		return s.client.Watch(ctx, func(tx *redis.Tx) error {
@@ -272,7 +272,7 @@ func (s *Store) RefreshPresence(ctx context.Context, playerID int64, serverName 
 	}
 	key := presenceKey(playerID)
 	// 心跳只能续期当前 logic-server 持有的记录。所有权已经被重连实例替换时返回
-	// ErrPresenceNotFound，让旧 WebSocket 主动退出，而不是把新记录的 TTL 延长。
+	// ErrPresenceNotFound，让旧 TCP 连接主动退出，而不是把新记录的 TTL 延长。
 	return retryOptimisticLock(ctx, func() error {
 		err := s.client.Watch(ctx, func(tx *redis.Tx) error {
 			storedServerName, err := tx.HGet(ctx, key, "server_name").Result()

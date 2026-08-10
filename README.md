@@ -1,6 +1,6 @@
 # 游戏服务端
 
-本仓库是一个本地开发用的多人动作游戏服务端。Go 服务负责局外大厅，C++ `battle-server` 负责局内战斗。客户端通过 HTTP/JSON、WebSocket 和 UDP 与服务端交互。
+本仓库是一个本地开发用的多人动作游戏服务端。Go 服务负责局外大厅，C++ `battle-server` 负责局内战斗。客户端通过 HTTP/JSON、原生 TCP 和 UDP 与服务端交互。
 
 当前实现包含账号、好友、在线状态、局外成长、双人匹配、四种初始武器、波次战斗、升级祝福、结算奖励，以及断线重连和无人房间清理。
 
@@ -8,7 +8,7 @@
 
 | 服务 | 对宿主机暴露 | 职责 |
 | --- | --- | --- |
-| `nginx` | HTTP/WS `:8080` | 唯一客户端入口，转发到两个 logic 实例 |
+| `nginx` | HTTP `:8080`、TCP `:8081` | 客户端入口，分别转发 HTTP API 和局外实时连接 |
 | `logic-1`、`logic-2` | 否 | 客户端 API、认证、好友、在线状态、局外成长、匹配入口 |
 | `state` | 否 | Go 侧状态服务，唯一直接访问持久化存储的业务进程 |
 | `rcenter` | 否 | battle 节点注册、匹配队列、活跃对局与结算 |
@@ -45,7 +45,7 @@ docker compose logs -f nginx logic-1 logic-2
 docker compose down
 ```
 
-客户端统一访问 `http://localhost:8080` 与 `ws://localhost:8080/ws`。battle-server 分别在 UDP `:7001` 和 `:7002` 上接受客户端包；本地下发地址为 `127.0.0.1`，其他机器访问时应在 `compose.yaml` 中将 `--udp-addr` 改为宿主机可访问地址。
+客户端访问 `http://localhost:8080` 的 HTTP API，并连接 `localhost:8081` 的 TCP 实时服务。battle-server 分别在 UDP `:7001` 和 `:7002` 上接受客户端包；本地下发地址为 `127.0.0.1`，其他机器访问时应在 `compose.yaml` 中将 `--udp-addr` 改为宿主机可访问地址。
 
 ## 常用命令
 
@@ -69,7 +69,7 @@ bash scripts/generate_docs.sh
 
 ## 核心行为
 
-- 匹配成功后，rcenter 为每个玩家保存活跃对局信息；WebSocket 连接建立和 `match_resume` 都可恢复该信息。
+- 匹配成功后，rcenter 为每个玩家保存活跃对局信息；TCP 完成认证和 `match_resume` 都可恢复该信息。
 - battle-server 在 UDP `hello` 时允许同一玩家重绑到新的会话与端点。
 - 连续 15 秒未收到有效 UDP 心跳或输入的会话会标记为断开；所有玩家均断开后，房间等待 90 秒后以 `all_players_disconnected` 原因结束并释放玩家。
 - 正常胜利或失败会结算击杀奖励；断线超时结束只释放玩家，不发放奖励。

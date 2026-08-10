@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-// Service 定义 HTTP 和 WebSocket 层使用的在线状态操作。
+// Service 定义 HTTP 和 TCP 层使用的在线状态操作。
 type Service interface {
 	MarkOnline(ctx context.Context, playerID int64, serverName string) error
 	Get(ctx context.Context, playerID int64) (*Presence, error)

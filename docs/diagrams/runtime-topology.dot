@@ -10,7 +10,7 @@ digraph runtime_topology {
     mongo [label="MongoDB :27017\\n聊天存储预留", shape=cylinder];
     rcenter [label="rcenter-server :9002"];
     battle [label="battle-server\\ncontrol :9101\\nUDP :7001"];
-    client -> nginx [label="HTTP / WebSocket"];
+    client -> nginx [label="HTTP / TCP"];
     nginx -> logic1;
     nginx -> logic2;
     logic1 -> state [label="state gRPC"];

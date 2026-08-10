@@ -75,7 +75,7 @@ func (g *GameCenterService) ResumeMatch(ctx context.Context, playerID int64) (*M
 	}
 	g.mu.Lock()
 	defer g.mu.Unlock()
-	// ActiveMatch 独立于 WebSocket 连接保存。返回副本时克隆切片，避免调用方修改
+	// ActiveMatch 独立于 TCP 连接保存。返回副本时克隆切片，避免调用方修改
 	// 内存中的共享对局数据，破坏其他玩家的恢复结果。
 	res, ok := g.activeMatches[playerID]
 	if !ok {
@@ -211,7 +211,7 @@ func (g *GameCenterService) StartMatch(ctx context.Context, playerID int64, weap
 		},
 	}
 
-	// CreateRoom 成功才发布 ActiveMatch。这样 WebSocket ResumeMatch 永远不会给客户端
+	// CreateRoom 成功才发布 ActiveMatch。这样 TCP ResumeMatch 永远不会给客户端
 	// 返回一个 battle-server 尚未预留的房间与 token。
 	if err := g.battleNodeController.CreateRoom(ctx, node.Name, CreateBattleRoomInput{
 		RoomName:       roomName,
