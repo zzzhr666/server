@@ -6,15 +6,15 @@
 
 ## 服务与端口
 
-| 服务 | 对宿主机暴露 | 职责 |
-| --- | --- | --- |
-| `nginx` | HTTP `:8080`、TCP `:8081` | 客户端入口，分别转发 HTTP API 和局外实时连接 |
-| `logic-1`、`logic-2` | 否 | HTTP 注册登录、TCP 认证、好友、在线状态、局外成长和匹配入口 |
-| `state` | 否 | Go 侧状态服务，唯一直接访问持久化存储的业务进程 |
-| `rcenter` | 否 | battle 节点注册、匹配队列、活跃对局与结算 |
-| `battle-1`、`battle-2` | UDP `:7001`、`:7002` | 房间、UDP 会话、战斗 tick、ECS 和快照广播 |
-| Redis | 否 | 账号、玩家、会话、好友、在线状态、成长与实时事件 |
-| MongoDB | 否 | 单节点 replica set；为后续聊天历史持久化预留 |
+| 服务                    | 对宿主机暴露                   | 职责                                 |
+|-----------------------|--------------------------|------------------------------------|
+| `nginx`               | HTTP `:8080`、TCP `:8081` | 客户端入口，分别转发 HTTP API 和局外实时连接        |
+| `logic-1`、`logic-2`   | 否                        | HTTP 注册登录、TCP 认证、好友、在线状态、局外成长和匹配入口 |
+| `state`               | 否                        | Go 侧状态服务，唯一直接访问持久化存储的业务进程          |
+| `rcenter`             | 否                        | battle 节点注册、匹配队列、活跃对局与结算           |
+| `battle-1`、`battle-2` | UDP `:7001`、`:7002`      | 房间、UDP 会话、战斗 tick、ECS 和快照广播        |
+| Redis                 | 否                        | 账号、玩家、会话、好友、在线状态、成长与实时事件           |
+| MongoDB               | 否                        | 单节点 replica set；为后续聊天历史持久化预留       |
 
 ## 快速开始
 
@@ -51,7 +51,7 @@ docker compose down
 
 ```bash
 # Go 全量测试
-GOCACHE=/tmp/go-build-cache go test ./...
+go test ./...
 
 # 构建并运行 C++ 测试（需要本地 C++ 工具链）
 cmake --build battle-server/cmake-build-release-wsl
