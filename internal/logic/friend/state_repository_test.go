@@ -117,6 +117,11 @@ func TestStateRepositoryMapsErrors(t *testing.T) {
 			err:  statecontract.ErrFriendNotFound,
 			want: ErrNotFound,
 		},
+		{
+			name: "player not found",
+			err:  statecontract.ErrPlayerNotFound,
+			want: ErrNotFound,
+		},
 	}
 
 	for _, tt := range tests {

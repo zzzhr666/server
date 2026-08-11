@@ -7,7 +7,9 @@ import (
 	statecontract "server/internal/contract/state"
 	"server/internal/logic/auth"
 	"server/internal/logic/friend"
+	"server/internal/logic/growth"
 	"server/internal/logic/match"
+	"server/internal/logic/player"
 	"server/internal/logic/presence"
 	"server/internal/rcenter"
 	"time"
@@ -19,6 +21,8 @@ type Handler struct {
 	presence       presence.Service
 	match          match.Service
 	friend         friend.Service
+	player         player.Service
+	growth         growth.Service
 	serverName     string
 	connManager    *connectionManager
 	realtimeClient statecontract.RealtimeClient
@@ -31,6 +35,8 @@ type HandlerConfig struct {
 	PresenceService presence.Service
 	MatchService    match.Service
 	FriendService   friend.Service
+	PlayerService   player.Service
+	GrowthService   growth.Service
 	ServerName      string
 	RealtimeClient  statecontract.RealtimeClient
 }
@@ -42,6 +48,8 @@ func NewHandler(config HandlerConfig) *Handler {
 		presence:    config.PresenceService,
 		match:       config.MatchService,
 		friend:      config.FriendService,
+		player:      config.PlayerService,
+		growth:      config.GrowthService,
 		serverName:  config.ServerName,
 		connManager: newConnectionManager(),
 	}
@@ -53,42 +61,13 @@ func NewHandler(config HandlerConfig) *Handler {
 }
 
 func (h *Handler) serveSession(ctx context.Context, session *session) {
-	clientEnvelope, err := session.Read()
-	if err != nil {
+	authSession, requestID, ok := h.handleAuthenticate(ctx, session)
+	if !ok {
 		return
 	}
-	authenticateRequest := clientEnvelope.GetAuthenticate()
-	if authenticateRequest == nil {
-		_ = writeError(session, clientEnvelope.GetRequestId(), realtimepb.ErrorCode_INVALID_ARGUMENT, "invalid argument")
+	connInfo, ok := h.handleConnectionReady(ctx, session, authSession, requestID)
+	if !ok {
 		return
-	}
-	authSession, err := h.auth.GetSession(ctx, authenticateRequest.GetToken())
-	if errors.Is(err, auth.ErrSessionNotFound) {
-		_ = writeError(session, clientEnvelope.GetRequestId(), realtimepb.ErrorCode_UNAUTHENTICATED, "invalid session")
-		return
-	} else if err != nil {
-		_ = writeError(session, clientEnvelope.GetRequestId(), realtimepb.ErrorCode_INTERNAL, "internal server error")
-		return
-	}
-
-	h.replaceExistingConnection(ctx, authSession.PlayerID)
-
-	if err := h.presence.MarkOnline(ctx, authSession.PlayerID, h.serverName); err != nil {
-		_ = writeError(session, clientEnvelope.GetRequestId(), realtimepb.ErrorCode_INTERNAL, "internal server error")
-		return
-	}
-
-	connInfo, oldConn := h.connManager.Add(authSession.PlayerID, session)
-	h.publishFriendPresenceChanged(ctx, authSession.PlayerID, true, presence.StatusOnline)
-
-	if oldConn != nil {
-		_ = oldConn.session.Write(&realtimepb.ServerEnvelope{
-			RequestId: 0,
-			Payload: &realtimepb.ServerEnvelope_ConnectionReplaced{
-				ConnectionReplaced: &realtimepb.ConnectionReplaced{},
-			},
-		})
-		_ = oldConn.session.Close()
 	}
 
 	defer func() {
@@ -102,29 +81,8 @@ func (h *Handler) serveSession(ctx context.Context, session *session) {
 		}
 		h.publishFriendPresenceChanged(cleanupCtx, authSession.PlayerID, false, presence.StatusOffline)
 	}()
-	if err := session.Write(&realtimepb.ServerEnvelope{
-		RequestId: clientEnvelope.GetRequestId(),
-		Payload: &realtimepb.ServerEnvelope_Authenticated{
-			Authenticated: &realtimepb.Authenticated{
-				PlayerId: authSession.PlayerID,
-			},
-		},
-	}); err != nil {
+	if !h.handleAuthenticated(ctx, session, authSession.PlayerID, requestID) {
 		return
-	}
-
-	if h.match != nil {
-		resumeResult, err := h.match.Resume(ctx, authSession.PlayerID)
-		switch {
-		case errors.Is(err, rcenter.ErrActiveMatchNotFound):
-			// 没有可恢复对局时保持连接，等待客户端的新匹配请求。
-		case err != nil:
-			// 自动恢复不是客户端请求，暂不发送错误，由后续显式恢复重试。
-		case resumeResult == nil || resumeResult.Status == rcenter.MatchStatusUnexpected:
-			return
-		case session.Write(matchResultEnvelope(proactivePushRequestID, resumeResult)) != nil:
-			return
-		}
 	}
 
 	for {
@@ -132,108 +90,445 @@ func (h *Handler) serveSession(ctx context.Context, session *session) {
 		if err != nil {
 			return
 		}
-		switch {
-		case envelope.GetHeartbeat() != nil:
-			err := h.presence.Refresh(ctx, authSession.PlayerID, h.serverName)
-			if err != nil {
-				_ = writeError(session, envelope.GetRequestId(), realtimepb.ErrorCode_INTERNAL, "presence refresh failed")
-				return
-			}
-			if !h.connManager.Touch(authSession.PlayerID, connInfo.id, time.Now()) {
-				return
-			}
-			if err := session.Write(&realtimepb.ServerEnvelope{
-				RequestId: envelope.GetRequestId(),
-				Payload: &realtimepb.ServerEnvelope_HeartbeatAck{
-					HeartbeatAck: &realtimepb.HeartbeatAck{},
-				},
-			}); err != nil {
-				return
-			}
-
-		case envelope.GetMatchStart() != nil:
-			startReq := envelope.GetMatchStart()
-			weapon := startReq.GetWeapon()
-			if weapon == "" {
-				weapon = "sword"
-			}
-			if !isValidWeapon(weapon) {
-				if err := writeError(session, envelope.GetRequestId(), realtimepb.ErrorCode_INVALID_ARGUMENT, "invalid weapon"); err != nil {
-					return
-				}
-				continue
-			}
-			if h.match == nil {
-				_ = writeError(session, envelope.GetRequestId(), realtimepb.ErrorCode_INTERNAL, "match service unavailable")
-				return
-			}
-			matchResult, err := h.match.Start(ctx, authSession.PlayerID, weapon)
-			if err != nil {
-				if err := writeError(session, envelope.GetRequestId(), matchErrorCode(err), err.Error()); err != nil {
-					return
-				}
-				continue
-			}
-			if matchResult == nil || matchResult.Status == rcenter.MatchStatusUnexpected {
-				if err := writeError(session, envelope.GetRequestId(), realtimepb.ErrorCode_INTERNAL, "unexpected match result"); err != nil {
-					return
-				}
-				continue
-			}
-			if err := session.Write(matchResultEnvelope(envelope.GetRequestId(), matchResult)); err != nil {
-				return
-			}
-			h.pushMatchResultToPlayers(ctx, authSession.PlayerID, matchResult)
-
-		case envelope.GetMatchCancel() != nil:
-			if h.match == nil {
-				_ = writeError(session, envelope.GetRequestId(), realtimepb.ErrorCode_INTERNAL, "match service unavailable")
-				return
-			}
-			err := h.match.Cancel(ctx, authSession.PlayerID)
-			if err != nil {
-				if err := writeError(session, envelope.GetRequestId(), matchErrorCode(err), err.Error()); err != nil {
-					return
-				}
-				continue
-			}
-			if err := session.Write(&realtimepb.ServerEnvelope{
-				RequestId: envelope.GetRequestId(),
-				Payload: &realtimepb.ServerEnvelope_MatchCanceled{
-					MatchCanceled: &realtimepb.MatchCanceled{},
-				},
-			}); err != nil {
-				return
-			}
-		case envelope.GetMatchResume() != nil:
-			if h.match == nil {
-				_ = writeError(session, envelope.GetRequestId(), realtimepb.ErrorCode_INTERNAL, "match service unavailable")
-				return
-			}
-			matchResult, err := h.match.Resume(ctx, authSession.PlayerID)
-			if err != nil {
-				if err := writeError(session, envelope.GetRequestId(), matchErrorCode(err), err.Error()); err != nil {
-					return
-				}
-				continue
-			}
-			if matchResult == nil || matchResult.Status == rcenter.MatchStatusUnexpected {
-				if err := writeError(session, envelope.GetRequestId(), realtimepb.ErrorCode_INTERNAL, "unexpected match result"); err != nil {
-					return
-				}
-				continue
-			}
-			if err := session.Write(matchResultEnvelope(envelope.GetRequestId(), matchResult)); err != nil {
-				return
-			}
-
-		default:
-			if err := writeError(session, envelope.GetRequestId(), realtimepb.ErrorCode_INVALID_ARGUMENT, "unsupported message"); err != nil {
-				return
-			}
-
+		if !h.handleEnvelope(ctx, session, authSession, connInfo.id, envelope) {
+			return
 		}
 	}
+}
+
+func (h *Handler) handleAuthenticate(ctx context.Context, session *session) (*auth.Session, uint64, bool) {
+	envelope, err := session.Read()
+	if err != nil {
+		return nil, 0, false
+	}
+	request := envelope.GetAuthenticate()
+	if request == nil {
+		_ = writeError(session, envelope.GetRequestId(), realtimepb.ErrorCode_INVALID_ARGUMENT, "invalid argument")
+		return nil, 0, false
+	}
+
+	authSession, err := h.auth.GetSession(ctx, request.GetToken())
+	if errors.Is(err, auth.ErrSessionNotFound) {
+		_ = writeError(session, envelope.GetRequestId(), realtimepb.ErrorCode_UNAUTHENTICATED, "invalid session")
+		return nil, 0, false
+	}
+	if err != nil {
+		_ = writeError(session, envelope.GetRequestId(), realtimepb.ErrorCode_INTERNAL, "internal server error")
+		return nil, 0, false
+	}
+	if authSession == nil {
+		_ = writeError(session, envelope.GetRequestId(), realtimepb.ErrorCode_INTERNAL, "internal server error")
+		return nil, 0, false
+	}
+	return authSession, envelope.GetRequestId(), true
+}
+
+func (h *Handler) handleConnectionReady(ctx context.Context, session *session, authSession *auth.Session, requestID uint64) (connectionInfo, bool) {
+	h.replaceExistingConnection(ctx, authSession.PlayerID)
+	if err := h.presence.MarkOnline(ctx, authSession.PlayerID, h.serverName); err != nil {
+		_ = writeError(session, requestID, realtimepb.ErrorCode_INTERNAL, "internal server error")
+		return connectionInfo{}, false
+	}
+
+	connInfo, oldConn := h.connManager.Add(authSession.PlayerID, session)
+	h.publishFriendPresenceChanged(ctx, authSession.PlayerID, true, presence.StatusOnline)
+	if oldConn != nil {
+		_ = oldConn.session.Write(&realtimepb.ServerEnvelope{
+			RequestId: 0,
+			Payload: &realtimepb.ServerEnvelope_ConnectionReplaced{
+				ConnectionReplaced: &realtimepb.ConnectionReplaced{},
+			},
+		})
+		_ = oldConn.session.Close()
+	}
+
+	return connInfo, true
+}
+
+func (h *Handler) handleAuthenticated(ctx context.Context, session *session, playerID int64, requestID uint64) bool {
+	if err := session.Write(&realtimepb.ServerEnvelope{
+		RequestId: requestID,
+		Payload: &realtimepb.ServerEnvelope_Authenticated{
+			Authenticated: &realtimepb.Authenticated{PlayerId: playerID},
+		},
+	}); err != nil {
+		return false
+	}
+	return h.handleAutomaticMatchResume(ctx, session, playerID)
+}
+
+func (h *Handler) handleAutomaticMatchResume(ctx context.Context, session *session, playerID int64) bool {
+	if h.match == nil {
+		return true
+	}
+	resumeResult, err := h.match.Resume(ctx, playerID)
+	switch {
+	case errors.Is(err, rcenter.ErrActiveMatchNotFound):
+		return true
+	case err != nil:
+		return true
+	case resumeResult == nil || resumeResult.Status == rcenter.MatchStatusUnexpected:
+		return false
+	default:
+		return session.Write(matchResultEnvelope(proactivePushRequestID, resumeResult)) == nil
+	}
+}
+
+func (h *Handler) handleEnvelope(ctx context.Context, session *session, authSession *auth.Session, connID connectionID, envelope *realtimepb.ClientEnvelope) bool {
+	playerID := authSession.PlayerID
+	switch {
+	case envelope.GetHeartbeat() != nil:
+		return h.handleHeartbeat(ctx, session, playerID, connID, envelope)
+	case envelope.GetMatchStart() != nil:
+		return h.handleMatchStart(ctx, session, playerID, envelope)
+	case envelope.GetMatchCancel() != nil:
+		return h.handleMatchCancel(ctx, session, playerID, envelope)
+	case envelope.GetMatchResume() != nil:
+		return h.handleMatchResume(ctx, session, playerID, envelope)
+	case envelope.GetPlayerGet() != nil:
+		return h.handleGetPlayer(ctx, session, playerID, envelope)
+	case envelope.GetGrowthGet() != nil:
+		return h.handleGetGrowth(ctx, session, playerID, envelope)
+	case envelope.GetGrowthUpgrade() != nil:
+		return h.handleUpgradeGrowth(ctx, session, playerID, envelope)
+	case envelope.GetFriendRequestSend() != nil:
+		return h.handleSendFriendRequest(ctx, session, playerID, envelope)
+	case envelope.GetFriendRequestListIncoming() != nil:
+		return h.handleListIncomingFriendRequests(ctx, session, playerID, envelope)
+	case envelope.GetFriendRequestListOutgoing() != nil:
+		return h.handleListOutgoingFriendRequests(ctx, session, playerID, envelope)
+	case envelope.GetFriendRequestAccept() != nil:
+		return h.handleAcceptFriendRequest(ctx, session, playerID, envelope)
+	case envelope.GetFriendRequestReject() != nil:
+		return h.handleRejectFriendRequest(ctx, session, playerID, envelope)
+	case envelope.GetFriendList() != nil:
+		return h.handleListFriends(ctx, session, playerID, envelope)
+	case envelope.GetFriendDelete() != nil:
+		return h.handleDeleteFriend(ctx, session, playerID, envelope)
+	case envelope.GetLogout() != nil:
+		return h.handleLogout(ctx, session, authSession, envelope)
+	default:
+		return writeError(session, envelope.GetRequestId(), realtimepb.ErrorCode_INVALID_ARGUMENT, "unsupported message") == nil
+	}
+}
+
+func (h *Handler) handleUpgradeGrowth(ctx context.Context, session *session, playerID int64, envelope *realtimepb.ClientEnvelope) bool {
+	if h.growth == nil {
+		_ = writeError(session, envelope.GetRequestId(), realtimepb.ErrorCode_INTERNAL, "growth service unavailable")
+		return false
+	}
+	upgradeType := toUpgradeTypeName(envelope.GetGrowthUpgrade().GetType())
+	result, err := h.growth.Upgrade(ctx, playerID, upgradeType)
+	if err != nil {
+		return writeError(session, envelope.GetRequestId(), growthErrorCode(err), err.Error()) == nil
+	}
+	if result == nil || result.Growth == nil {
+		return writeError(session, envelope.GetRequestId(), realtimepb.ErrorCode_INTERNAL, "unexpected growth result") == nil
+	}
+	options, err := h.growth.UpgradeOptions(result.Growth)
+	if err != nil {
+		return writeError(session, envelope.GetRequestId(), growthErrorCode(err), err.Error()) == nil
+	}
+	return session.Write(&realtimepb.ServerEnvelope{
+		RequestId: envelope.GetRequestId(),
+		Payload: &realtimepb.ServerEnvelope_GrowthUpgradeResult{
+			GrowthUpgradeResult: toProtoUpgradeGrowthResponse(result, options),
+		},
+	}) == nil
+}
+
+func (h *Handler) handleSendFriendRequest(ctx context.Context, session *session, playerID int64, envelope *realtimepb.ClientEnvelope) bool {
+	toPlayerID := envelope.GetFriendRequestSend().GetToPlayerId()
+	if err := h.friend.SendRequest(ctx, playerID, toPlayerID); err != nil {
+		return writeFriendError(session, envelope.GetRequestId(), err) == nil
+	}
+	h.pushRealtimeEvent(ctx, &statecontract.RealtimeEvent{
+		Type:           statecontract.RealtimeEventFriendRequestReceived,
+		TargetPlayerID: toPlayerID,
+		ActorPlayerID:  playerID,
+	})
+	return session.Write(&realtimepb.ServerEnvelope{
+		RequestId: envelope.GetRequestId(),
+		Payload: &realtimepb.ServerEnvelope_FriendRequestSent{
+			FriendRequestSent: &realtimepb.FriendRequestSentResponse{},
+		},
+	}) == nil
+}
+
+func (h *Handler) handleListIncomingFriendRequests(ctx context.Context, session *session, playerID int64, envelope *realtimepb.ClientEnvelope) bool {
+	requests, err := h.friend.ListIncomingRequests(ctx, playerID)
+	if err != nil {
+		return writeFriendError(session, envelope.GetRequestId(), err) == nil
+	}
+	return session.Write(&realtimepb.ServerEnvelope{
+		RequestId: envelope.GetRequestId(),
+		Payload: &realtimepb.ServerEnvelope_FriendRequests{
+			FriendRequests: &realtimepb.FriendRequestResponse{
+				Requests: toProtoFriendRequests(requests),
+			},
+		},
+	}) == nil
+
+}
+
+func (h *Handler) handleListOutgoingFriendRequests(ctx context.Context, session *session, playerID int64, envelope *realtimepb.ClientEnvelope) bool {
+	requests, err := h.friend.ListOutgoingRequests(ctx, playerID)
+	if err != nil {
+		return writeFriendError(session, envelope.GetRequestId(), err) == nil
+	}
+	return session.Write(&realtimepb.ServerEnvelope{
+		RequestId: envelope.GetRequestId(),
+		Payload: &realtimepb.ServerEnvelope_FriendRequests{
+			FriendRequests: &realtimepb.FriendRequestResponse{
+				Requests: toProtoFriendRequests(requests),
+			},
+		},
+	}) == nil
+}
+
+func (h *Handler) handleAcceptFriendRequest(ctx context.Context, session *session, playerID int64, envelope *realtimepb.ClientEnvelope) bool {
+	fromPlayerID := envelope.GetFriendRequestAccept().GetFromPlayerId()
+	if err := h.friend.AcceptRequest(ctx, fromPlayerID, playerID); err != nil {
+		return writeFriendError(session, envelope.GetRequestId(), err) == nil
+	}
+	h.pushRealtimeEvent(ctx, &statecontract.RealtimeEvent{
+		Type:           statecontract.RealtimeEventFriendRequestHandled,
+		TargetPlayerID: fromPlayerID,
+		ActorPlayerID:  playerID,
+	})
+	return session.Write(&realtimepb.ServerEnvelope{
+		RequestId: envelope.GetRequestId(),
+		Payload: &realtimepb.ServerEnvelope_FriendRequestHandledAck{
+			FriendRequestHandledAck: &realtimepb.FriendRequestHandledResponse{},
+		},
+	}) == nil
+}
+
+func (h *Handler) handleRejectFriendRequest(ctx context.Context, session *session, playerID int64, envelope *realtimepb.ClientEnvelope) bool {
+	fromPlayerID := envelope.GetFriendRequestReject().GetFromPlayerId()
+	if err := h.friend.RejectRequest(ctx, fromPlayerID, playerID); err != nil {
+		return writeFriendError(session, envelope.GetRequestId(), err) == nil
+	}
+	h.pushRealtimeEvent(ctx, &statecontract.RealtimeEvent{
+		Type:           statecontract.RealtimeEventFriendRequestHandled,
+		TargetPlayerID: fromPlayerID,
+		ActorPlayerID:  playerID,
+	})
+	return session.Write(&realtimepb.ServerEnvelope{
+		RequestId: envelope.GetRequestId(),
+		Payload: &realtimepb.ServerEnvelope_FriendRequestHandledAck{
+			FriendRequestHandledAck: &realtimepb.FriendRequestHandledResponse{},
+		},
+	}) == nil
+}
+
+func (h *Handler) handleListFriends(ctx context.Context, session *session, playerID int64, envelope *realtimepb.ClientEnvelope) bool {
+	friendIDs, err := h.friend.ListFriendIDs(ctx, playerID)
+	if err != nil {
+		return writeFriendError(session, envelope.GetRequestId(), err) == nil
+	}
+	friendSummaries := make([]*realtimepb.FriendSummary, 0, len(friendIDs))
+	for _, friendID := range friendIDs {
+		friendPlayer, err := h.player.Get(ctx, friendID)
+		if err != nil {
+			return writeError(session, envelope.GetRequestId(), realtimepb.ErrorCode_INTERNAL, "internal server error") == nil
+		}
+		if friendPlayer == nil {
+			return writeError(session, envelope.GetRequestId(), realtimepb.ErrorCode_INTERNAL, "unexpected player result") == nil
+		}
+		friendPresence, err := h.presence.Get(ctx, friendID)
+		if errors.Is(err, presence.ErrNotFound) {
+			friendPresence = nil
+		} else if err != nil {
+			return writeError(session, envelope.GetRequestId(), realtimepb.ErrorCode_INTERNAL, "internal server error") == nil
+		}
+		friendSummaries = append(friendSummaries, toProtoFriendSummary(friendPlayer, friendPresence))
+	}
+
+	return session.Write(&realtimepb.ServerEnvelope{
+		RequestId: envelope.GetRequestId(),
+		Payload: &realtimepb.ServerEnvelope_Friends{
+			Friends: &realtimepb.FriendListResponse{
+				Friends: friendSummaries,
+			},
+		},
+	}) == nil
+}
+
+func (h *Handler) handleDeleteFriend(ctx context.Context, session *session, playerID int64, envelope *realtimepb.ClientEnvelope) bool {
+	targetID := envelope.GetFriendDelete().GetFriendPlayerId()
+	if err := h.friend.DeleteFriend(ctx, playerID, targetID); err != nil {
+		return writeFriendError(session, envelope.GetRequestId(), err) == nil
+	}
+	h.pushRealtimeEvent(ctx, &statecontract.RealtimeEvent{
+		Type:           statecontract.RealtimeEventFriendRemoved,
+		TargetPlayerID: targetID,
+		ActorPlayerID:  playerID,
+	})
+	return session.Write(&realtimepb.ServerEnvelope{
+		RequestId: envelope.GetRequestId(),
+		Payload: &realtimepb.ServerEnvelope_FriendDeleted{
+			FriendDeleted: &realtimepb.FriendDeletedResponse{},
+		},
+	}) == nil
+}
+
+func (h *Handler) handleLogout(ctx context.Context, session *session, authSession *auth.Session, envelope *realtimepb.ClientEnvelope) bool {
+	err := h.auth.Logout(ctx, authSession.Token)
+	switch {
+	case errors.Is(err, auth.ErrSessionNotFound):
+		_ = writeError(
+			session,
+			envelope.GetRequestId(),
+			realtimepb.ErrorCode_UNAUTHENTICATED,
+			"invalid session",
+		)
+		return false
+
+	case err != nil:
+		return writeError(
+			session,
+			envelope.GetRequestId(),
+			realtimepb.ErrorCode_INTERNAL,
+			"internal server error",
+		) == nil
+	}
+
+	if err := session.Write(&realtimepb.ServerEnvelope{
+		RequestId: envelope.GetRequestId(),
+		Payload: &realtimepb.ServerEnvelope_LogoutAck{
+			LogoutAck: &realtimepb.LogoutResponse{},
+		},
+	}); err != nil {
+		return false
+	}
+
+	return false
+}
+
+func (h *Handler) handleGetGrowth(ctx context.Context, session *session, playerID int64, envelope *realtimepb.ClientEnvelope) bool {
+	if h.growth == nil {
+		_ = writeError(session, envelope.GetRequestId(), realtimepb.ErrorCode_INTERNAL, "growth service unavailable")
+		return false
+	}
+	growthInfo, err := h.growth.Get(ctx, playerID)
+	if err != nil {
+		return writeError(session, envelope.GetRequestId(), growthErrorCode(err), err.Error()) == nil
+	}
+	if growthInfo == nil {
+		return writeError(session, envelope.GetRequestId(), realtimepb.ErrorCode_INTERNAL, "unexpected growth result") == nil
+	}
+	upgradeOption, err := h.growth.UpgradeOptions(growthInfo)
+	if err != nil {
+		return writeError(session, envelope.GetRequestId(), growthErrorCode(err), err.Error()) == nil
+	}
+	if err := session.Write(&realtimepb.ServerEnvelope{
+		RequestId: envelope.GetRequestId(),
+		Payload: &realtimepb.ServerEnvelope_Growth{
+			Growth: &realtimepb.GrowthResponse{
+				Growth: toProtoGrowth(growthInfo, upgradeOption),
+			},
+		},
+	}); err != nil {
+		return false
+	}
+	return true
+}
+
+func (h *Handler) handleGetPlayer(ctx context.Context, session *session, playerID int64, envelope *realtimepb.ClientEnvelope) bool {
+	if h.player == nil {
+		_ = writeError(session, envelope.GetRequestId(), realtimepb.ErrorCode_INTERNAL, "player service unavailable")
+		return false
+	}
+	playerInfo, err := h.player.Get(ctx, playerID)
+	if err != nil {
+		return writeError(session, envelope.GetRequestId(), playerErrorCode(err), err.Error()) == nil
+	}
+	if playerInfo == nil {
+		return writeError(session, envelope.GetRequestId(), realtimepb.ErrorCode_INTERNAL, "unexpected player result") == nil
+	}
+	if err := session.Write(&realtimepb.ServerEnvelope{
+		RequestId: envelope.GetRequestId(),
+		Payload: &realtimepb.ServerEnvelope_Player{
+			Player: &realtimepb.PlayerResponse{
+				Player: toProtoPlayer(playerInfo),
+			},
+		},
+	}); err != nil {
+		return false
+	}
+	return true
+
+}
+
+func (h *Handler) handleHeartbeat(ctx context.Context, session *session, playerID int64, connID connectionID, envelope *realtimepb.ClientEnvelope) bool {
+	if err := h.presence.Refresh(ctx, playerID, h.serverName); err != nil {
+		_ = writeError(session, envelope.GetRequestId(), realtimepb.ErrorCode_INTERNAL, "presence refresh failed")
+		return false
+	}
+	if !h.connManager.Touch(playerID, connID, time.Now()) {
+		return false
+	}
+	return session.Write(&realtimepb.ServerEnvelope{
+		RequestId: envelope.GetRequestId(),
+		Payload:   &realtimepb.ServerEnvelope_HeartbeatAck{HeartbeatAck: &realtimepb.HeartbeatAck{}},
+	}) == nil
+}
+
+func (h *Handler) handleMatchStart(ctx context.Context, session *session, playerID int64, envelope *realtimepb.ClientEnvelope) bool {
+	weapon := envelope.GetMatchStart().GetWeapon()
+	if weapon == "" {
+		weapon = "sword"
+	}
+	if !isValidWeapon(weapon) {
+		return writeError(session, envelope.GetRequestId(), realtimepb.ErrorCode_INVALID_ARGUMENT, "invalid weapon") == nil
+	}
+	if h.match == nil {
+		_ = writeError(session, envelope.GetRequestId(), realtimepb.ErrorCode_INTERNAL, "match service unavailable")
+		return false
+	}
+
+	matchResult, err := h.match.Start(ctx, playerID, weapon)
+	if err != nil {
+		return writeError(session, envelope.GetRequestId(), matchErrorCode(err), err.Error()) == nil
+	}
+	if matchResult == nil || matchResult.Status == rcenter.MatchStatusUnexpected {
+		return writeError(session, envelope.GetRequestId(), realtimepb.ErrorCode_INTERNAL, "unexpected match result") == nil
+	}
+	if err := session.Write(matchResultEnvelope(envelope.GetRequestId(), matchResult)); err != nil {
+		return false
+	}
+	h.pushMatchResultToPlayers(ctx, playerID, matchResult)
+	return true
+}
+
+func (h *Handler) handleMatchCancel(ctx context.Context, session *session, playerID int64, envelope *realtimepb.ClientEnvelope) bool {
+	if h.match == nil {
+		_ = writeError(session, envelope.GetRequestId(), realtimepb.ErrorCode_INTERNAL, "match service unavailable")
+		return false
+	}
+	if err := h.match.Cancel(ctx, playerID); err != nil {
+		return writeError(session, envelope.GetRequestId(), matchErrorCode(err), err.Error()) == nil
+	}
+	return session.Write(&realtimepb.ServerEnvelope{
+		RequestId: envelope.GetRequestId(),
+		Payload:   &realtimepb.ServerEnvelope_MatchCanceled{MatchCanceled: &realtimepb.MatchCanceled{}},
+	}) == nil
+}
+
+func (h *Handler) handleMatchResume(ctx context.Context, session *session, playerID int64, envelope *realtimepb.ClientEnvelope) bool {
+	if h.match == nil {
+		_ = writeError(session, envelope.GetRequestId(), realtimepb.ErrorCode_INTERNAL, "match service unavailable")
+		return false
+	}
+	matchResult, err := h.match.Resume(ctx, playerID)
+	if err != nil {
+		return writeError(session, envelope.GetRequestId(), matchErrorCode(err), err.Error()) == nil
+	}
+	if matchResult == nil || matchResult.Status == rcenter.MatchStatusUnexpected {
+		return writeError(session, envelope.GetRequestId(), realtimepb.ErrorCode_INTERNAL, "unexpected match result") == nil
+	}
+	return session.Write(matchResultEnvelope(envelope.GetRequestId(), matchResult)) == nil
 }
 
 // RunRealtimeSubscriber 启动当前 logic-server 的实时事件订阅。
@@ -273,7 +568,7 @@ func writeError(session *session, id uint64, code realtimepb.ErrorCode, msg stri
 }
 
 func (h *Handler) publishFriendPresenceChanged(ctx context.Context, playerID int64, online bool, status string) {
-	if h.realtimeClient == nil || h.friend == nil {
+	if h.friend == nil {
 		return
 	}
 	friendIDs, err := h.friend.ListFriendIDs(ctx, playerID)
@@ -281,10 +576,6 @@ func (h *Handler) publishFriendPresenceChanged(ctx context.Context, playerID int
 		return
 	}
 	for _, friendID := range friendIDs {
-		friendPresence, err := h.presence.Get(ctx, friendID)
-		if err != nil {
-			continue
-		}
 		event := &statecontract.RealtimeEvent{
 			Type:           statecontract.RealtimeEventFriendPresenceChanged,
 			TargetPlayerID: friendID,
@@ -292,9 +583,30 @@ func (h *Handler) publishFriendPresenceChanged(ctx context.Context, playerID int
 			Online:         online,
 			Status:         status,
 		}
-
-		_ = h.realtimeClient.PublishRealtimeToServer(ctx, friendPresence.ServerName, event)
+		h.pushRealtimeEvent(ctx, event)
 	}
+}
+
+// pushRealtimeEvent 优先向本机连接推送事件，未命中时再转发到玩家所在的 logic-server。
+func (h *Handler) pushRealtimeEvent(ctx context.Context, event *statecontract.RealtimeEvent) {
+	if event == nil || ctx.Err() != nil {
+		return
+	}
+	serverEnvelope, ok := toProtoEnvelope(*event)
+	if !ok {
+		return
+	}
+	if h.connManager.Send(event.TargetPlayerID, serverEnvelope) {
+		return
+	}
+	if h.realtimeClient == nil || h.presence == nil {
+		return
+	}
+	targetPresence, err := h.presence.Get(ctx, event.TargetPlayerID)
+	if err != nil {
+		return
+	}
+	_ = h.realtimeClient.PublishRealtimeToServer(ctx, targetPresence.ServerName, event)
 }
 
 func (h *Handler) pushMatchResultToPlayers(ctx context.Context, currentPlayerID int64, result *rcenter.MatchResult) {
@@ -349,6 +661,28 @@ func matchErrorCode(err error) realtimepb.ErrorCode {
 	}
 }
 
+func growthErrorCode(err error) realtimepb.ErrorCode {
+	switch {
+	case errors.Is(err, growth.ErrInvalidPlayerID),
+		errors.Is(err, growth.ErrInvalidUpgradeType),
+		errors.Is(err, growth.ErrInvalidGrowthLevel):
+		return realtimepb.ErrorCode_INVALID_ARGUMENT
+	case errors.Is(err, growth.ErrGrowthNotFound):
+		return realtimepb.ErrorCode_NOT_FOUND
+	case errors.Is(err, growth.ErrInsufficientCoins), errors.Is(err, growth.ErrMaxLevelReached):
+		return realtimepb.ErrorCode_CONFLICT
+	default:
+		return realtimepb.ErrorCode_INTERNAL
+	}
+}
+
+func playerErrorCode(err error) realtimepb.ErrorCode {
+	if errors.Is(err, player.ErrNotFound) {
+		return realtimepb.ErrorCode_NOT_FOUND
+	}
+	return realtimepb.ErrorCode_INTERNAL
+}
+
 func isValidWeapon(weapon string) bool {
 	if weapon == "bow" || weapon == "axe" || weapon == "dagger" || weapon == "sword" {
 		return true
@@ -369,4 +703,16 @@ func matchResultEnvelope(requestID uint64, result *rcenter.MatchResult) *realtim
 			},
 		},
 	}
+}
+
+func writeFriendError(session *session, requestID uint64, err error) error {
+	switch {
+	case errors.Is(err, friend.ErrInvalidPlayerID) || errors.Is(err, friend.ErrInvalidRequest):
+		return writeError(session, requestID, realtimepb.ErrorCode_INVALID_ARGUMENT, err.Error())
+	case errors.Is(err, friend.ErrRequestNotFound) || errors.Is(err, friend.ErrNotFound):
+		return writeError(session, requestID, realtimepb.ErrorCode_NOT_FOUND, err.Error())
+	case errors.Is(err, friend.ErrAlreadyExists) || errors.Is(err, friend.ErrRequestExists):
+		return writeError(session, requestID, realtimepb.ErrorCode_CONFLICT, err.Error())
+	}
+	return writeError(session, requestID, realtimepb.ErrorCode_INTERNAL, "internal server error")
 }

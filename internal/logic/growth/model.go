@@ -42,6 +42,8 @@ const (
 	UpgradeHealth UpgradeType = iota
 	// UpgradeMoveSpeed 表示移动速度升级。
 	UpgradeMoveSpeed UpgradeType = iota
+
+	UpgradeUnknown = iota
 )
 
 // UpgradeRule 定义一种属性的升级价格和等级上限。

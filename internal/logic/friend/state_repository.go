@@ -86,6 +86,8 @@ func fromStateRequest(req *statecontract.FriendRequest) *Request {
 // mapStateError 将状态层错误收敛为好友领域错误。
 func mapStateError(err error) error {
 	switch {
+	case errors.Is(err, statecontract.ErrPlayerNotFound):
+		return ErrNotFound
 	case errors.Is(err, statecontract.ErrFriendNotFound):
 		return ErrNotFound
 	case errors.Is(err, statecontract.ErrFriendRequestNotFound):

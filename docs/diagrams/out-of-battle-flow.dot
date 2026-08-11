@@ -5,10 +5,10 @@ digraph out_of_battle_flow {
     logic [label="logic-server"];
     state [label="state-server"];
     redis [label="Redis", shape=cylinder];
-    client -> logic [label="HTTP：认证 / 好友 / 成长"];
-    logic -> state [label="state gRPC 请求"];
+    client -> logic [label="HTTP 注册登录 / TCP 大厅请求"];
+    logic -> state [label="state gRPC 请求 / 实时事件转发"];
     state -> redis [label="读写 game:* 键"];
     redis -> state [label="领域数据"];
     state -> logic [label="gRPC 结果"];
-    logic -> client [label="JSON 响应"];
+    logic -> client [label="JSON 或 protobuf 响应"];
 }

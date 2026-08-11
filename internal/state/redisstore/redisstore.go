@@ -392,6 +392,8 @@ func (s *Store) SendFriendRequest(ctx context.Context, fromPlayerID, toPlayerID 
 	if err := validateFriendPair(fromPlayerID, toPlayerID); err != nil {
 		return err
 	}
+	fromPlayerKey := playerKey(fromPlayerID)
+	toPlayerKey := playerKey(toPlayerID)
 	requestKey := friendRequestKey(fromPlayerID, toPlayerID)
 	reverseRequestKey := friendRequestKey(toPlayerID, fromPlayerID)
 	fromFriendKey := friendsKey(fromPlayerID)
@@ -400,6 +402,13 @@ func (s *Store) SendFriendRequest(ctx context.Context, fromPlayerID, toPlayerID 
 	score := float64(createdAt.UnixMilli())
 	return retryOptimisticLock(ctx, func() error {
 		return s.client.Watch(ctx, func(tx *redis.Tx) error {
+			playerExists, err := tx.Exists(ctx, fromPlayerKey, toPlayerKey).Result()
+			if err != nil {
+				return err
+			}
+			if playerExists < 2 {
+				return statecontract.ErrPlayerNotFound
+			}
 			isFriend, err := tx.SIsMember(ctx, fromFriendKey, toPlayerID).Result()
 			if err != nil {
 				return err
@@ -438,7 +447,7 @@ func (s *Store) SendFriendRequest(ctx context.Context, fromPlayerID, toPlayerID 
 				return err
 			}
 			return nil
-		}, requestKey, reverseRequestKey, fromFriendKey, toFriendKey)
+		}, fromPlayerKey, toPlayerKey, requestKey, reverseRequestKey, fromFriendKey, toFriendKey)
 	})
 }
 

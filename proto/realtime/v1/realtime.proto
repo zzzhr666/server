@@ -2,6 +2,8 @@ syntax = "proto3";
 
 package realtime.v1;
 
+import "google/protobuf/timestamp.proto";
+
 option go_package = "server/internal/contract/realtimepb;realtimepb";
 
 // ClientEnvelope 表示客户端在 TCP 连接上发送的一次请求。
@@ -15,6 +17,17 @@ message ClientEnvelope {
     MatchStartRequest match_start = 12;
     MatchCancelRequest match_cancel = 13;
     MatchResumeRequest match_resume = 14;
+    PlayerGetRequest player_get = 20;
+    GrowthGetRequest growth_get = 21;
+    UpgradeGrowthRequest growth_upgrade = 22;
+    SendFriendRequestRequest friend_request_send = 23;
+    ListIncomingFriendRequestsRequest friend_request_list_incoming = 24;
+    ListOutgoingFriendRequestsRequest friend_request_list_outgoing = 25;
+    AcceptFriendRequestRequest friend_request_accept = 26;
+    RejectFriendRequestRequest friend_request_reject = 27;
+    FriendListRequest friend_list = 28;
+    DeleteFriendRequest friend_delete = 29;
+    LogoutRequest logout = 30;
   }
 }
 
@@ -33,6 +46,15 @@ message ServerEnvelope {
     FriendRemoved friend_removed = 17;
     FriendRequestReceived friend_request_received = 18;
     FriendRequestHandled friend_request_handled = 19;
+    PlayerResponse player = 20;
+    GrowthResponse growth = 21;
+    UpgradeGrowthResponse growth_upgrade_result = 22;
+    FriendRequestSentResponse friend_request_sent = 23;
+    FriendRequestResponse friend_requests = 24;
+    FriendRequestHandledResponse friend_request_handled_ack = 25;
+    FriendListResponse friends = 26;
+    FriendDeletedResponse friend_deleted = 27;
+    LogoutResponse logout_ack = 28;
   }
 }
 
@@ -100,3 +122,105 @@ message FriendRequestReceived {
 message FriendRequestHandled {
   int64 player_id = 1;
 }
+
+message Player {
+  int64 id = 1;
+  string nickname = 2;
+  string avatar = 3;
+  string email = 4;
+  string phone = 5;
+  int64 coins = 6;
+}
+
+message FriendRequest {
+  int64 from_player_id = 1;
+  int64 to_player_id = 2;
+  google.protobuf.Timestamp created_at = 3;
+}
+
+message FriendSummary {
+  int64 player_id = 1;
+  string nickname = 2;
+  string avatar = 3;
+  bool online = 4;
+  string status = 5;
+  google.protobuf.Timestamp updated_at = 6;
+}
+
+message Growth {
+  int64 player_id = 1;
+  int32 attack_level = 2;
+  int32 attack_speed_level = 3;
+  int32 health_level = 4;
+  int32 move_speed_level = 5;
+  repeated GrowthUpgradeOption upgrade_options = 6;
+}
+
+message GrowthUpgradeOption {
+  string type = 1;
+  int32 current_level = 2;
+  int64 next_cost = 3;
+  int32 max_level = 4;
+}
+
+message PlayerResponse {
+  Player player = 1;
+}
+
+message GrowthResponse {
+  Growth growth = 1;
+}
+
+message UpgradeGrowthResponse {
+  Growth growth = 1;
+  int64 remaining_coins = 2;
+  int64 cost = 3;
+}
+
+message UpgradeGrowthRequest {
+  string type = 1;
+}
+
+message DeleteFriendRequest {
+  int64 friend_player_id = 1;
+}
+
+message SendFriendRequestRequest {
+  int64 to_player_id = 1;
+}
+
+message FriendRequestSentResponse {}
+
+message ListIncomingFriendRequestsRequest {}
+
+message ListOutgoingFriendRequestsRequest {}
+
+message FriendRequestResponse {
+  repeated FriendRequest requests = 1;
+}
+
+message AcceptFriendRequestRequest {
+  int64 from_player_id = 1;
+}
+
+message RejectFriendRequestRequest {
+  int64 from_player_id = 1;
+}
+
+message FriendRequestHandledResponse {}
+
+message FriendListRequest {}
+
+message FriendListResponse {
+  repeated FriendSummary friends = 1;
+}
+
+message FriendDeletedResponse {}
+
+message LogoutRequest {}
+
+message LogoutResponse {}
+
+message PlayerGetRequest {}
+
+message GrowthGetRequest {}

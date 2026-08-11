@@ -15,6 +15,8 @@ import (
 func TestFriendRequestLifecycleAccept(t *testing.T) {
 	ctx := context.Background()
 	store, client := newRedisTestStore(t)
+	seedPlayer(t, ctx, client, 7)
+	seedPlayer(t, ctx, client, 8)
 
 	if err := store.SendFriendRequest(ctx, 7, 8); err != nil {
 		t.Fatalf("SendFriendRequest returned error: %v", err)
@@ -80,6 +82,8 @@ func TestFriendRequestLifecycleAccept(t *testing.T) {
 func TestFriendRequestLifecycleReject(t *testing.T) {
 	ctx := context.Background()
 	store, client := newRedisTestStore(t)
+	seedPlayer(t, ctx, client, 7)
+	seedPlayer(t, ctx, client, 8)
 
 	if err := store.SendFriendRequest(ctx, 7, 8); err != nil {
 		t.Fatalf("SendFriendRequest returned error: %v", err)
@@ -102,6 +106,8 @@ func TestFriendRequestLifecycleReject(t *testing.T) {
 func TestDeleteFriendRemovesBothDirections(t *testing.T) {
 	ctx := context.Background()
 	store, client := newRedisTestStore(t)
+	seedPlayer(t, ctx, client, 7)
+	seedPlayer(t, ctx, client, 8)
 
 	if err := store.SendFriendRequest(ctx, 7, 8); err != nil {
 		t.Fatalf("SendFriendRequest returned error: %v", err)
@@ -126,6 +132,26 @@ func TestDeleteFriendRemovesBothDirections(t *testing.T) {
 	if err := store.DeleteFriend(ctx, 7, 8); !errors.Is(err, statecontract.ErrFriendNotFound) {
 		t.Fatalf("second DeleteFriend error = %v, want %v", err, statecontract.ErrFriendNotFound)
 	}
+}
+
+func TestSendFriendRequestRequiresExistingPlayers(t *testing.T) {
+	ctx := context.Background()
+	store, client := newRedisTestStore(t)
+	seedPlayer(t, ctx, client, 7)
+
+	if err := store.SendFriendRequest(ctx, 7, 8); !errors.Is(err, statecontract.ErrPlayerNotFound) {
+		t.Fatalf("SendFriendRequest error = %v, want %v", err, statecontract.ErrPlayerNotFound)
+	}
+	assertHashMissing(t, ctx, client, friendRequestKey(7, 8))
+	assertZSetMembers(t, ctx, client, friendIncomingKey(8), nil)
+	assertZSetMembers(t, ctx, client, friendOutgoingKey(7), nil)
+
+	if err := store.SendFriendRequest(ctx, 9, 7); !errors.Is(err, statecontract.ErrPlayerNotFound) {
+		t.Fatalf("SendFriendRequest missing sender error = %v, want %v", err, statecontract.ErrPlayerNotFound)
+	}
+	assertHashMissing(t, ctx, client, friendRequestKey(9, 7))
+	assertZSetMembers(t, ctx, client, friendIncomingKey(7), nil)
+	assertZSetMembers(t, ctx, client, friendOutgoingKey(9), nil)
 }
 
 func TestFriendMethodsValidateInput(t *testing.T) {
@@ -619,13 +645,7 @@ func assertInt64Set(t *testing.T, got, want []int64) {
 func seedPlayerAndGrowth(t *testing.T, ctx context.Context, client *redis.Client, playerID int64, coins int64, growth *statecontract.Growth) {
 	t.Helper()
 
-	if err := client.HSet(ctx, playerKey(playerID), map[string]any{
-		"id":       playerID,
-		"nickname": "player",
-		"coins":    coins,
-	}).Err(); err != nil {
-		t.Fatalf("seed player returned error: %v", err)
-	}
+	seedPlayerWithCoins(t, ctx, client, playerID, coins)
 	if err := client.HSet(ctx, growthKey(playerID), map[string]any{
 		"player_id":          growth.PlayerID,
 		"attack_level":       growth.AttackLevel,
@@ -634,6 +654,24 @@ func seedPlayerAndGrowth(t *testing.T, ctx context.Context, client *redis.Client
 		"move_speed_level":   growth.MoveSpeedLevel,
 	}).Err(); err != nil {
 		t.Fatalf("seed growth returned error: %v", err)
+	}
+}
+
+func seedPlayer(t *testing.T, ctx context.Context, client *redis.Client, playerID int64) {
+	t.Helper()
+
+	seedPlayerWithCoins(t, ctx, client, playerID, 0)
+}
+
+func seedPlayerWithCoins(t *testing.T, ctx context.Context, client *redis.Client, playerID int64, coins int64) {
+	t.Helper()
+
+	if err := client.HSet(ctx, playerKey(playerID), map[string]any{
+		"id":       playerID,
+		"nickname": "player",
+		"coins":    coins,
+	}).Err(); err != nil {
+		t.Fatalf("seed player returned error: %v", err)
 	}
 }
 
