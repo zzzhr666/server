@@ -9,6 +9,7 @@ package realtimepb
 import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
@@ -92,6 +93,17 @@ type ClientEnvelope struct {
 	//	*ClientEnvelope_MatchStart
 	//	*ClientEnvelope_MatchCancel
 	//	*ClientEnvelope_MatchResume
+	//	*ClientEnvelope_PlayerGet
+	//	*ClientEnvelope_GrowthGet
+	//	*ClientEnvelope_GrowthUpgrade
+	//	*ClientEnvelope_FriendRequestSend
+	//	*ClientEnvelope_FriendRequestListIncoming
+	//	*ClientEnvelope_FriendRequestListOutgoing
+	//	*ClientEnvelope_FriendRequestAccept
+	//	*ClientEnvelope_FriendRequestReject
+	//	*ClientEnvelope_FriendList
+	//	*ClientEnvelope_FriendDelete
+	//	*ClientEnvelope_Logout
 	Payload       isClientEnvelope_Payload `protobuf_oneof:"payload"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -186,6 +198,105 @@ func (x *ClientEnvelope) GetMatchResume() *MatchResumeRequest {
 	return nil
 }
 
+func (x *ClientEnvelope) GetPlayerGet() *PlayerGetRequest {
+	if x != nil {
+		if x, ok := x.Payload.(*ClientEnvelope_PlayerGet); ok {
+			return x.PlayerGet
+		}
+	}
+	return nil
+}
+
+func (x *ClientEnvelope) GetGrowthGet() *GrowthGetRequest {
+	if x != nil {
+		if x, ok := x.Payload.(*ClientEnvelope_GrowthGet); ok {
+			return x.GrowthGet
+		}
+	}
+	return nil
+}
+
+func (x *ClientEnvelope) GetGrowthUpgrade() *UpgradeGrowthRequest {
+	if x != nil {
+		if x, ok := x.Payload.(*ClientEnvelope_GrowthUpgrade); ok {
+			return x.GrowthUpgrade
+		}
+	}
+	return nil
+}
+
+func (x *ClientEnvelope) GetFriendRequestSend() *SendFriendRequestRequest {
+	if x != nil {
+		if x, ok := x.Payload.(*ClientEnvelope_FriendRequestSend); ok {
+			return x.FriendRequestSend
+		}
+	}
+	return nil
+}
+
+func (x *ClientEnvelope) GetFriendRequestListIncoming() *ListIncomingFriendRequestsRequest {
+	if x != nil {
+		if x, ok := x.Payload.(*ClientEnvelope_FriendRequestListIncoming); ok {
+			return x.FriendRequestListIncoming
+		}
+	}
+	return nil
+}
+
+func (x *ClientEnvelope) GetFriendRequestListOutgoing() *ListOutgoingFriendRequestsRequest {
+	if x != nil {
+		if x, ok := x.Payload.(*ClientEnvelope_FriendRequestListOutgoing); ok {
+			return x.FriendRequestListOutgoing
+		}
+	}
+	return nil
+}
+
+func (x *ClientEnvelope) GetFriendRequestAccept() *AcceptFriendRequestRequest {
+	if x != nil {
+		if x, ok := x.Payload.(*ClientEnvelope_FriendRequestAccept); ok {
+			return x.FriendRequestAccept
+		}
+	}
+	return nil
+}
+
+func (x *ClientEnvelope) GetFriendRequestReject() *RejectFriendRequestRequest {
+	if x != nil {
+		if x, ok := x.Payload.(*ClientEnvelope_FriendRequestReject); ok {
+			return x.FriendRequestReject
+		}
+	}
+	return nil
+}
+
+func (x *ClientEnvelope) GetFriendList() *FriendListRequest {
+	if x != nil {
+		if x, ok := x.Payload.(*ClientEnvelope_FriendList); ok {
+			return x.FriendList
+		}
+	}
+	return nil
+}
+
+func (x *ClientEnvelope) GetFriendDelete() *DeleteFriendRequest {
+	if x != nil {
+		if x, ok := x.Payload.(*ClientEnvelope_FriendDelete); ok {
+			return x.FriendDelete
+		}
+	}
+	return nil
+}
+
+func (x *ClientEnvelope) GetLogout() *LogoutRequest {
+	if x != nil {
+		if x, ok := x.Payload.(*ClientEnvelope_Logout); ok {
+			return x.Logout
+		}
+	}
+	return nil
+}
+
 type isClientEnvelope_Payload interface {
 	isClientEnvelope_Payload()
 }
@@ -210,6 +321,50 @@ type ClientEnvelope_MatchResume struct {
 	MatchResume *MatchResumeRequest `protobuf:"bytes,14,opt,name=match_resume,json=matchResume,proto3,oneof"`
 }
 
+type ClientEnvelope_PlayerGet struct {
+	PlayerGet *PlayerGetRequest `protobuf:"bytes,20,opt,name=player_get,json=playerGet,proto3,oneof"`
+}
+
+type ClientEnvelope_GrowthGet struct {
+	GrowthGet *GrowthGetRequest `protobuf:"bytes,21,opt,name=growth_get,json=growthGet,proto3,oneof"`
+}
+
+type ClientEnvelope_GrowthUpgrade struct {
+	GrowthUpgrade *UpgradeGrowthRequest `protobuf:"bytes,22,opt,name=growth_upgrade,json=growthUpgrade,proto3,oneof"`
+}
+
+type ClientEnvelope_FriendRequestSend struct {
+	FriendRequestSend *SendFriendRequestRequest `protobuf:"bytes,23,opt,name=friend_request_send,json=friendRequestSend,proto3,oneof"`
+}
+
+type ClientEnvelope_FriendRequestListIncoming struct {
+	FriendRequestListIncoming *ListIncomingFriendRequestsRequest `protobuf:"bytes,24,opt,name=friend_request_list_incoming,json=friendRequestListIncoming,proto3,oneof"`
+}
+
+type ClientEnvelope_FriendRequestListOutgoing struct {
+	FriendRequestListOutgoing *ListOutgoingFriendRequestsRequest `protobuf:"bytes,25,opt,name=friend_request_list_outgoing,json=friendRequestListOutgoing,proto3,oneof"`
+}
+
+type ClientEnvelope_FriendRequestAccept struct {
+	FriendRequestAccept *AcceptFriendRequestRequest `protobuf:"bytes,26,opt,name=friend_request_accept,json=friendRequestAccept,proto3,oneof"`
+}
+
+type ClientEnvelope_FriendRequestReject struct {
+	FriendRequestReject *RejectFriendRequestRequest `protobuf:"bytes,27,opt,name=friend_request_reject,json=friendRequestReject,proto3,oneof"`
+}
+
+type ClientEnvelope_FriendList struct {
+	FriendList *FriendListRequest `protobuf:"bytes,28,opt,name=friend_list,json=friendList,proto3,oneof"`
+}
+
+type ClientEnvelope_FriendDelete struct {
+	FriendDelete *DeleteFriendRequest `protobuf:"bytes,29,opt,name=friend_delete,json=friendDelete,proto3,oneof"`
+}
+
+type ClientEnvelope_Logout struct {
+	Logout *LogoutRequest `protobuf:"bytes,30,opt,name=logout,proto3,oneof"`
+}
+
 func (*ClientEnvelope_Authenticate) isClientEnvelope_Payload() {}
 
 func (*ClientEnvelope_Heartbeat) isClientEnvelope_Payload() {}
@@ -219,6 +374,28 @@ func (*ClientEnvelope_MatchStart) isClientEnvelope_Payload() {}
 func (*ClientEnvelope_MatchCancel) isClientEnvelope_Payload() {}
 
 func (*ClientEnvelope_MatchResume) isClientEnvelope_Payload() {}
+
+func (*ClientEnvelope_PlayerGet) isClientEnvelope_Payload() {}
+
+func (*ClientEnvelope_GrowthGet) isClientEnvelope_Payload() {}
+
+func (*ClientEnvelope_GrowthUpgrade) isClientEnvelope_Payload() {}
+
+func (*ClientEnvelope_FriendRequestSend) isClientEnvelope_Payload() {}
+
+func (*ClientEnvelope_FriendRequestListIncoming) isClientEnvelope_Payload() {}
+
+func (*ClientEnvelope_FriendRequestListOutgoing) isClientEnvelope_Payload() {}
+
+func (*ClientEnvelope_FriendRequestAccept) isClientEnvelope_Payload() {}
+
+func (*ClientEnvelope_FriendRequestReject) isClientEnvelope_Payload() {}
+
+func (*ClientEnvelope_FriendList) isClientEnvelope_Payload() {}
+
+func (*ClientEnvelope_FriendDelete) isClientEnvelope_Payload() {}
+
+func (*ClientEnvelope_Logout) isClientEnvelope_Payload() {}
 
 // ServerEnvelope 表示服务端响应或主动推送的事件。
 type ServerEnvelope struct {
@@ -237,6 +414,15 @@ type ServerEnvelope struct {
 	//	*ServerEnvelope_FriendRemoved
 	//	*ServerEnvelope_FriendRequestReceived
 	//	*ServerEnvelope_FriendRequestHandled
+	//	*ServerEnvelope_Player
+	//	*ServerEnvelope_Growth
+	//	*ServerEnvelope_GrowthUpgradeResult
+	//	*ServerEnvelope_FriendRequestSent
+	//	*ServerEnvelope_FriendRequests
+	//	*ServerEnvelope_FriendRequestHandledAck
+	//	*ServerEnvelope_Friends
+	//	*ServerEnvelope_FriendDeleted
+	//	*ServerEnvelope_LogoutAck
 	Payload       isServerEnvelope_Payload `protobuf_oneof:"payload"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -376,6 +562,87 @@ func (x *ServerEnvelope) GetFriendRequestHandled() *FriendRequestHandled {
 	return nil
 }
 
+func (x *ServerEnvelope) GetPlayer() *PlayerResponse {
+	if x != nil {
+		if x, ok := x.Payload.(*ServerEnvelope_Player); ok {
+			return x.Player
+		}
+	}
+	return nil
+}
+
+func (x *ServerEnvelope) GetGrowth() *GrowthResponse {
+	if x != nil {
+		if x, ok := x.Payload.(*ServerEnvelope_Growth); ok {
+			return x.Growth
+		}
+	}
+	return nil
+}
+
+func (x *ServerEnvelope) GetGrowthUpgradeResult() *UpgradeGrowthResponse {
+	if x != nil {
+		if x, ok := x.Payload.(*ServerEnvelope_GrowthUpgradeResult); ok {
+			return x.GrowthUpgradeResult
+		}
+	}
+	return nil
+}
+
+func (x *ServerEnvelope) GetFriendRequestSent() *FriendRequestSentResponse {
+	if x != nil {
+		if x, ok := x.Payload.(*ServerEnvelope_FriendRequestSent); ok {
+			return x.FriendRequestSent
+		}
+	}
+	return nil
+}
+
+func (x *ServerEnvelope) GetFriendRequests() *FriendRequestResponse {
+	if x != nil {
+		if x, ok := x.Payload.(*ServerEnvelope_FriendRequests); ok {
+			return x.FriendRequests
+		}
+	}
+	return nil
+}
+
+func (x *ServerEnvelope) GetFriendRequestHandledAck() *FriendRequestHandledResponse {
+	if x != nil {
+		if x, ok := x.Payload.(*ServerEnvelope_FriendRequestHandledAck); ok {
+			return x.FriendRequestHandledAck
+		}
+	}
+	return nil
+}
+
+func (x *ServerEnvelope) GetFriends() *FriendListResponse {
+	if x != nil {
+		if x, ok := x.Payload.(*ServerEnvelope_Friends); ok {
+			return x.Friends
+		}
+	}
+	return nil
+}
+
+func (x *ServerEnvelope) GetFriendDeleted() *FriendDeletedResponse {
+	if x != nil {
+		if x, ok := x.Payload.(*ServerEnvelope_FriendDeleted); ok {
+			return x.FriendDeleted
+		}
+	}
+	return nil
+}
+
+func (x *ServerEnvelope) GetLogoutAck() *LogoutResponse {
+	if x != nil {
+		if x, ok := x.Payload.(*ServerEnvelope_LogoutAck); ok {
+			return x.LogoutAck
+		}
+	}
+	return nil
+}
+
 type isServerEnvelope_Payload interface {
 	isServerEnvelope_Payload()
 }
@@ -420,6 +687,42 @@ type ServerEnvelope_FriendRequestHandled struct {
 	FriendRequestHandled *FriendRequestHandled `protobuf:"bytes,19,opt,name=friend_request_handled,json=friendRequestHandled,proto3,oneof"`
 }
 
+type ServerEnvelope_Player struct {
+	Player *PlayerResponse `protobuf:"bytes,20,opt,name=player,proto3,oneof"`
+}
+
+type ServerEnvelope_Growth struct {
+	Growth *GrowthResponse `protobuf:"bytes,21,opt,name=growth,proto3,oneof"`
+}
+
+type ServerEnvelope_GrowthUpgradeResult struct {
+	GrowthUpgradeResult *UpgradeGrowthResponse `protobuf:"bytes,22,opt,name=growth_upgrade_result,json=growthUpgradeResult,proto3,oneof"`
+}
+
+type ServerEnvelope_FriendRequestSent struct {
+	FriendRequestSent *FriendRequestSentResponse `protobuf:"bytes,23,opt,name=friend_request_sent,json=friendRequestSent,proto3,oneof"`
+}
+
+type ServerEnvelope_FriendRequests struct {
+	FriendRequests *FriendRequestResponse `protobuf:"bytes,24,opt,name=friend_requests,json=friendRequests,proto3,oneof"`
+}
+
+type ServerEnvelope_FriendRequestHandledAck struct {
+	FriendRequestHandledAck *FriendRequestHandledResponse `protobuf:"bytes,25,opt,name=friend_request_handled_ack,json=friendRequestHandledAck,proto3,oneof"`
+}
+
+type ServerEnvelope_Friends struct {
+	Friends *FriendListResponse `protobuf:"bytes,26,opt,name=friends,proto3,oneof"`
+}
+
+type ServerEnvelope_FriendDeleted struct {
+	FriendDeleted *FriendDeletedResponse `protobuf:"bytes,27,opt,name=friend_deleted,json=friendDeleted,proto3,oneof"`
+}
+
+type ServerEnvelope_LogoutAck struct {
+	LogoutAck *LogoutResponse `protobuf:"bytes,28,opt,name=logout_ack,json=logoutAck,proto3,oneof"`
+}
+
 func (*ServerEnvelope_Authenticated) isServerEnvelope_Payload() {}
 
 func (*ServerEnvelope_HeartbeatAck) isServerEnvelope_Payload() {}
@@ -439,6 +742,24 @@ func (*ServerEnvelope_FriendRemoved) isServerEnvelope_Payload() {}
 func (*ServerEnvelope_FriendRequestReceived) isServerEnvelope_Payload() {}
 
 func (*ServerEnvelope_FriendRequestHandled) isServerEnvelope_Payload() {}
+
+func (*ServerEnvelope_Player) isServerEnvelope_Payload() {}
+
+func (*ServerEnvelope_Growth) isServerEnvelope_Payload() {}
+
+func (*ServerEnvelope_GrowthUpgradeResult) isServerEnvelope_Payload() {}
+
+func (*ServerEnvelope_FriendRequestSent) isServerEnvelope_Payload() {}
+
+func (*ServerEnvelope_FriendRequests) isServerEnvelope_Payload() {}
+
+func (*ServerEnvelope_FriendRequestHandledAck) isServerEnvelope_Payload() {}
+
+func (*ServerEnvelope_Friends) isServerEnvelope_Payload() {}
+
+func (*ServerEnvelope_FriendDeleted) isServerEnvelope_Payload() {}
+
+func (*ServerEnvelope_LogoutAck) isServerEnvelope_Payload() {}
 
 type Authenticated struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
@@ -1109,11 +1430,1208 @@ func (x *FriendRequestHandled) GetPlayerId() int64 {
 	return 0
 }
 
+type Player struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	Nickname      string                 `protobuf:"bytes,2,opt,name=nickname,proto3" json:"nickname,omitempty"`
+	Avatar        string                 `protobuf:"bytes,3,opt,name=avatar,proto3" json:"avatar,omitempty"`
+	Email         string                 `protobuf:"bytes,4,opt,name=email,proto3" json:"email,omitempty"`
+	Phone         string                 `protobuf:"bytes,5,opt,name=phone,proto3" json:"phone,omitempty"`
+	Coins         int64                  `protobuf:"varint,6,opt,name=coins,proto3" json:"coins,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Player) Reset() {
+	*x = Player{}
+	mi := &file_proto_realtime_v1_realtime_proto_msgTypes[17]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Player) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Player) ProtoMessage() {}
+
+func (x *Player) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_realtime_v1_realtime_proto_msgTypes[17]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Player.ProtoReflect.Descriptor instead.
+func (*Player) Descriptor() ([]byte, []int) {
+	return file_proto_realtime_v1_realtime_proto_rawDescGZIP(), []int{17}
+}
+
+func (x *Player) GetId() int64 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
+func (x *Player) GetNickname() string {
+	if x != nil {
+		return x.Nickname
+	}
+	return ""
+}
+
+func (x *Player) GetAvatar() string {
+	if x != nil {
+		return x.Avatar
+	}
+	return ""
+}
+
+func (x *Player) GetEmail() string {
+	if x != nil {
+		return x.Email
+	}
+	return ""
+}
+
+func (x *Player) GetPhone() string {
+	if x != nil {
+		return x.Phone
+	}
+	return ""
+}
+
+func (x *Player) GetCoins() int64 {
+	if x != nil {
+		return x.Coins
+	}
+	return 0
+}
+
+type FriendRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	FromPlayerId  int64                  `protobuf:"varint,1,opt,name=from_player_id,json=fromPlayerId,proto3" json:"from_player_id,omitempty"`
+	ToPlayerId    int64                  `protobuf:"varint,2,opt,name=to_player_id,json=toPlayerId,proto3" json:"to_player_id,omitempty"`
+	CreatedAt     *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *FriendRequest) Reset() {
+	*x = FriendRequest{}
+	mi := &file_proto_realtime_v1_realtime_proto_msgTypes[18]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *FriendRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*FriendRequest) ProtoMessage() {}
+
+func (x *FriendRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_realtime_v1_realtime_proto_msgTypes[18]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use FriendRequest.ProtoReflect.Descriptor instead.
+func (*FriendRequest) Descriptor() ([]byte, []int) {
+	return file_proto_realtime_v1_realtime_proto_rawDescGZIP(), []int{18}
+}
+
+func (x *FriendRequest) GetFromPlayerId() int64 {
+	if x != nil {
+		return x.FromPlayerId
+	}
+	return 0
+}
+
+func (x *FriendRequest) GetToPlayerId() int64 {
+	if x != nil {
+		return x.ToPlayerId
+	}
+	return 0
+}
+
+func (x *FriendRequest) GetCreatedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return nil
+}
+
+type FriendSummary struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	PlayerId      int64                  `protobuf:"varint,1,opt,name=player_id,json=playerId,proto3" json:"player_id,omitempty"`
+	Nickname      string                 `protobuf:"bytes,2,opt,name=nickname,proto3" json:"nickname,omitempty"`
+	Avatar        string                 `protobuf:"bytes,3,opt,name=avatar,proto3" json:"avatar,omitempty"`
+	Online        bool                   `protobuf:"varint,4,opt,name=online,proto3" json:"online,omitempty"`
+	Status        string                 `protobuf:"bytes,5,opt,name=status,proto3" json:"status,omitempty"`
+	UpdatedAt     *timestamppb.Timestamp `protobuf:"bytes,6,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *FriendSummary) Reset() {
+	*x = FriendSummary{}
+	mi := &file_proto_realtime_v1_realtime_proto_msgTypes[19]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *FriendSummary) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*FriendSummary) ProtoMessage() {}
+
+func (x *FriendSummary) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_realtime_v1_realtime_proto_msgTypes[19]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use FriendSummary.ProtoReflect.Descriptor instead.
+func (*FriendSummary) Descriptor() ([]byte, []int) {
+	return file_proto_realtime_v1_realtime_proto_rawDescGZIP(), []int{19}
+}
+
+func (x *FriendSummary) GetPlayerId() int64 {
+	if x != nil {
+		return x.PlayerId
+	}
+	return 0
+}
+
+func (x *FriendSummary) GetNickname() string {
+	if x != nil {
+		return x.Nickname
+	}
+	return ""
+}
+
+func (x *FriendSummary) GetAvatar() string {
+	if x != nil {
+		return x.Avatar
+	}
+	return ""
+}
+
+func (x *FriendSummary) GetOnline() bool {
+	if x != nil {
+		return x.Online
+	}
+	return false
+}
+
+func (x *FriendSummary) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
+func (x *FriendSummary) GetUpdatedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.UpdatedAt
+	}
+	return nil
+}
+
+type Growth struct {
+	state            protoimpl.MessageState `protogen:"open.v1"`
+	PlayerId         int64                  `protobuf:"varint,1,opt,name=player_id,json=playerId,proto3" json:"player_id,omitempty"`
+	AttackLevel      int32                  `protobuf:"varint,2,opt,name=attack_level,json=attackLevel,proto3" json:"attack_level,omitempty"`
+	AttackSpeedLevel int32                  `protobuf:"varint,3,opt,name=attack_speed_level,json=attackSpeedLevel,proto3" json:"attack_speed_level,omitempty"`
+	HealthLevel      int32                  `protobuf:"varint,4,opt,name=health_level,json=healthLevel,proto3" json:"health_level,omitempty"`
+	MoveSpeedLevel   int32                  `protobuf:"varint,5,opt,name=move_speed_level,json=moveSpeedLevel,proto3" json:"move_speed_level,omitempty"`
+	UpgradeOptions   []*GrowthUpgradeOption `protobuf:"bytes,6,rep,name=upgrade_options,json=upgradeOptions,proto3" json:"upgrade_options,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
+}
+
+func (x *Growth) Reset() {
+	*x = Growth{}
+	mi := &file_proto_realtime_v1_realtime_proto_msgTypes[20]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Growth) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Growth) ProtoMessage() {}
+
+func (x *Growth) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_realtime_v1_realtime_proto_msgTypes[20]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Growth.ProtoReflect.Descriptor instead.
+func (*Growth) Descriptor() ([]byte, []int) {
+	return file_proto_realtime_v1_realtime_proto_rawDescGZIP(), []int{20}
+}
+
+func (x *Growth) GetPlayerId() int64 {
+	if x != nil {
+		return x.PlayerId
+	}
+	return 0
+}
+
+func (x *Growth) GetAttackLevel() int32 {
+	if x != nil {
+		return x.AttackLevel
+	}
+	return 0
+}
+
+func (x *Growth) GetAttackSpeedLevel() int32 {
+	if x != nil {
+		return x.AttackSpeedLevel
+	}
+	return 0
+}
+
+func (x *Growth) GetHealthLevel() int32 {
+	if x != nil {
+		return x.HealthLevel
+	}
+	return 0
+}
+
+func (x *Growth) GetMoveSpeedLevel() int32 {
+	if x != nil {
+		return x.MoveSpeedLevel
+	}
+	return 0
+}
+
+func (x *Growth) GetUpgradeOptions() []*GrowthUpgradeOption {
+	if x != nil {
+		return x.UpgradeOptions
+	}
+	return nil
+}
+
+type GrowthUpgradeOption struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Type          string                 `protobuf:"bytes,1,opt,name=type,proto3" json:"type,omitempty"`
+	CurrentLevel  int32                  `protobuf:"varint,2,opt,name=current_level,json=currentLevel,proto3" json:"current_level,omitempty"`
+	NextCost      int64                  `protobuf:"varint,3,opt,name=next_cost,json=nextCost,proto3" json:"next_cost,omitempty"`
+	MaxLevel      int32                  `protobuf:"varint,4,opt,name=max_level,json=maxLevel,proto3" json:"max_level,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GrowthUpgradeOption) Reset() {
+	*x = GrowthUpgradeOption{}
+	mi := &file_proto_realtime_v1_realtime_proto_msgTypes[21]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GrowthUpgradeOption) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GrowthUpgradeOption) ProtoMessage() {}
+
+func (x *GrowthUpgradeOption) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_realtime_v1_realtime_proto_msgTypes[21]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GrowthUpgradeOption.ProtoReflect.Descriptor instead.
+func (*GrowthUpgradeOption) Descriptor() ([]byte, []int) {
+	return file_proto_realtime_v1_realtime_proto_rawDescGZIP(), []int{21}
+}
+
+func (x *GrowthUpgradeOption) GetType() string {
+	if x != nil {
+		return x.Type
+	}
+	return ""
+}
+
+func (x *GrowthUpgradeOption) GetCurrentLevel() int32 {
+	if x != nil {
+		return x.CurrentLevel
+	}
+	return 0
+}
+
+func (x *GrowthUpgradeOption) GetNextCost() int64 {
+	if x != nil {
+		return x.NextCost
+	}
+	return 0
+}
+
+func (x *GrowthUpgradeOption) GetMaxLevel() int32 {
+	if x != nil {
+		return x.MaxLevel
+	}
+	return 0
+}
+
+type PlayerResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Player        *Player                `protobuf:"bytes,1,opt,name=player,proto3" json:"player,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PlayerResponse) Reset() {
+	*x = PlayerResponse{}
+	mi := &file_proto_realtime_v1_realtime_proto_msgTypes[22]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PlayerResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PlayerResponse) ProtoMessage() {}
+
+func (x *PlayerResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_realtime_v1_realtime_proto_msgTypes[22]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PlayerResponse.ProtoReflect.Descriptor instead.
+func (*PlayerResponse) Descriptor() ([]byte, []int) {
+	return file_proto_realtime_v1_realtime_proto_rawDescGZIP(), []int{22}
+}
+
+func (x *PlayerResponse) GetPlayer() *Player {
+	if x != nil {
+		return x.Player
+	}
+	return nil
+}
+
+type GrowthResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Growth        *Growth                `protobuf:"bytes,1,opt,name=growth,proto3" json:"growth,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GrowthResponse) Reset() {
+	*x = GrowthResponse{}
+	mi := &file_proto_realtime_v1_realtime_proto_msgTypes[23]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GrowthResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GrowthResponse) ProtoMessage() {}
+
+func (x *GrowthResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_realtime_v1_realtime_proto_msgTypes[23]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GrowthResponse.ProtoReflect.Descriptor instead.
+func (*GrowthResponse) Descriptor() ([]byte, []int) {
+	return file_proto_realtime_v1_realtime_proto_rawDescGZIP(), []int{23}
+}
+
+func (x *GrowthResponse) GetGrowth() *Growth {
+	if x != nil {
+		return x.Growth
+	}
+	return nil
+}
+
+type UpgradeGrowthResponse struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	Growth         *Growth                `protobuf:"bytes,1,opt,name=growth,proto3" json:"growth,omitempty"`
+	RemainingCoins int64                  `protobuf:"varint,2,opt,name=remaining_coins,json=remainingCoins,proto3" json:"remaining_coins,omitempty"`
+	Cost           int64                  `protobuf:"varint,3,opt,name=cost,proto3" json:"cost,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *UpgradeGrowthResponse) Reset() {
+	*x = UpgradeGrowthResponse{}
+	mi := &file_proto_realtime_v1_realtime_proto_msgTypes[24]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpgradeGrowthResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpgradeGrowthResponse) ProtoMessage() {}
+
+func (x *UpgradeGrowthResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_realtime_v1_realtime_proto_msgTypes[24]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpgradeGrowthResponse.ProtoReflect.Descriptor instead.
+func (*UpgradeGrowthResponse) Descriptor() ([]byte, []int) {
+	return file_proto_realtime_v1_realtime_proto_rawDescGZIP(), []int{24}
+}
+
+func (x *UpgradeGrowthResponse) GetGrowth() *Growth {
+	if x != nil {
+		return x.Growth
+	}
+	return nil
+}
+
+func (x *UpgradeGrowthResponse) GetRemainingCoins() int64 {
+	if x != nil {
+		return x.RemainingCoins
+	}
+	return 0
+}
+
+func (x *UpgradeGrowthResponse) GetCost() int64 {
+	if x != nil {
+		return x.Cost
+	}
+	return 0
+}
+
+type UpgradeGrowthRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Type          string                 `protobuf:"bytes,1,opt,name=type,proto3" json:"type,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpgradeGrowthRequest) Reset() {
+	*x = UpgradeGrowthRequest{}
+	mi := &file_proto_realtime_v1_realtime_proto_msgTypes[25]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpgradeGrowthRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpgradeGrowthRequest) ProtoMessage() {}
+
+func (x *UpgradeGrowthRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_realtime_v1_realtime_proto_msgTypes[25]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpgradeGrowthRequest.ProtoReflect.Descriptor instead.
+func (*UpgradeGrowthRequest) Descriptor() ([]byte, []int) {
+	return file_proto_realtime_v1_realtime_proto_rawDescGZIP(), []int{25}
+}
+
+func (x *UpgradeGrowthRequest) GetType() string {
+	if x != nil {
+		return x.Type
+	}
+	return ""
+}
+
+type DeleteFriendRequest struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	FriendPlayerId int64                  `protobuf:"varint,1,opt,name=friend_player_id,json=friendPlayerId,proto3" json:"friend_player_id,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *DeleteFriendRequest) Reset() {
+	*x = DeleteFriendRequest{}
+	mi := &file_proto_realtime_v1_realtime_proto_msgTypes[26]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteFriendRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteFriendRequest) ProtoMessage() {}
+
+func (x *DeleteFriendRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_realtime_v1_realtime_proto_msgTypes[26]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteFriendRequest.ProtoReflect.Descriptor instead.
+func (*DeleteFriendRequest) Descriptor() ([]byte, []int) {
+	return file_proto_realtime_v1_realtime_proto_rawDescGZIP(), []int{26}
+}
+
+func (x *DeleteFriendRequest) GetFriendPlayerId() int64 {
+	if x != nil {
+		return x.FriendPlayerId
+	}
+	return 0
+}
+
+type SendFriendRequestRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ToPlayerId    int64                  `protobuf:"varint,1,opt,name=to_player_id,json=toPlayerId,proto3" json:"to_player_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SendFriendRequestRequest) Reset() {
+	*x = SendFriendRequestRequest{}
+	mi := &file_proto_realtime_v1_realtime_proto_msgTypes[27]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SendFriendRequestRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SendFriendRequestRequest) ProtoMessage() {}
+
+func (x *SendFriendRequestRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_realtime_v1_realtime_proto_msgTypes[27]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SendFriendRequestRequest.ProtoReflect.Descriptor instead.
+func (*SendFriendRequestRequest) Descriptor() ([]byte, []int) {
+	return file_proto_realtime_v1_realtime_proto_rawDescGZIP(), []int{27}
+}
+
+func (x *SendFriendRequestRequest) GetToPlayerId() int64 {
+	if x != nil {
+		return x.ToPlayerId
+	}
+	return 0
+}
+
+type FriendRequestSentResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *FriendRequestSentResponse) Reset() {
+	*x = FriendRequestSentResponse{}
+	mi := &file_proto_realtime_v1_realtime_proto_msgTypes[28]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *FriendRequestSentResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*FriendRequestSentResponse) ProtoMessage() {}
+
+func (x *FriendRequestSentResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_realtime_v1_realtime_proto_msgTypes[28]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use FriendRequestSentResponse.ProtoReflect.Descriptor instead.
+func (*FriendRequestSentResponse) Descriptor() ([]byte, []int) {
+	return file_proto_realtime_v1_realtime_proto_rawDescGZIP(), []int{28}
+}
+
+type ListIncomingFriendRequestsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListIncomingFriendRequestsRequest) Reset() {
+	*x = ListIncomingFriendRequestsRequest{}
+	mi := &file_proto_realtime_v1_realtime_proto_msgTypes[29]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListIncomingFriendRequestsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListIncomingFriendRequestsRequest) ProtoMessage() {}
+
+func (x *ListIncomingFriendRequestsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_realtime_v1_realtime_proto_msgTypes[29]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListIncomingFriendRequestsRequest.ProtoReflect.Descriptor instead.
+func (*ListIncomingFriendRequestsRequest) Descriptor() ([]byte, []int) {
+	return file_proto_realtime_v1_realtime_proto_rawDescGZIP(), []int{29}
+}
+
+type ListOutgoingFriendRequestsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListOutgoingFriendRequestsRequest) Reset() {
+	*x = ListOutgoingFriendRequestsRequest{}
+	mi := &file_proto_realtime_v1_realtime_proto_msgTypes[30]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListOutgoingFriendRequestsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListOutgoingFriendRequestsRequest) ProtoMessage() {}
+
+func (x *ListOutgoingFriendRequestsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_realtime_v1_realtime_proto_msgTypes[30]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListOutgoingFriendRequestsRequest.ProtoReflect.Descriptor instead.
+func (*ListOutgoingFriendRequestsRequest) Descriptor() ([]byte, []int) {
+	return file_proto_realtime_v1_realtime_proto_rawDescGZIP(), []int{30}
+}
+
+type FriendRequestResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Requests      []*FriendRequest       `protobuf:"bytes,1,rep,name=requests,proto3" json:"requests,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *FriendRequestResponse) Reset() {
+	*x = FriendRequestResponse{}
+	mi := &file_proto_realtime_v1_realtime_proto_msgTypes[31]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *FriendRequestResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*FriendRequestResponse) ProtoMessage() {}
+
+func (x *FriendRequestResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_realtime_v1_realtime_proto_msgTypes[31]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use FriendRequestResponse.ProtoReflect.Descriptor instead.
+func (*FriendRequestResponse) Descriptor() ([]byte, []int) {
+	return file_proto_realtime_v1_realtime_proto_rawDescGZIP(), []int{31}
+}
+
+func (x *FriendRequestResponse) GetRequests() []*FriendRequest {
+	if x != nil {
+		return x.Requests
+	}
+	return nil
+}
+
+type AcceptFriendRequestRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	FromPlayerId  int64                  `protobuf:"varint,1,opt,name=from_player_id,json=fromPlayerId,proto3" json:"from_player_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AcceptFriendRequestRequest) Reset() {
+	*x = AcceptFriendRequestRequest{}
+	mi := &file_proto_realtime_v1_realtime_proto_msgTypes[32]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AcceptFriendRequestRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AcceptFriendRequestRequest) ProtoMessage() {}
+
+func (x *AcceptFriendRequestRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_realtime_v1_realtime_proto_msgTypes[32]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AcceptFriendRequestRequest.ProtoReflect.Descriptor instead.
+func (*AcceptFriendRequestRequest) Descriptor() ([]byte, []int) {
+	return file_proto_realtime_v1_realtime_proto_rawDescGZIP(), []int{32}
+}
+
+func (x *AcceptFriendRequestRequest) GetFromPlayerId() int64 {
+	if x != nil {
+		return x.FromPlayerId
+	}
+	return 0
+}
+
+type RejectFriendRequestRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	FromPlayerId  int64                  `protobuf:"varint,1,opt,name=from_player_id,json=fromPlayerId,proto3" json:"from_player_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RejectFriendRequestRequest) Reset() {
+	*x = RejectFriendRequestRequest{}
+	mi := &file_proto_realtime_v1_realtime_proto_msgTypes[33]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RejectFriendRequestRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RejectFriendRequestRequest) ProtoMessage() {}
+
+func (x *RejectFriendRequestRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_realtime_v1_realtime_proto_msgTypes[33]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RejectFriendRequestRequest.ProtoReflect.Descriptor instead.
+func (*RejectFriendRequestRequest) Descriptor() ([]byte, []int) {
+	return file_proto_realtime_v1_realtime_proto_rawDescGZIP(), []int{33}
+}
+
+func (x *RejectFriendRequestRequest) GetFromPlayerId() int64 {
+	if x != nil {
+		return x.FromPlayerId
+	}
+	return 0
+}
+
+type FriendRequestHandledResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *FriendRequestHandledResponse) Reset() {
+	*x = FriendRequestHandledResponse{}
+	mi := &file_proto_realtime_v1_realtime_proto_msgTypes[34]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *FriendRequestHandledResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*FriendRequestHandledResponse) ProtoMessage() {}
+
+func (x *FriendRequestHandledResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_realtime_v1_realtime_proto_msgTypes[34]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use FriendRequestHandledResponse.ProtoReflect.Descriptor instead.
+func (*FriendRequestHandledResponse) Descriptor() ([]byte, []int) {
+	return file_proto_realtime_v1_realtime_proto_rawDescGZIP(), []int{34}
+}
+
+type FriendListRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *FriendListRequest) Reset() {
+	*x = FriendListRequest{}
+	mi := &file_proto_realtime_v1_realtime_proto_msgTypes[35]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *FriendListRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*FriendListRequest) ProtoMessage() {}
+
+func (x *FriendListRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_realtime_v1_realtime_proto_msgTypes[35]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use FriendListRequest.ProtoReflect.Descriptor instead.
+func (*FriendListRequest) Descriptor() ([]byte, []int) {
+	return file_proto_realtime_v1_realtime_proto_rawDescGZIP(), []int{35}
+}
+
+type FriendListResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Friends       []*FriendSummary       `protobuf:"bytes,1,rep,name=friends,proto3" json:"friends,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *FriendListResponse) Reset() {
+	*x = FriendListResponse{}
+	mi := &file_proto_realtime_v1_realtime_proto_msgTypes[36]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *FriendListResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*FriendListResponse) ProtoMessage() {}
+
+func (x *FriendListResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_realtime_v1_realtime_proto_msgTypes[36]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use FriendListResponse.ProtoReflect.Descriptor instead.
+func (*FriendListResponse) Descriptor() ([]byte, []int) {
+	return file_proto_realtime_v1_realtime_proto_rawDescGZIP(), []int{36}
+}
+
+func (x *FriendListResponse) GetFriends() []*FriendSummary {
+	if x != nil {
+		return x.Friends
+	}
+	return nil
+}
+
+type FriendDeletedResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *FriendDeletedResponse) Reset() {
+	*x = FriendDeletedResponse{}
+	mi := &file_proto_realtime_v1_realtime_proto_msgTypes[37]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *FriendDeletedResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*FriendDeletedResponse) ProtoMessage() {}
+
+func (x *FriendDeletedResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_realtime_v1_realtime_proto_msgTypes[37]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use FriendDeletedResponse.ProtoReflect.Descriptor instead.
+func (*FriendDeletedResponse) Descriptor() ([]byte, []int) {
+	return file_proto_realtime_v1_realtime_proto_rawDescGZIP(), []int{37}
+}
+
+type LogoutRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *LogoutRequest) Reset() {
+	*x = LogoutRequest{}
+	mi := &file_proto_realtime_v1_realtime_proto_msgTypes[38]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *LogoutRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*LogoutRequest) ProtoMessage() {}
+
+func (x *LogoutRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_realtime_v1_realtime_proto_msgTypes[38]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use LogoutRequest.ProtoReflect.Descriptor instead.
+func (*LogoutRequest) Descriptor() ([]byte, []int) {
+	return file_proto_realtime_v1_realtime_proto_rawDescGZIP(), []int{38}
+}
+
+type LogoutResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *LogoutResponse) Reset() {
+	*x = LogoutResponse{}
+	mi := &file_proto_realtime_v1_realtime_proto_msgTypes[39]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *LogoutResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*LogoutResponse) ProtoMessage() {}
+
+func (x *LogoutResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_realtime_v1_realtime_proto_msgTypes[39]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use LogoutResponse.ProtoReflect.Descriptor instead.
+func (*LogoutResponse) Descriptor() ([]byte, []int) {
+	return file_proto_realtime_v1_realtime_proto_rawDescGZIP(), []int{39}
+}
+
+type PlayerGetRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PlayerGetRequest) Reset() {
+	*x = PlayerGetRequest{}
+	mi := &file_proto_realtime_v1_realtime_proto_msgTypes[40]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PlayerGetRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PlayerGetRequest) ProtoMessage() {}
+
+func (x *PlayerGetRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_realtime_v1_realtime_proto_msgTypes[40]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PlayerGetRequest.ProtoReflect.Descriptor instead.
+func (*PlayerGetRequest) Descriptor() ([]byte, []int) {
+	return file_proto_realtime_v1_realtime_proto_rawDescGZIP(), []int{40}
+}
+
+type GrowthGetRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GrowthGetRequest) Reset() {
+	*x = GrowthGetRequest{}
+	mi := &file_proto_realtime_v1_realtime_proto_msgTypes[41]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GrowthGetRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GrowthGetRequest) ProtoMessage() {}
+
+func (x *GrowthGetRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_realtime_v1_realtime_proto_msgTypes[41]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GrowthGetRequest.ProtoReflect.Descriptor instead.
+func (*GrowthGetRequest) Descriptor() ([]byte, []int) {
+	return file_proto_realtime_v1_realtime_proto_rawDescGZIP(), []int{41}
+}
+
 var File_proto_realtime_v1_realtime_proto protoreflect.FileDescriptor
 
 const file_proto_realtime_v1_realtime_proto_rawDesc = "" +
 	"\n" +
-	" proto/realtime/v1/realtime.proto\x12\vrealtime.v1\"\x90\x03\n" +
+	" proto/realtime/v1/realtime.proto\x12\vrealtime.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"\x9b\n" +
+	"\n" +
 	"\x0eClientEnvelope\x12\x1d\n" +
 	"\n" +
 	"request_id\x18\x01 \x01(\x04R\trequestId\x12F\n" +
@@ -1123,8 +2641,22 @@ const file_proto_realtime_v1_realtime_proto_rawDesc = "" +
 	"\vmatch_start\x18\f \x01(\v2\x1e.realtime.v1.MatchStartRequestH\x00R\n" +
 	"matchStart\x12D\n" +
 	"\fmatch_cancel\x18\r \x01(\v2\x1f.realtime.v1.MatchCancelRequestH\x00R\vmatchCancel\x12D\n" +
-	"\fmatch_resume\x18\x0e \x01(\v2\x1f.realtime.v1.MatchResumeRequestH\x00R\vmatchResumeB\t\n" +
-	"\apayload\"\xa8\x06\n" +
+	"\fmatch_resume\x18\x0e \x01(\v2\x1f.realtime.v1.MatchResumeRequestH\x00R\vmatchResume\x12>\n" +
+	"\n" +
+	"player_get\x18\x14 \x01(\v2\x1d.realtime.v1.PlayerGetRequestH\x00R\tplayerGet\x12>\n" +
+	"\n" +
+	"growth_get\x18\x15 \x01(\v2\x1d.realtime.v1.GrowthGetRequestH\x00R\tgrowthGet\x12J\n" +
+	"\x0egrowth_upgrade\x18\x16 \x01(\v2!.realtime.v1.UpgradeGrowthRequestH\x00R\rgrowthUpgrade\x12W\n" +
+	"\x13friend_request_send\x18\x17 \x01(\v2%.realtime.v1.SendFriendRequestRequestH\x00R\x11friendRequestSend\x12q\n" +
+	"\x1cfriend_request_list_incoming\x18\x18 \x01(\v2..realtime.v1.ListIncomingFriendRequestsRequestH\x00R\x19friendRequestListIncoming\x12q\n" +
+	"\x1cfriend_request_list_outgoing\x18\x19 \x01(\v2..realtime.v1.ListOutgoingFriendRequestsRequestH\x00R\x19friendRequestListOutgoing\x12]\n" +
+	"\x15friend_request_accept\x18\x1a \x01(\v2'.realtime.v1.AcceptFriendRequestRequestH\x00R\x13friendRequestAccept\x12]\n" +
+	"\x15friend_request_reject\x18\x1b \x01(\v2'.realtime.v1.RejectFriendRequestRequestH\x00R\x13friendRequestReject\x12A\n" +
+	"\vfriend_list\x18\x1c \x01(\v2\x1e.realtime.v1.FriendListRequestH\x00R\n" +
+	"friendList\x12G\n" +
+	"\rfriend_delete\x18\x1d \x01(\v2 .realtime.v1.DeleteFriendRequestH\x00R\ffriendDelete\x124\n" +
+	"\x06logout\x18\x1e \x01(\v2\x1a.realtime.v1.LogoutRequestH\x00R\x06logoutB\t\n" +
+	"\apayload\"\xcb\v\n" +
 	"\x0eServerEnvelope\x12\x1d\n" +
 	"\n" +
 	"request_id\x18\x01 \x01(\x04R\trequestId\x12B\n" +
@@ -1138,7 +2670,17 @@ const file_proto_realtime_v1_realtime_proto_rawDesc = "" +
 	"\x17friend_presence_changed\x18\x10 \x01(\v2\".realtime.v1.FriendPresenceChangedH\x00R\x15friendPresenceChanged\x12C\n" +
 	"\x0efriend_removed\x18\x11 \x01(\v2\x1a.realtime.v1.FriendRemovedH\x00R\rfriendRemoved\x12\\\n" +
 	"\x17friend_request_received\x18\x12 \x01(\v2\".realtime.v1.FriendRequestReceivedH\x00R\x15friendRequestReceived\x12Y\n" +
-	"\x16friend_request_handled\x18\x13 \x01(\v2!.realtime.v1.FriendRequestHandledH\x00R\x14friendRequestHandledB\t\n" +
+	"\x16friend_request_handled\x18\x13 \x01(\v2!.realtime.v1.FriendRequestHandledH\x00R\x14friendRequestHandled\x125\n" +
+	"\x06player\x18\x14 \x01(\v2\x1b.realtime.v1.PlayerResponseH\x00R\x06player\x125\n" +
+	"\x06growth\x18\x15 \x01(\v2\x1b.realtime.v1.GrowthResponseH\x00R\x06growth\x12X\n" +
+	"\x15growth_upgrade_result\x18\x16 \x01(\v2\".realtime.v1.UpgradeGrowthResponseH\x00R\x13growthUpgradeResult\x12X\n" +
+	"\x13friend_request_sent\x18\x17 \x01(\v2&.realtime.v1.FriendRequestSentResponseH\x00R\x11friendRequestSent\x12M\n" +
+	"\x0ffriend_requests\x18\x18 \x01(\v2\".realtime.v1.FriendRequestResponseH\x00R\x0efriendRequests\x12h\n" +
+	"\x1afriend_request_handled_ack\x18\x19 \x01(\v2).realtime.v1.FriendRequestHandledResponseH\x00R\x17friendRequestHandledAck\x12;\n" +
+	"\afriends\x18\x1a \x01(\v2\x1f.realtime.v1.FriendListResponseH\x00R\afriends\x12K\n" +
+	"\x0efriend_deleted\x18\x1b \x01(\v2\".realtime.v1.FriendDeletedResponseH\x00R\rfriendDeleted\x12<\n" +
+	"\n" +
+	"logout_ack\x18\x1c \x01(\v2\x1b.realtime.v1.LogoutResponseH\x00R\tlogoutAckB\t\n" +
 	"\apayload\",\n" +
 	"\rAuthenticated\x12\x1b\n" +
 	"\tplayer_id\x18\x01 \x01(\x03R\bplayerId\"\x12\n" +
@@ -1170,7 +2712,73 @@ const file_proto_realtime_v1_realtime_proto_rawDesc = "" +
 	"\x15FriendRequestReceived\x12\x1b\n" +
 	"\tplayer_id\x18\x01 \x01(\x03R\bplayerId\"3\n" +
 	"\x14FriendRequestHandled\x12\x1b\n" +
-	"\tplayer_id\x18\x01 \x01(\x03R\bplayerId*r\n" +
+	"\tplayer_id\x18\x01 \x01(\x03R\bplayerId\"\x8e\x01\n" +
+	"\x06Player\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x1a\n" +
+	"\bnickname\x18\x02 \x01(\tR\bnickname\x12\x16\n" +
+	"\x06avatar\x18\x03 \x01(\tR\x06avatar\x12\x14\n" +
+	"\x05email\x18\x04 \x01(\tR\x05email\x12\x14\n" +
+	"\x05phone\x18\x05 \x01(\tR\x05phone\x12\x14\n" +
+	"\x05coins\x18\x06 \x01(\x03R\x05coins\"\x92\x01\n" +
+	"\rFriendRequest\x12$\n" +
+	"\x0efrom_player_id\x18\x01 \x01(\x03R\ffromPlayerId\x12 \n" +
+	"\fto_player_id\x18\x02 \x01(\x03R\n" +
+	"toPlayerId\x129\n" +
+	"\n" +
+	"created_at\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\"\xcb\x01\n" +
+	"\rFriendSummary\x12\x1b\n" +
+	"\tplayer_id\x18\x01 \x01(\x03R\bplayerId\x12\x1a\n" +
+	"\bnickname\x18\x02 \x01(\tR\bnickname\x12\x16\n" +
+	"\x06avatar\x18\x03 \x01(\tR\x06avatar\x12\x16\n" +
+	"\x06online\x18\x04 \x01(\bR\x06online\x12\x16\n" +
+	"\x06status\x18\x05 \x01(\tR\x06status\x129\n" +
+	"\n" +
+	"updated_at\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\"\x8e\x02\n" +
+	"\x06Growth\x12\x1b\n" +
+	"\tplayer_id\x18\x01 \x01(\x03R\bplayerId\x12!\n" +
+	"\fattack_level\x18\x02 \x01(\x05R\vattackLevel\x12,\n" +
+	"\x12attack_speed_level\x18\x03 \x01(\x05R\x10attackSpeedLevel\x12!\n" +
+	"\fhealth_level\x18\x04 \x01(\x05R\vhealthLevel\x12(\n" +
+	"\x10move_speed_level\x18\x05 \x01(\x05R\x0emoveSpeedLevel\x12I\n" +
+	"\x0fupgrade_options\x18\x06 \x03(\v2 .realtime.v1.GrowthUpgradeOptionR\x0eupgradeOptions\"\x88\x01\n" +
+	"\x13GrowthUpgradeOption\x12\x12\n" +
+	"\x04type\x18\x01 \x01(\tR\x04type\x12#\n" +
+	"\rcurrent_level\x18\x02 \x01(\x05R\fcurrentLevel\x12\x1b\n" +
+	"\tnext_cost\x18\x03 \x01(\x03R\bnextCost\x12\x1b\n" +
+	"\tmax_level\x18\x04 \x01(\x05R\bmaxLevel\"=\n" +
+	"\x0ePlayerResponse\x12+\n" +
+	"\x06player\x18\x01 \x01(\v2\x13.realtime.v1.PlayerR\x06player\"=\n" +
+	"\x0eGrowthResponse\x12+\n" +
+	"\x06growth\x18\x01 \x01(\v2\x13.realtime.v1.GrowthR\x06growth\"\x81\x01\n" +
+	"\x15UpgradeGrowthResponse\x12+\n" +
+	"\x06growth\x18\x01 \x01(\v2\x13.realtime.v1.GrowthR\x06growth\x12'\n" +
+	"\x0fremaining_coins\x18\x02 \x01(\x03R\x0eremainingCoins\x12\x12\n" +
+	"\x04cost\x18\x03 \x01(\x03R\x04cost\"*\n" +
+	"\x14UpgradeGrowthRequest\x12\x12\n" +
+	"\x04type\x18\x01 \x01(\tR\x04type\"?\n" +
+	"\x13DeleteFriendRequest\x12(\n" +
+	"\x10friend_player_id\x18\x01 \x01(\x03R\x0efriendPlayerId\"<\n" +
+	"\x18SendFriendRequestRequest\x12 \n" +
+	"\fto_player_id\x18\x01 \x01(\x03R\n" +
+	"toPlayerId\"\x1b\n" +
+	"\x19FriendRequestSentResponse\"#\n" +
+	"!ListIncomingFriendRequestsRequest\"#\n" +
+	"!ListOutgoingFriendRequestsRequest\"O\n" +
+	"\x15FriendRequestResponse\x126\n" +
+	"\brequests\x18\x01 \x03(\v2\x1a.realtime.v1.FriendRequestR\brequests\"B\n" +
+	"\x1aAcceptFriendRequestRequest\x12$\n" +
+	"\x0efrom_player_id\x18\x01 \x01(\x03R\ffromPlayerId\"B\n" +
+	"\x1aRejectFriendRequestRequest\x12$\n" +
+	"\x0efrom_player_id\x18\x01 \x01(\x03R\ffromPlayerId\"\x1e\n" +
+	"\x1cFriendRequestHandledResponse\"\x13\n" +
+	"\x11FriendListRequest\"J\n" +
+	"\x12FriendListResponse\x124\n" +
+	"\afriends\x18\x01 \x03(\v2\x1a.realtime.v1.FriendSummaryR\afriends\"\x17\n" +
+	"\x15FriendDeletedResponse\"\x0f\n" +
+	"\rLogoutRequest\"\x10\n" +
+	"\x0eLogoutResponse\"\x12\n" +
+	"\x10PlayerGetRequest\"\x12\n" +
+	"\x10GrowthGetRequest*r\n" +
 	"\tErrorCode\x12\x0f\n" +
 	"\vUNSPECIFIED\x10\x00\x12\x13\n" +
 	"\x0fUNAUTHENTICATED\x10\x01\x12\x14\n" +
@@ -1192,26 +2800,52 @@ func file_proto_realtime_v1_realtime_proto_rawDescGZIP() []byte {
 }
 
 var file_proto_realtime_v1_realtime_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_proto_realtime_v1_realtime_proto_msgTypes = make([]protoimpl.MessageInfo, 17)
+var file_proto_realtime_v1_realtime_proto_msgTypes = make([]protoimpl.MessageInfo, 42)
 var file_proto_realtime_v1_realtime_proto_goTypes = []any{
-	(ErrorCode)(0),                // 0: realtime.v1.ErrorCode
-	(*ClientEnvelope)(nil),        // 1: realtime.v1.ClientEnvelope
-	(*ServerEnvelope)(nil),        // 2: realtime.v1.ServerEnvelope
-	(*Authenticated)(nil),         // 3: realtime.v1.Authenticated
-	(*HeartbeatRequest)(nil),      // 4: realtime.v1.HeartbeatRequest
-	(*HeartbeatAck)(nil),          // 5: realtime.v1.HeartbeatAck
-	(*MatchCancelRequest)(nil),    // 6: realtime.v1.MatchCancelRequest
-	(*MatchResumeRequest)(nil),    // 7: realtime.v1.MatchResumeRequest
-	(*MatchStartRequest)(nil),     // 8: realtime.v1.MatchStartRequest
-	(*MatchCanceled)(nil),         // 9: realtime.v1.MatchCanceled
-	(*MatchResult)(nil),           // 10: realtime.v1.MatchResult
-	(*AuthenticateRequest)(nil),   // 11: realtime.v1.AuthenticateRequest
-	(*ProtocolError)(nil),         // 12: realtime.v1.ProtocolError
-	(*ConnectionReplaced)(nil),    // 13: realtime.v1.ConnectionReplaced
-	(*FriendPresenceChanged)(nil), // 14: realtime.v1.FriendPresenceChanged
-	(*FriendRemoved)(nil),         // 15: realtime.v1.FriendRemoved
-	(*FriendRequestReceived)(nil), // 16: realtime.v1.FriendRequestReceived
-	(*FriendRequestHandled)(nil),  // 17: realtime.v1.FriendRequestHandled
+	(ErrorCode)(0),                            // 0: realtime.v1.ErrorCode
+	(*ClientEnvelope)(nil),                    // 1: realtime.v1.ClientEnvelope
+	(*ServerEnvelope)(nil),                    // 2: realtime.v1.ServerEnvelope
+	(*Authenticated)(nil),                     // 3: realtime.v1.Authenticated
+	(*HeartbeatRequest)(nil),                  // 4: realtime.v1.HeartbeatRequest
+	(*HeartbeatAck)(nil),                      // 5: realtime.v1.HeartbeatAck
+	(*MatchCancelRequest)(nil),                // 6: realtime.v1.MatchCancelRequest
+	(*MatchResumeRequest)(nil),                // 7: realtime.v1.MatchResumeRequest
+	(*MatchStartRequest)(nil),                 // 8: realtime.v1.MatchStartRequest
+	(*MatchCanceled)(nil),                     // 9: realtime.v1.MatchCanceled
+	(*MatchResult)(nil),                       // 10: realtime.v1.MatchResult
+	(*AuthenticateRequest)(nil),               // 11: realtime.v1.AuthenticateRequest
+	(*ProtocolError)(nil),                     // 12: realtime.v1.ProtocolError
+	(*ConnectionReplaced)(nil),                // 13: realtime.v1.ConnectionReplaced
+	(*FriendPresenceChanged)(nil),             // 14: realtime.v1.FriendPresenceChanged
+	(*FriendRemoved)(nil),                     // 15: realtime.v1.FriendRemoved
+	(*FriendRequestReceived)(nil),             // 16: realtime.v1.FriendRequestReceived
+	(*FriendRequestHandled)(nil),              // 17: realtime.v1.FriendRequestHandled
+	(*Player)(nil),                            // 18: realtime.v1.Player
+	(*FriendRequest)(nil),                     // 19: realtime.v1.FriendRequest
+	(*FriendSummary)(nil),                     // 20: realtime.v1.FriendSummary
+	(*Growth)(nil),                            // 21: realtime.v1.Growth
+	(*GrowthUpgradeOption)(nil),               // 22: realtime.v1.GrowthUpgradeOption
+	(*PlayerResponse)(nil),                    // 23: realtime.v1.PlayerResponse
+	(*GrowthResponse)(nil),                    // 24: realtime.v1.GrowthResponse
+	(*UpgradeGrowthResponse)(nil),             // 25: realtime.v1.UpgradeGrowthResponse
+	(*UpgradeGrowthRequest)(nil),              // 26: realtime.v1.UpgradeGrowthRequest
+	(*DeleteFriendRequest)(nil),               // 27: realtime.v1.DeleteFriendRequest
+	(*SendFriendRequestRequest)(nil),          // 28: realtime.v1.SendFriendRequestRequest
+	(*FriendRequestSentResponse)(nil),         // 29: realtime.v1.FriendRequestSentResponse
+	(*ListIncomingFriendRequestsRequest)(nil), // 30: realtime.v1.ListIncomingFriendRequestsRequest
+	(*ListOutgoingFriendRequestsRequest)(nil), // 31: realtime.v1.ListOutgoingFriendRequestsRequest
+	(*FriendRequestResponse)(nil),             // 32: realtime.v1.FriendRequestResponse
+	(*AcceptFriendRequestRequest)(nil),        // 33: realtime.v1.AcceptFriendRequestRequest
+	(*RejectFriendRequestRequest)(nil),        // 34: realtime.v1.RejectFriendRequestRequest
+	(*FriendRequestHandledResponse)(nil),      // 35: realtime.v1.FriendRequestHandledResponse
+	(*FriendListRequest)(nil),                 // 36: realtime.v1.FriendListRequest
+	(*FriendListResponse)(nil),                // 37: realtime.v1.FriendListResponse
+	(*FriendDeletedResponse)(nil),             // 38: realtime.v1.FriendDeletedResponse
+	(*LogoutRequest)(nil),                     // 39: realtime.v1.LogoutRequest
+	(*LogoutResponse)(nil),                    // 40: realtime.v1.LogoutResponse
+	(*PlayerGetRequest)(nil),                  // 41: realtime.v1.PlayerGetRequest
+	(*GrowthGetRequest)(nil),                  // 42: realtime.v1.GrowthGetRequest
+	(*timestamppb.Timestamp)(nil),             // 43: google.protobuf.Timestamp
 }
 var file_proto_realtime_v1_realtime_proto_depIdxs = []int32{
 	11, // 0: realtime.v1.ClientEnvelope.authenticate:type_name -> realtime.v1.AuthenticateRequest
@@ -1219,22 +2853,50 @@ var file_proto_realtime_v1_realtime_proto_depIdxs = []int32{
 	8,  // 2: realtime.v1.ClientEnvelope.match_start:type_name -> realtime.v1.MatchStartRequest
 	6,  // 3: realtime.v1.ClientEnvelope.match_cancel:type_name -> realtime.v1.MatchCancelRequest
 	7,  // 4: realtime.v1.ClientEnvelope.match_resume:type_name -> realtime.v1.MatchResumeRequest
-	3,  // 5: realtime.v1.ServerEnvelope.authenticated:type_name -> realtime.v1.Authenticated
-	5,  // 6: realtime.v1.ServerEnvelope.heartbeat_ack:type_name -> realtime.v1.HeartbeatAck
-	10, // 7: realtime.v1.ServerEnvelope.match_result:type_name -> realtime.v1.MatchResult
-	9,  // 8: realtime.v1.ServerEnvelope.match_canceled:type_name -> realtime.v1.MatchCanceled
-	12, // 9: realtime.v1.ServerEnvelope.error:type_name -> realtime.v1.ProtocolError
-	13, // 10: realtime.v1.ServerEnvelope.connection_replaced:type_name -> realtime.v1.ConnectionReplaced
-	14, // 11: realtime.v1.ServerEnvelope.friend_presence_changed:type_name -> realtime.v1.FriendPresenceChanged
-	15, // 12: realtime.v1.ServerEnvelope.friend_removed:type_name -> realtime.v1.FriendRemoved
-	16, // 13: realtime.v1.ServerEnvelope.friend_request_received:type_name -> realtime.v1.FriendRequestReceived
-	17, // 14: realtime.v1.ServerEnvelope.friend_request_handled:type_name -> realtime.v1.FriendRequestHandled
-	0,  // 15: realtime.v1.ProtocolError.code:type_name -> realtime.v1.ErrorCode
-	16, // [16:16] is the sub-list for method output_type
-	16, // [16:16] is the sub-list for method input_type
-	16, // [16:16] is the sub-list for extension type_name
-	16, // [16:16] is the sub-list for extension extendee
-	0,  // [0:16] is the sub-list for field type_name
+	41, // 5: realtime.v1.ClientEnvelope.player_get:type_name -> realtime.v1.PlayerGetRequest
+	42, // 6: realtime.v1.ClientEnvelope.growth_get:type_name -> realtime.v1.GrowthGetRequest
+	26, // 7: realtime.v1.ClientEnvelope.growth_upgrade:type_name -> realtime.v1.UpgradeGrowthRequest
+	28, // 8: realtime.v1.ClientEnvelope.friend_request_send:type_name -> realtime.v1.SendFriendRequestRequest
+	30, // 9: realtime.v1.ClientEnvelope.friend_request_list_incoming:type_name -> realtime.v1.ListIncomingFriendRequestsRequest
+	31, // 10: realtime.v1.ClientEnvelope.friend_request_list_outgoing:type_name -> realtime.v1.ListOutgoingFriendRequestsRequest
+	33, // 11: realtime.v1.ClientEnvelope.friend_request_accept:type_name -> realtime.v1.AcceptFriendRequestRequest
+	34, // 12: realtime.v1.ClientEnvelope.friend_request_reject:type_name -> realtime.v1.RejectFriendRequestRequest
+	36, // 13: realtime.v1.ClientEnvelope.friend_list:type_name -> realtime.v1.FriendListRequest
+	27, // 14: realtime.v1.ClientEnvelope.friend_delete:type_name -> realtime.v1.DeleteFriendRequest
+	39, // 15: realtime.v1.ClientEnvelope.logout:type_name -> realtime.v1.LogoutRequest
+	3,  // 16: realtime.v1.ServerEnvelope.authenticated:type_name -> realtime.v1.Authenticated
+	5,  // 17: realtime.v1.ServerEnvelope.heartbeat_ack:type_name -> realtime.v1.HeartbeatAck
+	10, // 18: realtime.v1.ServerEnvelope.match_result:type_name -> realtime.v1.MatchResult
+	9,  // 19: realtime.v1.ServerEnvelope.match_canceled:type_name -> realtime.v1.MatchCanceled
+	12, // 20: realtime.v1.ServerEnvelope.error:type_name -> realtime.v1.ProtocolError
+	13, // 21: realtime.v1.ServerEnvelope.connection_replaced:type_name -> realtime.v1.ConnectionReplaced
+	14, // 22: realtime.v1.ServerEnvelope.friend_presence_changed:type_name -> realtime.v1.FriendPresenceChanged
+	15, // 23: realtime.v1.ServerEnvelope.friend_removed:type_name -> realtime.v1.FriendRemoved
+	16, // 24: realtime.v1.ServerEnvelope.friend_request_received:type_name -> realtime.v1.FriendRequestReceived
+	17, // 25: realtime.v1.ServerEnvelope.friend_request_handled:type_name -> realtime.v1.FriendRequestHandled
+	23, // 26: realtime.v1.ServerEnvelope.player:type_name -> realtime.v1.PlayerResponse
+	24, // 27: realtime.v1.ServerEnvelope.growth:type_name -> realtime.v1.GrowthResponse
+	25, // 28: realtime.v1.ServerEnvelope.growth_upgrade_result:type_name -> realtime.v1.UpgradeGrowthResponse
+	29, // 29: realtime.v1.ServerEnvelope.friend_request_sent:type_name -> realtime.v1.FriendRequestSentResponse
+	32, // 30: realtime.v1.ServerEnvelope.friend_requests:type_name -> realtime.v1.FriendRequestResponse
+	35, // 31: realtime.v1.ServerEnvelope.friend_request_handled_ack:type_name -> realtime.v1.FriendRequestHandledResponse
+	37, // 32: realtime.v1.ServerEnvelope.friends:type_name -> realtime.v1.FriendListResponse
+	38, // 33: realtime.v1.ServerEnvelope.friend_deleted:type_name -> realtime.v1.FriendDeletedResponse
+	40, // 34: realtime.v1.ServerEnvelope.logout_ack:type_name -> realtime.v1.LogoutResponse
+	0,  // 35: realtime.v1.ProtocolError.code:type_name -> realtime.v1.ErrorCode
+	43, // 36: realtime.v1.FriendRequest.created_at:type_name -> google.protobuf.Timestamp
+	43, // 37: realtime.v1.FriendSummary.updated_at:type_name -> google.protobuf.Timestamp
+	22, // 38: realtime.v1.Growth.upgrade_options:type_name -> realtime.v1.GrowthUpgradeOption
+	18, // 39: realtime.v1.PlayerResponse.player:type_name -> realtime.v1.Player
+	21, // 40: realtime.v1.GrowthResponse.growth:type_name -> realtime.v1.Growth
+	21, // 41: realtime.v1.UpgradeGrowthResponse.growth:type_name -> realtime.v1.Growth
+	19, // 42: realtime.v1.FriendRequestResponse.requests:type_name -> realtime.v1.FriendRequest
+	20, // 43: realtime.v1.FriendListResponse.friends:type_name -> realtime.v1.FriendSummary
+	44, // [44:44] is the sub-list for method output_type
+	44, // [44:44] is the sub-list for method input_type
+	44, // [44:44] is the sub-list for extension type_name
+	44, // [44:44] is the sub-list for extension extendee
+	0,  // [0:44] is the sub-list for field type_name
 }
 
 func init() { file_proto_realtime_v1_realtime_proto_init() }
@@ -1248,6 +2910,17 @@ func file_proto_realtime_v1_realtime_proto_init() {
 		(*ClientEnvelope_MatchStart)(nil),
 		(*ClientEnvelope_MatchCancel)(nil),
 		(*ClientEnvelope_MatchResume)(nil),
+		(*ClientEnvelope_PlayerGet)(nil),
+		(*ClientEnvelope_GrowthGet)(nil),
+		(*ClientEnvelope_GrowthUpgrade)(nil),
+		(*ClientEnvelope_FriendRequestSend)(nil),
+		(*ClientEnvelope_FriendRequestListIncoming)(nil),
+		(*ClientEnvelope_FriendRequestListOutgoing)(nil),
+		(*ClientEnvelope_FriendRequestAccept)(nil),
+		(*ClientEnvelope_FriendRequestReject)(nil),
+		(*ClientEnvelope_FriendList)(nil),
+		(*ClientEnvelope_FriendDelete)(nil),
+		(*ClientEnvelope_Logout)(nil),
 	}
 	file_proto_realtime_v1_realtime_proto_msgTypes[1].OneofWrappers = []any{
 		(*ServerEnvelope_Authenticated)(nil),
@@ -1260,6 +2933,15 @@ func file_proto_realtime_v1_realtime_proto_init() {
 		(*ServerEnvelope_FriendRemoved)(nil),
 		(*ServerEnvelope_FriendRequestReceived)(nil),
 		(*ServerEnvelope_FriendRequestHandled)(nil),
+		(*ServerEnvelope_Player)(nil),
+		(*ServerEnvelope_Growth)(nil),
+		(*ServerEnvelope_GrowthUpgradeResult)(nil),
+		(*ServerEnvelope_FriendRequestSent)(nil),
+		(*ServerEnvelope_FriendRequests)(nil),
+		(*ServerEnvelope_FriendRequestHandledAck)(nil),
+		(*ServerEnvelope_Friends)(nil),
+		(*ServerEnvelope_FriendDeleted)(nil),
+		(*ServerEnvelope_LogoutAck)(nil),
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
@@ -1267,7 +2949,7 @@ func file_proto_realtime_v1_realtime_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_realtime_v1_realtime_proto_rawDesc), len(file_proto_realtime_v1_realtime_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   17,
+			NumMessages:   42,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

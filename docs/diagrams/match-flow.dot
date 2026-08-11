@@ -7,11 +7,11 @@ digraph match_flow {
     rcenter [label="rcenter-server"];
     battle [label="battle-server"];
     player_b [label="玩家 B"];
-    player_a -> logic [label="WS 连接 / match_start"];
+    player_a -> logic [label="TCP 认证 / match_start"];
     logic -> state [label="MarkOnline"];
     logic -> rcenter [label="ResumeMatch / StartMatch(A)"];
     rcenter -> player_a [label="等待结果", style=dashed];
-    player_b -> logic [label="match_start(B)"];
+    player_b -> logic [label="TCP match_start(B)"];
     logic -> rcenter [label="StartMatch(B)"];
     rcenter -> state [label="读取双方成长"];
     rcenter -> battle [label="CreateRoom(room, token, loadouts)"];

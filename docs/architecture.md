@@ -10,7 +10,7 @@
 
 | 服务 | 职责 | 持久状态 |
 | --- | --- | --- |
-| `logic-server` | HTTP/JSON、原生 TCP、认证、好友、在线状态、成长和匹配请求的协议适配 | 无业务持久状态；连接仅在本实例内存中 |
+| `logic-server` | HTTP 健康检查与注册登录、原生 TCP 大厅协议、认证、好友、在线状态、成长和匹配请求适配 | 无业务持久状态；连接仅在本实例内存中 |
 | `state-server` | 将局外领域操作映射到持久化存储 | Redis 是当前局外数据来源；MongoDB 已作为后续聊天历史存储预置 |
 | `rcenter-server` | battle 节点注册、双人 FIFO 匹配、活跃对局、结算与奖励 | 节点、队列、活跃对局在内存；进程重启会丢失这些状态 |
 | `battle-server` | 房间、UDP session、tick、ECS、快照和战斗结束 | 房间和世界在内存；不负责账号和好友 |
@@ -32,7 +32,7 @@
 
 局外成长初始等级均为 1，最高 10：攻击每级 `+8%`、攻速每级 `+6%`、生命每级 `+10%`、移速每级 `+3%`。rcenter 在创建房间前读取所有匹配玩家的成长等级，并连同武器一起传给 battle-server。
 
-成长升级价格由 `internal/logic/growth` 配置，`GET /growth` 和升级成功响应均返回每项的当前等级、下一级价格和上限。客户端不应自行推导价格。
+成长升级价格由 `internal/logic/growth` 配置，TCP `growth_get` 和 `growth_upgrade` 成功响应均返回每项的当前等级、下一级价格和上限。客户端不应自行推导价格。
 
 ### TCP、在线状态与匹配
 
@@ -40,7 +40,9 @@
 
 `rcenter-server` 将第一名玩家放入队列；第二名玩家到来时与队头组成房间。成功创建房间后，为每个玩家写入同一份 `ActiveMatch`，其中包含 `room_name`、token、battle 节点、UDP 地址、玩家列表和局外 loadout。
 
-logic TCP 完成认证时会自动调用 `ResumeMatch`。客户端也可显式发送 `match_resume`，用于从战斗主动返回大厅后重新进入旧对局。没有活跃对局时，恢复会返回 `active match not found`；客户端应清除本地旧 match 并恢复正常匹配。
+客户端仅通过 HTTP 注册或登录并取得 session token。logic TCP 完成认证后承载玩家、成长、好友、在线状态和匹配的全部大厅请求，并自动调用 `ResumeMatch`。客户端也可显式发送 `match_resume`，用于从战斗主动返回大厅后重新进入旧对局。没有活跃对局时，恢复会返回 `active match not found`；客户端应清除本地旧 match 并恢复正常匹配。
+
+同一玩家建立新的 TCP 连接时，logic 会替换旧连接并向旧连接推送 `connection_replaced`。好友上线、下线、申请、申请处理和删除好友等实时事件优先投递到本机连接；目标玩家连接在其他 logic 实例时，通过 state 的实时事件通道转发到对应实例。
 
 ## 局内逻辑
 

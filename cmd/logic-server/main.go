@@ -95,19 +95,16 @@ func main() {
 	matchRepo := logicmatch.NewRCenterRepository(rCenterService)
 	matchService := logicmatch.NewService(matchRepo)
 	httpHandler := httpapi.NewHandler(httpapi.HandlerConfig{
-		AuthService:     authService,
-		ServerName:      serverName,
-		PresenceService: presenceService,
-		FriendService:   friendService,
-		PlayerService:   playerService,
-		RealtimeClient:  stateService,
-		GrowthService:   growthService,
+		AuthService: authService,
+		ServerName:  serverName,
 	})
 	tcpHandler := realtime.NewHandler(realtime.HandlerConfig{
 		AuthService:     authService,
 		PresenceService: presenceService,
 		MatchService:    matchService,
 		FriendService:   friendService,
+		PlayerService:   playerService,
+		GrowthService:   growthService,
 		ServerName:      serverName,
 		RealtimeClient:  stateService,
 	})

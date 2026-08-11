@@ -1,6 +1,6 @@
 # 游戏服务端
 
-本仓库是一个本地开发用的多人动作游戏服务端。Go 服务负责局外大厅，C++ `battle-server` 负责局内战斗。客户端通过 HTTP/JSON、原生 TCP 和 UDP 与服务端交互。
+本仓库是一个本地开发用的多人动作游戏服务端。Go 服务负责局外大厅，C++ `battle-server` 负责局内战斗。客户端通过 HTTP 完成注册登录，通过原生 TCP 操作大厅，并通过 UDP 参与战斗。
 
 当前实现包含账号、好友、在线状态、局外成长、双人匹配、四种初始武器、波次战斗、升级祝福、结算奖励，以及断线重连和无人房间清理。
 
@@ -9,7 +9,7 @@
 | 服务 | 对宿主机暴露 | 职责 |
 | --- | --- | --- |
 | `nginx` | HTTP `:8080`、TCP `:8081` | 客户端入口，分别转发 HTTP API 和局外实时连接 |
-| `logic-1`、`logic-2` | 否 | 客户端 API、认证、好友、在线状态、局外成长、匹配入口 |
+| `logic-1`、`logic-2` | 否 | HTTP 注册登录、TCP 认证、好友、在线状态、局外成长和匹配入口 |
 | `state` | 否 | Go 侧状态服务，唯一直接访问持久化存储的业务进程 |
 | `rcenter` | 否 | battle 节点注册、匹配队列、活跃对局与结算 |
 | `battle-1`、`battle-2` | UDP `:7001`、`:7002` | 房间、UDP 会话、战斗 tick、ECS 和快照广播 |
@@ -45,7 +45,7 @@ docker compose logs -f nginx logic-1 logic-2
 docker compose down
 ```
 
-客户端访问 `http://localhost:8080` 的 HTTP API，并连接 `localhost:8081` 的 TCP 实时服务。battle-server 分别在 UDP `:7001` 和 `:7002` 上接受客户端包；本地下发地址为 `127.0.0.1`，其他机器访问时应在 `compose.yaml` 中将 `--udp-addr` 改为宿主机可访问地址。
+客户端通过 `http://localhost:8080` 注册或登录，取得 token 后连接 `localhost:8081`，首帧完成认证，其余大厅操作均使用 TCP protobuf。battle-server 分别在 UDP `:7001` 和 `:7002` 上接受客户端包；本地下发地址为 `127.0.0.1`，其他机器访问时应在 `compose.yaml` 中将 `--udp-addr` 改为宿主机可访问地址。
 
 ## 常用命令
 

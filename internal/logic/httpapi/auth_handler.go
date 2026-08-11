@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"server/internal/logic/auth"
 	"server/internal/logic/player"
-	"strings"
 )
 
 func (h *Handler) handleRegisterAuth(w http.ResponseWriter, r *http.Request) {
@@ -64,53 +63,4 @@ func (h *Handler) handleLoginAuth(w http.ResponseWriter, r *http.Request) {
 		Player: toPlayerResponse(authRes.Player),
 	})
 
-}
-
-func (h *Handler) handleLogoutAuth(w http.ResponseWriter, r *http.Request) {
-	token, ok := bearerToken(r)
-	if !ok {
-		writeJSON(w, http.StatusUnauthorized, errorResponse{Error: "missing bearer token"})
-		return
-	}
-	err := h.authService.Logout(r.Context(), token)
-	if errors.Is(err, auth.ErrSessionNotFound) {
-		writeJSON(w, http.StatusUnauthorized, errorResponse{Error: err.Error()})
-		return
-	} else if err != nil {
-		writeJSON(w, http.StatusInternalServerError, errorResponse{Error: "internal server error"})
-		return
-	}
-	w.WriteHeader(http.StatusNoContent)
-}
-
-func (h *Handler) handleMeAuth(w http.ResponseWriter, r *http.Request) {
-	token, ok := bearerToken(r)
-	if !ok {
-		writeJSON(w, http.StatusUnauthorized, errorResponse{Error: "missing bearer token"})
-		return
-	}
-	p, err := h.authService.GetCurrentPlayer(r.Context(), token)
-	if errors.Is(err, auth.ErrSessionNotFound) {
-		writeJSON(w, http.StatusUnauthorized, errorResponse{Error: err.Error()})
-		return
-	} else if err != nil {
-		writeJSON(w, http.StatusInternalServerError, errorResponse{Error: "internal server error"})
-		return
-	}
-
-	writeJSON(w, http.StatusOK, toPlayerResponse(p))
-
-}
-
-func bearerToken(r *http.Request) (string, bool) {
-	const prefix = "Bearer "
-	value := r.Header.Get("Authorization")
-	if !strings.HasPrefix(value, prefix) {
-		return "", false
-	}
-	token := strings.TrimSpace(strings.TrimPrefix(value, prefix))
-	if token == "" {
-		return "", false
-	}
-	return token, true
 }
