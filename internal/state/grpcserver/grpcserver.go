@@ -2,7 +2,7 @@ package grpcserver
 
 import (
 	"context"
-	statecontract "server/internal/contract/state"
+	"server/internal/contract/state"
 	"server/internal/contract/statepb"
 	"server/internal/state/stateproto"
 
@@ -12,16 +12,55 @@ import (
 // Server 以 protobuf/gRPC 方法暴露状态契约操作。
 type Server struct {
 	statepb.UnimplementedStateServiceServer
-	stateClient    statecontract.Client
-	presenceClient statecontract.PresenceClient
-	friendClient   statecontract.FriendClient
-	realtimeClient statecontract.RealtimeClient
-	growthClient   statecontract.GrowthClient
-	coinClient     statecontract.CoinClient
+	stateClient    state.Client
+	presenceClient state.PresenceClient
+	friendClient   state.FriendClient
+	realtimeClient state.RealtimeClient
+	growthClient   state.GrowthClient
+	coinClient     state.CoinClient
+	chatClient     state.ChatClient
+}
+
+// SaveChatMessage 处理保存聊天消息的 gRPC 请求。
+func (s *Server) SaveChatMessage(ctx context.Context, request *statepb.SaveChatMessageRequest) (*statepb.SaveChatMessageResponse, error) {
+	res, err := s.chatClient.SaveChatMessage(ctx, state.SaveChatMessageInput{
+		ChannelType:      state.ChatChannelType(request.GetChannelType()),
+		ChannelKey:       request.GetChannelKey(),
+		SenderID:         request.GetSenderId(),
+		ReceiverID:       request.GetReceiverId(),
+		Content:          request.GetContent(),
+		CreatedAt:        stateproto.FromProtoTime(request.GetCreatedAt()),
+		ExpiresAt:        stateproto.FromProtoTime(request.GetExpiresAt()),
+		MaxMessages:      request.GetMaxMessages(),
+		ClientMessageKey: request.GetClientMessageKey(),
+		SenderNickname:   request.GetSenderNickname(),
+	})
+	if err != nil {
+		return nil, mapStateError(err)
+	}
+	return &statepb.SaveChatMessageResponse{
+		Message: stateproto.ToProtoChatMessage(res),
+	}, nil
+}
+
+// ListChatMessages 处理读取聊天历史的 gRPC 请求。
+func (s *Server) ListChatMessages(ctx context.Context, request *statepb.ListChatMessagesRequest) (*statepb.ListChatMessagesResponse, error) {
+	res, err := s.chatClient.ListChatMessages(ctx, state.ListChatMessagesInput{
+		ChannelType:      state.ChatChannelType(request.GetChannelType()),
+		ChannelKey:       request.GetChannelKey(),
+		Limit:            request.GetLimit(),
+		BeforeMessageKey: request.GetBeforeMessageKey(),
+	})
+	if err != nil {
+		return nil, mapStateError(err)
+	}
+	return &statepb.ListChatMessagesResponse{
+		Messages: stateproto.ToProtoChatMessages(res),
+	}, nil
 }
 
 func (s *Server) AddPlayerCoins(ctx context.Context, request *statepb.AddPlayerCoinsRequest) (*statepb.AddPlayerCoinsResponse, error) {
-	res, err := s.coinClient.AddPlayerCoins(ctx, statecontract.AddPlayerCoinsInput{
+	res, err := s.coinClient.AddPlayerCoins(ctx, state.AddPlayerCoinsInput{
 		PlayerID: request.GetPlayerId(),
 		Amount:   request.GetAmount(),
 	})
@@ -46,7 +85,7 @@ func (s *Server) GetGrowth(ctx context.Context, request *statepb.GetGrowthReques
 }
 
 func (s *Server) UpgradeGrowth(ctx context.Context, request *statepb.UpgradeGrowthRequest) (*statepb.UpgradeGrowthResponse, error) {
-	res, err := s.growthClient.UpgradeGrowth(ctx, statecontract.UpgradeGrowthInput{
+	res, err := s.growthClient.UpgradeGrowth(ctx, state.UpgradeGrowthInput{
 		PlayerID:     request.GetPlayerId(),
 		UpgradeField: request.GetUpgradeField(),
 		Cost:         request.GetCost(),
@@ -81,7 +120,7 @@ func (s *Server) GetAccount(ctx context.Context, request *statepb.GetAccountRequ
 
 // RegisterAccount 在一次调用中处理账号、玩家和会话创建。
 func (s *Server) RegisterAccount(ctx context.Context, request *statepb.RegisterAccountRequest) (*statepb.RegisterAccountResponse, error) {
-	res, err := s.stateClient.RegisterAccount(ctx, statecontract.RegisterAccountInput{
+	res, err := s.stateClient.RegisterAccount(ctx, state.RegisterAccountInput{
 		Username:         request.GetUsername(),
 		PasswordHash:     request.GetPasswordHash(),
 		Nickname:         request.GetNickname(),
@@ -147,7 +186,7 @@ func (s *Server) GetPlayer(ctx context.Context, request *statepb.GetPlayerReques
 }
 
 // NextPlayerID 处理分配玩家 ID 的 gRPC 请求。
-func (s *Server) NextPlayerID(ctx context.Context, request *statepb.NextPlayerIDRequest) (*statepb.NextPlayerIDResponse, error) {
+func (s *Server) NextPlayerID(ctx context.Context, _ *statepb.NextPlayerIDRequest) (*statepb.NextPlayerIDResponse, error) {
 	id, err := s.stateClient.NextPlayerID(ctx)
 	if err != nil {
 		return nil, mapStateError(err)
@@ -260,15 +299,18 @@ func (s *Server) DeleteFriend(ctx context.Context, request *statepb.DeleteFriend
 }
 
 func (s *Server) PublishRealtime(ctx context.Context, request *statepb.PublishRealtimeRequest) (*statepb.PublishRealtimeResponse, error) {
-	err := s.realtimeClient.PublishRealtimeToServer(ctx, request.GetServerName(), stateproto.FromProtoRealtimeEvent(request.GetEvent()))
+	err := s.realtimeClient.PublishRealtime(ctx, stateproto.FromProtoRealtimeDelivery(request.GetDelivery()))
 	if err != nil {
 		return nil, mapStateError(err)
 	}
 	return &statepb.PublishRealtimeResponse{}, nil
 }
 
-func (s *Server) SubscribeRealtime(request *statepb.SubscribeRealtimeRequest, g grpc.ServerStreamingServer[statepb.RealtimeEvent]) error {
-	events, err := s.realtimeClient.SubscribeRealtime(g.Context(), request.GetServerName())
+func (s *Server) SubscribeRealtime(request *statepb.SubscribeRealtimeRequest, g grpc.ServerStreamingServer[statepb.RealtimeDelivery]) error {
+	deliveries, err := s.realtimeClient.SubscribeRealtime(g.Context(), state.RealtimeRoute{
+		Type:       stateproto.FromProtoRealtimeRouteType(request.GetType()),
+		ServerName: request.GetServerName(),
+	})
 	if err != nil {
 		return mapStateError(err)
 	}
@@ -276,14 +318,14 @@ func (s *Server) SubscribeRealtime(request *statepb.SubscribeRealtimeRequest, g 
 		select {
 		case <-g.Context().Done():
 			return g.Context().Err()
-		case event, ok := <-events:
+		case delivery, ok := <-deliveries:
 			if !ok {
 				return nil
 			}
-			if event == nil {
+			if delivery == nil {
 				continue
 			}
-			if err := g.Send(stateproto.ToProtoRealtimeEvent(event)); err != nil {
+			if err := g.Send(stateproto.ToProtoRealtimeDelivery(delivery)); err != nil {
 				return err
 			}
 		}
@@ -292,12 +334,13 @@ func (s *Server) SubscribeRealtime(request *statepb.SubscribeRealtimeRequest, g 
 
 // ServerConfig 提供 gRPC 适配器使用的状态客户端。
 type ServerConfig struct {
-	StateClient    statecontract.Client
-	PresenceClient statecontract.PresenceClient
-	FriendClient   statecontract.FriendClient
-	RealtimeClient statecontract.RealtimeClient
-	GrowthClient   statecontract.GrowthClient
-	CoinClient     statecontract.CoinClient
+	StateClient    state.Client
+	PresenceClient state.PresenceClient
+	FriendClient   state.FriendClient
+	RealtimeClient state.RealtimeClient
+	GrowthClient   state.GrowthClient
+	CoinClient     state.CoinClient
+	ChatClient     state.ChatClient
 }
 
 // NewServer 创建 gRPC 状态服务适配器。
@@ -309,5 +352,6 @@ func NewServer(config ServerConfig) *Server {
 		realtimeClient: config.RealtimeClient,
 		growthClient:   config.GrowthClient,
 		coinClient:     config.CoinClient,
+		chatClient:     config.ChatClient,
 	}
 }

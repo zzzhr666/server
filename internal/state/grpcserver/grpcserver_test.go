@@ -201,6 +201,78 @@ func TestAddPlayerCoinsInvalidPlayer(t *testing.T) {
 	}
 }
 
+func TestChatMessages(t *testing.T) {
+	createdAt := time.Date(2026, 8, 11, 10, 0, 0, 0, time.UTC)
+	expiresAt := createdAt.Add(statecontract.DirectChatRetention)
+	state := &fakeStateClient{
+		savedChatMessage: &statecontract.ChatMessage{
+			MessageKey:       "msg-1",
+			ChannelType:      statecontract.ChatChannelDirect,
+			ChannelKey:       "direct:7:8",
+			SenderID:         7,
+			ReceiverID:       8,
+			Content:          "hello",
+			CreatedAt:        createdAt,
+			ExpiresAt:        expiresAt,
+			ClientMessageKey: "client-msg-1",
+		},
+		chatMessages: []*statecontract.ChatMessage{
+			{
+				MessageKey:       "msg-1",
+				ChannelType:      statecontract.ChatChannelDirect,
+				ChannelKey:       "direct:7:8",
+				SenderID:         7,
+				ReceiverID:       8,
+				Content:          "hello",
+				CreatedAt:        createdAt,
+				ExpiresAt:        expiresAt,
+				ClientMessageKey: "client-msg-1",
+			},
+		},
+	}
+	server := newTestServer(state)
+
+	saveRes, err := server.SaveChatMessage(context.Background(), &statepb.SaveChatMessageRequest{
+		ChannelType:      string(statecontract.ChatChannelDirect),
+		ChannelKey:       "direct:7:8",
+		SenderId:         7,
+		ReceiverId:       8,
+		Content:          "hello",
+		CreatedAt:        timestamppb.New(createdAt),
+		ExpiresAt:        timestamppb.New(expiresAt),
+		MaxMessages:      statecontract.DirectChatMaxMessages,
+		ClientMessageKey: "client-msg-1",
+	})
+	if err != nil {
+		t.Fatalf("SaveChatMessage returned error: %v", err)
+	}
+	if state.saveChatMessageInput.ChannelKey != "direct:7:8" {
+		t.Fatalf("save chat channel key = %q, want direct:7:8", state.saveChatMessageInput.ChannelKey)
+	}
+	if state.saveChatMessageInput.MaxMessages != statecontract.DirectChatMaxMessages {
+		t.Fatalf("save chat max messages = %d, want %d", state.saveChatMessageInput.MaxMessages, statecontract.DirectChatMaxMessages)
+	}
+	if saveRes.GetMessage().GetMessageKey() != "msg-1" {
+		t.Fatalf("saved message key = %q, want msg-1", saveRes.GetMessage().GetMessageKey())
+	}
+
+	listRes, err := server.ListChatMessages(context.Background(), &statepb.ListChatMessagesRequest{
+		ChannelType:      string(statecontract.ChatChannelDirect),
+		ChannelKey:       "direct:7:8",
+		Limit:            20,
+		BeforeMessageKey: "msg-0",
+	})
+	if err != nil {
+		t.Fatalf("ListChatMessages returned error: %v", err)
+	}
+	if state.listChatMessagesInput.BeforeMessageKey != "msg-0" {
+		t.Fatalf("list chat before message key = %q, want msg-0", state.listChatMessagesInput.BeforeMessageKey)
+	}
+	if len(listRes.GetMessages()) != 1 || listRes.GetMessages()[0].GetMessageKey() != "msg-1" {
+		t.Fatalf("chat messages = %+v, want one saved message", listRes.GetMessages())
+	}
+}
+
 func TestPresenceMethods(t *testing.T) {
 	updatedAt := time.Date(2026, 7, 19, 14, 0, 0, 0, time.UTC)
 	state := &fakeStateClient{
@@ -458,6 +530,7 @@ func newTestServer(state *fakeStateClient) *Server {
 		PresenceClient: state,
 		FriendClient:   state,
 		CoinClient:     state,
+		ChatClient:     state,
 	})
 }
 
@@ -499,6 +572,10 @@ type fakeStateClient struct {
 	deletedFriendFriendPlayerID        int64
 	addPlayerCoinsInput                statecontract.AddPlayerCoinsInput
 	addPlayerCoinsResult               *statecontract.AddPlayerCoinsResult
+	saveChatMessageInput               statecontract.SaveChatMessageInput
+	savedChatMessage                   *statecontract.ChatMessage
+	listChatMessagesInput              statecontract.ListChatMessagesInput
+	chatMessages                       []*statecontract.ChatMessage
 }
 
 func (f *fakeStateClient) CreateAccount(_ context.Context, account *statecontract.Account) error {
@@ -564,6 +641,22 @@ func (f *fakeStateClient) AddPlayerCoins(_ context.Context, input statecontract.
 		return nil, f.err
 	}
 	return f.addPlayerCoinsResult, nil
+}
+
+func (f *fakeStateClient) SaveChatMessage(_ context.Context, input statecontract.SaveChatMessageInput) (*statecontract.ChatMessage, error) {
+	f.saveChatMessageInput = input
+	if f.err != nil {
+		return nil, f.err
+	}
+	return f.savedChatMessage, nil
+}
+
+func (f *fakeStateClient) ListChatMessages(_ context.Context, input statecontract.ListChatMessagesInput) ([]*statecontract.ChatMessage, error) {
+	f.listChatMessagesInput = input
+	if f.err != nil {
+		return nil, f.err
+	}
+	return f.chatMessages, nil
 }
 
 func (f *fakeStateClient) SetPresence(_ context.Context, presence *statecontract.Presence, ttl time.Duration) error {
@@ -645,3 +738,4 @@ var _ statecontract.Client = (*fakeStateClient)(nil)
 var _ statecontract.PresenceClient = (*fakeStateClient)(nil)
 var _ statecontract.FriendClient = (*fakeStateClient)(nil)
 var _ statecontract.CoinClient = (*fakeStateClient)(nil)
+var _ statecontract.ChatClient = (*fakeStateClient)(nil)

@@ -3,14 +3,14 @@ package stateproto
 import (
 	"time"
 
-	statecontract "server/internal/contract/state"
+	"server/internal/contract/state"
 	"server/internal/contract/statepb"
 
 	"google.golang.org/protobuf/types/known/durationpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-func ToProtoAccount(account *statecontract.Account) *statepb.Account {
+func ToProtoAccount(account *state.Account) *statepb.Account {
 	if account == nil {
 		return nil
 	}
@@ -21,11 +21,11 @@ func ToProtoAccount(account *statecontract.Account) *statepb.Account {
 	}
 }
 
-func FromProtoAccount(account *statepb.Account) *statecontract.Account {
+func FromProtoAccount(account *statepb.Account) *state.Account {
 	if account == nil {
 		return nil
 	}
-	return &statecontract.Account{
+	return &state.Account{
 		Username:     account.GetUsername(),
 		PasswordHash: account.GetPasswordHash(),
 		PlayerID:     account.GetPlayerId(),
@@ -46,7 +46,7 @@ func ToProtoTime(t time.Time) *timestamppb.Timestamp {
 	return timestamppb.New(t)
 }
 
-func ToProtoPlayer(player *statecontract.Player) *statepb.Player {
+func ToProtoPlayer(player *state.Player) *statepb.Player {
 	if player == nil {
 		return nil
 	}
@@ -60,11 +60,11 @@ func ToProtoPlayer(player *statecontract.Player) *statepb.Player {
 	}
 }
 
-func FromProtoPlayer(player *statepb.Player) *statecontract.Player {
+func FromProtoPlayer(player *statepb.Player) *state.Player {
 	if player == nil {
 		return nil
 	}
-	return &statecontract.Player{
+	return &state.Player{
 		ID:       player.GetId(),
 		Nickname: player.GetNickname(),
 		Avatar:   player.GetAvatar(),
@@ -74,7 +74,7 @@ func FromProtoPlayer(player *statepb.Player) *statecontract.Player {
 	}
 }
 
-func ToProtoSession(session *statecontract.Session) *statepb.Session {
+func ToProtoSession(session *state.Session) *statepb.Session {
 	if session == nil {
 		return nil
 	}
@@ -85,11 +85,11 @@ func ToProtoSession(session *statecontract.Session) *statepb.Session {
 	}
 }
 
-func FromProtoSession(session *statepb.Session) *statecontract.Session {
+func FromProtoSession(session *statepb.Session) *state.Session {
 	if session == nil {
 		return nil
 	}
-	return &statecontract.Session{
+	return &state.Session{
 		Token:     session.GetToken(),
 		PlayerID:  session.GetPlayerId(),
 		ExpiresAt: FromProtoTime(session.GetExpiresAt()),
@@ -110,7 +110,7 @@ func FromProtoDuration(d *durationpb.Duration) time.Duration {
 	return d.AsDuration()
 }
 
-func ToProtoPresence(presence *statecontract.Presence) *statepb.Presence {
+func ToProtoPresence(presence *state.Presence) *statepb.Presence {
 	if presence == nil {
 		return nil
 	}
@@ -122,11 +122,11 @@ func ToProtoPresence(presence *statecontract.Presence) *statepb.Presence {
 	}
 }
 
-func FromProtoPresence(presence *statepb.Presence) *statecontract.Presence {
+func FromProtoPresence(presence *statepb.Presence) *state.Presence {
 	if presence == nil {
 		return nil
 	}
-	return &statecontract.Presence{
+	return &state.Presence{
 		PlayerID:   presence.GetPlayerId(),
 		ServerName: presence.GetServerName(),
 		Status:     presence.GetStatus(),
@@ -134,18 +134,18 @@ func FromProtoPresence(presence *statepb.Presence) *statecontract.Presence {
 	}
 }
 
-func FromProtoFriendRequest(friendRequest *statepb.FriendRequest) *statecontract.FriendRequest {
+func FromProtoFriendRequest(friendRequest *statepb.FriendRequest) *state.FriendRequest {
 	if friendRequest == nil {
 		return nil
 	}
-	return &statecontract.FriendRequest{
+	return &state.FriendRequest{
 		FromPlayerID: friendRequest.GetFromPlayer(),
 		ToPlayerID:   friendRequest.GetToPlayer(),
 		CreatedAt:    FromProtoTime(friendRequest.GetCreatedAt()),
 	}
 }
 
-func ToProtoFriendRequest(friendRequest *statecontract.FriendRequest) *statepb.FriendRequest {
+func ToProtoFriendRequest(friendRequest *state.FriendRequest) *statepb.FriendRequest {
 	if friendRequest == nil {
 		return nil
 	}
@@ -156,7 +156,7 @@ func ToProtoFriendRequest(friendRequest *statecontract.FriendRequest) *statepb.F
 	}
 }
 
-func ToProtoRealtimeEvent(event *statecontract.RealtimeEvent) *statepb.RealtimeEvent {
+func ToProtoRealtimeEvent(event *state.RealtimeEvent) *statepb.RealtimeEvent {
 	if event == nil {
 		return nil
 	}
@@ -172,14 +172,15 @@ func ToProtoRealtimeEvent(event *statecontract.RealtimeEvent) *statepb.RealtimeE
 		BattleUdpAddr:  event.BattleUDPAddr,
 		BattleNodeName: event.BattleNodeName,
 		MatchPlayerIds: event.MatchPlayerIDs,
+		ChatMessage:    ToProtoRealtimeChatMessage(event.ChatMessage),
 	}
 }
 
-func FromProtoRealtimeEvent(event *statepb.RealtimeEvent) *statecontract.RealtimeEvent {
+func FromProtoRealtimeEvent(event *statepb.RealtimeEvent) *state.RealtimeEvent {
 	if event == nil {
 		return nil
 	}
-	return &statecontract.RealtimeEvent{
+	return &state.RealtimeEvent{
 		Type:           event.GetType(),
 		TargetPlayerID: event.GetTargetPlayerId(),
 		ActorPlayerID:  event.GetActorPlayerId(),
@@ -191,10 +192,80 @@ func FromProtoRealtimeEvent(event *statepb.RealtimeEvent) *statecontract.Realtim
 		BattleUDPAddr:  event.GetBattleUdpAddr(),
 		BattleNodeName: event.GetBattleNodeName(),
 		MatchPlayerIDs: event.GetMatchPlayerIds(),
+		ChatMessage:    FromProtoRealtimeChatMessage(event.GetChatMessage()),
 	}
 }
 
-func ToProtoGrowth(growth *statecontract.Growth) *statepb.Growth {
+func ToProtoRealtimeDelivery(delivery *state.RealtimeDelivery) *statepb.RealtimeDelivery {
+	if delivery == nil {
+		return nil
+	}
+	return &statepb.RealtimeDelivery{
+		Route: ToProtoRealtimeRoute(delivery.Route),
+		Event: ToProtoRealtimeEvent(delivery.Event),
+	}
+}
+
+func FromProtoRealtimeDelivery(delivery *statepb.RealtimeDelivery) *state.RealtimeDelivery {
+	if delivery == nil {
+		return nil
+	}
+	return &state.RealtimeDelivery{
+		Route: FromProtoRealtimeRoute(delivery.GetRoute()),
+		Event: FromProtoRealtimeEvent(delivery.GetEvent()),
+	}
+}
+
+func ToProtoRealtimeRoute(route state.RealtimeRoute) *statepb.RealtimeRoute {
+	return &statepb.RealtimeRoute{
+		Type:       toProtoRealtimeRouteType(route.Type),
+		ServerName: route.ServerName,
+	}
+}
+
+func FromProtoRealtimeRoute(route *statepb.RealtimeRoute) state.RealtimeRoute {
+	if route == nil {
+		return state.RealtimeRoute{}
+	}
+	return state.RealtimeRoute{
+		Type:       fromProtoRealtimeRouteType(route.GetType()),
+		ServerName: route.GetServerName(),
+	}
+}
+
+func toProtoRealtimeRouteType(routeType state.RealtimeRouteType) statepb.RealtimeRouteType {
+	switch routeType {
+	case state.RealtimeRouteServer:
+		return statepb.RealtimeRouteType_REALTIME_ROUTE_TYPE_SERVER
+	case state.RealtimeRouteBroadcast:
+		return statepb.RealtimeRouteType_REALTIME_ROUTE_TYPE_BROADCAST
+	default:
+		return statepb.RealtimeRouteType_REALTIME_ROUTE_TYPE_UNSPECIFIED
+	}
+}
+
+// ToProtoRealtimeRouteType 将内部实时路由类型转换为 protobuf 枚举。
+func ToProtoRealtimeRouteType(routeType state.RealtimeRouteType) statepb.RealtimeRouteType {
+	return toProtoRealtimeRouteType(routeType)
+}
+
+func fromProtoRealtimeRouteType(routeType statepb.RealtimeRouteType) state.RealtimeRouteType {
+	switch routeType {
+	case statepb.RealtimeRouteType_REALTIME_ROUTE_TYPE_SERVER:
+		return state.RealtimeRouteServer
+	case statepb.RealtimeRouteType_REALTIME_ROUTE_TYPE_BROADCAST:
+		return state.RealtimeRouteBroadcast
+	default:
+		return ""
+	}
+}
+
+// FromProtoRealtimeRouteType 将 protobuf 实时路由枚举转换为内部类型。
+func FromProtoRealtimeRouteType(routeType statepb.RealtimeRouteType) state.RealtimeRouteType {
+	return fromProtoRealtimeRouteType(routeType)
+}
+
+func ToProtoGrowth(growth *state.Growth) *statepb.Growth {
 	if growth == nil {
 		return nil
 	}
@@ -207,15 +278,95 @@ func ToProtoGrowth(growth *statecontract.Growth) *statepb.Growth {
 	}
 }
 
-func FromProtoGrowth(growth *statepb.Growth) *statecontract.Growth {
+func FromProtoGrowth(growth *statepb.Growth) *state.Growth {
 	if growth == nil {
 		return nil
 	}
-	return &statecontract.Growth{
+	return &state.Growth{
 		PlayerID:         growth.GetPlayerId(),
 		AttackLevel:      growth.GetAttackLevel(),
 		AttackSpeedLevel: growth.AttackSpeedLevel,
 		HealthLevel:      growth.GetHealthLevel(),
 		MoveSpeedLevel:   growth.GetMoveSpeedLevel(),
+	}
+}
+
+func ToProtoChatMessage(message *state.ChatMessage) *statepb.ChatMessage {
+	if message == nil {
+		return nil
+	}
+	return &statepb.ChatMessage{
+		MessageKey:       message.MessageKey,
+		ChannelType:      string(message.ChannelType),
+		ChannelKey:       message.ChannelKey,
+		SenderId:         message.SenderID,
+		ReceiverId:       message.ReceiverID,
+		Content:          message.Content,
+		CreatedAt:        ToProtoTime(message.CreatedAt),
+		ExpiresAt:        ToProtoTime(message.ExpiresAt),
+		ClientMessageKey: message.ClientMessageKey,
+		SenderNickname:   message.SenderNickname,
+	}
+}
+
+func FromProtoChatMessage(message *statepb.ChatMessage) *state.ChatMessage {
+	if message == nil {
+		return nil
+	}
+	return &state.ChatMessage{
+		MessageKey:       message.GetMessageKey(),
+		ChannelType:      state.ChatChannelType(message.GetChannelType()),
+		ChannelKey:       message.GetChannelKey(),
+		SenderID:         message.GetSenderId(),
+		ReceiverID:       message.GetReceiverId(),
+		Content:          message.GetContent(),
+		CreatedAt:        FromProtoTime(message.GetCreatedAt()),
+		ExpiresAt:        FromProtoTime(message.GetExpiresAt()),
+		ClientMessageKey: message.GetClientMessageKey(),
+		SenderNickname:   message.GetSenderNickname(),
+	}
+}
+
+func ToProtoChatMessages(messages []*state.ChatMessage) []*statepb.ChatMessage {
+	var result = make([]*statepb.ChatMessage, 0, len(messages))
+	for _, message := range messages {
+		result = append(result, ToProtoChatMessage(message))
+	}
+	return result
+}
+
+func ToProtoRealtimeChatMessage(message *state.ChatMessage) *statepb.RealtimeChatMessage {
+	if message == nil {
+		return nil
+	}
+	return &statepb.RealtimeChatMessage{
+		MessageKey:       message.MessageKey,
+		ChannelType:      string(message.ChannelType),
+		ChannelKey:       message.ChannelKey,
+		SenderId:         message.SenderID,
+		ReceiverId:       message.ReceiverID,
+		Content:          message.Content,
+		CreatedAt:        ToProtoTime(message.CreatedAt),
+		ExpiresAt:        ToProtoTime(message.ExpiresAt),
+		ClientMessageKey: message.ClientMessageKey,
+		SenderNickname:   message.SenderNickname,
+	}
+}
+
+func FromProtoRealtimeChatMessage(message *statepb.RealtimeChatMessage) *state.ChatMessage {
+	if message == nil {
+		return nil
+	}
+	return &state.ChatMessage{
+		MessageKey:       message.GetMessageKey(),
+		ChannelType:      state.ChatChannelType(message.GetChannelType()),
+		ChannelKey:       message.GetChannelKey(),
+		SenderID:         message.GetSenderId(),
+		ReceiverID:       message.GetReceiverId(),
+		Content:          message.GetContent(),
+		CreatedAt:        FromProtoTime(message.GetCreatedAt()),
+		ExpiresAt:        FromProtoTime(message.GetExpiresAt()),
+		ClientMessageKey: message.GetClientMessageKey(),
+		SenderNickname:   message.GetSenderNickname(),
 	}
 }

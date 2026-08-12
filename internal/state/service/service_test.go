@@ -110,6 +110,65 @@ func TestServiceForwardsCoinOperations(t *testing.T) {
 	}
 }
 
+func TestServiceForwardsChatOperations(t *testing.T) {
+	stores := newFakeStores()
+	createdAt := time.Date(2026, 8, 11, 10, 0, 0, 0, time.UTC)
+	expiresAt := createdAt.Add(statecontract.DirectChatRetention)
+	stores.savedChatMessage = &statecontract.ChatMessage{
+		MessageKey:       "msg-1",
+		ChannelType:      statecontract.ChatChannelDirect,
+		ChannelKey:       "direct:7:8",
+		SenderID:         7,
+		ReceiverID:       8,
+		Content:          "hello",
+		CreatedAt:        createdAt,
+		ExpiresAt:        expiresAt,
+		ClientMessageKey: "client-msg-1",
+	}
+	stores.chatMessages = []*statecontract.ChatMessage{stores.savedChatMessage}
+	svc := newTestService(stores)
+
+	saved, err := svc.SaveChatMessage(context.Background(), statecontract.SaveChatMessageInput{
+		ChannelType:      statecontract.ChatChannelDirect,
+		ChannelKey:       "direct:7:8",
+		SenderID:         7,
+		ReceiverID:       8,
+		Content:          "hello",
+		CreatedAt:        createdAt,
+		ExpiresAt:        expiresAt,
+		MaxMessages:      statecontract.DirectChatMaxMessages,
+		ClientMessageKey: "client-msg-1",
+	})
+	if err != nil {
+		t.Fatalf("SaveChatMessage returned error: %v", err)
+	}
+	if stores.saveChatMessageInput.ChannelKey != "direct:7:8" {
+		t.Fatalf("save chat channel key = %q, want direct:7:8", stores.saveChatMessageInput.ChannelKey)
+	}
+	if stores.saveChatMessageInput.MaxMessages != statecontract.DirectChatMaxMessages {
+		t.Fatalf("save chat max messages = %d, want %d", stores.saveChatMessageInput.MaxMessages, statecontract.DirectChatMaxMessages)
+	}
+	if saved.MessageKey != "msg-1" {
+		t.Fatalf("saved message key = %q, want msg-1", saved.MessageKey)
+	}
+
+	messages, err := svc.ListChatMessages(context.Background(), statecontract.ListChatMessagesInput{
+		ChannelType:      statecontract.ChatChannelDirect,
+		ChannelKey:       "direct:7:8",
+		Limit:            20,
+		BeforeMessageKey: "msg-0",
+	})
+	if err != nil {
+		t.Fatalf("ListChatMessages returned error: %v", err)
+	}
+	if stores.listChatMessagesInput.BeforeMessageKey != "msg-0" {
+		t.Fatalf("list chat before message key = %q, want msg-0", stores.listChatMessagesInput.BeforeMessageKey)
+	}
+	if len(messages) != 1 || messages[0].MessageKey != "msg-1" {
+		t.Fatalf("chat messages = %+v, want one saved message", messages)
+	}
+}
+
 func TestServiceForwardsPresenceOperations(t *testing.T) {
 	stores := newFakeStores()
 	svc := newTestService(stores)
@@ -334,6 +393,10 @@ type fakeStores struct {
 	deletedFriendFriendPlayerID        int64
 	addPlayerCoinsInput                statecontract.AddPlayerCoinsInput
 	addPlayerCoinsResult               *statecontract.AddPlayerCoinsResult
+	saveChatMessageInput               statecontract.SaveChatMessageInput
+	savedChatMessage                   *statecontract.ChatMessage
+	listChatMessagesInput              statecontract.ListChatMessagesInput
+	chatMessages                       []*statecontract.ChatMessage
 }
 
 func newFakeStores() *fakeStores {
@@ -354,6 +417,7 @@ func newTestService(stores *fakeStores) *Service {
 		Registrations: stores,
 		Friends:       stores,
 		Coins:         stores,
+		Chats:         stores,
 	})
 }
 
@@ -408,6 +472,16 @@ func (f *fakeStores) NextPlayerID(_ context.Context) (int64, error) {
 func (f *fakeStores) AddPlayerCoins(_ context.Context, input statecontract.AddPlayerCoinsInput) (*statecontract.AddPlayerCoinsResult, error) {
 	f.addPlayerCoinsInput = input
 	return f.addPlayerCoinsResult, nil
+}
+
+func (f *fakeStores) SaveChatMessage(_ context.Context, input statecontract.SaveChatMessageInput) (*statecontract.ChatMessage, error) {
+	f.saveChatMessageInput = input
+	return f.savedChatMessage, nil
+}
+
+func (f *fakeStores) ListChatMessages(_ context.Context, input statecontract.ListChatMessagesInput) ([]*statecontract.ChatMessage, error) {
+	f.listChatMessagesInput = input
+	return f.chatMessages, nil
 }
 
 func (f *fakeStores) RegisterAccount(ctx context.Context, input statecontract.RegisterAccountInput) (*statecontract.RegisterAccountResult, error) {
@@ -529,3 +603,4 @@ var _ statecontract.Client = (*Service)(nil)
 var _ statecontract.PresenceClient = (*Service)(nil)
 var _ statecontract.FriendClient = (*Service)(nil)
 var _ statecontract.CoinClient = (*Service)(nil)
+var _ statecontract.ChatClient = (*Service)(nil)

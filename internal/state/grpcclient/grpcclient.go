@@ -239,37 +239,73 @@ func (c *Client) DeleteFriend(ctx context.Context, playerID, friendPlayerID int6
 	return mapGRPCError(err)
 }
 
-func (c *Client) PublishRealtimeToServer(ctx context.Context, serverName string, event *state.RealtimeEvent) error {
+func (c *Client) PublishRealtime(ctx context.Context, delivery *state.RealtimeDelivery) error {
 	_, err := c.grpc.PublishRealtime(ctx, &statepb.PublishRealtimeRequest{
-		ServerName: serverName,
-		Event:      stateproto.ToProtoRealtimeEvent(event),
+		Delivery: stateproto.ToProtoRealtimeDelivery(delivery),
 	})
 	return mapGRPCError(err)
 }
 
-func (c *Client) SubscribeRealtime(ctx context.Context, serverName string) (<-chan *state.RealtimeEvent, error) {
+func (c *Client) SubscribeRealtime(ctx context.Context, route state.RealtimeRoute) (<-chan *state.RealtimeDelivery, error) {
 	stream, err := c.grpc.SubscribeRealtime(ctx, &statepb.SubscribeRealtimeRequest{
-		ServerName: serverName,
+		ServerName: route.ServerName,
+		Type:       stateproto.ToProtoRealtimeRouteType(route.Type),
 	})
 	if err != nil {
 		return nil, mapGRPCError(err)
 	}
-	events := make(chan *state.RealtimeEvent, 16)
+	deliveries := make(chan *state.RealtimeDelivery, 16)
 	go func() {
-		defer close(events)
+		defer close(deliveries)
 		for {
-			event, err := stream.Recv()
+			delivery, err := stream.Recv()
 			if err != nil {
 				return
 			}
 			select {
-			case events <- stateproto.FromProtoRealtimeEvent(event):
+			case deliveries <- stateproto.FromProtoRealtimeDelivery(delivery):
 			case <-ctx.Done():
 				return
 			}
 		}
 	}()
-	return events, nil
+	return deliveries, nil
+}
+
+func (c *Client) SaveChatMessage(ctx context.Context, input state.SaveChatMessageInput) (*state.ChatMessage, error) {
+	res, err := c.grpc.SaveChatMessage(ctx, &statepb.SaveChatMessageRequest{
+		ChannelType:      string(input.ChannelType),
+		ChannelKey:       input.ChannelKey,
+		SenderId:         input.SenderID,
+		ReceiverId:       input.ReceiverID,
+		Content:          input.Content,
+		CreatedAt:        stateproto.ToProtoTime(input.CreatedAt),
+		ExpiresAt:        stateproto.ToProtoTime(input.ExpiresAt),
+		MaxMessages:      input.MaxMessages,
+		ClientMessageKey: input.ClientMessageKey,
+		SenderNickname:   input.SenderNickname,
+	})
+	if err != nil {
+		return nil, mapGRPCError(err)
+	}
+	return stateproto.FromProtoChatMessage(res.GetMessage()), nil
+}
+
+func (c *Client) ListChatMessages(ctx context.Context, input state.ListChatMessagesInput) ([]*state.ChatMessage, error) {
+	res, err := c.grpc.ListChatMessages(ctx, &statepb.ListChatMessagesRequest{
+		ChannelType:      string(input.ChannelType),
+		ChannelKey:       input.ChannelKey,
+		Limit:            input.Limit,
+		BeforeMessageKey: input.BeforeMessageKey,
+	})
+	if err != nil {
+		return nil, mapGRPCError(err)
+	}
+	messages := make([]*state.ChatMessage, 0, len(res.GetMessages()))
+	for _, message := range res.GetMessages() {
+		messages = append(messages, stateproto.FromProtoChatMessage(message))
+	}
+	return messages, nil
 }
 
 // NewClient 使用生成的 gRPC 绑定创建状态契约客户端。
@@ -299,6 +335,8 @@ func mapGRPCError(err error) error {
 			return state.ErrFriendRequestNotFound
 		case state.ErrGrowthNotFound.Error():
 			return state.ErrGrowthNotFound
+		case state.ErrChatMessageNotFound.Error():
+			return state.ErrChatMessageNotFound
 		}
 	case codes.AlreadyExists:
 		switch st.Message() {
@@ -308,6 +346,8 @@ func mapGRPCError(err error) error {
 			return state.ErrFriendAlreadyExists
 		case state.ErrFriendRequestExists.Error():
 			return state.ErrFriendRequestExists
+		case state.ErrChatMessageExists.Error():
+			return state.ErrChatMessageExists
 		}
 	case codes.InvalidArgument:
 		switch st.Message() {
@@ -321,6 +361,10 @@ func mapGRPCError(err error) error {
 			return state.ErrInvalidGrowthField
 		case state.ErrInvalidPlayer.Error():
 			return state.ErrInvalidPlayer
+		case state.ErrInvalidChatMessage.Error():
+			return state.ErrInvalidChatMessage
+		case state.ErrInvalidChatChannel.Error():
+			return state.ErrInvalidChatChannel
 
 		}
 	case codes.FailedPrecondition:

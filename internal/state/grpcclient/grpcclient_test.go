@@ -172,6 +172,88 @@ func TestClientAddPlayerCoins(t *testing.T) {
 	}
 }
 
+func TestClientChatMessages(t *testing.T) {
+	createdAt := time.Date(2026, 8, 11, 10, 0, 0, 0, time.UTC)
+	expiresAt := createdAt.Add(statecontract.DirectChatRetention)
+	grpcState := &fakeStateServiceClient{
+		saveChatMessageResponse: &statepb.SaveChatMessageResponse{
+			Message: &statepb.ChatMessage{
+				MessageKey:       "msg-1",
+				ChannelType:      string(statecontract.ChatChannelDirect),
+				ChannelKey:       "direct:7:8",
+				SenderId:         7,
+				ReceiverId:       8,
+				Content:          "hello",
+				CreatedAt:        timestamppb.New(createdAt),
+				ExpiresAt:        timestamppb.New(expiresAt),
+				ClientMessageKey: "client-msg-1",
+			},
+		},
+		listChatMessagesResponse: &statepb.ListChatMessagesResponse{
+			Messages: []*statepb.ChatMessage{
+				{
+					MessageKey:       "msg-1",
+					ChannelType:      string(statecontract.ChatChannelDirect),
+					ChannelKey:       "direct:7:8",
+					SenderId:         7,
+					ReceiverId:       8,
+					Content:          "hello",
+					CreatedAt:        timestamppb.New(createdAt),
+					ExpiresAt:        timestamppb.New(expiresAt),
+					ClientMessageKey: "client-msg-1",
+				},
+			},
+		},
+	}
+	client := NewClient(grpcState)
+
+	saved, err := client.SaveChatMessage(context.Background(), statecontract.SaveChatMessageInput{
+		ChannelType:      statecontract.ChatChannelDirect,
+		ChannelKey:       "direct:7:8",
+		SenderID:         7,
+		ReceiverID:       8,
+		Content:          "hello",
+		CreatedAt:        createdAt,
+		ExpiresAt:        expiresAt,
+		MaxMessages:      statecontract.DirectChatMaxMessages,
+		ClientMessageKey: "client-msg-1",
+	})
+	if err != nil {
+		t.Fatalf("SaveChatMessage returned error: %v", err)
+	}
+	if grpcState.saveChatMessageRequest.GetChannelType() != string(statecontract.ChatChannelDirect) {
+		t.Fatalf("save chat channel type = %q, want %q", grpcState.saveChatMessageRequest.GetChannelType(), statecontract.ChatChannelDirect)
+	}
+	if grpcState.saveChatMessageRequest.GetChannelKey() != "direct:7:8" {
+		t.Fatalf("save chat channel key = %q, want direct:7:8", grpcState.saveChatMessageRequest.GetChannelKey())
+	}
+	if grpcState.saveChatMessageRequest.GetMaxMessages() != statecontract.DirectChatMaxMessages {
+		t.Fatalf("save chat max messages = %d, want %d", grpcState.saveChatMessageRequest.GetMaxMessages(), statecontract.DirectChatMaxMessages)
+	}
+	if saved.MessageKey != "msg-1" || saved.ClientMessageKey != "client-msg-1" {
+		t.Fatalf("saved chat message = %+v, want message and client keys", saved)
+	}
+
+	messages, err := client.ListChatMessages(context.Background(), statecontract.ListChatMessagesInput{
+		ChannelType:      statecontract.ChatChannelDirect,
+		ChannelKey:       "direct:7:8",
+		Limit:            20,
+		BeforeMessageKey: "msg-0",
+	})
+	if err != nil {
+		t.Fatalf("ListChatMessages returned error: %v", err)
+	}
+	if grpcState.listChatMessagesRequest.GetLimit() != 20 {
+		t.Fatalf("list chat limit = %d, want 20", grpcState.listChatMessagesRequest.GetLimit())
+	}
+	if grpcState.listChatMessagesRequest.GetBeforeMessageKey() != "msg-0" {
+		t.Fatalf("list chat before message key = %q, want msg-0", grpcState.listChatMessagesRequest.GetBeforeMessageKey())
+	}
+	if len(messages) != 1 || messages[0].MessageKey != "msg-1" || messages[0].SenderID != 7 {
+		t.Fatalf("chat messages = %+v, want one message from player 7", messages)
+	}
+}
+
 func TestClientGetAccount(t *testing.T) {
 	grpcState := &fakeStateServiceClient{
 		account: &statepb.Account{
@@ -547,22 +629,26 @@ func TestClientFriendMethods(t *testing.T) {
 	}
 }
 
-func TestClientPublishRealtimeToServer(t *testing.T) {
+func TestClientPublishRealtime(t *testing.T) {
 	grpcState := &fakeStateServiceClient{}
 	client := NewClient(grpcState)
 
-	err := client.PublishRealtimeToServer(context.Background(), "logic-2", &statecontract.RealtimeEvent{
-		Type:           statecontract.RealtimeEventFriendRemoved,
-		TargetPlayerID: 8,
-		ActorPlayerID:  7,
+	err := client.PublishRealtime(context.Background(), &statecontract.RealtimeDelivery{
+		Route: statecontract.RealtimeRoute{Type: statecontract.RealtimeRouteServer, ServerName: "logic-2"},
+		Event: &statecontract.RealtimeEvent{
+			Type:           statecontract.RealtimeEventFriendRemoved,
+			TargetPlayerID: 8,
+			ActorPlayerID:  7,
+		},
 	})
 	if err != nil {
-		t.Fatalf("PublishRealtimeToServer returned error: %v", err)
+		t.Fatalf("PublishRealtime returned error: %v", err)
 	}
-	if grpcState.publishedRealtimeRequest.GetServerName() != "logic-2" {
-		t.Fatalf("realtime server name = %q, want logic-2", grpcState.publishedRealtimeRequest.GetServerName())
+	delivery := grpcState.publishedRealtimeRequest.GetDelivery()
+	if delivery.GetRoute().GetType() != statepb.RealtimeRouteType_REALTIME_ROUTE_TYPE_SERVER || delivery.GetRoute().GetServerName() != "logic-2" {
+		t.Fatalf("realtime route = %+v, want server logic-2", delivery.GetRoute())
 	}
-	event := grpcState.publishedRealtimeRequest.GetEvent()
+	event := delivery.GetEvent()
 	if event.GetType() != statecontract.RealtimeEventFriendRemoved || event.GetTargetPlayerId() != 8 || event.GetActorPlayerId() != 7 {
 		t.Fatalf("realtime event = %+v, want friend_removed target=8 actor=7", event)
 	}
@@ -607,6 +693,10 @@ type fakeStateServiceClient struct {
 	upgradeGrowthResponse    *statepb.UpgradeGrowthResponse
 	addPlayerCoinsRequest    *statepb.AddPlayerCoinsRequest
 	addPlayerCoinsResponse   *statepb.AddPlayerCoinsResponse
+	saveChatMessageRequest   *statepb.SaveChatMessageRequest
+	saveChatMessageResponse  *statepb.SaveChatMessageResponse
+	listChatMessagesRequest  *statepb.ListChatMessagesRequest
+	listChatMessagesResponse *statepb.ListChatMessagesResponse
 }
 
 func (f *fakeStateServiceClient) CreateAccount(_ context.Context, in *statepb.CreateAccountRequest, _ ...grpc.CallOption) (*statepb.CreateAccountResponse, error) {
@@ -690,6 +780,22 @@ func (f *fakeStateServiceClient) AddPlayerCoins(_ context.Context, in *statepb.A
 	return f.addPlayerCoinsResponse, nil
 }
 
+func (f *fakeStateServiceClient) SaveChatMessage(_ context.Context, in *statepb.SaveChatMessageRequest, _ ...grpc.CallOption) (*statepb.SaveChatMessageResponse, error) {
+	f.saveChatMessageRequest = in
+	if f.err != nil {
+		return nil, f.err
+	}
+	return f.saveChatMessageResponse, nil
+}
+
+func (f *fakeStateServiceClient) ListChatMessages(_ context.Context, in *statepb.ListChatMessagesRequest, _ ...grpc.CallOption) (*statepb.ListChatMessagesResponse, error) {
+	f.listChatMessagesRequest = in
+	if f.err != nil {
+		return nil, f.err
+	}
+	return f.listChatMessagesResponse, nil
+}
+
 func (f *fakeStateServiceClient) SetPresence(_ context.Context, in *statepb.SetPresenceRequest, _ ...grpc.CallOption) (*statepb.SetPresenceResponse, error) {
 	f.setPresence = in.GetPresence()
 	f.setPresenceTTL = in.GetTtl().AsDuration()
@@ -763,7 +869,7 @@ func (f *fakeStateServiceClient) PublishRealtime(_ context.Context, in *statepb.
 	return &statepb.PublishRealtimeResponse{}, f.err
 }
 
-func (f *fakeStateServiceClient) SubscribeRealtime(_ context.Context, in *statepb.SubscribeRealtimeRequest, _ ...grpc.CallOption) (grpc.ServerStreamingClient[statepb.RealtimeEvent], error) {
+func (f *fakeStateServiceClient) SubscribeRealtime(_ context.Context, in *statepb.SubscribeRealtimeRequest, _ ...grpc.CallOption) (grpc.ServerStreamingClient[statepb.RealtimeDelivery], error) {
 	f.subscribeRealtimeRequest = in
 	return nil, f.err
 }

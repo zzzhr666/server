@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	statecontract "server/internal/contract/state"
+	"server/internal/contract/state"
 	"strconv"
 	"time"
 
@@ -19,9 +19,9 @@ type Store struct {
 	client *redis.Client
 }
 
-func (s *Store) AddPlayerCoins(ctx context.Context, input statecontract.AddPlayerCoinsInput) (*statecontract.AddPlayerCoinsResult, error) {
+func (s *Store) AddPlayerCoins(ctx context.Context, input state.AddPlayerCoinsInput) (*state.AddPlayerCoinsResult, error) {
 	if input.PlayerID <= 0 || input.Amount <= 0 {
-		return nil, statecontract.ErrInvalidPlayer
+		return nil, state.ErrInvalidPlayer
 	}
 	key := playerKey(input.PlayerID)
 	exists, err := s.client.Exists(ctx, key).Result()
@@ -29,20 +29,20 @@ func (s *Store) AddPlayerCoins(ctx context.Context, input statecontract.AddPlaye
 		return nil, err
 	}
 	if exists == 0 {
-		return nil, statecontract.ErrPlayerNotFound
+		return nil, state.ErrPlayerNotFound
 	}
 	coins, err := s.client.HIncrBy(ctx, key, "coins", input.Amount).Result()
 	if err != nil {
 		return nil, err
 	}
-	return &statecontract.AddPlayerCoinsResult{
+	return &state.AddPlayerCoinsResult{
 		PlayerID: input.PlayerID,
 		Coins:    coins,
 	}, nil
 }
 
 // CreatePlayer 按玩家 ID 存储玩家档案。
-func (s *Store) CreatePlayer(ctx context.Context, player *statecontract.Player) error {
+func (s *Store) CreatePlayer(ctx context.Context, player *state.Player) error {
 	return s.client.HSet(ctx, playerKey(player.ID), map[string]any{
 		"id":       player.ID,
 		"nickname": player.Nickname,
@@ -55,20 +55,20 @@ func (s *Store) CreatePlayer(ctx context.Context, player *statecontract.Player) 
 }
 
 // GetPlayer 按玩家 ID 读取玩家档案。
-func (s *Store) GetPlayer(ctx context.Context, id int64) (*statecontract.Player, error) {
+func (s *Store) GetPlayer(ctx context.Context, id int64) (*state.Player, error) {
 	key := playerKey(id)
 	value, err := s.client.HGetAll(ctx, key).Result()
 	if err != nil {
 		return nil, err
 	}
 	if len(value) == 0 {
-		return nil, statecontract.ErrPlayerNotFound
+		return nil, state.ErrPlayerNotFound
 	}
 	coins, err := strconv.ParseInt(value["coins"], 10, 64)
 	if err != nil {
 		coins = 0
 	}
-	return &statecontract.Player{
+	return &state.Player{
 		ID:       id,
 		Nickname: value["nickname"],
 		Avatar:   value["avatar"],
@@ -85,11 +85,11 @@ func (s *Store) NextPlayerID(ctx context.Context) (int64, error) {
 }
 
 // CreateSession 使用由 ExpiresAt 推导的 Redis TTL 存储会话。
-func (s *Store) CreateSession(ctx context.Context, session *statecontract.Session) error {
+func (s *Store) CreateSession(ctx context.Context, session *state.Session) error {
 	key := sessionKey(session.Token)
 	ttl := time.Until(session.ExpiresAt)
 	if ttl <= 0 {
-		return statecontract.ErrSessionNotFound
+		return state.ErrSessionNotFound
 	}
 	_, err := s.client.TxPipelined(ctx, func(p redis.Pipeliner) error {
 		p.HSet(ctx, key, map[string]any{
@@ -104,13 +104,13 @@ func (s *Store) CreateSession(ctx context.Context, session *statecontract.Sessio
 }
 
 // GetSession 按令牌读取会话，并将过期会话视为不存在。
-func (s *Store) GetSession(ctx context.Context, token string) (*statecontract.Session, error) {
+func (s *Store) GetSession(ctx context.Context, token string) (*state.Session, error) {
 	value, err := s.client.HGetAll(ctx, sessionKey(token)).Result()
 	if err != nil {
 		return nil, err
 	}
 	if len(value) == 0 {
-		return nil, statecontract.ErrSessionNotFound
+		return nil, state.ErrSessionNotFound
 	}
 	playerID, err := strconv.ParseInt(value["player_id"], 10, 64)
 	if err != nil {
@@ -120,13 +120,13 @@ func (s *Store) GetSession(ctx context.Context, token string) (*statecontract.Se
 	if err != nil {
 		return nil, err
 	}
-	session := &statecontract.Session{
+	session := &state.Session{
 		Token:     value["token"],
 		PlayerID:  playerID,
 		ExpiresAt: time.Unix(expiresAtUnix, 0),
 	}
 	if time.Now().After(session.ExpiresAt) {
-		return nil, statecontract.ErrSessionNotFound
+		return nil, state.ErrSessionNotFound
 	}
 
 	return session, nil
@@ -138,7 +138,7 @@ func (s *Store) DeleteSession(ctx context.Context, token string) error {
 }
 
 // CreateAccount 在用户名未被使用时存储账号凭据。
-func (s *Store) CreateAccount(ctx context.Context, account *statecontract.Account) error {
+func (s *Store) CreateAccount(ctx context.Context, account *state.Account) error {
 	key := accountKey(account.Username)
 	return retryOptimisticLock(ctx, func() error {
 		return s.client.Watch(ctx, func(tx *redis.Tx) error {
@@ -147,7 +147,7 @@ func (s *Store) CreateAccount(ctx context.Context, account *statecontract.Accoun
 				return err
 			}
 			if exists > 0 {
-				return statecontract.ErrAccountExists
+				return state.ErrAccountExists
 			}
 			_, err = tx.TxPipelined(ctx, func(p redis.Pipeliner) error {
 				p.HSet(ctx, key, map[string]any{
@@ -163,19 +163,19 @@ func (s *Store) CreateAccount(ctx context.Context, account *statecontract.Accoun
 }
 
 // GetAccount 按用户名读取账号凭据。
-func (s *Store) GetAccount(ctx context.Context, username string) (*statecontract.Account, error) {
+func (s *Store) GetAccount(ctx context.Context, username string) (*state.Account, error) {
 	value, err := s.client.HGetAll(ctx, accountKey(username)).Result()
 	if err != nil {
 		return nil, err
 	}
 	if len(value) == 0 {
-		return nil, statecontract.ErrAccountNotFound
+		return nil, state.ErrAccountNotFound
 	}
 	playerID, err := strconv.ParseInt(value["player_id"], 10, 64)
 	if err != nil {
 		return nil, err
 	}
-	return &statecontract.Account{
+	return &state.Account{
 		Username:     username,
 		PasswordHash: value["password_hash"],
 		PlayerID:     playerID,
@@ -183,12 +183,12 @@ func (s *Store) GetAccount(ctx context.Context, username string) (*statecontract
 }
 
 // SetPresence 使用 TTL 记录玩家当前连接的 logic-server。
-func (s *Store) SetPresence(ctx context.Context, presence *statecontract.Presence, ttl time.Duration) error {
+func (s *Store) SetPresence(ctx context.Context, presence *state.Presence, ttl time.Duration) error {
 	if presence == nil || ttl <= 0 {
-		return statecontract.ErrInvalidPresence
+		return state.ErrInvalidPresence
 	}
 	if presence.PlayerID <= 0 || presence.ServerName == "" || presence.Status == "" {
-		return statecontract.ErrInvalidPresence
+		return state.ErrInvalidPresence
 	}
 
 	key := presenceKey(presence.PlayerID)
@@ -206,16 +206,16 @@ func (s *Store) SetPresence(ctx context.Context, presence *statecontract.Presenc
 }
 
 // GetPresence 读取玩家当前的在线状态记录。
-func (s *Store) GetPresence(ctx context.Context, playerID int64) (*statecontract.Presence, error) {
+func (s *Store) GetPresence(ctx context.Context, playerID int64) (*state.Presence, error) {
 	if playerID <= 0 {
-		return nil, statecontract.ErrInvalidPresence
+		return nil, state.ErrInvalidPresence
 	}
 	value, err := s.client.HGetAll(ctx, presenceKey(playerID)).Result()
 	if err != nil {
 		return nil, err
 	}
 	if len(value) == 0 {
-		return nil, statecontract.ErrPresenceNotFound
+		return nil, state.ErrPresenceNotFound
 	}
 	id, err := strconv.ParseInt(value["player_id"], 10, 64)
 	if err != nil {
@@ -226,7 +226,7 @@ func (s *Store) GetPresence(ctx context.Context, playerID int64) (*statecontract
 		return nil, err
 	}
 	updatedAt := time.Unix(updatedAtUnix, 0)
-	return &statecontract.Presence{
+	return &state.Presence{
 		PlayerID:   id,
 		ServerName: value["server_name"],
 		Status:     value["status"],
@@ -237,7 +237,7 @@ func (s *Store) GetPresence(ctx context.Context, playerID int64) (*statecontract
 // ClearPresence 仅在 serverName 仍持有记录时删除在线状态。
 func (s *Store) ClearPresence(ctx context.Context, playerID int64, serverName string) error {
 	if playerID <= 0 || serverName == "" {
-		return statecontract.ErrInvalidPresence
+		return state.ErrInvalidPresence
 	}
 	key := presenceKey(playerID)
 	// TCP 的旧连接可能在新连接写入 presence 后才关闭。WATCH 将“仍由本
@@ -268,7 +268,7 @@ func (s *Store) ClearPresence(ctx context.Context, playerID int64, serverName st
 // RefreshPresence 仅在 serverName 仍持有记录时延长在线状态 TTL。
 func (s *Store) RefreshPresence(ctx context.Context, playerID int64, serverName string, updatedAt time.Time, ttl time.Duration) error {
 	if playerID <= 0 || serverName == "" || ttl <= 0 {
-		return statecontract.ErrInvalidPresence
+		return state.ErrInvalidPresence
 	}
 	key := presenceKey(playerID)
 	// 心跳只能续期当前 logic-server 持有的记录。所有权已经被重连实例替换时返回
@@ -277,13 +277,13 @@ func (s *Store) RefreshPresence(ctx context.Context, playerID int64, serverName 
 		err := s.client.Watch(ctx, func(tx *redis.Tx) error {
 			storedServerName, err := tx.HGet(ctx, key, "server_name").Result()
 			if errors.Is(err, redis.Nil) {
-				return statecontract.ErrPresenceNotFound
+				return state.ErrPresenceNotFound
 			}
 			if err != nil {
 				return err
 			}
 			if storedServerName != serverName {
-				return statecontract.ErrPresenceNotFound
+				return state.ErrPresenceNotFound
 			}
 			_, err = tx.TxPipelined(ctx, func(pipeliner redis.Pipeliner) error {
 				pipeliner.HSet(ctx, key, "updated_at", updatedAt.Unix())
@@ -298,8 +298,8 @@ func (s *Store) RefreshPresence(ctx context.Context, playerID int64, serverName 
 }
 
 // RegisterAccount 一并创建账号、玩家和会话记录。
-func (s *Store) RegisterAccount(ctx context.Context, input statecontract.RegisterAccountInput) (*statecontract.RegisterAccountResult, error) {
-	var result *statecontract.RegisterAccountResult
+func (s *Store) RegisterAccount(ctx context.Context, input state.RegisterAccountInput) (*state.RegisterAccountResult, error) {
+	var result *state.RegisterAccountResult
 	// 用户名唯一性检查、玩家 ID 分配以及账号/玩家/会话/初始成长写入必须处于同一
 	// WATCH + 事务提交范围。发生竞争时 retryOptimisticLock 重新读取，不能留下
 	// 只有账号或只有玩家的半注册状态。
@@ -311,14 +311,14 @@ func (s *Store) RegisterAccount(ctx context.Context, input statecontract.Registe
 				return err
 			}
 			if exists > 0 {
-				return statecontract.ErrAccountExists
+				return state.ErrAccountExists
 			}
 
 			playerID, err := tx.Incr(ctx, nextPlayerIDKey).Result()
 			if err != nil {
 				return err
 			}
-			player := &statecontract.Player{
+			player := &state.Player{
 				ID:       playerID,
 				Nickname: input.Nickname,
 				Avatar:   input.Avatar,
@@ -326,19 +326,19 @@ func (s *Store) RegisterAccount(ctx context.Context, input statecontract.Registe
 				Phone:    input.Phone,
 				Coins:    0,
 			}
-			account := &statecontract.Account{
+			account := &state.Account{
 				Username:     input.Username,
 				PasswordHash: input.PasswordHash,
 				PlayerID:     playerID,
 			}
-			session := &statecontract.Session{
+			session := &state.Session{
 				Token:     input.SessionToken,
 				PlayerID:  playerID,
 				ExpiresAt: input.SessionExpiresAt,
 			}
 			sessionTTL := time.Until(session.ExpiresAt)
 			if sessionTTL <= 0 {
-				return statecontract.ErrSessionNotFound
+				return state.ErrSessionNotFound
 			}
 
 			_, err = tx.TxPipelined(ctx, func(p redis.Pipeliner) error {
@@ -374,7 +374,7 @@ func (s *Store) RegisterAccount(ctx context.Context, input statecontract.Registe
 				return err
 			}
 
-			result = &statecontract.RegisterAccountResult{
+			result = &state.RegisterAccountResult{
 				Account: account,
 				Player:  player,
 				Session: session,
@@ -407,7 +407,7 @@ func (s *Store) SendFriendRequest(ctx context.Context, fromPlayerID, toPlayerID 
 				return err
 			}
 			if playerExists < 2 {
-				return statecontract.ErrPlayerNotFound
+				return state.ErrPlayerNotFound
 			}
 			isFriend, err := tx.SIsMember(ctx, fromFriendKey, toPlayerID).Result()
 			if err != nil {
@@ -418,14 +418,14 @@ func (s *Store) SendFriendRequest(ctx context.Context, fromPlayerID, toPlayerID 
 				return err
 			}
 			if isFriend || reverseFriend {
-				return statecontract.ErrFriendAlreadyExists
+				return state.ErrFriendAlreadyExists
 			}
 			exists, err := tx.Exists(ctx, requestKey, reverseRequestKey).Result()
 			if err != nil {
 				return err
 			}
 			if exists > 0 {
-				return statecontract.ErrFriendRequestExists
+				return state.ErrFriendRequestExists
 			}
 			_, err = tx.TxPipelined(ctx, func(p redis.Pipeliner) error {
 				p.HSet(ctx, requestKey, map[string]any{
@@ -451,7 +451,7 @@ func (s *Store) SendFriendRequest(ctx context.Context, fromPlayerID, toPlayerID 
 	})
 }
 
-func (s *Store) ListIncomingFriendRequests(ctx context.Context, playerID int64) ([]*statecontract.FriendRequest, error) {
+func (s *Store) ListIncomingFriendRequests(ctx context.Context, playerID int64) ([]*state.FriendRequest, error) {
 	if err := validateFriendPlayerID(playerID); err != nil {
 		return nil, err
 	}
@@ -459,7 +459,7 @@ func (s *Store) ListIncomingFriendRequests(ctx context.Context, playerID int64) 
 	if err != nil {
 		return nil, err
 	}
-	requests := make([]*statecontract.FriendRequest, 0, len(fromIDs))
+	requests := make([]*state.FriendRequest, 0, len(fromIDs))
 	for _, id := range fromIDs {
 		fromPlayerID, err := strconv.ParseInt(id, 10, 64)
 		if err != nil {
@@ -481,7 +481,7 @@ func (s *Store) ListIncomingFriendRequests(ctx context.Context, playerID int64) 
 	return requests, nil
 }
 
-func (s *Store) ListOutgoingFriendRequests(ctx context.Context, playerID int64) ([]*statecontract.FriendRequest, error) {
+func (s *Store) ListOutgoingFriendRequests(ctx context.Context, playerID int64) ([]*state.FriendRequest, error) {
 	if err := validateFriendPlayerID(playerID); err != nil {
 		return nil, err
 	}
@@ -489,7 +489,7 @@ func (s *Store) ListOutgoingFriendRequests(ctx context.Context, playerID int64) 
 	if err != nil {
 		return nil, err
 	}
-	requests := make([]*statecontract.FriendRequest, 0, len(toIDs))
+	requests := make([]*state.FriendRequest, 0, len(toIDs))
 	for _, id := range toIDs {
 		toPlayerID, err := strconv.ParseInt(id, 10, 64)
 		if err != nil {
@@ -525,7 +525,7 @@ func (s *Store) AcceptFriendRequest(ctx context.Context, fromPlayerID, toPlayerI
 				return err
 			}
 			if exists == 0 {
-				return statecontract.ErrFriendRequestNotFound
+				return state.ErrFriendRequestNotFound
 			}
 			_, err = tx.TxPipelined(ctx, func(p redis.Pipeliner) error {
 				p.SAdd(ctx, fromFriendKey, toPlayerID)
@@ -554,7 +554,7 @@ func (s *Store) RejectFriendRequest(ctx context.Context, fromPlayerID, toPlayerI
 				return err
 			}
 			if exists == 0 {
-				return statecontract.ErrFriendRequestNotFound
+				return state.ErrFriendRequestNotFound
 			}
 			_, err = tx.TxPipelined(ctx, func(p redis.Pipeliner) error {
 				p.Del(ctx, requestKey)
@@ -599,14 +599,14 @@ func (s *Store) DeleteFriend(ctx context.Context, playerID, friendPlayerID int64
 				return err
 			}
 			if !playerExists {
-				return statecontract.ErrFriendNotFound
+				return state.ErrFriendNotFound
 			}
 			friendExists, err := tx.SIsMember(ctx, friendFriendKey, playerID).Result()
 			if err != nil {
 				return err
 			}
 			if !friendExists {
-				return statecontract.ErrFriendNotFound
+				return state.ErrFriendNotFound
 			}
 			_, err = tx.TxPipelined(ctx, func(p redis.Pipeliner) error {
 				p.SRem(ctx, playerFriendKey, friendPlayerID)
@@ -618,33 +618,42 @@ func (s *Store) DeleteFriend(ctx context.Context, playerID, friendPlayerID int64
 	})
 }
 
-// PublishRealtimeToServer 向一个 logic-server 实时频道发布事件。
-func (s *Store) PublishRealtimeToServer(ctx context.Context, serverName string, event *statecontract.RealtimeEvent) error {
-	if serverName == "" || event == nil || event.Type == "" || event.TargetPlayerID <= 0 {
-		return statecontract.ErrInvalidPresence
+// PublishRealtime 按投递路由发布实时事件。
+func (s *Store) PublishRealtime(ctx context.Context, delivery *state.RealtimeDelivery) error {
+	if !validRealtimeDelivery(delivery) {
+		return state.ErrInvalidRealtimeRoute
 	}
-	payload, err := json.Marshal(event)
+	payload, err := json.Marshal(delivery)
 	if err != nil {
 		return err
 	}
-	return s.client.Publish(ctx, realtimeChannelKey(serverName), payload).Err()
+	channel, ok := realtimeDeliveryChannel(delivery.Route)
+	if !ok {
+		return state.ErrInvalidRealtimeRoute
+	}
+
+	return s.client.Publish(ctx, channel, payload).Err()
 }
 
-// SubscribeRealtime 订阅发送给一个 logic-server 的实时事件。
-func (s *Store) SubscribeRealtime(ctx context.Context, serverName string) (<-chan *statecontract.RealtimeEvent, error) {
-	if serverName == "" {
-		return nil, statecontract.ErrInvalidPresence
+// SubscribeRealtime 订阅指定路由上的实时投递。
+func (s *Store) SubscribeRealtime(ctx context.Context, route state.RealtimeRoute) (<-chan *state.RealtimeDelivery, error) {
+	if !validRealtimeRoute(route) {
+		return nil, state.ErrInvalidRealtimeRoute
 	}
-	pubsub := s.client.Subscribe(ctx, realtimeChannelKey(serverName))
+	channel, ok := realtimeDeliveryChannel(route)
+	if !ok {
+		return nil, state.ErrInvalidRealtimeRoute
+	}
+	pubsub := s.client.Subscribe(ctx, channel)
 	if _, err := pubsub.Receive(ctx); err != nil {
 		_ = pubsub.Close()
 		return nil, err
 	}
-	events := make(chan *statecontract.RealtimeEvent, 16)
+	deliveries := make(chan *state.RealtimeDelivery, 16)
 	go func() {
 		// pubsub 的生命周期绑定调用方 context。关闭 events 前先关闭 Redis 订阅，
 		// 使 logic-server 停止时不会泄漏 goroutine 或保留无消费者的频道连接。
-		defer close(events)
+		defer close(deliveries)
 		defer func() {
 			_ = pubsub.Close()
 		}()
@@ -657,39 +666,65 @@ func (s *Store) SubscribeRealtime(ctx context.Context, serverName string) (<-cha
 				if !ok {
 					return
 				}
-				event := &statecontract.RealtimeEvent{}
-				if err := json.Unmarshal([]byte(msg.Payload), event); err != nil {
+				delivery := &state.RealtimeDelivery{}
+				if err := json.Unmarshal([]byte(msg.Payload), delivery); err != nil || !validRealtimeDelivery(delivery) {
 					continue
 				}
 				select {
-				case events <- event:
+				case deliveries <- delivery:
 				case <-ctx.Done():
 					return
 				}
 			}
 		}
 	}()
-	return events, nil
+	return deliveries, nil
 }
 
-func (s *Store) GetGrowth(ctx context.Context, playerID int64) (*statecontract.Growth, error) {
+func validRealtimeDelivery(delivery *state.RealtimeDelivery) bool {
+	if delivery == nil || delivery.Event == nil || delivery.Event.Type == "" || !validRealtimeRoute(delivery.Route) {
+		return false
+	}
+	return (delivery.Route.Type == state.RealtimeRouteServer && delivery.Event.TargetPlayerID > 0) ||
+		delivery.Route.Type == state.RealtimeRouteBroadcast
+
+}
+
+func validRealtimeRoute(route state.RealtimeRoute) bool {
+	if route.Type == state.RealtimeRouteServer {
+		return route.ServerName != ""
+	}
+	return route.Type == state.RealtimeRouteBroadcast && route.ServerName == ""
+}
+
+func realtimeDeliveryChannel(route state.RealtimeRoute) (string, bool) {
+	switch route.Type {
+	case state.RealtimeRouteBroadcast:
+		return realtimeChannelKey(state.RealtimeBroadcastChannelName), true
+	case state.RealtimeRouteServer:
+		return realtimeChannelKey(route.ServerName), true
+	}
+	return "", false
+}
+
+func (s *Store) GetGrowth(ctx context.Context, playerID int64) (*state.Growth, error) {
 	if playerID <= 0 {
-		return nil, statecontract.ErrInvalidGrowth
+		return nil, state.ErrInvalidGrowth
 	}
 	value, err := s.client.HGetAll(ctx, growthKey(playerID)).Result()
 	if err != nil {
 		return nil, err
 	}
 	if len(value) == 0 {
-		return nil, statecontract.ErrGrowthNotFound
+		return nil, state.ErrGrowthNotFound
 	}
 	return parseGrowth(value)
 }
 
-func (s *Store) UpgradeGrowth(ctx context.Context, input statecontract.UpgradeGrowthInput) (*statecontract.UpgradeGrowthResult, error) {
+func (s *Store) UpgradeGrowth(ctx context.Context, input state.UpgradeGrowthInput) (*state.UpgradeGrowthResult, error) {
 
 	if input.PlayerID <= 0 || input.Cost < 0 || input.MaxLevel < 1 {
-		return nil, statecontract.ErrInvalidGrowth
+		return nil, state.ErrInvalidGrowth
 	}
 	field, err := growthFieldName(input.UpgradeField)
 	if err != nil {
@@ -697,25 +732,25 @@ func (s *Store) UpgradeGrowth(ctx context.Context, input statecontract.UpgradeGr
 	}
 	playerKey := playerKey(input.PlayerID)
 	growthKey := growthKey(input.PlayerID)
-	var result *statecontract.UpgradeGrowthResult
+	var result *state.UpgradeGrowthResult
 	err = retryOptimisticLock(ctx, func() error {
 		return s.client.Watch(ctx, func(tx *redis.Tx) error {
 			coins, err := tx.HGet(ctx, playerKey, "coins").Int64()
 			if errors.Is(err, redis.Nil) {
-				return statecontract.ErrPlayerNotFound
+				return state.ErrPlayerNotFound
 			}
 			if err != nil {
 				return err
 			}
 			if coins < input.Cost {
-				return statecontract.ErrInsufficientCoins
+				return state.ErrInsufficientCoins
 			}
 			value, err := tx.HGetAll(ctx, growthKey).Result()
 			if err != nil {
 				return err
 			}
 			if len(value) == 0 {
-				return statecontract.ErrGrowthNotFound
+				return state.ErrGrowthNotFound
 			}
 			growth, err := parseGrowth(value)
 			if err != nil {
@@ -723,13 +758,13 @@ func (s *Store) UpgradeGrowth(ctx context.Context, input statecontract.UpgradeGr
 			}
 			currentLevel64, err := strconv.ParseInt(value[field], 10, 32)
 			if err != nil {
-				return statecontract.ErrInvalidGrowth
+				return state.ErrInvalidGrowth
 			}
 			if currentLevel64 < 1 {
-				return statecontract.ErrInvalidGrowth
+				return state.ErrInvalidGrowth
 			}
 			if currentLevel64 >= int64(input.MaxLevel) {
-				return statecontract.ErrMaxGrowthLevel
+				return state.ErrMaxGrowthLevel
 			}
 			remainingCoins := coins - input.Cost
 			nextLevel := currentLevel64 + 1
@@ -744,7 +779,7 @@ func (s *Store) UpgradeGrowth(ctx context.Context, input statecontract.UpgradeGr
 				return err
 			}
 
-			result = &statecontract.UpgradeGrowthResult{
+			result = &state.UpgradeGrowthResult{
 				Growth:         growth,
 				RemainingCoins: remainingCoins,
 			}
@@ -758,7 +793,7 @@ func (s *Store) UpgradeGrowth(ctx context.Context, input statecontract.UpgradeGr
 	return result, nil
 }
 
-func parseGrowth(value map[string]string) (*statecontract.Growth, error) {
+func parseGrowth(value map[string]string) (*state.Growth, error) {
 	playerID, err := strconv.ParseInt(value["player_id"], 10, 64)
 	if err != nil {
 		return nil, err
@@ -780,7 +815,7 @@ func parseGrowth(value map[string]string) (*statecontract.Growth, error) {
 		return nil, err
 	}
 
-	return &statecontract.Growth{
+	return &state.Growth{
 		PlayerID:         playerID,
 		AttackLevel:      int32(attackLevel),
 		AttackSpeedLevel: int32(attackSpeedLevel),
@@ -846,19 +881,19 @@ func realtimeChannelKey(serverName string) string {
 
 func validateFriendPair(fromPlayerID, toPlayerID int64) error {
 	if fromPlayerID <= 0 || toPlayerID <= 0 || fromPlayerID == toPlayerID {
-		return statecontract.ErrInvalidFriendRequest
+		return state.ErrInvalidFriendRequest
 	}
 	return nil
 }
 
 func validateFriendPlayerID(playerID int64) error {
 	if playerID <= 0 {
-		return statecontract.ErrInvalidFriendRequest
+		return state.ErrInvalidFriendRequest
 	}
 	return nil
 }
 
-func parseFriendRequest(value map[string]string) (*statecontract.FriendRequest, error) {
+func parseFriendRequest(value map[string]string) (*state.FriendRequest, error) {
 	fromPlayerID, err := strconv.ParseInt(value["from_player_id"], 10, 64)
 	if err != nil {
 		return nil, err
@@ -871,7 +906,7 @@ func parseFriendRequest(value map[string]string) (*statecontract.FriendRequest, 
 	if err != nil {
 		return nil, err
 	}
-	return &statecontract.FriendRequest{
+	return &state.FriendRequest{
 		FromPlayerID: fromPlayerID,
 		ToPlayerID:   toPlayerID,
 		CreatedAt:    time.UnixMilli(createdAtMilli),
@@ -889,11 +924,11 @@ func growthFieldName(field string) (string, error) {
 	case "MoveSpeed":
 		return "move_speed_level", nil
 	default:
-		return "", statecontract.ErrInvalidGrowthField
+		return "", state.ErrInvalidGrowthField
 	}
 }
 
-func setGrowthLevel(growth *statecontract.Growth, field string, level int32) {
+func setGrowthLevel(growth *state.Growth, field string, level int32) {
 	switch field {
 	case "attack_level":
 		growth.AttackLevel = level

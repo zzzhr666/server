@@ -2,42 +2,42 @@ package service
 
 import (
 	"context"
-	statecontract "server/internal/contract/state"
+	"server/internal/contract/state"
 	"time"
 )
 
 type accountStore interface {
-	CreateAccount(ctx context.Context, account *statecontract.Account) error
-	GetAccount(ctx context.Context, username string) (*statecontract.Account, error)
+	CreateAccount(ctx context.Context, account *state.Account) error
+	GetAccount(ctx context.Context, username string) (*state.Account, error)
 }
 
 type sessionStore interface {
-	CreateSession(ctx context.Context, account *statecontract.Session) error
-	GetSession(ctx context.Context, token string) (*statecontract.Session, error)
+	CreateSession(ctx context.Context, account *state.Session) error
+	GetSession(ctx context.Context, token string) (*state.Session, error)
 	DeleteSession(ctx context.Context, token string) error
 }
 
 type playerStore interface {
-	CreatePlayer(ctx context.Context, player *statecontract.Player) error
-	GetPlayer(ctx context.Context, id int64) (*statecontract.Player, error)
+	CreatePlayer(ctx context.Context, player *state.Player) error
+	GetPlayer(ctx context.Context, id int64) (*state.Player, error)
 	NextPlayerID(ctx context.Context) (int64, error)
 }
 
 type presenceStore interface {
-	SetPresence(ctx context.Context, presence *statecontract.Presence, ttl time.Duration) error
-	GetPresence(ctx context.Context, playerID int64) (*statecontract.Presence, error)
+	SetPresence(ctx context.Context, presence *state.Presence, ttl time.Duration) error
+	GetPresence(ctx context.Context, playerID int64) (*state.Presence, error)
 	ClearPresence(ctx context.Context, playerID int64, serverName string) error
 	RefreshPresence(ctx context.Context, playerID int64, serverName string, updatedAt time.Time, ttl time.Duration) error
 }
 
 type registrationStore interface {
-	RegisterAccount(ctx context.Context, input statecontract.RegisterAccountInput) (*statecontract.RegisterAccountResult, error)
+	RegisterAccount(ctx context.Context, input state.RegisterAccountInput) (*state.RegisterAccountResult, error)
 }
 
 type friendStore interface {
 	SendFriendRequest(ctx context.Context, fromPlayerID, toPlayerID int64) error
-	ListIncomingFriendRequests(ctx context.Context, playerID int64) ([]*statecontract.FriendRequest, error)
-	ListOutgoingFriendRequests(ctx context.Context, playerID int64) ([]*statecontract.FriendRequest, error)
+	ListIncomingFriendRequests(ctx context.Context, playerID int64) ([]*state.FriendRequest, error)
+	ListOutgoingFriendRequests(ctx context.Context, playerID int64) ([]*state.FriendRequest, error)
 	AcceptFriendRequest(ctx context.Context, fromPlayerID, toPlayerID int64) error
 	RejectFriendRequest(ctx context.Context, fromPlayerID, toPlayerID int64) error
 	ListFriendIDs(ctx context.Context, playerID int64) ([]int64, error)
@@ -45,17 +45,22 @@ type friendStore interface {
 }
 
 type realtimeStore interface {
-	PublishRealtimeToServer(ctx context.Context, serverName string, event *statecontract.RealtimeEvent) error
-	SubscribeRealtime(ctx context.Context, serverName string) (<-chan *statecontract.RealtimeEvent, error)
+	PublishRealtime(ctx context.Context, delivery *state.RealtimeDelivery) error
+	SubscribeRealtime(ctx context.Context, route state.RealtimeRoute) (<-chan *state.RealtimeDelivery, error)
 }
 
 type growthStore interface {
-	GetGrowth(ctx context.Context, playerID int64) (*statecontract.Growth, error)
-	UpgradeGrowth(ctx context.Context, input statecontract.UpgradeGrowthInput) (*statecontract.UpgradeGrowthResult, error)
+	GetGrowth(ctx context.Context, playerID int64) (*state.Growth, error)
+	UpgradeGrowth(ctx context.Context, input state.UpgradeGrowthInput) (*state.UpgradeGrowthResult, error)
 }
 
 type coinsStore interface {
-	AddPlayerCoins(ctx context.Context, input statecontract.AddPlayerCoinsInput) (*statecontract.AddPlayerCoinsResult, error)
+	AddPlayerCoins(ctx context.Context, input state.AddPlayerCoinsInput) (*state.AddPlayerCoinsResult, error)
+}
+
+type chatStore interface {
+	SaveChatMessage(ctx context.Context, input state.SaveChatMessageInput) (*state.ChatMessage, error)
+	ListChatMessages(ctx context.Context, input state.ListChatMessagesInput) ([]*state.ChatMessage, error)
 }
 
 // Service 协调已配置存储上的状态操作。
@@ -69,27 +74,38 @@ type Service struct {
 	realtime      realtimeStore
 	growth        growthStore
 	coins         coinsStore
+	chats         chatStore
 }
 
-func (s *Service) AddPlayerCoins(ctx context.Context, input statecontract.AddPlayerCoinsInput) (*statecontract.AddPlayerCoinsResult, error) {
+func (s *Service) SaveChatMessage(ctx context.Context, input state.SaveChatMessageInput) (*state.ChatMessage, error) {
+	return s.chats.SaveChatMessage(ctx, input)
+}
+
+func (s *Service) ListChatMessages(ctx context.Context, input state.ListChatMessagesInput) ([]*state.ChatMessage, error) {
+	return s.chats.ListChatMessages(ctx, input)
+}
+
+func (s *Service) AddPlayerCoins(ctx context.Context, input state.AddPlayerCoinsInput) (*state.AddPlayerCoinsResult, error) {
 	return s.coins.AddPlayerCoins(ctx, input)
 }
 
-func (s *Service) PublishRealtimeToServer(ctx context.Context, serverName string, event *statecontract.RealtimeEvent) error {
-	return s.realtime.PublishRealtimeToServer(ctx, serverName, event)
+// PublishRealtime 发布一条包含明确路由的实时投递。
+func (s *Service) PublishRealtime(ctx context.Context, delivery *state.RealtimeDelivery) error {
+	return s.realtime.PublishRealtime(ctx, delivery)
 }
 
-func (s *Service) SubscribeRealtime(ctx context.Context, serverName string) (<-chan *statecontract.RealtimeEvent, error) {
-	return s.realtime.SubscribeRealtime(ctx, serverName)
+// SubscribeRealtime 订阅指定路由上的实时投递。
+func (s *Service) SubscribeRealtime(ctx context.Context, route state.RealtimeRoute) (<-chan *state.RealtimeDelivery, error) {
+	return s.realtime.SubscribeRealtime(ctx, route)
 }
 
 // SetPresence 记录玩家在线状态。
-func (s *Service) SetPresence(ctx context.Context, presence *statecontract.Presence, ttl time.Duration) error {
+func (s *Service) SetPresence(ctx context.Context, presence *state.Presence, ttl time.Duration) error {
 	return s.presences.SetPresence(ctx, presence, ttl)
 }
 
 // GetPresence 读取玩家在线状态。
-func (s *Service) GetPresence(ctx context.Context, playerID int64) (*statecontract.Presence, error) {
+func (s *Service) GetPresence(ctx context.Context, playerID int64) (*state.Presence, error) {
 	return s.presences.GetPresence(ctx, playerID)
 }
 
@@ -104,12 +120,12 @@ func (s *Service) RefreshPresence(ctx context.Context, playerID int64, serverNam
 }
 
 // CreatePlayer 存储玩家档案。
-func (s *Service) CreatePlayer(ctx context.Context, player *statecontract.Player) error {
+func (s *Service) CreatePlayer(ctx context.Context, player *state.Player) error {
 	return s.players.CreatePlayer(ctx, player)
 }
 
 // GetPlayer 按 ID 读取玩家档案。
-func (s *Service) GetPlayer(ctx context.Context, id int64) (*statecontract.Player, error) {
+func (s *Service) GetPlayer(ctx context.Context, id int64) (*state.Player, error) {
 	return s.players.GetPlayer(ctx, id)
 }
 
@@ -119,12 +135,12 @@ func (s *Service) NextPlayerID(ctx context.Context) (int64, error) {
 }
 
 // CreateSession 存储登录会话。
-func (s *Service) CreateSession(ctx context.Context, session *statecontract.Session) error {
+func (s *Service) CreateSession(ctx context.Context, session *state.Session) error {
 	return s.sessions.CreateSession(ctx, session)
 }
 
 // GetSession 按令牌读取登录会话。
-func (s *Service) GetSession(ctx context.Context, token string) (*statecontract.Session, error) {
+func (s *Service) GetSession(ctx context.Context, token string) (*state.Session, error) {
 	return s.sessions.GetSession(ctx, token)
 }
 
@@ -134,17 +150,17 @@ func (s *Service) DeleteSession(ctx context.Context, token string) error {
 }
 
 // CreateAccount 存储账号凭据。
-func (s *Service) CreateAccount(ctx context.Context, account *statecontract.Account) error {
+func (s *Service) CreateAccount(ctx context.Context, account *state.Account) error {
 	return s.accounts.CreateAccount(ctx, account)
 }
 
 // GetAccount 按用户名读取账号凭据。
-func (s *Service) GetAccount(ctx context.Context, username string) (*statecontract.Account, error) {
+func (s *Service) GetAccount(ctx context.Context, username string) (*state.Account, error) {
 	return s.accounts.GetAccount(ctx, username)
 }
 
 // RegisterAccount 一并创建账号、玩家和会话状态。
-func (s *Service) RegisterAccount(ctx context.Context, input statecontract.RegisterAccountInput) (*statecontract.RegisterAccountResult, error) {
+func (s *Service) RegisterAccount(ctx context.Context, input state.RegisterAccountInput) (*state.RegisterAccountResult, error) {
 	return s.registrations.RegisterAccount(ctx, input)
 }
 
@@ -152,11 +168,11 @@ func (s *Service) SendFriendRequest(ctx context.Context, fromPlayerID, toPlayerI
 	return s.friends.SendFriendRequest(ctx, fromPlayerID, toPlayerID)
 }
 
-func (s *Service) ListIncomingFriendRequests(ctx context.Context, playerID int64) ([]*statecontract.FriendRequest, error) {
+func (s *Service) ListIncomingFriendRequests(ctx context.Context, playerID int64) ([]*state.FriendRequest, error) {
 	return s.friends.ListIncomingFriendRequests(ctx, playerID)
 }
 
-func (s *Service) ListOutgoingFriendRequests(ctx context.Context, playerID int64) ([]*statecontract.FriendRequest, error) {
+func (s *Service) ListOutgoingFriendRequests(ctx context.Context, playerID int64) ([]*state.FriendRequest, error) {
 	return s.friends.ListOutgoingFriendRequests(ctx, playerID)
 }
 
@@ -176,11 +192,11 @@ func (s *Service) DeleteFriend(ctx context.Context, playerID, friendPlayerID int
 	return s.friends.DeleteFriend(ctx, playerID, friendPlayerID)
 }
 
-func (s *Service) GetGrowth(ctx context.Context, playerID int64) (*statecontract.Growth, error) {
+func (s *Service) GetGrowth(ctx context.Context, playerID int64) (*state.Growth, error) {
 	return s.growth.GetGrowth(ctx, playerID)
 }
 
-func (s *Service) UpgradeGrowth(ctx context.Context, input statecontract.UpgradeGrowthInput) (*statecontract.UpgradeGrowthResult, error) {
+func (s *Service) UpgradeGrowth(ctx context.Context, input state.UpgradeGrowthInput) (*state.UpgradeGrowthResult, error) {
 	return s.growth.UpgradeGrowth(ctx, input)
 }
 
@@ -195,6 +211,7 @@ type StoreConfig struct {
 	Realtime      realtimeStore
 	Growth        growthStore
 	Coins         coinsStore
+	Chats         chatStore
 }
 
 // NewService 使用存储实现创建状态服务。
@@ -209,5 +226,6 @@ func NewService(storeConfig StoreConfig) *Service {
 		realtime:      storeConfig.Realtime,
 		growth:        storeConfig.Growth,
 		coins:         storeConfig.Coins,
+		chats:         storeConfig.Chats,
 	}
 }
