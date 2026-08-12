@@ -44,6 +44,8 @@ const (
 	StateService_GetGrowth_FullMethodName           = "/state.v1.StateService/GetGrowth"
 	StateService_UpgradeGrowth_FullMethodName       = "/state.v1.StateService/UpgradeGrowth"
 	StateService_AddPlayerCoins_FullMethodName      = "/state.v1.StateService/AddPlayerCoins"
+	StateService_SaveChatMessage_FullMethodName     = "/state.v1.StateService/SaveChatMessage"
+	StateService_ListChatMessages_FullMethodName    = "/state.v1.StateService/ListChatMessages"
 )
 
 // StateServiceClient is the client API for StateService service.
@@ -71,10 +73,12 @@ type StateServiceClient interface {
 	ListFriendIDs(ctx context.Context, in *ListFriendIDsRequest, opts ...grpc.CallOption) (*ListFriendIDsResponse, error)
 	DeleteFriend(ctx context.Context, in *DeleteFriendRequest, opts ...grpc.CallOption) (*DeleteFriendResponse, error)
 	PublishRealtime(ctx context.Context, in *PublishRealtimeRequest, opts ...grpc.CallOption) (*PublishRealtimeResponse, error)
-	SubscribeRealtime(ctx context.Context, in *SubscribeRealtimeRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[RealtimeEvent], error)
+	SubscribeRealtime(ctx context.Context, in *SubscribeRealtimeRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[RealtimeDelivery], error)
 	GetGrowth(ctx context.Context, in *GetGrowthRequest, opts ...grpc.CallOption) (*GetGrowthResponse, error)
 	UpgradeGrowth(ctx context.Context, in *UpgradeGrowthRequest, opts ...grpc.CallOption) (*UpgradeGrowthResponse, error)
 	AddPlayerCoins(ctx context.Context, in *AddPlayerCoinsRequest, opts ...grpc.CallOption) (*AddPlayerCoinsResponse, error)
+	SaveChatMessage(ctx context.Context, in *SaveChatMessageRequest, opts ...grpc.CallOption) (*SaveChatMessageResponse, error)
+	ListChatMessages(ctx context.Context, in *ListChatMessagesRequest, opts ...grpc.CallOption) (*ListChatMessagesResponse, error)
 }
 
 type stateServiceClient struct {
@@ -295,13 +299,13 @@ func (c *stateServiceClient) PublishRealtime(ctx context.Context, in *PublishRea
 	return out, nil
 }
 
-func (c *stateServiceClient) SubscribeRealtime(ctx context.Context, in *SubscribeRealtimeRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[RealtimeEvent], error) {
+func (c *stateServiceClient) SubscribeRealtime(ctx context.Context, in *SubscribeRealtimeRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[RealtimeDelivery], error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	stream, err := c.cc.NewStream(ctx, &StateService_ServiceDesc.Streams[0], StateService_SubscribeRealtime_FullMethodName, cOpts...)
 	if err != nil {
 		return nil, err
 	}
-	x := &grpc.GenericClientStream[SubscribeRealtimeRequest, RealtimeEvent]{ClientStream: stream}
+	x := &grpc.GenericClientStream[SubscribeRealtimeRequest, RealtimeDelivery]{ClientStream: stream}
 	if err := x.ClientStream.SendMsg(in); err != nil {
 		return nil, err
 	}
@@ -312,7 +316,7 @@ func (c *stateServiceClient) SubscribeRealtime(ctx context.Context, in *Subscrib
 }
 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type StateService_SubscribeRealtimeClient = grpc.ServerStreamingClient[RealtimeEvent]
+type StateService_SubscribeRealtimeClient = grpc.ServerStreamingClient[RealtimeDelivery]
 
 func (c *stateServiceClient) GetGrowth(ctx context.Context, in *GetGrowthRequest, opts ...grpc.CallOption) (*GetGrowthResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
@@ -344,6 +348,26 @@ func (c *stateServiceClient) AddPlayerCoins(ctx context.Context, in *AddPlayerCo
 	return out, nil
 }
 
+func (c *stateServiceClient) SaveChatMessage(ctx context.Context, in *SaveChatMessageRequest, opts ...grpc.CallOption) (*SaveChatMessageResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SaveChatMessageResponse)
+	err := c.cc.Invoke(ctx, StateService_SaveChatMessage_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *stateServiceClient) ListChatMessages(ctx context.Context, in *ListChatMessagesRequest, opts ...grpc.CallOption) (*ListChatMessagesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListChatMessagesResponse)
+	err := c.cc.Invoke(ctx, StateService_ListChatMessages_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // StateServiceServer is the server API for StateService service.
 // All implementations must embed UnimplementedStateServiceServer
 // for forward compatibility.
@@ -369,10 +393,12 @@ type StateServiceServer interface {
 	ListFriendIDs(context.Context, *ListFriendIDsRequest) (*ListFriendIDsResponse, error)
 	DeleteFriend(context.Context, *DeleteFriendRequest) (*DeleteFriendResponse, error)
 	PublishRealtime(context.Context, *PublishRealtimeRequest) (*PublishRealtimeResponse, error)
-	SubscribeRealtime(*SubscribeRealtimeRequest, grpc.ServerStreamingServer[RealtimeEvent]) error
+	SubscribeRealtime(*SubscribeRealtimeRequest, grpc.ServerStreamingServer[RealtimeDelivery]) error
 	GetGrowth(context.Context, *GetGrowthRequest) (*GetGrowthResponse, error)
 	UpgradeGrowth(context.Context, *UpgradeGrowthRequest) (*UpgradeGrowthResponse, error)
 	AddPlayerCoins(context.Context, *AddPlayerCoinsRequest) (*AddPlayerCoinsResponse, error)
+	SaveChatMessage(context.Context, *SaveChatMessageRequest) (*SaveChatMessageResponse, error)
+	ListChatMessages(context.Context, *ListChatMessagesRequest) (*ListChatMessagesResponse, error)
 	mustEmbedUnimplementedStateServiceServer()
 }
 
@@ -446,7 +472,7 @@ func (UnimplementedStateServiceServer) DeleteFriend(context.Context, *DeleteFrie
 func (UnimplementedStateServiceServer) PublishRealtime(context.Context, *PublishRealtimeRequest) (*PublishRealtimeResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method PublishRealtime not implemented")
 }
-func (UnimplementedStateServiceServer) SubscribeRealtime(*SubscribeRealtimeRequest, grpc.ServerStreamingServer[RealtimeEvent]) error {
+func (UnimplementedStateServiceServer) SubscribeRealtime(*SubscribeRealtimeRequest, grpc.ServerStreamingServer[RealtimeDelivery]) error {
 	return status.Error(codes.Unimplemented, "method SubscribeRealtime not implemented")
 }
 func (UnimplementedStateServiceServer) GetGrowth(context.Context, *GetGrowthRequest) (*GetGrowthResponse, error) {
@@ -457,6 +483,12 @@ func (UnimplementedStateServiceServer) UpgradeGrowth(context.Context, *UpgradeGr
 }
 func (UnimplementedStateServiceServer) AddPlayerCoins(context.Context, *AddPlayerCoinsRequest) (*AddPlayerCoinsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method AddPlayerCoins not implemented")
+}
+func (UnimplementedStateServiceServer) SaveChatMessage(context.Context, *SaveChatMessageRequest) (*SaveChatMessageResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SaveChatMessage not implemented")
+}
+func (UnimplementedStateServiceServer) ListChatMessages(context.Context, *ListChatMessagesRequest) (*ListChatMessagesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListChatMessages not implemented")
 }
 func (UnimplementedStateServiceServer) mustEmbedUnimplementedStateServiceServer() {}
 func (UnimplementedStateServiceServer) testEmbeddedByValue()                      {}
@@ -862,11 +894,11 @@ func _StateService_SubscribeRealtime_Handler(srv interface{}, stream grpc.Server
 	if err := stream.RecvMsg(m); err != nil {
 		return err
 	}
-	return srv.(StateServiceServer).SubscribeRealtime(m, &grpc.GenericServerStream[SubscribeRealtimeRequest, RealtimeEvent]{ServerStream: stream})
+	return srv.(StateServiceServer).SubscribeRealtime(m, &grpc.GenericServerStream[SubscribeRealtimeRequest, RealtimeDelivery]{ServerStream: stream})
 }
 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type StateService_SubscribeRealtimeServer = grpc.ServerStreamingServer[RealtimeEvent]
+type StateService_SubscribeRealtimeServer = grpc.ServerStreamingServer[RealtimeDelivery]
 
 func _StateService_GetGrowth_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetGrowthRequest)
@@ -918,6 +950,42 @@ func _StateService_AddPlayerCoins_Handler(srv interface{}, ctx context.Context, 
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(StateServiceServer).AddPlayerCoins(ctx, req.(*AddPlayerCoinsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _StateService_SaveChatMessage_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SaveChatMessageRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(StateServiceServer).SaveChatMessage(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: StateService_SaveChatMessage_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(StateServiceServer).SaveChatMessage(ctx, req.(*SaveChatMessageRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _StateService_ListChatMessages_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListChatMessagesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(StateServiceServer).ListChatMessages(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: StateService_ListChatMessages_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(StateServiceServer).ListChatMessages(ctx, req.(*ListChatMessagesRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1024,6 +1092,14 @@ var StateService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "AddPlayerCoins",
 			Handler:    _StateService_AddPlayerCoins_Handler,
+		},
+		{
+			MethodName: "SaveChatMessage",
+			Handler:    _StateService_SaveChatMessage_Handler,
+		},
+		{
+			MethodName: "ListChatMessages",
+			Handler:    _StateService_ListChatMessages_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

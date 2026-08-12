@@ -3,12 +3,13 @@ package state
 import "errors"
 
 var (
-	ErrAccountExists    = errors.New("state account exists")
-	ErrAccountNotFound  = errors.New("state account not found")
-	ErrSessionNotFound  = errors.New("state session not found")
-	ErrPlayerNotFound   = errors.New("state player not found")
-	ErrPresenceNotFound = errors.New("state presence not found")
-	ErrInvalidPresence  = errors.New("invalid state presence")
+	ErrAccountExists        = errors.New("state account exists")
+	ErrAccountNotFound      = errors.New("state account not found")
+	ErrSessionNotFound      = errors.New("state session not found")
+	ErrPlayerNotFound       = errors.New("state player not found")
+	ErrPresenceNotFound     = errors.New("state presence not found")
+	ErrInvalidPresence      = errors.New("invalid state presence")
+	ErrInvalidRealtimeRoute = errors.New("invalid realtime route")
 
 	ErrFriendRequestExists   = errors.New("friend request exists")
 	ErrFriendRequestNotFound = errors.New("friend request does not exist")
@@ -23,4 +24,9 @@ var (
 	ErrMaxGrowthLevel     = errors.New("max growth level")
 
 	ErrInvalidPlayer = errors.New("invalid player")
+
+	ErrChatMessageNotFound = errors.New("chat message not found")
+	ErrInvalidChatMessage  = errors.New("invalid chat message")
+	ErrInvalidChatChannel  = errors.New("invalid chat channel")
+	ErrChatMessageExists   = errors.New("chat message exists")
 )

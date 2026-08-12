@@ -104,6 +104,10 @@ type ClientEnvelope struct {
 	//	*ClientEnvelope_FriendList
 	//	*ClientEnvelope_FriendDelete
 	//	*ClientEnvelope_Logout
+	//	*ClientEnvelope_ChatWorldSend
+	//	*ClientEnvelope_ChatDirectSend
+	//	*ClientEnvelope_ChatWorldList
+	//	*ClientEnvelope_ChatDirectList
 	Payload       isClientEnvelope_Payload `protobuf_oneof:"payload"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -297,6 +301,42 @@ func (x *ClientEnvelope) GetLogout() *LogoutRequest {
 	return nil
 }
 
+func (x *ClientEnvelope) GetChatWorldSend() *SendWorldChatRequest {
+	if x != nil {
+		if x, ok := x.Payload.(*ClientEnvelope_ChatWorldSend); ok {
+			return x.ChatWorldSend
+		}
+	}
+	return nil
+}
+
+func (x *ClientEnvelope) GetChatDirectSend() *SendDirectChatRequest {
+	if x != nil {
+		if x, ok := x.Payload.(*ClientEnvelope_ChatDirectSend); ok {
+			return x.ChatDirectSend
+		}
+	}
+	return nil
+}
+
+func (x *ClientEnvelope) GetChatWorldList() *ListWorldChatRequest {
+	if x != nil {
+		if x, ok := x.Payload.(*ClientEnvelope_ChatWorldList); ok {
+			return x.ChatWorldList
+		}
+	}
+	return nil
+}
+
+func (x *ClientEnvelope) GetChatDirectList() *ListDirectChatRequest {
+	if x != nil {
+		if x, ok := x.Payload.(*ClientEnvelope_ChatDirectList); ok {
+			return x.ChatDirectList
+		}
+	}
+	return nil
+}
+
 type isClientEnvelope_Payload interface {
 	isClientEnvelope_Payload()
 }
@@ -365,6 +405,22 @@ type ClientEnvelope_Logout struct {
 	Logout *LogoutRequest `protobuf:"bytes,30,opt,name=logout,proto3,oneof"`
 }
 
+type ClientEnvelope_ChatWorldSend struct {
+	ChatWorldSend *SendWorldChatRequest `protobuf:"bytes,31,opt,name=chat_world_send,json=chatWorldSend,proto3,oneof"`
+}
+
+type ClientEnvelope_ChatDirectSend struct {
+	ChatDirectSend *SendDirectChatRequest `protobuf:"bytes,32,opt,name=chat_direct_send,json=chatDirectSend,proto3,oneof"`
+}
+
+type ClientEnvelope_ChatWorldList struct {
+	ChatWorldList *ListWorldChatRequest `protobuf:"bytes,33,opt,name=chat_world_list,json=chatWorldList,proto3,oneof"`
+}
+
+type ClientEnvelope_ChatDirectList struct {
+	ChatDirectList *ListDirectChatRequest `protobuf:"bytes,34,opt,name=chat_direct_list,json=chatDirectList,proto3,oneof"`
+}
+
 func (*ClientEnvelope_Authenticate) isClientEnvelope_Payload() {}
 
 func (*ClientEnvelope_Heartbeat) isClientEnvelope_Payload() {}
@@ -397,6 +453,14 @@ func (*ClientEnvelope_FriendDelete) isClientEnvelope_Payload() {}
 
 func (*ClientEnvelope_Logout) isClientEnvelope_Payload() {}
 
+func (*ClientEnvelope_ChatWorldSend) isClientEnvelope_Payload() {}
+
+func (*ClientEnvelope_ChatDirectSend) isClientEnvelope_Payload() {}
+
+func (*ClientEnvelope_ChatWorldList) isClientEnvelope_Payload() {}
+
+func (*ClientEnvelope_ChatDirectList) isClientEnvelope_Payload() {}
+
 // ServerEnvelope 表示服务端响应或主动推送的事件。
 type ServerEnvelope struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -423,6 +487,9 @@ type ServerEnvelope struct {
 	//	*ServerEnvelope_Friends
 	//	*ServerEnvelope_FriendDeleted
 	//	*ServerEnvelope_LogoutAck
+	//	*ServerEnvelope_ChatSent
+	//	*ServerEnvelope_ChatMessages
+	//	*ServerEnvelope_ChatMessagePushed
 	Payload       isServerEnvelope_Payload `protobuf_oneof:"payload"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -643,6 +710,33 @@ func (x *ServerEnvelope) GetLogoutAck() *LogoutResponse {
 	return nil
 }
 
+func (x *ServerEnvelope) GetChatSent() *ChatSendResponse {
+	if x != nil {
+		if x, ok := x.Payload.(*ServerEnvelope_ChatSent); ok {
+			return x.ChatSent
+		}
+	}
+	return nil
+}
+
+func (x *ServerEnvelope) GetChatMessages() *ChatMessagesResponse {
+	if x != nil {
+		if x, ok := x.Payload.(*ServerEnvelope_ChatMessages); ok {
+			return x.ChatMessages
+		}
+	}
+	return nil
+}
+
+func (x *ServerEnvelope) GetChatMessagePushed() *ChatMessagePushed {
+	if x != nil {
+		if x, ok := x.Payload.(*ServerEnvelope_ChatMessagePushed); ok {
+			return x.ChatMessagePushed
+		}
+	}
+	return nil
+}
+
 type isServerEnvelope_Payload interface {
 	isServerEnvelope_Payload()
 }
@@ -723,6 +817,18 @@ type ServerEnvelope_LogoutAck struct {
 	LogoutAck *LogoutResponse `protobuf:"bytes,28,opt,name=logout_ack,json=logoutAck,proto3,oneof"`
 }
 
+type ServerEnvelope_ChatSent struct {
+	ChatSent *ChatSendResponse `protobuf:"bytes,29,opt,name=chat_sent,json=chatSent,proto3,oneof"`
+}
+
+type ServerEnvelope_ChatMessages struct {
+	ChatMessages *ChatMessagesResponse `protobuf:"bytes,30,opt,name=chat_messages,json=chatMessages,proto3,oneof"`
+}
+
+type ServerEnvelope_ChatMessagePushed struct {
+	ChatMessagePushed *ChatMessagePushed `protobuf:"bytes,31,opt,name=chat_message_pushed,json=chatMessagePushed,proto3,oneof"`
+}
+
 func (*ServerEnvelope_Authenticated) isServerEnvelope_Payload() {}
 
 func (*ServerEnvelope_HeartbeatAck) isServerEnvelope_Payload() {}
@@ -760,6 +866,12 @@ func (*ServerEnvelope_Friends) isServerEnvelope_Payload() {}
 func (*ServerEnvelope_FriendDeleted) isServerEnvelope_Payload() {}
 
 func (*ServerEnvelope_LogoutAck) isServerEnvelope_Payload() {}
+
+func (*ServerEnvelope_ChatSent) isServerEnvelope_Payload() {}
+
+func (*ServerEnvelope_ChatMessages) isServerEnvelope_Payload() {}
+
+func (*ServerEnvelope_ChatMessagePushed) isServerEnvelope_Payload() {}
 
 type Authenticated struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
@@ -1345,6 +1457,7 @@ func (x *FriendRemoved) GetPlayerId() int64 {
 type FriendRequestReceived struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	PlayerId      int64                  `protobuf:"varint,1,opt,name=player_id,json=playerId,proto3" json:"player_id,omitempty"`
+	Nickname      string                 `protobuf:"bytes,2,opt,name=nickname,proto3" json:"nickname,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1384,6 +1497,13 @@ func (x *FriendRequestReceived) GetPlayerId() int64 {
 		return x.PlayerId
 	}
 	return 0
+}
+
+func (x *FriendRequestReceived) GetNickname() string {
+	if x != nil {
+		return x.Nickname
+	}
+	return ""
 }
 
 type FriendRequestHandled struct {
@@ -1519,6 +1639,8 @@ type FriendRequest struct {
 	FromPlayerId  int64                  `protobuf:"varint,1,opt,name=from_player_id,json=fromPlayerId,proto3" json:"from_player_id,omitempty"`
 	ToPlayerId    int64                  `protobuf:"varint,2,opt,name=to_player_id,json=toPlayerId,proto3" json:"to_player_id,omitempty"`
 	CreatedAt     *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	FromNickname  string                 `protobuf:"bytes,4,opt,name=from_nickname,json=fromNickname,proto3" json:"from_nickname,omitempty"`
+	ToNickname    string                 `protobuf:"bytes,5,opt,name=to_nickname,json=toNickname,proto3" json:"to_nickname,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1572,6 +1694,20 @@ func (x *FriendRequest) GetCreatedAt() *timestamppb.Timestamp {
 		return x.CreatedAt
 	}
 	return nil
+}
+
+func (x *FriendRequest) GetFromNickname() string {
+	if x != nil {
+		return x.FromNickname
+	}
+	return ""
+}
+
+func (x *FriendRequest) GetToNickname() string {
+	if x != nil {
+		return x.ToNickname
+	}
+	return ""
 }
 
 type FriendSummary struct {
@@ -2092,6 +2228,8 @@ func (x *SendFriendRequestRequest) GetToPlayerId() int64 {
 
 type FriendRequestSentResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
+	ToPlayerId    int64                  `protobuf:"varint,1,opt,name=to_player_id,json=toPlayerId,proto3" json:"to_player_id,omitempty"`
+	ToNickname    string                 `protobuf:"bytes,2,opt,name=to_nickname,json=toNickname,proto3" json:"to_nickname,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -2124,6 +2262,20 @@ func (x *FriendRequestSentResponse) ProtoReflect() protoreflect.Message {
 // Deprecated: Use FriendRequestSentResponse.ProtoReflect.Descriptor instead.
 func (*FriendRequestSentResponse) Descriptor() ([]byte, []int) {
 	return file_proto_realtime_v1_realtime_proto_rawDescGZIP(), []int{28}
+}
+
+func (x *FriendRequestSentResponse) GetToPlayerId() int64 {
+	if x != nil {
+		return x.ToPlayerId
+	}
+	return 0
+}
+
+func (x *FriendRequestSentResponse) GetToNickname() string {
+	if x != nil {
+		return x.ToNickname
+	}
+	return ""
 }
 
 type ListIncomingFriendRequestsRequest struct {
@@ -2626,12 +2778,483 @@ func (*GrowthGetRequest) Descriptor() ([]byte, []int) {
 	return file_proto_realtime_v1_realtime_proto_rawDescGZIP(), []int{41}
 }
 
+type ChatMessage struct {
+	state            protoimpl.MessageState `protogen:"open.v1"`
+	MessageKey       string                 `protobuf:"bytes,1,opt,name=message_key,json=messageKey,proto3" json:"message_key,omitempty"`
+	ChannelType      string                 `protobuf:"bytes,2,opt,name=channel_type,json=channelType,proto3" json:"channel_type,omitempty"`
+	ChannelKey       string                 `protobuf:"bytes,3,opt,name=channel_key,json=channelKey,proto3" json:"channel_key,omitempty"`
+	SenderId         int64                  `protobuf:"varint,4,opt,name=sender_id,json=senderId,proto3" json:"sender_id,omitempty"`
+	ReceiverId       int64                  `protobuf:"varint,5,opt,name=receiver_id,json=receiverId,proto3" json:"receiver_id,omitempty"`
+	Content          string                 `protobuf:"bytes,6,opt,name=content,proto3" json:"content,omitempty"`
+	CreatedAt        *timestamppb.Timestamp `protobuf:"bytes,7,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	ExpiresAt        *timestamppb.Timestamp `protobuf:"bytes,8,opt,name=expires_at,json=expiresAt,proto3" json:"expires_at,omitempty"`
+	ClientMessageKey string                 `protobuf:"bytes,9,opt,name=client_message_key,json=clientMessageKey,proto3" json:"client_message_key,omitempty"`
+	SenderNickname   string                 `protobuf:"bytes,10,opt,name=sender_nickname,json=senderNickname,proto3" json:"sender_nickname,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
+}
+
+func (x *ChatMessage) Reset() {
+	*x = ChatMessage{}
+	mi := &file_proto_realtime_v1_realtime_proto_msgTypes[42]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ChatMessage) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ChatMessage) ProtoMessage() {}
+
+func (x *ChatMessage) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_realtime_v1_realtime_proto_msgTypes[42]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ChatMessage.ProtoReflect.Descriptor instead.
+func (*ChatMessage) Descriptor() ([]byte, []int) {
+	return file_proto_realtime_v1_realtime_proto_rawDescGZIP(), []int{42}
+}
+
+func (x *ChatMessage) GetMessageKey() string {
+	if x != nil {
+		return x.MessageKey
+	}
+	return ""
+}
+
+func (x *ChatMessage) GetChannelType() string {
+	if x != nil {
+		return x.ChannelType
+	}
+	return ""
+}
+
+func (x *ChatMessage) GetChannelKey() string {
+	if x != nil {
+		return x.ChannelKey
+	}
+	return ""
+}
+
+func (x *ChatMessage) GetSenderId() int64 {
+	if x != nil {
+		return x.SenderId
+	}
+	return 0
+}
+
+func (x *ChatMessage) GetReceiverId() int64 {
+	if x != nil {
+		return x.ReceiverId
+	}
+	return 0
+}
+
+func (x *ChatMessage) GetContent() string {
+	if x != nil {
+		return x.Content
+	}
+	return ""
+}
+
+func (x *ChatMessage) GetCreatedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return nil
+}
+
+func (x *ChatMessage) GetExpiresAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.ExpiresAt
+	}
+	return nil
+}
+
+func (x *ChatMessage) GetClientMessageKey() string {
+	if x != nil {
+		return x.ClientMessageKey
+	}
+	return ""
+}
+
+func (x *ChatMessage) GetSenderNickname() string {
+	if x != nil {
+		return x.SenderNickname
+	}
+	return ""
+}
+
+type SendWorldChatRequest struct {
+	state            protoimpl.MessageState `protogen:"open.v1"`
+	Content          string                 `protobuf:"bytes,1,opt,name=content,proto3" json:"content,omitempty"`
+	ClientMessageKey string                 `protobuf:"bytes,2,opt,name=client_message_key,json=clientMessageKey,proto3" json:"client_message_key,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
+}
+
+func (x *SendWorldChatRequest) Reset() {
+	*x = SendWorldChatRequest{}
+	mi := &file_proto_realtime_v1_realtime_proto_msgTypes[43]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SendWorldChatRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SendWorldChatRequest) ProtoMessage() {}
+
+func (x *SendWorldChatRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_realtime_v1_realtime_proto_msgTypes[43]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SendWorldChatRequest.ProtoReflect.Descriptor instead.
+func (*SendWorldChatRequest) Descriptor() ([]byte, []int) {
+	return file_proto_realtime_v1_realtime_proto_rawDescGZIP(), []int{43}
+}
+
+func (x *SendWorldChatRequest) GetContent() string {
+	if x != nil {
+		return x.Content
+	}
+	return ""
+}
+
+func (x *SendWorldChatRequest) GetClientMessageKey() string {
+	if x != nil {
+		return x.ClientMessageKey
+	}
+	return ""
+}
+
+type SendDirectChatRequest struct {
+	state            protoimpl.MessageState `protogen:"open.v1"`
+	ReceiverId       int64                  `protobuf:"varint,1,opt,name=receiver_id,json=receiverId,proto3" json:"receiver_id,omitempty"`
+	Content          string                 `protobuf:"bytes,2,opt,name=content,proto3" json:"content,omitempty"`
+	ClientMessageKey string                 `protobuf:"bytes,3,opt,name=client_message_key,json=clientMessageKey,proto3" json:"client_message_key,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
+}
+
+func (x *SendDirectChatRequest) Reset() {
+	*x = SendDirectChatRequest{}
+	mi := &file_proto_realtime_v1_realtime_proto_msgTypes[44]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SendDirectChatRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SendDirectChatRequest) ProtoMessage() {}
+
+func (x *SendDirectChatRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_realtime_v1_realtime_proto_msgTypes[44]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SendDirectChatRequest.ProtoReflect.Descriptor instead.
+func (*SendDirectChatRequest) Descriptor() ([]byte, []int) {
+	return file_proto_realtime_v1_realtime_proto_rawDescGZIP(), []int{44}
+}
+
+func (x *SendDirectChatRequest) GetReceiverId() int64 {
+	if x != nil {
+		return x.ReceiverId
+	}
+	return 0
+}
+
+func (x *SendDirectChatRequest) GetContent() string {
+	if x != nil {
+		return x.Content
+	}
+	return ""
+}
+
+func (x *SendDirectChatRequest) GetClientMessageKey() string {
+	if x != nil {
+		return x.ClientMessageKey
+	}
+	return ""
+}
+
+type ListWorldChatRequest struct {
+	state            protoimpl.MessageState `protogen:"open.v1"`
+	Limit            int64                  `protobuf:"varint,1,opt,name=limit,proto3" json:"limit,omitempty"`
+	BeforeMessageKey string                 `protobuf:"bytes,2,opt,name=before_message_key,json=beforeMessageKey,proto3" json:"before_message_key,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
+}
+
+func (x *ListWorldChatRequest) Reset() {
+	*x = ListWorldChatRequest{}
+	mi := &file_proto_realtime_v1_realtime_proto_msgTypes[45]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListWorldChatRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListWorldChatRequest) ProtoMessage() {}
+
+func (x *ListWorldChatRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_realtime_v1_realtime_proto_msgTypes[45]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListWorldChatRequest.ProtoReflect.Descriptor instead.
+func (*ListWorldChatRequest) Descriptor() ([]byte, []int) {
+	return file_proto_realtime_v1_realtime_proto_rawDescGZIP(), []int{45}
+}
+
+func (x *ListWorldChatRequest) GetLimit() int64 {
+	if x != nil {
+		return x.Limit
+	}
+	return 0
+}
+
+func (x *ListWorldChatRequest) GetBeforeMessageKey() string {
+	if x != nil {
+		return x.BeforeMessageKey
+	}
+	return ""
+}
+
+type ListDirectChatRequest struct {
+	state            protoimpl.MessageState `protogen:"open.v1"`
+	FriendId         int64                  `protobuf:"varint,1,opt,name=friend_id,json=friendId,proto3" json:"friend_id,omitempty"`
+	Limit            int64                  `protobuf:"varint,2,opt,name=limit,proto3" json:"limit,omitempty"`
+	BeforeMessageKey string                 `protobuf:"bytes,3,opt,name=before_message_key,json=beforeMessageKey,proto3" json:"before_message_key,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
+}
+
+func (x *ListDirectChatRequest) Reset() {
+	*x = ListDirectChatRequest{}
+	mi := &file_proto_realtime_v1_realtime_proto_msgTypes[46]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListDirectChatRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListDirectChatRequest) ProtoMessage() {}
+
+func (x *ListDirectChatRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_realtime_v1_realtime_proto_msgTypes[46]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListDirectChatRequest.ProtoReflect.Descriptor instead.
+func (*ListDirectChatRequest) Descriptor() ([]byte, []int) {
+	return file_proto_realtime_v1_realtime_proto_rawDescGZIP(), []int{46}
+}
+
+func (x *ListDirectChatRequest) GetFriendId() int64 {
+	if x != nil {
+		return x.FriendId
+	}
+	return 0
+}
+
+func (x *ListDirectChatRequest) GetLimit() int64 {
+	if x != nil {
+		return x.Limit
+	}
+	return 0
+}
+
+func (x *ListDirectChatRequest) GetBeforeMessageKey() string {
+	if x != nil {
+		return x.BeforeMessageKey
+	}
+	return ""
+}
+
+type ChatSendResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Message       *ChatMessage           `protobuf:"bytes,1,opt,name=message,proto3" json:"message,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ChatSendResponse) Reset() {
+	*x = ChatSendResponse{}
+	mi := &file_proto_realtime_v1_realtime_proto_msgTypes[47]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ChatSendResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ChatSendResponse) ProtoMessage() {}
+
+func (x *ChatSendResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_realtime_v1_realtime_proto_msgTypes[47]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ChatSendResponse.ProtoReflect.Descriptor instead.
+func (*ChatSendResponse) Descriptor() ([]byte, []int) {
+	return file_proto_realtime_v1_realtime_proto_rawDescGZIP(), []int{47}
+}
+
+func (x *ChatSendResponse) GetMessage() *ChatMessage {
+	if x != nil {
+		return x.Message
+	}
+	return nil
+}
+
+type ChatMessagesResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Messages      []*ChatMessage         `protobuf:"bytes,1,rep,name=messages,proto3" json:"messages,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ChatMessagesResponse) Reset() {
+	*x = ChatMessagesResponse{}
+	mi := &file_proto_realtime_v1_realtime_proto_msgTypes[48]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ChatMessagesResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ChatMessagesResponse) ProtoMessage() {}
+
+func (x *ChatMessagesResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_realtime_v1_realtime_proto_msgTypes[48]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ChatMessagesResponse.ProtoReflect.Descriptor instead.
+func (*ChatMessagesResponse) Descriptor() ([]byte, []int) {
+	return file_proto_realtime_v1_realtime_proto_rawDescGZIP(), []int{48}
+}
+
+func (x *ChatMessagesResponse) GetMessages() []*ChatMessage {
+	if x != nil {
+		return x.Messages
+	}
+	return nil
+}
+
+type ChatMessagePushed struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Message       *ChatMessage           `protobuf:"bytes,1,opt,name=message,proto3" json:"message,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ChatMessagePushed) Reset() {
+	*x = ChatMessagePushed{}
+	mi := &file_proto_realtime_v1_realtime_proto_msgTypes[49]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ChatMessagePushed) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ChatMessagePushed) ProtoMessage() {}
+
+func (x *ChatMessagePushed) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_realtime_v1_realtime_proto_msgTypes[49]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ChatMessagePushed.ProtoReflect.Descriptor instead.
+func (*ChatMessagePushed) Descriptor() ([]byte, []int) {
+	return file_proto_realtime_v1_realtime_proto_rawDescGZIP(), []int{49}
+}
+
+func (x *ChatMessagePushed) GetMessage() *ChatMessage {
+	if x != nil {
+		return x.Message
+	}
+	return nil
+}
+
 var File_proto_realtime_v1_realtime_proto protoreflect.FileDescriptor
 
 const file_proto_realtime_v1_realtime_proto_rawDesc = "" +
 	"\n" +
-	" proto/realtime/v1/realtime.proto\x12\vrealtime.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"\x9b\n" +
-	"\n" +
+	" proto/realtime/v1/realtime.proto\x12\vrealtime.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"\xd5\f\n" +
 	"\x0eClientEnvelope\x12\x1d\n" +
 	"\n" +
 	"request_id\x18\x01 \x01(\x04R\trequestId\x12F\n" +
@@ -2655,8 +3278,12 @@ const file_proto_realtime_v1_realtime_proto_rawDesc = "" +
 	"\vfriend_list\x18\x1c \x01(\v2\x1e.realtime.v1.FriendListRequestH\x00R\n" +
 	"friendList\x12G\n" +
 	"\rfriend_delete\x18\x1d \x01(\v2 .realtime.v1.DeleteFriendRequestH\x00R\ffriendDelete\x124\n" +
-	"\x06logout\x18\x1e \x01(\v2\x1a.realtime.v1.LogoutRequestH\x00R\x06logoutB\t\n" +
-	"\apayload\"\xcb\v\n" +
+	"\x06logout\x18\x1e \x01(\v2\x1a.realtime.v1.LogoutRequestH\x00R\x06logout\x12K\n" +
+	"\x0fchat_world_send\x18\x1f \x01(\v2!.realtime.v1.SendWorldChatRequestH\x00R\rchatWorldSend\x12N\n" +
+	"\x10chat_direct_send\x18  \x01(\v2\".realtime.v1.SendDirectChatRequestH\x00R\x0echatDirectSend\x12K\n" +
+	"\x0fchat_world_list\x18! \x01(\v2!.realtime.v1.ListWorldChatRequestH\x00R\rchatWorldList\x12N\n" +
+	"\x10chat_direct_list\x18\" \x01(\v2\".realtime.v1.ListDirectChatRequestH\x00R\x0echatDirectListB\t\n" +
+	"\apayload\"\xa5\r\n" +
 	"\x0eServerEnvelope\x12\x1d\n" +
 	"\n" +
 	"request_id\x18\x01 \x01(\x04R\trequestId\x12B\n" +
@@ -2680,7 +3307,10 @@ const file_proto_realtime_v1_realtime_proto_rawDesc = "" +
 	"\afriends\x18\x1a \x01(\v2\x1f.realtime.v1.FriendListResponseH\x00R\afriends\x12K\n" +
 	"\x0efriend_deleted\x18\x1b \x01(\v2\".realtime.v1.FriendDeletedResponseH\x00R\rfriendDeleted\x12<\n" +
 	"\n" +
-	"logout_ack\x18\x1c \x01(\v2\x1b.realtime.v1.LogoutResponseH\x00R\tlogoutAckB\t\n" +
+	"logout_ack\x18\x1c \x01(\v2\x1b.realtime.v1.LogoutResponseH\x00R\tlogoutAck\x12<\n" +
+	"\tchat_sent\x18\x1d \x01(\v2\x1d.realtime.v1.ChatSendResponseH\x00R\bchatSent\x12H\n" +
+	"\rchat_messages\x18\x1e \x01(\v2!.realtime.v1.ChatMessagesResponseH\x00R\fchatMessages\x12P\n" +
+	"\x13chat_message_pushed\x18\x1f \x01(\v2\x1e.realtime.v1.ChatMessagePushedH\x00R\x11chatMessagePushedB\t\n" +
 	"\apayload\",\n" +
 	"\rAuthenticated\x12\x1b\n" +
 	"\tplayer_id\x18\x01 \x01(\x03R\bplayerId\"\x12\n" +
@@ -2708,9 +3338,10 @@ const file_proto_realtime_v1_realtime_proto_rawDesc = "" +
 	"\x06online\x18\x02 \x01(\bR\x06online\x12\x16\n" +
 	"\x06status\x18\x03 \x01(\tR\x06status\",\n" +
 	"\rFriendRemoved\x12\x1b\n" +
-	"\tplayer_id\x18\x01 \x01(\x03R\bplayerId\"4\n" +
+	"\tplayer_id\x18\x01 \x01(\x03R\bplayerId\"P\n" +
 	"\x15FriendRequestReceived\x12\x1b\n" +
-	"\tplayer_id\x18\x01 \x01(\x03R\bplayerId\"3\n" +
+	"\tplayer_id\x18\x01 \x01(\x03R\bplayerId\x12\x1a\n" +
+	"\bnickname\x18\x02 \x01(\tR\bnickname\"3\n" +
 	"\x14FriendRequestHandled\x12\x1b\n" +
 	"\tplayer_id\x18\x01 \x01(\x03R\bplayerId\"\x8e\x01\n" +
 	"\x06Player\x12\x0e\n" +
@@ -2719,13 +3350,16 @@ const file_proto_realtime_v1_realtime_proto_rawDesc = "" +
 	"\x06avatar\x18\x03 \x01(\tR\x06avatar\x12\x14\n" +
 	"\x05email\x18\x04 \x01(\tR\x05email\x12\x14\n" +
 	"\x05phone\x18\x05 \x01(\tR\x05phone\x12\x14\n" +
-	"\x05coins\x18\x06 \x01(\x03R\x05coins\"\x92\x01\n" +
+	"\x05coins\x18\x06 \x01(\x03R\x05coins\"\xd8\x01\n" +
 	"\rFriendRequest\x12$\n" +
 	"\x0efrom_player_id\x18\x01 \x01(\x03R\ffromPlayerId\x12 \n" +
 	"\fto_player_id\x18\x02 \x01(\x03R\n" +
 	"toPlayerId\x129\n" +
 	"\n" +
-	"created_at\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\"\xcb\x01\n" +
+	"created_at\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x12#\n" +
+	"\rfrom_nickname\x18\x04 \x01(\tR\ffromNickname\x12\x1f\n" +
+	"\vto_nickname\x18\x05 \x01(\tR\n" +
+	"toNickname\"\xcb\x01\n" +
 	"\rFriendSummary\x12\x1b\n" +
 	"\tplayer_id\x18\x01 \x01(\x03R\bplayerId\x12\x1a\n" +
 	"\bnickname\x18\x02 \x01(\tR\bnickname\x12\x16\n" +
@@ -2760,8 +3394,12 @@ const file_proto_realtime_v1_realtime_proto_rawDesc = "" +
 	"\x10friend_player_id\x18\x01 \x01(\x03R\x0efriendPlayerId\"<\n" +
 	"\x18SendFriendRequestRequest\x12 \n" +
 	"\fto_player_id\x18\x01 \x01(\x03R\n" +
-	"toPlayerId\"\x1b\n" +
-	"\x19FriendRequestSentResponse\"#\n" +
+	"toPlayerId\"^\n" +
+	"\x19FriendRequestSentResponse\x12 \n" +
+	"\fto_player_id\x18\x01 \x01(\x03R\n" +
+	"toPlayerId\x12\x1f\n" +
+	"\vto_nickname\x18\x02 \x01(\tR\n" +
+	"toNickname\"#\n" +
 	"!ListIncomingFriendRequestsRequest\"#\n" +
 	"!ListOutgoingFriendRequestsRequest\"O\n" +
 	"\x15FriendRequestResponse\x126\n" +
@@ -2778,7 +3416,45 @@ const file_proto_realtime_v1_realtime_proto_rawDesc = "" +
 	"\rLogoutRequest\"\x10\n" +
 	"\x0eLogoutResponse\"\x12\n" +
 	"\x10PlayerGetRequest\"\x12\n" +
-	"\x10GrowthGetRequest*r\n" +
+	"\x10GrowthGetRequest\"\x97\x03\n" +
+	"\vChatMessage\x12\x1f\n" +
+	"\vmessage_key\x18\x01 \x01(\tR\n" +
+	"messageKey\x12!\n" +
+	"\fchannel_type\x18\x02 \x01(\tR\vchannelType\x12\x1f\n" +
+	"\vchannel_key\x18\x03 \x01(\tR\n" +
+	"channelKey\x12\x1b\n" +
+	"\tsender_id\x18\x04 \x01(\x03R\bsenderId\x12\x1f\n" +
+	"\vreceiver_id\x18\x05 \x01(\x03R\n" +
+	"receiverId\x12\x18\n" +
+	"\acontent\x18\x06 \x01(\tR\acontent\x129\n" +
+	"\n" +
+	"created_at\x18\a \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x129\n" +
+	"\n" +
+	"expires_at\x18\b \x01(\v2\x1a.google.protobuf.TimestampR\texpiresAt\x12,\n" +
+	"\x12client_message_key\x18\t \x01(\tR\x10clientMessageKey\x12'\n" +
+	"\x0fsender_nickname\x18\n" +
+	" \x01(\tR\x0esenderNickname\"^\n" +
+	"\x14SendWorldChatRequest\x12\x18\n" +
+	"\acontent\x18\x01 \x01(\tR\acontent\x12,\n" +
+	"\x12client_message_key\x18\x02 \x01(\tR\x10clientMessageKey\"\x80\x01\n" +
+	"\x15SendDirectChatRequest\x12\x1f\n" +
+	"\vreceiver_id\x18\x01 \x01(\x03R\n" +
+	"receiverId\x12\x18\n" +
+	"\acontent\x18\x02 \x01(\tR\acontent\x12,\n" +
+	"\x12client_message_key\x18\x03 \x01(\tR\x10clientMessageKey\"Z\n" +
+	"\x14ListWorldChatRequest\x12\x14\n" +
+	"\x05limit\x18\x01 \x01(\x03R\x05limit\x12,\n" +
+	"\x12before_message_key\x18\x02 \x01(\tR\x10beforeMessageKey\"x\n" +
+	"\x15ListDirectChatRequest\x12\x1b\n" +
+	"\tfriend_id\x18\x01 \x01(\x03R\bfriendId\x12\x14\n" +
+	"\x05limit\x18\x02 \x01(\x03R\x05limit\x12,\n" +
+	"\x12before_message_key\x18\x03 \x01(\tR\x10beforeMessageKey\"F\n" +
+	"\x10ChatSendResponse\x122\n" +
+	"\amessage\x18\x01 \x01(\v2\x18.realtime.v1.ChatMessageR\amessage\"L\n" +
+	"\x14ChatMessagesResponse\x124\n" +
+	"\bmessages\x18\x01 \x03(\v2\x18.realtime.v1.ChatMessageR\bmessages\"G\n" +
+	"\x11ChatMessagePushed\x122\n" +
+	"\amessage\x18\x01 \x01(\v2\x18.realtime.v1.ChatMessageR\amessage*r\n" +
 	"\tErrorCode\x12\x0f\n" +
 	"\vUNSPECIFIED\x10\x00\x12\x13\n" +
 	"\x0fUNAUTHENTICATED\x10\x01\x12\x14\n" +
@@ -2800,7 +3476,7 @@ func file_proto_realtime_v1_realtime_proto_rawDescGZIP() []byte {
 }
 
 var file_proto_realtime_v1_realtime_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_proto_realtime_v1_realtime_proto_msgTypes = make([]protoimpl.MessageInfo, 42)
+var file_proto_realtime_v1_realtime_proto_msgTypes = make([]protoimpl.MessageInfo, 50)
 var file_proto_realtime_v1_realtime_proto_goTypes = []any{
 	(ErrorCode)(0),                            // 0: realtime.v1.ErrorCode
 	(*ClientEnvelope)(nil),                    // 1: realtime.v1.ClientEnvelope
@@ -2845,7 +3521,15 @@ var file_proto_realtime_v1_realtime_proto_goTypes = []any{
 	(*LogoutResponse)(nil),                    // 40: realtime.v1.LogoutResponse
 	(*PlayerGetRequest)(nil),                  // 41: realtime.v1.PlayerGetRequest
 	(*GrowthGetRequest)(nil),                  // 42: realtime.v1.GrowthGetRequest
-	(*timestamppb.Timestamp)(nil),             // 43: google.protobuf.Timestamp
+	(*ChatMessage)(nil),                       // 43: realtime.v1.ChatMessage
+	(*SendWorldChatRequest)(nil),              // 44: realtime.v1.SendWorldChatRequest
+	(*SendDirectChatRequest)(nil),             // 45: realtime.v1.SendDirectChatRequest
+	(*ListWorldChatRequest)(nil),              // 46: realtime.v1.ListWorldChatRequest
+	(*ListDirectChatRequest)(nil),             // 47: realtime.v1.ListDirectChatRequest
+	(*ChatSendResponse)(nil),                  // 48: realtime.v1.ChatSendResponse
+	(*ChatMessagesResponse)(nil),              // 49: realtime.v1.ChatMessagesResponse
+	(*ChatMessagePushed)(nil),                 // 50: realtime.v1.ChatMessagePushed
+	(*timestamppb.Timestamp)(nil),             // 51: google.protobuf.Timestamp
 }
 var file_proto_realtime_v1_realtime_proto_depIdxs = []int32{
 	11, // 0: realtime.v1.ClientEnvelope.authenticate:type_name -> realtime.v1.AuthenticateRequest
@@ -2864,39 +3548,51 @@ var file_proto_realtime_v1_realtime_proto_depIdxs = []int32{
 	36, // 13: realtime.v1.ClientEnvelope.friend_list:type_name -> realtime.v1.FriendListRequest
 	27, // 14: realtime.v1.ClientEnvelope.friend_delete:type_name -> realtime.v1.DeleteFriendRequest
 	39, // 15: realtime.v1.ClientEnvelope.logout:type_name -> realtime.v1.LogoutRequest
-	3,  // 16: realtime.v1.ServerEnvelope.authenticated:type_name -> realtime.v1.Authenticated
-	5,  // 17: realtime.v1.ServerEnvelope.heartbeat_ack:type_name -> realtime.v1.HeartbeatAck
-	10, // 18: realtime.v1.ServerEnvelope.match_result:type_name -> realtime.v1.MatchResult
-	9,  // 19: realtime.v1.ServerEnvelope.match_canceled:type_name -> realtime.v1.MatchCanceled
-	12, // 20: realtime.v1.ServerEnvelope.error:type_name -> realtime.v1.ProtocolError
-	13, // 21: realtime.v1.ServerEnvelope.connection_replaced:type_name -> realtime.v1.ConnectionReplaced
-	14, // 22: realtime.v1.ServerEnvelope.friend_presence_changed:type_name -> realtime.v1.FriendPresenceChanged
-	15, // 23: realtime.v1.ServerEnvelope.friend_removed:type_name -> realtime.v1.FriendRemoved
-	16, // 24: realtime.v1.ServerEnvelope.friend_request_received:type_name -> realtime.v1.FriendRequestReceived
-	17, // 25: realtime.v1.ServerEnvelope.friend_request_handled:type_name -> realtime.v1.FriendRequestHandled
-	23, // 26: realtime.v1.ServerEnvelope.player:type_name -> realtime.v1.PlayerResponse
-	24, // 27: realtime.v1.ServerEnvelope.growth:type_name -> realtime.v1.GrowthResponse
-	25, // 28: realtime.v1.ServerEnvelope.growth_upgrade_result:type_name -> realtime.v1.UpgradeGrowthResponse
-	29, // 29: realtime.v1.ServerEnvelope.friend_request_sent:type_name -> realtime.v1.FriendRequestSentResponse
-	32, // 30: realtime.v1.ServerEnvelope.friend_requests:type_name -> realtime.v1.FriendRequestResponse
-	35, // 31: realtime.v1.ServerEnvelope.friend_request_handled_ack:type_name -> realtime.v1.FriendRequestHandledResponse
-	37, // 32: realtime.v1.ServerEnvelope.friends:type_name -> realtime.v1.FriendListResponse
-	38, // 33: realtime.v1.ServerEnvelope.friend_deleted:type_name -> realtime.v1.FriendDeletedResponse
-	40, // 34: realtime.v1.ServerEnvelope.logout_ack:type_name -> realtime.v1.LogoutResponse
-	0,  // 35: realtime.v1.ProtocolError.code:type_name -> realtime.v1.ErrorCode
-	43, // 36: realtime.v1.FriendRequest.created_at:type_name -> google.protobuf.Timestamp
-	43, // 37: realtime.v1.FriendSummary.updated_at:type_name -> google.protobuf.Timestamp
-	22, // 38: realtime.v1.Growth.upgrade_options:type_name -> realtime.v1.GrowthUpgradeOption
-	18, // 39: realtime.v1.PlayerResponse.player:type_name -> realtime.v1.Player
-	21, // 40: realtime.v1.GrowthResponse.growth:type_name -> realtime.v1.Growth
-	21, // 41: realtime.v1.UpgradeGrowthResponse.growth:type_name -> realtime.v1.Growth
-	19, // 42: realtime.v1.FriendRequestResponse.requests:type_name -> realtime.v1.FriendRequest
-	20, // 43: realtime.v1.FriendListResponse.friends:type_name -> realtime.v1.FriendSummary
-	44, // [44:44] is the sub-list for method output_type
-	44, // [44:44] is the sub-list for method input_type
-	44, // [44:44] is the sub-list for extension type_name
-	44, // [44:44] is the sub-list for extension extendee
-	0,  // [0:44] is the sub-list for field type_name
+	44, // 16: realtime.v1.ClientEnvelope.chat_world_send:type_name -> realtime.v1.SendWorldChatRequest
+	45, // 17: realtime.v1.ClientEnvelope.chat_direct_send:type_name -> realtime.v1.SendDirectChatRequest
+	46, // 18: realtime.v1.ClientEnvelope.chat_world_list:type_name -> realtime.v1.ListWorldChatRequest
+	47, // 19: realtime.v1.ClientEnvelope.chat_direct_list:type_name -> realtime.v1.ListDirectChatRequest
+	3,  // 20: realtime.v1.ServerEnvelope.authenticated:type_name -> realtime.v1.Authenticated
+	5,  // 21: realtime.v1.ServerEnvelope.heartbeat_ack:type_name -> realtime.v1.HeartbeatAck
+	10, // 22: realtime.v1.ServerEnvelope.match_result:type_name -> realtime.v1.MatchResult
+	9,  // 23: realtime.v1.ServerEnvelope.match_canceled:type_name -> realtime.v1.MatchCanceled
+	12, // 24: realtime.v1.ServerEnvelope.error:type_name -> realtime.v1.ProtocolError
+	13, // 25: realtime.v1.ServerEnvelope.connection_replaced:type_name -> realtime.v1.ConnectionReplaced
+	14, // 26: realtime.v1.ServerEnvelope.friend_presence_changed:type_name -> realtime.v1.FriendPresenceChanged
+	15, // 27: realtime.v1.ServerEnvelope.friend_removed:type_name -> realtime.v1.FriendRemoved
+	16, // 28: realtime.v1.ServerEnvelope.friend_request_received:type_name -> realtime.v1.FriendRequestReceived
+	17, // 29: realtime.v1.ServerEnvelope.friend_request_handled:type_name -> realtime.v1.FriendRequestHandled
+	23, // 30: realtime.v1.ServerEnvelope.player:type_name -> realtime.v1.PlayerResponse
+	24, // 31: realtime.v1.ServerEnvelope.growth:type_name -> realtime.v1.GrowthResponse
+	25, // 32: realtime.v1.ServerEnvelope.growth_upgrade_result:type_name -> realtime.v1.UpgradeGrowthResponse
+	29, // 33: realtime.v1.ServerEnvelope.friend_request_sent:type_name -> realtime.v1.FriendRequestSentResponse
+	32, // 34: realtime.v1.ServerEnvelope.friend_requests:type_name -> realtime.v1.FriendRequestResponse
+	35, // 35: realtime.v1.ServerEnvelope.friend_request_handled_ack:type_name -> realtime.v1.FriendRequestHandledResponse
+	37, // 36: realtime.v1.ServerEnvelope.friends:type_name -> realtime.v1.FriendListResponse
+	38, // 37: realtime.v1.ServerEnvelope.friend_deleted:type_name -> realtime.v1.FriendDeletedResponse
+	40, // 38: realtime.v1.ServerEnvelope.logout_ack:type_name -> realtime.v1.LogoutResponse
+	48, // 39: realtime.v1.ServerEnvelope.chat_sent:type_name -> realtime.v1.ChatSendResponse
+	49, // 40: realtime.v1.ServerEnvelope.chat_messages:type_name -> realtime.v1.ChatMessagesResponse
+	50, // 41: realtime.v1.ServerEnvelope.chat_message_pushed:type_name -> realtime.v1.ChatMessagePushed
+	0,  // 42: realtime.v1.ProtocolError.code:type_name -> realtime.v1.ErrorCode
+	51, // 43: realtime.v1.FriendRequest.created_at:type_name -> google.protobuf.Timestamp
+	51, // 44: realtime.v1.FriendSummary.updated_at:type_name -> google.protobuf.Timestamp
+	22, // 45: realtime.v1.Growth.upgrade_options:type_name -> realtime.v1.GrowthUpgradeOption
+	18, // 46: realtime.v1.PlayerResponse.player:type_name -> realtime.v1.Player
+	21, // 47: realtime.v1.GrowthResponse.growth:type_name -> realtime.v1.Growth
+	21, // 48: realtime.v1.UpgradeGrowthResponse.growth:type_name -> realtime.v1.Growth
+	19, // 49: realtime.v1.FriendRequestResponse.requests:type_name -> realtime.v1.FriendRequest
+	20, // 50: realtime.v1.FriendListResponse.friends:type_name -> realtime.v1.FriendSummary
+	51, // 51: realtime.v1.ChatMessage.created_at:type_name -> google.protobuf.Timestamp
+	51, // 52: realtime.v1.ChatMessage.expires_at:type_name -> google.protobuf.Timestamp
+	43, // 53: realtime.v1.ChatSendResponse.message:type_name -> realtime.v1.ChatMessage
+	43, // 54: realtime.v1.ChatMessagesResponse.messages:type_name -> realtime.v1.ChatMessage
+	43, // 55: realtime.v1.ChatMessagePushed.message:type_name -> realtime.v1.ChatMessage
+	56, // [56:56] is the sub-list for method output_type
+	56, // [56:56] is the sub-list for method input_type
+	56, // [56:56] is the sub-list for extension type_name
+	56, // [56:56] is the sub-list for extension extendee
+	0,  // [0:56] is the sub-list for field type_name
 }
 
 func init() { file_proto_realtime_v1_realtime_proto_init() }
@@ -2921,6 +3617,10 @@ func file_proto_realtime_v1_realtime_proto_init() {
 		(*ClientEnvelope_FriendList)(nil),
 		(*ClientEnvelope_FriendDelete)(nil),
 		(*ClientEnvelope_Logout)(nil),
+		(*ClientEnvelope_ChatWorldSend)(nil),
+		(*ClientEnvelope_ChatDirectSend)(nil),
+		(*ClientEnvelope_ChatWorldList)(nil),
+		(*ClientEnvelope_ChatDirectList)(nil),
 	}
 	file_proto_realtime_v1_realtime_proto_msgTypes[1].OneofWrappers = []any{
 		(*ServerEnvelope_Authenticated)(nil),
@@ -2942,6 +3642,9 @@ func file_proto_realtime_v1_realtime_proto_init() {
 		(*ServerEnvelope_Friends)(nil),
 		(*ServerEnvelope_FriendDeleted)(nil),
 		(*ServerEnvelope_LogoutAck)(nil),
+		(*ServerEnvelope_ChatSent)(nil),
+		(*ServerEnvelope_ChatMessages)(nil),
+		(*ServerEnvelope_ChatMessagePushed)(nil),
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
@@ -2949,7 +3652,7 @@ func file_proto_realtime_v1_realtime_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_realtime_v1_realtime_proto_rawDesc), len(file_proto_realtime_v1_realtime_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   42,
+			NumMessages:   50,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

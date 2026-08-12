@@ -28,6 +28,10 @@ message ClientEnvelope {
     FriendListRequest friend_list = 28;
     DeleteFriendRequest friend_delete = 29;
     LogoutRequest logout = 30;
+    SendWorldChatRequest chat_world_send = 31;
+    SendDirectChatRequest chat_direct_send = 32;
+    ListWorldChatRequest chat_world_list = 33;
+    ListDirectChatRequest chat_direct_list = 34;
   }
 }
 
@@ -55,6 +59,9 @@ message ServerEnvelope {
     FriendListResponse friends = 26;
     FriendDeletedResponse friend_deleted = 27;
     LogoutResponse logout_ack = 28;
+    ChatSendResponse chat_sent = 29;
+    ChatMessagesResponse chat_messages = 30;
+    ChatMessagePushed chat_message_pushed = 31;
   }
 }
 
@@ -117,6 +124,7 @@ message FriendRemoved {
 
 message FriendRequestReceived {
   int64 player_id = 1;
+  string nickname = 2;
 }
 
 message FriendRequestHandled {
@@ -136,6 +144,8 @@ message FriendRequest {
   int64 from_player_id = 1;
   int64 to_player_id = 2;
   google.protobuf.Timestamp created_at = 3;
+  string from_nickname = 4;
+  string to_nickname = 5;
 }
 
 message FriendSummary {
@@ -189,7 +199,10 @@ message SendFriendRequestRequest {
   int64 to_player_id = 1;
 }
 
-message FriendRequestSentResponse {}
+message FriendRequestSentResponse {
+  int64 to_player_id = 1;
+  string to_nickname = 2;
+}
 
 message ListIncomingFriendRequestsRequest {}
 
@@ -224,3 +237,50 @@ message LogoutResponse {}
 message PlayerGetRequest {}
 
 message GrowthGetRequest {}
+
+message ChatMessage {
+  string message_key = 1;
+  string channel_type = 2;
+  string channel_key = 3;
+  int64 sender_id = 4;
+  int64 receiver_id = 5;
+  string content = 6;
+  google.protobuf.Timestamp created_at = 7;
+  google.protobuf.Timestamp expires_at = 8;
+  string client_message_key = 9;
+  string sender_nickname = 10;
+}
+
+message SendWorldChatRequest {
+  string content = 1;
+  string client_message_key = 2;
+}
+
+message SendDirectChatRequest {
+  int64 receiver_id = 1;
+  string content = 2;
+  string client_message_key = 3;
+}
+
+message ListWorldChatRequest {
+  int64 limit = 1;
+  string before_message_key = 2;
+}
+
+message ListDirectChatRequest {
+  int64 friend_id = 1;
+  int64 limit = 2;
+  string before_message_key = 3;
+}
+
+message ChatSendResponse {
+  ChatMessage message = 1;
+}
+
+message ChatMessagesResponse {
+  repeated ChatMessage messages = 1;
+}
+
+message ChatMessagePushed {
+  ChatMessage message = 1;
+}

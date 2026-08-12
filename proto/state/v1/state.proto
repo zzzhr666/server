@@ -34,12 +34,15 @@ service StateService {
   rpc DeleteFriend(DeleteFriendRequest) returns (DeleteFriendResponse);
 
   rpc PublishRealtime(PublishRealtimeRequest) returns (PublishRealtimeResponse);
-  rpc SubscribeRealtime(SubscribeRealtimeRequest) returns (stream RealtimeEvent);
+  rpc SubscribeRealtime(SubscribeRealtimeRequest) returns (stream RealtimeDelivery);
 
   rpc GetGrowth(GetGrowthRequest) returns (GetGrowthResponse);
   rpc UpgradeGrowth(UpgradeGrowthRequest) returns (UpgradeGrowthResponse);
 
   rpc AddPlayerCoins(AddPlayerCoinsRequest) returns (AddPlayerCoinsResponse);
+
+  rpc SaveChatMessage(SaveChatMessageRequest) returns (SaveChatMessageResponse);
+  rpc ListChatMessages(ListChatMessagesRequest) returns (ListChatMessagesResponse);
 }
 
 message Account {
@@ -240,17 +243,34 @@ message RealtimeEvent {
   string battle_udp_addr = 9;
   string battle_node_name = 10;
   repeated int64 match_player_ids = 11;
+  RealtimeChatMessage chat_message = 12;
+}
+
+enum RealtimeRouteType {
+  REALTIME_ROUTE_TYPE_UNSPECIFIED = 0;
+  REALTIME_ROUTE_TYPE_SERVER = 1;
+  REALTIME_ROUTE_TYPE_BROADCAST = 2;
+}
+
+message RealtimeRoute {
+  RealtimeRouteType type = 1;
+  string server_name = 2;
+}
+
+message RealtimeDelivery {
+  RealtimeRoute route = 1;
+  RealtimeEvent event = 2;
 }
 
 message PublishRealtimeRequest {
-  string server_name = 1;
-  RealtimeEvent event = 2;
+  RealtimeDelivery delivery = 1;
 }
 
 message PublishRealtimeResponse {}
 
 message SubscribeRealtimeRequest {
   string server_name = 1;
+  RealtimeRouteType type = 2;
 }
 
 message Growth {
@@ -279,4 +299,58 @@ message UpgradeGrowthRequest {
 message UpgradeGrowthResponse {
   Growth growth = 1;
   int64 remaining_coins = 2;
+}
+
+message ChatMessage {
+  string message_key = 1;
+  string channel_type = 2;
+  string channel_key = 3;
+  int64 sender_id = 4;
+  int64 receiver_id = 5;
+  string content = 6;
+  google.protobuf.Timestamp created_at = 7;
+  google.protobuf.Timestamp expires_at = 8;
+  string client_message_key = 9;
+  string sender_nickname = 10;
+}
+
+message SaveChatMessageRequest {
+  string channel_type = 1;
+  string channel_key = 2;
+  int64 sender_id = 3;
+  int64 receiver_id = 4;
+  string content = 5;
+  google.protobuf.Timestamp created_at = 6;
+  google.protobuf.Timestamp expires_at = 7;
+  int64 max_messages = 8;
+  string client_message_key = 9;
+  string sender_nickname = 10;
+}
+
+message SaveChatMessageResponse {
+  ChatMessage message = 1;
+}
+
+message ListChatMessagesRequest {
+  string channel_type = 1;
+  string channel_key = 2;
+  int64 limit = 3;
+  string before_message_key = 4;
+}
+
+message ListChatMessagesResponse {
+  repeated ChatMessage messages = 1;
+}
+
+message RealtimeChatMessage {
+  string message_key = 1;
+  string channel_type = 2;
+  string channel_key = 3;
+  int64 sender_id = 4;
+  int64 receiver_id = 5;
+  string content = 6;
+  google.protobuf.Timestamp created_at = 7;
+  google.protobuf.Timestamp expires_at = 8;
+  string client_message_key = 9;
+  string sender_nickname = 10;
 }
