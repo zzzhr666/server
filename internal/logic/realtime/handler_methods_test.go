@@ -8,12 +8,54 @@ import (
 	"time"
 
 	"server/internal/contract/realtimepb"
+	statecontract "server/internal/contract/state"
 	"server/internal/logic/auth"
+	"server/internal/logic/chat"
 	"server/internal/logic/friend"
 	"server/internal/logic/growth"
 	"server/internal/logic/player"
 	"server/internal/logic/presence"
 )
+
+func TestHandleSendWorldChatPublishesBroadcastDelivery(t *testing.T) {
+	createdAt := time.Date(2026, time.August, 12, 10, 0, 0, 0, time.UTC)
+	chatService := &handlerMethodChatService{worldMessage: &chat.Message{
+		MessageKey:       "message-1",
+		ChannelType:      chat.ChannelWorld,
+		ChannelKey:       statecontract.WorldChatChannelKey,
+		SenderID:         7,
+		Content:          "hello world",
+		CreatedAt:        createdAt,
+		ExpiresAt:        createdAt.Add(statecontract.WorldChatRetention),
+		ClientMessageKey: "client-1",
+	}}
+	realtimeClient := &fakeHandlerRealtimeClient{publishErr: errors.New("publish unavailable")}
+	handler := &Handler{chat: chatService, realtimeClient: realtimeClient}
+
+	response, keepConnection := invokeHandlerMethod(t, func(session *session) bool {
+		return handler.handleSendWorldChat(context.Background(), session, 7, &realtimepb.ClientEnvelope{
+			RequestId: 12,
+			Payload: &realtimepb.ClientEnvelope_ChatWorldSend{
+				ChatWorldSend: &realtimepb.SendWorldChatRequest{Content: "hello world", ClientMessageKey: "client-1"},
+			},
+		})
+	}, nil)
+
+	if response.GetRequestId() != 12 || response.GetChatSent().GetMessage().GetMessageKey() != "message-1" || !keepConnection {
+		t.Fatalf("world chat response = %v, keep = %v; want successful response", response, keepConnection)
+	}
+	if chatService.worldInput.SenderID != 7 || chatService.worldInput.Content != "hello world" || chatService.worldInput.ClientMessageKey != "client-1" {
+		t.Fatalf("SendWorldMessage input = %+v, want sender 7 and complete request", chatService.worldInput)
+	}
+	published, ok := realtimeClient.publishedEvent()
+	if !ok || published.delivery.Route.Type != statecontract.RealtimeRouteBroadcast || published.delivery.Route.ServerName != "" || published.delivery.Event == nil {
+		t.Fatalf("published delivery = %+v, want broadcast delivery", published)
+	}
+	event := published.delivery.Event
+	if event.Type != statecontract.RealtimeEventChatMessage || event.TargetPlayerID != 0 || event.ActorPlayerID != 7 || event.ChatMessage == nil || event.ChatMessage.MessageKey != "message-1" || event.ChatMessage.ChannelType != statecontract.ChatChannelWorld || event.ChatMessage.Content != "hello world" {
+		t.Fatalf("published event = %+v, want complete world chat event", event)
+	}
+}
 
 func TestHandleSendFriendRequestPushesLocalNotification(t *testing.T) {
 	friendService := &handlerMethodFriendService{}
@@ -320,6 +362,25 @@ type handlerMethodAuthService struct {
 	logoutToken string
 }
 
+type handlerMethodChatService struct {
+	worldInput   chat.SendWorldMessageInput
+	worldMessage *chat.Message
+}
+
+func (f *handlerMethodChatService) SendWorldMessage(_ context.Context, input chat.SendWorldMessageInput) (*chat.Message, error) {
+	f.worldInput = input
+	return f.worldMessage, nil
+}
+func (f *handlerMethodChatService) SendDirectMessage(context.Context, chat.SendDirectMessageInput) (*chat.Message, error) {
+	return nil, errors.New("unexpected SendDirectMessage call")
+}
+func (f *handlerMethodChatService) ListWorldMessages(context.Context, chat.ListWorldMessagesInput) ([]*chat.Message, error) {
+	return nil, errors.New("unexpected ListWorldMessages call")
+}
+func (f *handlerMethodChatService) ListDirectMessages(context.Context, chat.ListDirectMessagesInput) ([]*chat.Message, error) {
+	return nil, errors.New("unexpected ListDirectMessages call")
+}
+
 func (f *handlerMethodAuthService) Register(context.Context, auth.RegisterInput) (*auth.AuthorizeResult, error) {
 	return nil, errors.New("unexpected Register call")
 }
@@ -342,3 +403,4 @@ var _ player.Service = (*handlerMethodPlayerService)(nil)
 var _ presence.Service = (*handlerMethodPresenceService)(nil)
 var _ growth.Service = (*handlerMethodGrowthService)(nil)
 var _ auth.Service = (*handlerMethodAuthService)(nil)
+var _ chat.Service = (*handlerMethodChatService)(nil)

@@ -149,7 +149,7 @@ func TestHandlerServeSessionReplacesConnectionOnExistingLogicServer(t *testing.T
 	if !ok {
 		t.Fatal("connection replacement event was not published")
 	}
-	if published.serverName != "logic-old" || published.event.Type != statecontract.RealtimeEventConnectionReplaced || published.event.TargetPlayerID != 7 || published.event.ActorPlayerID != 7 {
+	if published.delivery.Route.Type != statecontract.RealtimeRouteServer || published.delivery.Route.ServerName != "logic-old" || published.delivery.Event.Type != statecontract.RealtimeEventConnectionReplaced || published.delivery.Event.TargetPlayerID != 7 || published.delivery.Event.ActorPlayerID != 7 {
 		t.Fatalf("published event = %+v, want replacement for player 7 on logic-old", published)
 	}
 
@@ -196,7 +196,7 @@ func TestHandlerPublishesFriendPresenceToFriendServer(t *testing.T) {
 
 	handler.publishFriendPresenceChanged(context.Background(), 7, true, presence.StatusOnline)
 	published, ok := realtimeClient.publishedEvent()
-	if !ok || presenceService.getPlayerID != 8 || published.serverName != "logic-friend" || published.event.TargetPlayerID != 8 || published.event.ActorPlayerID != 7 || !published.event.Online {
+	if !ok || presenceService.getPlayerID != 8 || published.delivery.Route.Type != statecontract.RealtimeRouteServer || published.delivery.Route.ServerName != "logic-friend" || published.delivery.Event.TargetPlayerID != 8 || published.delivery.Event.ActorPlayerID != 7 || !published.delivery.Event.Online {
 		t.Fatalf("published friend presence = %+v, want online event for friend 8 on logic-friend", published)
 	}
 }
@@ -278,7 +278,7 @@ func TestHandlerPushesMatchedResultToRemotePlayer(t *testing.T) {
 	if !ok {
 		t.Fatal("remote match result was not published")
 	}
-	if presenceService.getPlayerID != 8 || published.serverName != "logic-remote" || published.event.Type != statecontract.RealtimeEventMatchResult || published.event.TargetPlayerID != 8 || published.event.ActorPlayerID != 7 || published.event.MatchStatus != string(rcenter.MatchStatusMatched) || published.event.RoomName != "room-7-8" || published.event.MatchToken != "match-token" || published.event.BattleNodeName != "battle-1" || published.event.BattleUDPAddr != "127.0.0.1:9001" || !samePlayerIDs(published.event.MatchPlayerIDs, []int64{7, 8}) {
+	if presenceService.getPlayerID != 8 || published.delivery.Route.Type != statecontract.RealtimeRouteServer || published.delivery.Route.ServerName != "logic-remote" || published.delivery.Event.Type != statecontract.RealtimeEventMatchResult || published.delivery.Event.TargetPlayerID != 8 || published.delivery.Event.ActorPlayerID != 7 || published.delivery.Event.MatchStatus != string(rcenter.MatchStatusMatched) || published.delivery.Event.RoomName != "room-7-8" || published.delivery.Event.MatchToken != "match-token" || published.delivery.Event.BattleNodeName != "battle-1" || published.delivery.Event.BattleUDPAddr != "127.0.0.1:9001" || !samePlayerIDs(published.delivery.Event.MatchPlayerIDs, []int64{7, 8}) {
 		t.Fatalf("published match result = %+v, want complete event for player 8 on logic-remote", published)
 	}
 }
@@ -781,8 +781,7 @@ func (f *fakeHandlerPresence) Get(_ context.Context, playerID int64) (*presence.
 }
 
 type publishedHandlerRealtimeEvent struct {
-	serverName string
-	event      statecontract.RealtimeEvent
+	delivery statecontract.RealtimeDelivery
 }
 
 type fakeHandlerRealtimeClient struct {
@@ -791,16 +790,16 @@ type fakeHandlerRealtimeClient struct {
 	publishErr error
 }
 
-func (f *fakeHandlerRealtimeClient) PublishRealtimeToServer(_ context.Context, serverName string, event *statecontract.RealtimeEvent) error {
+func (f *fakeHandlerRealtimeClient) PublishRealtime(_ context.Context, delivery *statecontract.RealtimeDelivery) error {
 	f.mu.Lock()
 	defer f.mu.Unlock()
-	if event != nil {
-		f.published = append(f.published, publishedHandlerRealtimeEvent{serverName: serverName, event: *event})
+	if delivery != nil {
+		f.published = append(f.published, publishedHandlerRealtimeEvent{delivery: *delivery})
 	}
 	return f.publishErr
 }
 
-func (f *fakeHandlerRealtimeClient) SubscribeRealtime(context.Context, string) (<-chan *statecontract.RealtimeEvent, error) {
+func (f *fakeHandlerRealtimeClient) SubscribeRealtime(context.Context, statecontract.RealtimeRoute) (<-chan *statecontract.RealtimeDelivery, error) {
 	return nil, errors.New("unexpected SubscribeRealtime call")
 }
 

@@ -74,6 +74,39 @@ func TestToProtoEnvelopeMapsRealtimeEvents(t *testing.T) {
 				}
 			},
 		},
+		{
+			name: "direct chat message",
+			event: statecontract.RealtimeEvent{
+				Type:           statecontract.RealtimeEventChatMessage,
+				TargetPlayerID: 8,
+				ActorPlayerID:  7,
+				ChatMessage: &statecontract.ChatMessage{
+					MessageKey:       "message-1",
+					ChannelType:      statecontract.ChatChannelDirect,
+					ChannelKey:       "direct:7:8",
+					SenderID:         7,
+					ReceiverID:       8,
+					Content:          "hello",
+					CreatedAt:        time.Date(2026, 8, 12, 10, 0, 0, 0, time.UTC),
+					ExpiresAt:        time.Date(2026, 8, 19, 10, 0, 0, 0, time.UTC),
+					ClientMessageKey: "client-1",
+				},
+			},
+			check: func(t *testing.T, event *statecontract.RealtimeEvent, envelope *realtimepb.ServerEnvelope) {
+				payload := envelope.GetChatMessagePushed()
+				if payload == nil || payload.GetMessage() == nil {
+					t.Fatal("direct chat push payload = nil")
+				}
+				message := payload.GetMessage()
+				want := event.ChatMessage
+				if message.GetMessageKey() != want.MessageKey || message.GetChannelType() != string(want.ChannelType) || message.GetChannelKey() != want.ChannelKey || message.GetSenderId() != want.SenderID || message.GetReceiverId() != want.ReceiverID || message.GetContent() != want.Content || message.GetClientMessageKey() != want.ClientMessageKey {
+					t.Fatalf("direct chat message = %v, want complete message %v", message, want)
+				}
+				if !message.GetCreatedAt().AsTime().Equal(want.CreatedAt) || !message.GetExpiresAt().AsTime().Equal(want.ExpiresAt) {
+					t.Fatalf("direct chat timestamps = (%v, %v), want (%v, %v)", message.GetCreatedAt(), message.GetExpiresAt(), want.CreatedAt, want.ExpiresAt)
+				}
+			},
+		},
 	}
 
 	for _, test := range tests {
@@ -92,6 +125,16 @@ func TestToProtoEnvelopeMapsRealtimeEvents(t *testing.T) {
 
 func TestToProtoEnvelopeRejectsUnknownEvent(t *testing.T) {
 	envelope, ok := toProtoEnvelope(statecontract.RealtimeEvent{Type: "unknown"})
+	if ok || envelope != nil {
+		t.Fatalf("toProtoEnvelope() = (%v, %t), want (nil, false)", envelope, ok)
+	}
+}
+
+func TestToProtoEnvelopeRejectsDirectChatWithoutMessage(t *testing.T) {
+	envelope, ok := toProtoEnvelope(statecontract.RealtimeEvent{
+		Type:           statecontract.RealtimeEventChatMessage,
+		TargetPlayerID: 8,
+	})
 	if ok || envelope != nil {
 		t.Fatalf("toProtoEnvelope() = (%v, %t), want (nil, false)", envelope, ok)
 	}

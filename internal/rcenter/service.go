@@ -4,7 +4,7 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/hex"
-	statecontract "server/internal/contract/state"
+	"server/internal/contract/state"
 	"slices"
 	"sync"
 	"time"
@@ -28,17 +28,17 @@ type GameCenterService struct {
 	waitingPlayers       []waitingPlayer
 	battleNodeController BattleNodeController
 	inGamePlayers        map[int64]struct{}
-	coinClient           statecontract.CoinClient
+	coinClient           state.CoinClient
 	rewardRule           RewardRule
-	growthClient         statecontract.GrowthClient
+	growthClient         state.GrowthClient
 	activeMatches        map[int64]ActiveMatch
 }
 
 type ServiceConfig struct {
 	BattleNodeController BattleNodeController
-	CoinClient           statecontract.CoinClient
+	CoinClient           state.CoinClient
 	RewardRule           RewardRule
-	GrowthClient         statecontract.GrowthClient
+	GrowthClient         state.GrowthClient
 }
 
 // NewService 创建空的内存 rcenter 服务。
@@ -271,7 +271,7 @@ func (g *GameCenterService) FinishMatch(ctx context.Context, input FinishMatchIn
 		if err != nil {
 			return err
 		}
-		_, err = g.coinClient.AddPlayerCoins(ctx, statecontract.AddPlayerCoinsInput{
+		_, err = g.coinClient.AddPlayerCoins(ctx, state.AddPlayerCoinsInput{
 			PlayerID: stat.PlayerID,
 			Amount:   reward,
 		})

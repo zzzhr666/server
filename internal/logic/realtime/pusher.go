@@ -3,21 +3,24 @@ package realtime
 import (
 	"context"
 	"server/internal/contract/realtimepb"
-	statecontract "server/internal/contract/state"
+	"server/internal/contract/state"
+	"time"
+
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 const proactivePushRequestID = 0
 
-func toProtoEnvelope(event statecontract.RealtimeEvent) (*realtimepb.ServerEnvelope, bool) {
+func toProtoEnvelope(event state.RealtimeEvent) (*realtimepb.ServerEnvelope, bool) {
 	switch event.Type {
-	case statecontract.RealtimeEventConnectionReplaced:
+	case state.RealtimeEventConnectionReplaced:
 		return &realtimepb.ServerEnvelope{
 			RequestId: proactivePushRequestID,
 			Payload: &realtimepb.ServerEnvelope_ConnectionReplaced{
 				ConnectionReplaced: &realtimepb.ConnectionReplaced{},
 			},
 		}, true
-	case statecontract.RealtimeEventFriendPresenceChanged:
+	case state.RealtimeEventFriendPresenceChanged:
 		return &realtimepb.ServerEnvelope{
 			RequestId: proactivePushRequestID,
 			Payload: &realtimepb.ServerEnvelope_FriendPresenceChanged{
@@ -28,7 +31,7 @@ func toProtoEnvelope(event statecontract.RealtimeEvent) (*realtimepb.ServerEnvel
 				},
 			},
 		}, true
-	case statecontract.RealtimeEventFriendRemoved:
+	case state.RealtimeEventFriendRemoved:
 		return &realtimepb.ServerEnvelope{
 			RequestId: proactivePushRequestID,
 			Payload: &realtimepb.ServerEnvelope_FriendRemoved{
@@ -37,16 +40,17 @@ func toProtoEnvelope(event statecontract.RealtimeEvent) (*realtimepb.ServerEnvel
 				},
 			},
 		}, true
-	case statecontract.RealtimeEventFriendRequestReceived:
+	case state.RealtimeEventFriendRequestReceived:
 		return &realtimepb.ServerEnvelope{
 			RequestId: proactivePushRequestID,
 			Payload: &realtimepb.ServerEnvelope_FriendRequestReceived{
 				FriendRequestReceived: &realtimepb.FriendRequestReceived{
 					PlayerId: event.ActorPlayerID,
+					Nickname: event.ActorPlayerNickname,
 				},
 			},
 		}, true
-	case statecontract.RealtimeEventFriendRequestHandled:
+	case state.RealtimeEventFriendRequestHandled:
 		return &realtimepb.ServerEnvelope{
 			RequestId: proactivePushRequestID,
 			Payload: &realtimepb.ServerEnvelope_FriendRequestHandled{
@@ -55,7 +59,7 @@ func toProtoEnvelope(event statecontract.RealtimeEvent) (*realtimepb.ServerEnvel
 				},
 			},
 		}, true
-	case statecontract.RealtimeEventMatchResult:
+	case state.RealtimeEventMatchResult:
 		return &realtimepb.ServerEnvelope{
 			RequestId: proactivePushRequestID,
 			Payload: &realtimepb.ServerEnvelope_MatchResult{
@@ -68,6 +72,19 @@ func toProtoEnvelope(event statecontract.RealtimeEvent) (*realtimepb.ServerEnvel
 				},
 			},
 		}, true
+	case state.RealtimeEventChatMessage:
+		if event.ChatMessage == nil {
+			return nil, false
+		}
+		return &realtimepb.ServerEnvelope{
+			RequestId: proactivePushRequestID,
+			Payload: &realtimepb.ServerEnvelope_ChatMessagePushed{
+				ChatMessagePushed: &realtimepb.ChatMessagePushed{
+					Message: toProtoStateChatMessage(event.ChatMessage),
+				},
+			},
+		}, true
+
 	}
 	return nil, false
 }
@@ -82,7 +99,7 @@ func newLocalRealtimePusher(connections *connectionManager) *localRealtimePusher
 	}
 }
 
-func (l *localRealtimePusher) Push(ctx context.Context, event statecontract.RealtimeEvent) bool {
+func (l *localRealtimePusher) Push(ctx context.Context, event state.RealtimeEvent) bool {
 	if ctx.Err() != nil {
 		return false
 	}
@@ -90,9 +107,34 @@ func (l *localRealtimePusher) Push(ctx context.Context, event statecontract.Real
 	if !ok {
 		return false
 	}
-	if event.Type == statecontract.RealtimeEventConnectionReplaced {
+	if event.Type == state.RealtimeEventConnectionReplaced {
 		return l.connections.Close(event.TargetPlayerID, serverEnvelope)
 	}
 
 	return l.connections.Send(event.TargetPlayerID, serverEnvelope)
+}
+
+func toProtoStateChatMessage(message *state.ChatMessage) *realtimepb.ChatMessage {
+	if message == nil {
+		return nil
+	}
+	return &realtimepb.ChatMessage{
+		MessageKey:       message.MessageKey,
+		ChannelType:      string(message.ChannelType),
+		ChannelKey:       message.ChannelKey,
+		SenderId:         message.SenderID,
+		ReceiverId:       message.ReceiverID,
+		SenderNickname:   message.SenderNickname,
+		Content:          message.Content,
+		CreatedAt:        toProtoTime(message.CreatedAt),
+		ExpiresAt:        toProtoTime(message.ExpiresAt),
+		ClientMessageKey: message.ClientMessageKey,
+	}
+}
+
+func toProtoTime(value time.Time) *timestamppb.Timestamp {
+	if value.IsZero() {
+		return nil
+	}
+	return timestamppb.New(value)
 }

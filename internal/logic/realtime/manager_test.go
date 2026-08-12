@@ -1,9 +1,93 @@
 package realtime
 
 import (
+	"fmt"
+	"net"
+	"server/internal/contract/realtimepb"
 	"testing"
 	"time"
 )
+
+func TestConnectionManagerBroadcastsToAllExceptExcludedPlayer(t *testing.T) {
+	manager := newConnectionManager()
+	connections := make([]net.Conn, 0, 3)
+	for _, playerID := range []int64{7, 8, 9} {
+		serverConn, clientConn := net.Pipe()
+		connections = append(connections, clientConn)
+		manager.Add(playerID, newSession(serverConn))
+	}
+	defer func() {
+		for _, conn := range connections {
+			_ = conn.Close()
+		}
+	}()
+
+	envelope := &realtimepb.ServerEnvelope{
+		Payload: &realtimepb.ServerEnvelope_FriendRemoved{
+			FriendRemoved: &realtimepb.FriendRemoved{PlayerId: 7},
+		},
+	}
+	done := make(chan int, 1)
+	go func() { done <- manager.Broadcast(envelope, 8) }()
+
+	results := make(chan error, 2)
+	for _, clientConn := range []net.Conn{connections[0], connections[2]} {
+		go func(conn net.Conn) {
+			got, err := readServerEnvelope(conn)
+			if err != nil {
+				results <- err
+				return
+			}
+			if got.GetFriendRemoved().GetPlayerId() != 7 {
+				results <- fmt.Errorf("friend removed player = %d, want 7", got.GetFriendRemoved().GetPlayerId())
+				return
+			}
+			results <- nil
+		}(clientConn)
+	}
+	for i := 0; i < 2; i++ {
+		select {
+		case err := <-results:
+			if err != nil {
+				t.Fatal(err)
+			}
+		case <-time.After(time.Second):
+			t.Fatal("broadcast readers timed out")
+		}
+	}
+	if count := <-done; count != 2 {
+		t.Fatalf("Broadcast() count = %d, want 2", count)
+	}
+}
+
+func TestConnectionManagerBroadcastContinuesAfterWriteFailure(t *testing.T) {
+	manager := newConnectionManager()
+	failedServer, failedClient := net.Pipe()
+	workingServer, workingClient := net.Pipe()
+	defer failedClient.Close()
+	defer workingClient.Close()
+	manager.Add(7, newSession(failedServer))
+	manager.Add(8, newSession(workingServer))
+	_ = failedClient.Close()
+
+	envelope := &realtimepb.ServerEnvelope{
+		Payload: &realtimepb.ServerEnvelope_FriendRemoved{
+			FriendRemoved: &realtimepb.FriendRemoved{PlayerId: 7},
+		},
+	}
+	done := make(chan int, 1)
+	go func() { done <- manager.Broadcast(envelope, 0) }()
+	if err := workingClient.SetReadDeadline(time.Now().Add(time.Second)); err != nil {
+		t.Fatalf("set read deadline: %v", err)
+	}
+	got := readServerEnvelopeOrFail(t, workingClient)
+	if got.GetFriendRemoved().GetPlayerId() != 7 {
+		t.Fatalf("broadcast envelope = %v, want friend removed for player 7", got)
+	}
+	if count := <-done; count != 1 {
+		t.Fatalf("Broadcast() count = %d, want 1", count)
+	}
+}
 
 func TestConnectionManagerOldConnectionCannotAffectReplacement(t *testing.T) {
 	manager := newConnectionManager()

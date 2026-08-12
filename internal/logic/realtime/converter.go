@@ -2,6 +2,8 @@ package realtime
 
 import (
 	"server/internal/contract/realtimepb"
+	"server/internal/contract/state"
+	"server/internal/logic/chat"
 	"server/internal/logic/friend"
 	"server/internal/logic/growth"
 	"server/internal/logic/player"
@@ -78,6 +80,15 @@ func toProtoFriendRequest(value *friend.Request) *realtimepb.FriendRequest {
 	}
 }
 
+func toProtoFriendRequestWithNicknames(value *friend.Request, fromNickname, toNickname string) *realtimepb.FriendRequest {
+	request := toProtoFriendRequest(value)
+	if request != nil {
+		request.FromNickname = fromNickname
+		request.ToNickname = toNickname
+	}
+	return request
+}
+
 // toProtoFriendRequests 将好友申请列表转换为实时协议模型列表。
 func toProtoFriendRequests(values []*friend.Request) []*realtimepb.FriendRequest {
 	requests := make([]*realtimepb.FriendRequest, 0, len(values))
@@ -135,4 +146,50 @@ func toUpgradeTypeName(upgradeType string) growth.UpgradeType {
 		return growth.UpgradeMoveSpeed
 	}
 	return growth.UpgradeUnknown
+}
+
+func toProtoMessage(value *chat.Message) *realtimepb.ChatMessage {
+	if value == nil {
+		return nil
+	}
+	return &realtimepb.ChatMessage{
+		MessageKey:       value.MessageKey,
+		ChannelType:      string(value.ChannelType),
+		ChannelKey:       value.ChannelKey,
+		SenderId:         value.SenderID,
+		ReceiverId:       value.ReceiverID,
+		Content:          value.Content,
+		CreatedAt:        timestamppb.New(value.CreatedAt),
+		ExpiresAt:        timestamppb.New(value.ExpiresAt),
+		ClientMessageKey: value.ClientMessageKey,
+		SenderNickname:   value.SenderNickname,
+	}
+}
+
+func toProtoMessages(values []*chat.Message) []*realtimepb.ChatMessage {
+	messages := make([]*realtimepb.ChatMessage, 0, len(values))
+	for _, value := range values {
+		if message := toProtoMessage(value); message != nil {
+			messages = append(messages, message)
+		}
+	}
+	return messages
+}
+
+func toStateChatMessage(message *chat.Message) *state.ChatMessage {
+	if message == nil {
+		return nil
+	}
+	return &state.ChatMessage{
+		MessageKey:       message.MessageKey,
+		ChannelType:      state.ChatChannelType(message.ChannelType),
+		ChannelKey:       message.ChannelKey,
+		SenderID:         message.SenderID,
+		ReceiverID:       message.ReceiverID,
+		Content:          message.Content,
+		CreatedAt:        message.CreatedAt,
+		ExpiresAt:        message.ExpiresAt,
+		ClientMessageKey: message.ClientMessageKey,
+		SenderNickname:   message.SenderNickname,
+	}
 }

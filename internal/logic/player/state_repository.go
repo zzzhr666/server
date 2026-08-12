@@ -3,15 +3,15 @@ package player
 import (
 	"context"
 	"errors"
-	statecontract "server/internal/contract/state"
+	"server/internal/contract/state"
 )
 
 type StateRepository struct {
-	stateClient statecontract.Client
+	stateClient state.Client
 }
 
 // NewStateRepository 使用 state-server 客户端创建玩家仓储。
-func NewStateRepository(client statecontract.Client) *StateRepository {
+func NewStateRepository(client state.Client) *StateRepository {
 	return &StateRepository{
 		stateClient: client,
 	}
@@ -40,11 +40,11 @@ func (s *StateRepository) Get(ctx context.Context, id int64) (*Player, error) {
 	return fromStatePlayer(player), nil
 }
 
-func toStatePlayer(player *Player) *statecontract.Player {
+func toStatePlayer(player *Player) *state.Player {
 	if player == nil {
 		return nil
 	}
-	return &statecontract.Player{
+	return &state.Player{
 		ID:       player.ID,
 		Nickname: player.Nickname,
 		Avatar:   player.Avatar,
@@ -53,7 +53,7 @@ func toStatePlayer(player *Player) *statecontract.Player {
 		Coins:    player.Coins,
 	}
 }
-func fromStatePlayer(player *statecontract.Player) *Player {
+func fromStatePlayer(player *state.Player) *Player {
 	if player == nil {
 		return nil
 	}
@@ -68,7 +68,7 @@ func fromStatePlayer(player *statecontract.Player) *Player {
 }
 
 func mapStateError(err error) error {
-	if errors.Is(err, statecontract.ErrPlayerNotFound) {
+	if errors.Is(err, state.ErrPlayerNotFound) {
 		return ErrNotFound
 	}
 	return err

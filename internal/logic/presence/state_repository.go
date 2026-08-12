@@ -3,17 +3,17 @@ package presence
 import (
 	"context"
 	"errors"
-	statecontract "server/internal/contract/state"
+	"server/internal/contract/state"
 	"time"
 )
 
 // StateRepository 将在线状态存储适配到共享状态契约。
 type StateRepository struct {
-	stateClient statecontract.PresenceClient
+	stateClient state.PresenceClient
 }
 
 // NewStateRepository 使用 state-server 创建在线状态仓储。
-func NewStateRepository(client statecontract.PresenceClient) *StateRepository {
+func NewStateRepository(client state.PresenceClient) *StateRepository {
 	return &StateRepository{stateClient: client}
 }
 
@@ -41,11 +41,11 @@ func (s *StateRepository) RefreshPresence(ctx context.Context, playerID int64, s
 	return mapStateError(s.stateClient.RefreshPresence(ctx, playerID, serverName, updatedAt, ttl))
 }
 
-func toStatePresence(p *Presence) *statecontract.Presence {
+func toStatePresence(p *Presence) *state.Presence {
 	if p == nil {
 		return nil
 	}
-	return &statecontract.Presence{
+	return &state.Presence{
 		PlayerID:   p.PlayerID,
 		ServerName: p.ServerName,
 		Status:     p.Status,
@@ -53,7 +53,7 @@ func toStatePresence(p *Presence) *statecontract.Presence {
 	}
 }
 
-func fromStatePresence(p *statecontract.Presence) *Presence {
+func fromStatePresence(p *state.Presence) *Presence {
 	if p == nil {
 		return nil
 	}
@@ -67,9 +67,9 @@ func fromStatePresence(p *statecontract.Presence) *Presence {
 
 func mapStateError(err error) error {
 	switch {
-	case errors.Is(err, statecontract.ErrPresenceNotFound):
+	case errors.Is(err, state.ErrPresenceNotFound):
 		return ErrNotFound
-	case errors.Is(err, statecontract.ErrInvalidPresence):
+	case errors.Is(err, state.ErrInvalidPresence):
 		return ErrInvalidPresence
 	default:
 		return err

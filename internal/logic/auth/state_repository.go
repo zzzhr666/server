@@ -3,16 +3,16 @@ package auth
 import (
 	"context"
 	"errors"
-	statecontract "server/internal/contract/state"
+	"server/internal/contract/state"
 	playerpkg "server/internal/logic/player"
 )
 
 type StateRepository struct {
-	stateClient statecontract.Client
+	stateClient state.Client
 }
 
 // NewStateRepository 使用 state-server 客户端创建认证仓储。
-func NewStateRepository(client statecontract.Client) *StateRepository {
+func NewStateRepository(client state.Client) *StateRepository {
 	return &StateRepository{
 		stateClient: client,
 	}
@@ -20,7 +20,7 @@ func NewStateRepository(client statecontract.Client) *StateRepository {
 
 // RegisterAccount 通过 state-server 创建账号、玩家和初始会话。
 func (s *StateRepository) RegisterAccount(ctx context.Context, input RegisterAccountInput) (*RegisterAccountResult, error) {
-	result, err := s.stateClient.RegisterAccount(ctx, statecontract.RegisterAccountInput{
+	result, err := s.stateClient.RegisterAccount(ctx, state.RegisterAccountInput{
 		Username:         input.Username,
 		PasswordHash:     input.PasswordHash,
 		Nickname:         input.Nickname,
@@ -69,15 +69,15 @@ func (s *StateRepository) DeleteSession(ctx context.Context, token string) error
 	return mapStateError(s.stateClient.DeleteSession(ctx, token))
 }
 
-func toStateAccount(account *Account) *statecontract.Account {
-	return &statecontract.Account{
+func toStateAccount(account *Account) *state.Account {
+	return &state.Account{
 		Username:     account.Username,
 		PasswordHash: account.PasswordHash,
 		PlayerID:     account.PlayerID,
 	}
 }
 
-func fromStateAccount(account *statecontract.Account) *Account {
+func fromStateAccount(account *state.Account) *Account {
 	if account == nil {
 		return nil
 	}
@@ -88,15 +88,15 @@ func fromStateAccount(account *statecontract.Account) *Account {
 	}
 }
 
-func toStateSession(session *Session) *statecontract.Session {
-	return &statecontract.Session{
+func toStateSession(session *Session) *state.Session {
+	return &state.Session{
 		Token:     session.Token,
 		PlayerID:  session.PlayerID,
 		ExpiresAt: session.ExpiresAt,
 	}
 }
 
-func fromStateSession(session *statecontract.Session) *Session {
+func fromStateSession(session *state.Session) *Session {
 	if session == nil {
 		return nil
 	}
@@ -107,7 +107,7 @@ func fromStateSession(session *statecontract.Session) *Session {
 	}
 }
 
-func fromStateRegisterAccountResult(result *statecontract.RegisterAccountResult) *RegisterAccountResult {
+func fromStateRegisterAccountResult(result *state.RegisterAccountResult) *RegisterAccountResult {
 	if result == nil {
 		return nil
 	}
@@ -118,7 +118,7 @@ func fromStateRegisterAccountResult(result *statecontract.RegisterAccountResult)
 	}
 }
 
-func fromStatePlayer(player *statecontract.Player) *playerpkg.Player {
+func fromStatePlayer(player *state.Player) *playerpkg.Player {
 	if player == nil {
 		return nil
 	}
@@ -133,11 +133,11 @@ func fromStatePlayer(player *statecontract.Player) *playerpkg.Player {
 
 func mapStateError(err error) error {
 	switch {
-	case errors.Is(err, statecontract.ErrAccountExists):
+	case errors.Is(err, state.ErrAccountExists):
 		return ErrAccountExists
-	case errors.Is(err, statecontract.ErrAccountNotFound):
+	case errors.Is(err, state.ErrAccountNotFound):
 		return ErrAccountNotFound
-	case errors.Is(err, statecontract.ErrSessionNotFound):
+	case errors.Is(err, state.ErrSessionNotFound):
 		return ErrSessionNotFound
 	default:
 		return err

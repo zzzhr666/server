@@ -100,6 +100,28 @@ func (m *connectionManager) nextConnectionID() connectionID {
 	return m.nextID
 }
 
+func (m *connectionManager) Broadcast(envelope *realtimepb.ServerEnvelope, excludedPlayerID int64) int {
+	if envelope == nil {
+		return 0
+	}
+	m.mu.RLock()
+	sessions := make([]*session, 0, len(m.connections))
+	for _, connection := range m.connections {
+		if excludedPlayerID > 0 && connection.playerID == excludedPlayerID {
+			continue
+		}
+		sessions = append(sessions, connection.session)
+	}
+	m.mu.RUnlock()
+	count := 0
+	for _, session := range sessions {
+		if err := session.Write(envelope); err != nil {
+			continue
+		}
+		count += 1
+	}
+	return count
+}
 func newConnectionManager() *connectionManager {
 	return &connectionManager{
 		connections: make(map[int64]connectionInfo),

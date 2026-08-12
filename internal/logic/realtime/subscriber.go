@@ -2,16 +2,16 @@ package realtime
 
 import (
 	"context"
-	statecontract "server/internal/contract/state"
+	"server/internal/contract/state"
 )
 
 type subscriber struct {
 	serverName string
-	client     statecontract.RealtimeClient
+	client     state.RealtimeClient
 	pusher     *localRealtimePusher
 }
 
-func newSubscriber(serverName string, client statecontract.RealtimeClient, manager *connectionManager) *subscriber {
+func newSubscriber(serverName string, client state.RealtimeClient, manager *connectionManager) *subscriber {
 	return &subscriber{
 		serverName: serverName,
 		client:     client,
@@ -20,7 +20,13 @@ func newSubscriber(serverName string, client statecontract.RealtimeClient, manag
 }
 
 func (s *subscriber) Run(ctx context.Context) error {
-	events, err := s.client.SubscribeRealtime(ctx, s.serverName)
+	serverRoute := state.RealtimeRoute{Type: state.RealtimeRouteServer, ServerName: s.serverName}
+	broadcastRoute := state.RealtimeRoute{Type: state.RealtimeRouteBroadcast}
+	serverDeliveries, err := s.client.SubscribeRealtime(ctx, serverRoute)
+	if err != nil {
+		return err
+	}
+	broadcastDeliveries, err := s.client.SubscribeRealtime(ctx, broadcastRoute)
 	if err != nil {
 		return err
 	}
@@ -28,14 +34,26 @@ func (s *subscriber) Run(ctx context.Context) error {
 		select {
 		case <-ctx.Done():
 			return ctx.Err()
-		case event, ok := <-events:
+		case delivery, ok := <-serverDeliveries:
 			if !ok {
 				return nil
 			}
-			if event == nil {
+			if delivery == nil || delivery.Event == nil || delivery.Route != serverRoute {
 				continue
 			}
-			s.pusher.Push(ctx, *event)
+			s.pusher.Push(ctx, *delivery.Event)
+		case delivery, ok := <-broadcastDeliveries:
+			if !ok {
+				return nil
+			}
+			if delivery == nil || delivery.Event == nil || delivery.Route != broadcastRoute {
+				continue
+			}
+			envelope, ok := toProtoEnvelope(*delivery.Event)
+			if !ok {
+				continue
+			}
+			s.pusher.connections.Broadcast(envelope, delivery.Event.ActorPlayerID)
 		}
 	}
 }

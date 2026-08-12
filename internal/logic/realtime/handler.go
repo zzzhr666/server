@@ -4,8 +4,9 @@ import (
 	"context"
 	"errors"
 	"server/internal/contract/realtimepb"
-	statecontract "server/internal/contract/state"
+	"server/internal/contract/state"
 	"server/internal/logic/auth"
+	"server/internal/logic/chat"
 	"server/internal/logic/friend"
 	"server/internal/logic/growth"
 	"server/internal/logic/match"
@@ -23,9 +24,10 @@ type Handler struct {
 	friend         friend.Service
 	player         player.Service
 	growth         growth.Service
+	chat           chat.Service
 	serverName     string
 	connManager    *connectionManager
-	realtimeClient statecontract.RealtimeClient
+	realtimeClient state.RealtimeClient
 	subscriber     *subscriber
 }
 
@@ -37,8 +39,9 @@ type HandlerConfig struct {
 	FriendService   friend.Service
 	PlayerService   player.Service
 	GrowthService   growth.Service
+	ChatService     chat.Service
 	ServerName      string
-	RealtimeClient  statecontract.RealtimeClient
+	RealtimeClient  state.RealtimeClient
 }
 
 // NewHandler 使用服务依赖创建 TCP 协议处理器。
@@ -50,6 +53,7 @@ func NewHandler(config HandlerConfig) *Handler {
 		friend:      config.FriendService,
 		player:      config.PlayerService,
 		growth:      config.GrowthService,
+		chat:        config.ChatService,
 		serverName:  config.ServerName,
 		connManager: newConnectionManager(),
 	}
@@ -207,6 +211,14 @@ func (h *Handler) handleEnvelope(ctx context.Context, session *session, authSess
 		return h.handleDeleteFriend(ctx, session, playerID, envelope)
 	case envelope.GetLogout() != nil:
 		return h.handleLogout(ctx, session, authSession, envelope)
+	case envelope.GetChatWorldSend() != nil:
+		return h.handleSendWorldChat(ctx, session, playerID, envelope)
+	case envelope.GetChatDirectSend() != nil:
+		return h.handleSendDirectChat(ctx, session, playerID, envelope)
+	case envelope.GetChatWorldList() != nil:
+		return h.handleListWorldChat(ctx, session, playerID, envelope)
+	case envelope.GetChatDirectList() != nil:
+		return h.handleListDirectChat(ctx, session, playerID, envelope)
 	default:
 		return writeError(session, envelope.GetRequestId(), realtimepb.ErrorCode_INVALID_ARGUMENT, "unsupported message") == nil
 	}
@@ -242,15 +254,29 @@ func (h *Handler) handleSendFriendRequest(ctx context.Context, session *session,
 	if err := h.friend.SendRequest(ctx, playerID, toPlayerID); err != nil {
 		return writeFriendError(session, envelope.GetRequestId(), err) == nil
 	}
-	h.pushRealtimeEvent(ctx, &statecontract.RealtimeEvent{
-		Type:           statecontract.RealtimeEventFriendRequestReceived,
-		TargetPlayerID: toPlayerID,
-		ActorPlayerID:  playerID,
+	actorNickname := ""
+	targetNickname := ""
+	if h.player != nil {
+		if actor, err := h.player.Get(ctx, playerID); err == nil && actor != nil {
+			actorNickname = actor.Nickname
+		}
+		if target, err := h.player.Get(ctx, toPlayerID); err == nil && target != nil {
+			targetNickname = target.Nickname
+		}
+	}
+	h.pushRealtimeEvent(ctx, &state.RealtimeEvent{
+		Type:                state.RealtimeEventFriendRequestReceived,
+		TargetPlayerID:      toPlayerID,
+		ActorPlayerID:       playerID,
+		ActorPlayerNickname: actorNickname,
 	})
 	return session.Write(&realtimepb.ServerEnvelope{
 		RequestId: envelope.GetRequestId(),
 		Payload: &realtimepb.ServerEnvelope_FriendRequestSent{
-			FriendRequestSent: &realtimepb.FriendRequestSentResponse{},
+			FriendRequestSent: &realtimepb.FriendRequestSentResponse{
+				ToPlayerId: toPlayerID,
+				ToNickname: targetNickname,
+			},
 		},
 	}) == nil
 }
@@ -264,7 +290,7 @@ func (h *Handler) handleListIncomingFriendRequests(ctx context.Context, session 
 		RequestId: envelope.GetRequestId(),
 		Payload: &realtimepb.ServerEnvelope_FriendRequests{
 			FriendRequests: &realtimepb.FriendRequestResponse{
-				Requests: toProtoFriendRequests(requests),
+				Requests: h.toProtoFriendRequestsWithNicknames(ctx, requests),
 			},
 		},
 	}) == nil
@@ -280,10 +306,30 @@ func (h *Handler) handleListOutgoingFriendRequests(ctx context.Context, session 
 		RequestId: envelope.GetRequestId(),
 		Payload: &realtimepb.ServerEnvelope_FriendRequests{
 			FriendRequests: &realtimepb.FriendRequestResponse{
-				Requests: toProtoFriendRequests(requests),
+				Requests: h.toProtoFriendRequestsWithNicknames(ctx, requests),
 			},
 		},
 	}) == nil
+}
+
+func (h *Handler) toProtoFriendRequestsWithNicknames(ctx context.Context, requests []*friend.Request) []*realtimepb.FriendRequest {
+	result := make([]*realtimepb.FriendRequest, 0, len(requests))
+	for _, request := range requests {
+		if request == nil {
+			continue
+		}
+		fromNickname, toNickname := "", ""
+		if h.player != nil {
+			if from, err := h.player.Get(ctx, request.FromPlayerID); err == nil && from != nil {
+				fromNickname = from.Nickname
+			}
+			if to, err := h.player.Get(ctx, request.ToPlayerID); err == nil && to != nil {
+				toNickname = to.Nickname
+			}
+		}
+		result = append(result, toProtoFriendRequestWithNicknames(request, fromNickname, toNickname))
+	}
+	return result
 }
 
 func (h *Handler) handleAcceptFriendRequest(ctx context.Context, session *session, playerID int64, envelope *realtimepb.ClientEnvelope) bool {
@@ -291,8 +337,8 @@ func (h *Handler) handleAcceptFriendRequest(ctx context.Context, session *sessio
 	if err := h.friend.AcceptRequest(ctx, fromPlayerID, playerID); err != nil {
 		return writeFriendError(session, envelope.GetRequestId(), err) == nil
 	}
-	h.pushRealtimeEvent(ctx, &statecontract.RealtimeEvent{
-		Type:           statecontract.RealtimeEventFriendRequestHandled,
+	h.pushRealtimeEvent(ctx, &state.RealtimeEvent{
+		Type:           state.RealtimeEventFriendRequestHandled,
 		TargetPlayerID: fromPlayerID,
 		ActorPlayerID:  playerID,
 	})
@@ -309,8 +355,8 @@ func (h *Handler) handleRejectFriendRequest(ctx context.Context, session *sessio
 	if err := h.friend.RejectRequest(ctx, fromPlayerID, playerID); err != nil {
 		return writeFriendError(session, envelope.GetRequestId(), err) == nil
 	}
-	h.pushRealtimeEvent(ctx, &statecontract.RealtimeEvent{
-		Type:           statecontract.RealtimeEventFriendRequestHandled,
+	h.pushRealtimeEvent(ctx, &state.RealtimeEvent{
+		Type:           state.RealtimeEventFriendRequestHandled,
 		TargetPlayerID: fromPlayerID,
 		ActorPlayerID:  playerID,
 	})
@@ -360,8 +406,8 @@ func (h *Handler) handleDeleteFriend(ctx context.Context, session *session, play
 	if err := h.friend.DeleteFriend(ctx, playerID, targetID); err != nil {
 		return writeFriendError(session, envelope.GetRequestId(), err) == nil
 	}
-	h.pushRealtimeEvent(ctx, &statecontract.RealtimeEvent{
-		Type:           statecontract.RealtimeEventFriendRemoved,
+	h.pushRealtimeEvent(ctx, &state.RealtimeEvent{
+		Type:           state.RealtimeEventFriendRemoved,
 		TargetPlayerID: targetID,
 		ActorPlayerID:  playerID,
 	})
@@ -531,6 +577,145 @@ func (h *Handler) handleMatchResume(ctx context.Context, session *session, playe
 	return session.Write(matchResultEnvelope(envelope.GetRequestId(), matchResult)) == nil
 }
 
+func (h *Handler) handleSendWorldChat(ctx context.Context, session *session, playerID int64, envelope *realtimepb.ClientEnvelope) bool {
+	if h.chat == nil {
+		_ = writeError(session, envelope.GetRequestId(), realtimepb.ErrorCode_INTERNAL, "chat service unavailable")
+		return false
+	}
+	sendChatWorld := envelope.GetChatWorldSend()
+	senderNickname := ""
+	if h.player != nil {
+		if sender, getErr := h.player.Get(ctx, playerID); getErr == nil && sender != nil {
+			senderNickname = sender.Nickname
+		}
+	}
+
+	message, err := h.chat.SendWorldMessage(ctx, chat.SendWorldMessageInput{
+		SenderID:         playerID,
+		Content:          sendChatWorld.GetContent(),
+		ClientMessageKey: sendChatWorld.GetClientMessageKey(),
+		SenderNickname:   senderNickname,
+	})
+	if err != nil {
+		return writeError(session, envelope.GetRequestId(), chatErrorCode(err), err.Error()) == nil
+	}
+
+	if err := session.Write(&realtimepb.ServerEnvelope{
+		RequestId: envelope.GetRequestId(),
+		Payload: &realtimepb.ServerEnvelope_ChatSent{
+			ChatSent: &realtimepb.ChatSendResponse{
+				Message: toProtoMessage(message),
+			},
+		},
+	}); err != nil {
+		return false
+	}
+	delivery := &state.RealtimeDelivery{
+		Route: state.RealtimeRoute{
+			Type: state.RealtimeRouteBroadcast,
+		},
+		Event: &state.RealtimeEvent{
+			Type:          state.RealtimeEventChatMessage,
+			ActorPlayerID: message.SenderID,
+			ChatMessage:   toStateChatMessage(message),
+		},
+	}
+	if h.realtimeClient != nil {
+		_ = h.realtimeClient.PublishRealtime(ctx, delivery)
+	}
+	return true
+}
+
+func (h *Handler) handleSendDirectChat(ctx context.Context, session *session, playerID int64, envelope *realtimepb.ClientEnvelope) bool {
+	if h.chat == nil {
+		_ = writeError(session, envelope.GetRequestId(), realtimepb.ErrorCode_INTERNAL, "chat service unavailable")
+		return false
+	}
+	sendChatDirect := envelope.GetChatDirectSend()
+	senderNickname := ""
+	if h.player != nil {
+		if sender, getErr := h.player.Get(ctx, playerID); getErr == nil && sender != nil {
+			senderNickname = sender.Nickname
+		}
+	}
+	message, err := h.chat.SendDirectMessage(ctx, chat.SendDirectMessageInput{
+		SenderID:         playerID,
+		ReceiverID:       sendChatDirect.GetReceiverId(),
+		Content:          sendChatDirect.GetContent(),
+		ClientMessageKey: sendChatDirect.GetClientMessageKey(),
+		SenderNickname:   senderNickname,
+	})
+	if err != nil {
+		return writeError(session, envelope.GetRequestId(), chatErrorCode(err), err.Error()) == nil
+	}
+	if err := session.Write(&realtimepb.ServerEnvelope{
+		RequestId: envelope.GetRequestId(),
+		Payload: &realtimepb.ServerEnvelope_ChatSent{
+			ChatSent: &realtimepb.ChatSendResponse{
+				Message: toProtoMessage(message),
+			},
+		},
+	}); err != nil {
+		return false
+	}
+	h.pushRealtimeEvent(ctx, &state.RealtimeEvent{
+		Type:           state.RealtimeEventChatMessage,
+		TargetPlayerID: message.ReceiverID,
+		ActorPlayerID:  message.SenderID,
+		ChatMessage:    toStateChatMessage(message),
+	})
+	return true
+}
+
+func (h *Handler) handleListWorldChat(ctx context.Context, session *session, playerID int64, envelope *realtimepb.ClientEnvelope) bool {
+	if h.chat == nil {
+		_ = writeError(session, envelope.GetRequestId(), realtimepb.ErrorCode_INTERNAL, "chat service unavailable")
+		return false
+	}
+	listWorldChat := envelope.GetChatWorldList()
+	messages, err := h.chat.ListWorldMessages(ctx, chat.ListWorldMessagesInput{
+		PlayerID:         playerID,
+		Limit:            listWorldChat.GetLimit(),
+		BeforeMessageKey: listWorldChat.GetBeforeMessageKey(),
+	})
+	if err != nil {
+		return writeError(session, envelope.GetRequestId(), chatErrorCode(err), err.Error()) == nil
+	}
+	return session.Write(&realtimepb.ServerEnvelope{
+		RequestId: envelope.GetRequestId(),
+		Payload: &realtimepb.ServerEnvelope_ChatMessages{
+			ChatMessages: &realtimepb.ChatMessagesResponse{
+				Messages: toProtoMessages(messages),
+			},
+		},
+	}) == nil
+}
+
+func (h *Handler) handleListDirectChat(ctx context.Context, session *session, playerID int64, envelope *realtimepb.ClientEnvelope) bool {
+	if h.chat == nil {
+		_ = writeError(session, envelope.GetRequestId(), realtimepb.ErrorCode_INTERNAL, "chat service unavailable")
+		return false
+	}
+	listDirectChat := envelope.GetChatDirectList()
+	messages, err := h.chat.ListDirectMessages(ctx, chat.ListDirectMessagesInput{
+		PlayerID:         playerID,
+		FriendID:         listDirectChat.GetFriendId(),
+		Limit:            listDirectChat.GetLimit(),
+		BeforeMessageKey: listDirectChat.GetBeforeMessageKey(),
+	})
+	if err != nil {
+		return writeError(session, envelope.GetRequestId(), chatErrorCode(err), err.Error()) == nil
+	}
+	return session.Write(&realtimepb.ServerEnvelope{
+		RequestId: envelope.GetRequestId(),
+		Payload: &realtimepb.ServerEnvelope_ChatMessages{
+			ChatMessages: &realtimepb.ChatMessagesResponse{
+				Messages: toProtoMessages(messages),
+			},
+		},
+	}) == nil
+}
+
 // RunRealtimeSubscriber 启动当前 logic-server 的实时事件订阅。
 func (h *Handler) RunRealtimeSubscriber(ctx context.Context) error {
 	if h.subscriber == nil {
@@ -547,12 +732,12 @@ func (h *Handler) replaceExistingConnection(ctx context.Context, playerID int64)
 	if err != nil {
 		return
 	}
-	event := &statecontract.RealtimeEvent{
-		Type:           statecontract.RealtimeEventConnectionReplaced,
+	event := &state.RealtimeEvent{
+		Type:           state.RealtimeEventConnectionReplaced,
 		TargetPlayerID: playerID,
 		ActorPlayerID:  playerID,
 	}
-	_ = h.realtimeClient.PublishRealtimeToServer(ctx, existingPresence.ServerName, event)
+	_ = h.realtimeClient.PublishRealtime(ctx, newServerDelivery(existingPresence.ServerName, event))
 }
 
 func writeError(session *session, id uint64, code realtimepb.ErrorCode, msg string) error {
@@ -567,6 +752,19 @@ func writeError(session *session, id uint64, code realtimepb.ErrorCode, msg stri
 	})
 }
 
+func chatErrorCode(err error) realtimepb.ErrorCode {
+	switch {
+	case errors.Is(err, chat.ErrInvalidPlayerID), errors.Is(err, chat.ErrInvalidMessage), errors.Is(err, chat.ErrInvalidChannel):
+		return realtimepb.ErrorCode_INVALID_ARGUMENT
+	case errors.Is(err, chat.ErrMessageNotFound):
+		return realtimepb.ErrorCode_NOT_FOUND
+	case errors.Is(err, chat.ErrMessageExists), errors.Is(err, chat.ErrFriendRequired):
+		return realtimepb.ErrorCode_CONFLICT
+	default:
+		return realtimepb.ErrorCode_INTERNAL
+	}
+}
+
 func (h *Handler) publishFriendPresenceChanged(ctx context.Context, playerID int64, online bool, status string) {
 	if h.friend == nil {
 		return
@@ -576,8 +774,8 @@ func (h *Handler) publishFriendPresenceChanged(ctx context.Context, playerID int
 		return
 	}
 	for _, friendID := range friendIDs {
-		event := &statecontract.RealtimeEvent{
-			Type:           statecontract.RealtimeEventFriendPresenceChanged,
+		event := &state.RealtimeEvent{
+			Type:           state.RealtimeEventFriendPresenceChanged,
 			TargetPlayerID: friendID,
 			ActorPlayerID:  playerID,
 			Online:         online,
@@ -588,7 +786,7 @@ func (h *Handler) publishFriendPresenceChanged(ctx context.Context, playerID int
 }
 
 // pushRealtimeEvent 优先向本机连接推送事件，未命中时再转发到玩家所在的 logic-server。
-func (h *Handler) pushRealtimeEvent(ctx context.Context, event *statecontract.RealtimeEvent) {
+func (h *Handler) pushRealtimeEvent(ctx context.Context, event *state.RealtimeEvent) {
 	if event == nil || ctx.Err() != nil {
 		return
 	}
@@ -606,7 +804,7 @@ func (h *Handler) pushRealtimeEvent(ctx context.Context, event *statecontract.Re
 	if err != nil {
 		return
 	}
-	_ = h.realtimeClient.PublishRealtimeToServer(ctx, targetPresence.ServerName, event)
+	_ = h.realtimeClient.PublishRealtime(ctx, newServerDelivery(targetPresence.ServerName, event))
 }
 
 func (h *Handler) pushMatchResultToPlayers(ctx context.Context, currentPlayerID int64, result *rcenter.MatchResult) {
@@ -618,8 +816,8 @@ func (h *Handler) pushMatchResultToPlayers(ctx context.Context, currentPlayerID 
 		if playerID == currentPlayerID {
 			continue
 		}
-		event := &statecontract.RealtimeEvent{
-			Type:           statecontract.RealtimeEventMatchResult,
+		event := &state.RealtimeEvent{
+			Type:           state.RealtimeEventMatchResult,
 			TargetPlayerID: playerID,
 			ActorPlayerID:  currentPlayerID,
 			MatchStatus:    string(result.Status),
@@ -643,7 +841,17 @@ func (h *Handler) pushMatchResultToPlayers(ctx context.Context, currentPlayerID 
 		if h.realtimeClient == nil {
 			continue
 		}
-		_ = h.realtimeClient.PublishRealtimeToServer(ctx, friendPresence.ServerName, event)
+		_ = h.realtimeClient.PublishRealtime(ctx, newServerDelivery(friendPresence.ServerName, event))
+	}
+}
+
+func newServerDelivery(serverName string, event *state.RealtimeEvent) *state.RealtimeDelivery {
+	return &state.RealtimeDelivery{
+		Route: state.RealtimeRoute{
+			Type:       state.RealtimeRouteServer,
+			ServerName: serverName,
+		},
+		Event: event,
 	}
 }
 
