@@ -9,6 +9,7 @@ import (
 	"server/internal/contract/rcenterpb"
 	"server/internal/contract/statepb"
 	"server/internal/logic/auth"
+	"server/internal/logic/chat"
 	"server/internal/logic/friend"
 	"server/internal/logic/growth"
 	"server/internal/logic/httpapi"
@@ -78,6 +79,9 @@ func main() {
 	friendRepo := friend.NewStateRepository(stateService)
 	friendService := friend.NewService(friendRepo)
 
+	chatRepo := chat.NewStateRepository(stateService)
+	chatService := chat.NewService(chatRepo, friendService)
+
 	growthRepo := growth.NewStateRepository(stateService)
 	growthService := growth.NewService(growthRepo, growth.DefaultUpgradeRules())
 
@@ -107,6 +111,7 @@ func main() {
 		GrowthService:   growthService,
 		ServerName:      serverName,
 		RealtimeClient:  stateService,
+		ChatService:     chatService,
 	})
 	tcpListener, err := net.Listen("tcp", cfg.TCPAddr)
 	if err != nil {

@@ -6,12 +6,15 @@ import (
 	"net"
 	"server/internal/contract/statepb"
 	"server/internal/platform/config"
+	"server/internal/platform/mongodb"
 	"server/internal/platform/redisdb"
 	"server/internal/state/grpcserver"
+	"server/internal/state/mongostore"
 	"server/internal/state/redisstore"
 	"server/internal/state/service"
 
 	"github.com/redis/go-redis/v9"
+	"go.mongodb.org/mongo-driver/v2/mongo"
 	"google.golang.org/grpc"
 )
 
@@ -33,6 +36,25 @@ func main() {
 	// 将 Redis 访问封装为状态存储实现。
 	store := redisstore.NewStore(redisClient)
 
+	mongoClient, err := mongo.Connect(mongodb.ClientOptions(cfg.Mongo))
+	if err != nil {
+		log.Fatalf("connect mongodb failed: %v", err)
+	}
+	defer func(client *mongo.Client) {
+		if err := client.Disconnect(ctx); err != nil {
+			log.Fatalf("disconnect mongodb failed: %v", err)
+		}
+	}(mongoClient)
+
+	if err := mongoClient.Ping(ctx, nil); err != nil {
+		log.Fatalf("ping mongodb failed: %v", err)
+	}
+
+	chatStore := mongostore.NewStore(mongoClient.Database(cfg.Mongo.Database))
+	if err := chatStore.EnsureIndexes(ctx); err != nil {
+		log.Fatalf("ensure indexes failed: %v", err)
+	}
+
 	// 组装状态领域服务与其 gRPC 适配器。
 	stateService := service.NewService(service.StoreConfig{
 		Accounts:      store,
@@ -44,6 +66,7 @@ func main() {
 		Realtime:      store,
 		Growth:        store,
 		Coins:         store,
+		Chats:         chatStore,
 	})
 
 	grpcServer := grpc.NewServer()
@@ -54,6 +77,7 @@ func main() {
 		RealtimeClient: stateService,
 		GrowthClient:   stateService,
 		CoinClient:     stateService,
+		ChatClient:     stateService,
 	}))
 	listener, err := net.Listen("tcp", cfg.StateGRPCAddr)
 	if err != nil {

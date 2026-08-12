@@ -60,8 +60,8 @@ ctest --test-dir battle-server/cmake-build-release-wsl --output-on-failure
 # 重新生成 Go 与 C++ protobuf 代码
 bash scripts/generate_proto.sh
 
-# 删除本项目的 Redis 键
-bash scripts/reset_redis.sh
+# 清除本项目的 Redis 键和 MongoDB 业务库
+bash scripts/reset_storage.sh
 
 # 生成统一的 Go、C++ 和 Markdown HTML 文档
 bash scripts/generate_docs.sh

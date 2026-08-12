@@ -22,9 +22,13 @@ services:
       dockerfile: deploy/docker/Dockerfile.state
     environment:
       REDIS_ADDR: "redis:6379"
+      MONGO_URI: "mongodb://mongo:27017"
+      MONGO_DATABASE: "game"
       STATE_GRPC_ADDR: ":9001"
     depends_on:
       redis:
+        condition: service_healthy
+      mongo:
         condition: service_healthy
 
   rcenter:
