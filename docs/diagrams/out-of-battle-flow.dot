@@ -5,10 +5,14 @@ digraph out_of_battle_flow {
     logic [label="logic-server"];
     state [label="state-server"];
     redis [label="Redis", shape=cylinder];
+    mongo [label="MongoDB\nchat_messages", shape=cylinder];
     client -> logic [label="HTTP 注册登录 / TCP 大厅请求"];
-    logic -> state [label="state gRPC 请求 / 实时事件转发"];
-    state -> redis [label="读写 game:* 键"];
+    logic -> state [label="state gRPC\n好友/状态/聊天/实时投递"];
+    state -> redis [label="读写 game:* 键\n发布/订阅 server、broadcast"];
+    state -> mongo [label="写入/分页读取\nTTL + 容量裁剪"];
     redis -> state [label="领域数据"];
     state -> logic [label="gRPC 结果"];
-    logic -> client [label="JSON 或 protobuf 响应"];
+    logic -> client [label="JSON 或 protobuf 响应\nchat_sent / chat_messages"];
+    state -> logic [label="RealtimeDelivery\nserver / broadcast", style=dashed];
+    logic -> client [label="request_id=0\n主动推送", style=dashed];
 }

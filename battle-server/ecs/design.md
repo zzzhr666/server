@@ -2,6 +2,8 @@
 
 `battle-server/ecs` 是局内模拟层。它不处理 HTTP、TCP、玩家账号或 Redis；`runtime` 将网络输入转为 `PlayerCommand`，驱动 `World::tick`，再将 snapshot 转为 UDP protobuf。
 
+聊天、好友和实时投递属于局外 Go 服务边界，不进入 ECS 或 battle runtime。聊天历史由 state-server 写入 MongoDB；logic-server 通过 TCP protobuf 提供聊天请求，并消费 `RealtimeDelivery` 后向客户端推送 `chat_message_pushed`。因此战斗房间、ECS 世界和聊天频道彼此独立，战斗断线或房间销毁不会改变聊天历史的 TTL 与分页规则。
+
 ## 核心边界
 
 ![ECS 核心边界](../../docs/diagrams/ecs-boundary.svg)

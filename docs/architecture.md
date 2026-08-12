@@ -10,12 +10,12 @@
 
 | 服务 | 职责 | 持久状态 |
 | --- | --- | --- |
-| `logic-server` | HTTP 健康检查与注册登录、原生 TCP 大厅协议、认证、好友、在线状态、成长和匹配请求适配 | 无业务持久状态；连接仅在本实例内存中 |
-| `state-server` | 将局外领域操作映射到持久化存储 | Redis 是当前局外数据来源；MongoDB 已作为后续聊天历史存储预置 |
+| `logic-server` | HTTP 健康检查与注册登录、原生 TCP 大厅协议、认证、好友、在线状态、成长、聊天和匹配请求适配；维护本实例 TCP 连接并消费实时投递 | 无业务持久状态；连接仅在本实例内存中 |
+| `state-server` | 将局外领域操作映射到持久化存储；提供聊天历史和实时投递的 gRPC 接口 | Redis 保存局外状态与实时事件；MongoDB 保存聊天消息 |
 | `rcenter-server` | battle 节点注册、双人 FIFO 匹配、活跃对局、结算与奖励 | 节点、队列、活跃对局在内存；进程重启会丢失这些状态 |
 | `battle-server` | 房间、UDP session、tick、ECS、快照和战斗结束 | 房间和世界在内存；不负责账号和好友 |
 | Redis | 账号、玩家、session、成长、金币、好友、在线状态、实时事件 | `game:*` 键 |
-| MongoDB | 后续私聊的消息历史、会话摘要与已读游标 | `game-mongo-data` Docker volume；当前未写入业务数据 |
+| MongoDB | 世界频道和好友私聊的消息历史 | `chat_messages` 集合；TTL、频道分页和客户端幂等索引；`game-mongo-data` Docker volume |
 
 边界规则：
 
@@ -40,9 +40,15 @@
 
 `rcenter-server` 将第一名玩家放入队列；第二名玩家到来时与队头组成房间。成功创建房间后，为每个玩家写入同一份 `ActiveMatch`，其中包含 `room_name`、token、battle 节点、UDP 地址、玩家列表和局外 loadout。
 
-客户端仅通过 HTTP 注册或登录并取得 session token。logic TCP 完成认证后承载玩家、成长、好友、在线状态和匹配的全部大厅请求，并自动调用 `ResumeMatch`。客户端也可显式发送 `match_resume`，用于从战斗主动返回大厅后重新进入旧对局。没有活跃对局时，恢复会返回 `active match not found`；客户端应清除本地旧 match 并恢复正常匹配。
+客户端仅通过 HTTP 注册或登录并取得 session token。logic TCP 完成认证后承载玩家、成长、好友、在线状态、聊天和匹配的全部大厅请求，并自动调用 `ResumeMatch`。客户端也可显式发送 `match_resume`，用于从战斗主动返回大厅后重新进入旧对局。没有活跃对局时，恢复会返回 `active match not found`；客户端应清除本地旧 match 并恢复正常匹配。
 
-同一玩家建立新的 TCP 连接时，logic 会替换旧连接并向旧连接推送 `connection_replaced`。好友上线、下线、申请、申请处理和删除好友等实时事件优先投递到本机连接；目标玩家连接在其他 logic 实例时，通过 state 的实时事件通道转发到对应实例。
+同一玩家建立新的 TCP 连接时，logic 会替换旧连接并向旧连接推送 `connection_replaced`。每个 logic 实例启动两个 state 实时订阅：`RealtimeRoute{type=server, server_name=<logic 名称>}` 和 `RealtimeRoute{type=broadcast}`。好友上线、下线、申请、申请处理和删除好友等定向事件投递到目标玩家所在实例；目标玩家连接在其他 logic 实例时，通过 state 的 `RealtimeDelivery` 转发到对应实例。
+
+### 聊天与实时投递
+
+聊天服务位于 `internal/logic/chat`，负责校验内容、好友关系、频道键和分页参数；state-server 的 Mongo store 负责消息写入、幂等去重、容量裁剪、TTL 和历史查询。世界频道使用固定键 `world:global`，发送成功后发布 `broadcast` 路由；各 logic 实例将事件广播给本机连接并排除发送者。私聊频道键按两个玩家 ID 排序生成，发送成功后根据 presence 查找接收者所在 logic 实例并发布 `server` 路由。
+
+实时消息使用 `RealtimeDelivery` 包装明确的 `RealtimeRoute` 和 `RealtimeEvent`。聊天事件包含完整的 `RealtimeChatMessage`，包括 `sender_nickname`，因此客户端可直接渲染昵称。历史查询返回按时间升序排列的一页，`before_message_key` 以本页最早消息为游标读取更早数据；默认页大小为 25，单次最多 100 条。世界频道最多保留 100 条，私聊每个会话最多保留 50 条，最长可读时间均为 24 小时。
 
 ## 局内逻辑
 

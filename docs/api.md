@@ -64,10 +64,31 @@ ServerEnvelope { request_id: 1, authenticated: { player_id: 7 } }
 | `friend_list` | `friends` | 返回好友档案与在线状态摘要 |
 | `friend_delete { friend_player_id }` | `friend_deleted` | 删除好友关系 |
 | `logout` | `logout_ack` | 删除当前 session，服务端随后关闭 TCP 连接 |
+| `chat_world_send { content, client_message_key }` | `chat_sent` | 写入世界频道并广播给其他在线连接 |
+| `chat_direct_send { receiver_id, content, client_message_key }` | `chat_sent` | 向好友发送私聊消息，并主动推送给接收者 |
+| `chat_world_list { limit, before_message_key }` | `chat_messages` | 分页读取世界频道历史 |
+| `chat_direct_list { friend_id, limit, before_message_key }` | `chat_messages` | 分页读取与好友的私聊历史 |
 
 匹配和恢复使用 `match_result`，其中包含 `status`、`room_name`、`token`、`battle_node_name` 和 `battle_udp_addr`。`status=matched` 后，客户端向 `battle_udp_addr` 发送 UDP `ClientHello(room_name, player_id, token)`。
 
-成长升级的合法 `type` 为 `attack`、`attack_speed`、`health`、`move_speed`。业务请求失败时服务端发送 `error { code, message }` 并保持连接；`code` 取值为 `UNAUTHENTICATED`、`INVALID_ARGUMENT`、`NOT_FOUND`、`CONFLICT` 或 `INTERNAL`。协议帧错误、认证失败、logout 和写入失败会关闭连接。主动事件包括 `connection_replaced`、`friend_presence_changed`、`friend_removed`、`friend_request_received`、`friend_request_handled` 和 `match_result`。
+成长升级的合法 `type` 为 `attack`、`attack_speed`、`health`、`move_speed`。业务请求失败时服务端发送 `error { code, message }` 并保持连接；`code` 取值为 `UNAUTHENTICATED`、`INVALID_ARGUMENT`、`NOT_FOUND`、`CONFLICT` 或 `INTERNAL`。协议帧错误、认证失败、logout 和写入失败会关闭连接。
+
+### 聊天协议
+
+`chat_world_send` 和 `chat_direct_send` 都必须提供非空 `content` 和客户端生成的幂等键 `client_message_key`。私聊仅允许已经建立好友关系的双方使用。成功响应的 `chat_sent.message` 是服务端持久化后的完整消息；其中 `message_key`、时间戳、过期时间和 `sender_nickname` 由服务端生成或补全。
+
+历史请求的 `limit` 小于等于 0 时使用默认值 25，最大值为 100。服务端按 `created_at` 升序返回一页消息。若仍有更早记录，客户端将本页第一条消息的 `message_key` 放入下一次请求的 `before_message_key`，服务端返回更早的一页；客户端应将新页插入当前列表头部。世界频道最多保留 100 条、私聊每个会话最多保留 50 条，二者最长可读时间均为 24 小时；MongoDB TTL 索引负责过期清理，频道复合索引负责分页查询。
+
+服务端主动推送统一使用 `request_id=0`：
+
+| 推送 | 触发条件 |
+| --- | --- |
+| `chat_message_pushed` | 世界频道新消息或目标玩家收到私聊消息 |
+| `friend_request_received` | 收到好友申请；包含申请人的 `player_id` 和 `nickname` |
+| `friend_presence_changed`、`friend_removed` | 好友在线状态或关系变化 |
+| `connection_replaced`、`match_result` | 连接被替换或匹配/恢复结果变化 |
+
+世界聊天使用全局 `broadcast` 实时路由，接收该路由的每个 logic-server 会向本机连接广播，并排除已通过 `chat_sent` 收到响应的发送者。私聊使用目标玩家所在实例的 `server` 路由，因此不会向无关玩家泄露消息。完整字段定义以 [`proto/realtime/v1/realtime.proto`](../proto/realtime/v1/realtime.proto) 为准。
 
 ## UDP 战斗协议
 
