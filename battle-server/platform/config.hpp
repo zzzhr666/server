@@ -14,6 +14,8 @@ namespace battle {
         std::string rcenter_addr;
         std::chrono::seconds session_idle_timeout_seconds;
         std::chrono::seconds all_players_disconnected_timeout;
+        std::string log_level;
+        std::string log_mode;
     };
 
     /// @brief DefaultConfig 返回单个本地战斗节点的开发环境默认配置。

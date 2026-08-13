@@ -5,6 +5,7 @@
 #include "game/game_manager.hpp"
 #include "gameplay/monster_kind_codec.hpp"
 #include "runtime/battle_runtime.hpp"
+#include "spdlog/spdlog.h"
 
 battle::RCenterClient::RCenterClient(std::shared_ptr<grpc::Channel> channel)
     : stub_(rcenter::v1::RCenterService::NewStub(std::move(channel))) {}
@@ -24,9 +25,12 @@ battle::RegisterBattleNodeResult battle::RCenterClient::register_battle_node(
     rcenter::v1::RegisterBattleNodeResponse response;
     grpc::Status status = stub_->RegisterBattleNode(&ctx, request, &response);
 
-    return status.ok()
-               ? RegisterBattleNodeResult{.ok = true, .message = "registered"}
-               : RegisterBattleNodeResult{.ok = false, .message = status.error_message()};
+    if (!status.ok()) {
+        SPDLOG_ERROR("register battle node RPC failed: {}", status.error_message());
+        return RegisterBattleNodeResult{.ok = false, .message = status.error_message()};
+    }
+    SPDLOG_DEBUG("battle node registration heartbeat succeeded");
+    return RegisterBattleNodeResult{.ok = true, .message = "registered"};
 }
 
 battle::FinishMatchResult battle::RCenterClient::finish_match(const FinishedBattle& finished) const {
@@ -62,7 +66,10 @@ battle::FinishMatchResult battle::RCenterClient::finish_match(const FinishedBatt
     rcenter::v1::FinishMatchResponse response;
     grpc::Status status = stub_->FinishMatch(&ctx, request, &response);
 
-    return status.ok()
-               ? FinishMatchResult{.ok = true, .message = "finished"}
-               : FinishMatchResult{.ok = false, .message = status.error_message()};
+    if (!status.ok()) {
+        SPDLOG_ERROR("finish match RPC failed: {}", status.error_message());
+        return FinishMatchResult{.ok = false, .message = status.error_message()};
+    }
+    SPDLOG_INFO("finish match RPC succeeded players={} reason={}", finished.player_ids.size(), finished.reason);
+    return FinishMatchResult{.ok = true, .message = "finished"};
 }

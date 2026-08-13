@@ -14,6 +14,7 @@
 #include "net/packet_codec.hpp"
 #include "session/battle_session.hpp"
 #include "session/session_manager.hpp"
+#include "spdlog/spdlog.h"
 
 namespace {
     battle::v1::EntityKind to_proto_entity_kind(battle::ecs::EntityKind entity_kind) {
@@ -235,6 +236,7 @@ void battle::BattleRuntime::start_room(const std::string& room_name) {
         // all_players_joined 的 hello 可能并发到达。starting_rooms_ 覆盖实例创建
         // 期间的空窗，instances_ 覆盖创建完成后，二者共同保证每个房间只有一个 World。
         if (starting_rooms_.contains(room_name) || instances_.contains(room_name)) {
+            SPDLOG_DEBUG("room start ignored room={} reason=already_started", room_name);
             return;
         }
         starting_rooms_.insert(room_name);
@@ -273,6 +275,8 @@ void battle::BattleRuntime::start_room(const std::string& room_name) {
         .player_ids = player_ids,
         .player_loadouts = std::move(player_loadouts),
     });
+
+    SPDLOG_INFO("battle instance started room={} players={}", room_name, player_ids.size());
 
     auto game_start_packet = make_game_start(room_name, player_ids);
 
@@ -361,8 +365,10 @@ bool battle::BattleRuntime::choose_blessing(const std::string& room_name, std::i
 void battle::BattleRuntime::start() {
     bool expected = false;
     if (!running_.compare_exchange_strong(expected, true)) {
+        SPDLOG_WARN("battle runtime start ignored reason=already_running");
         return;
     }
+    SPDLOG_INFO("battle runtime started");
     tick_thread_ = std::thread([this]() {
         using clock = std::chrono::steady_clock;
         auto last_tick = clock::now();
@@ -389,6 +395,7 @@ void battle::BattleRuntime::stop() {
     if (tick_thread_.joinable()) {
         tick_thread_.join();
     }
+    SPDLOG_INFO("battle runtime stopped");
 }
 
 battle::EndRoomResult battle::BattleRuntime::end_room(const std::string& room_name, const std::string& reason) {
@@ -400,6 +407,7 @@ battle::EndRoomResult battle::BattleRuntime::end_room(const std::string& room_na
         std::lock_guard<std::mutex> lock(mutex_);
         auto it = instances_.find(room_name);
         if (it == instances_.end()) {
+            SPDLOG_WARN("room end requested for missing room={}", room_name);
             return {
                 .status = EndRoomStatus::RoomNotFound,
                 .message = "unable to find instance",
@@ -431,6 +439,7 @@ battle::EndRoomResult battle::BattleRuntime::end_room(const std::string& room_na
     // GameOver 仅发给仍连接的端点，但 session/room 的资源释放覆盖完整 roster。
     session_manager_.remove_room(room_name);
     room_manager_.close_room(room_name);
+    SPDLOG_INFO("battle room resources released room={} reason={} players={}", room_name, reason, player_ids.size());
     FinishedBattle finished_battle{
         .room_name = room_name,
         .player_ids = player_ids,

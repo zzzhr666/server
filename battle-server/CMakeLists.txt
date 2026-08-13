@@ -9,6 +9,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 find_package(Protobuf REQUIRED)
 find_package(gRPC CONFIG REQUIRED)
 find_package(GTest REQUIRED)
+find_package(spdlog CONFIG REQUIRED)
 
 enable_testing()
 
@@ -22,6 +23,7 @@ add_library(battle_proto
 
 add_library(battle_platform
         platform/config.cpp
+        platform/logging.cpp
 )
 
 add_library(battle_control
@@ -86,6 +88,12 @@ add_executable(battle_server
 target_include_directories(battle_platform PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR})
 
+target_link_libraries(battle_platform PUBLIC
+		spdlog::spdlog)
+
+target_compile_definitions(battle_platform PUBLIC
+        SPDLOG_ACTIVE_LEVEL=SPDLOG_LEVEL_TRACE)
+
 target_include_directories(battle_game PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR})
 
@@ -122,14 +130,17 @@ target_link_libraries(battle_control PUBLIC
         battle_game
         battle_runtime
         battle_proto
+        spdlog::spdlog
 )
 
 target_link_libraries(battle_gameplay PUBLIC
         battle_ecs
+        spdlog::spdlog
 )
 
 target_link_libraries(battle_session PUBLIC
         battle_game
+        spdlog::spdlog
 )
 
 target_link_libraries(battle_runtime PUBLIC
@@ -137,18 +148,21 @@ target_link_libraries(battle_runtime PUBLIC
         battle_session
         battle_gameplay
         battle_proto
+        spdlog::spdlog
 )
 
 target_link_libraries(battle_net PUBLIC
         battle_runtime
         battle_session
         battle_proto
+        spdlog::spdlog
 )
 
 target_link_libraries(battle_registry PUBLIC
         battle_game
         battle_platform
         battle_proto
+        spdlog::spdlog
 )
 
 target_link_libraries(battle_server PRIVATE

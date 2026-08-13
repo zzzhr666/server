@@ -14,6 +14,12 @@ type Config struct {
 	RCenterGRPCAddr string
 	TCPAddr         string
 	Mongo           mongodb.Config
+	LogConfig       LogConfig
+}
+
+type LogConfig struct {
+	LogLevel string
+	LogMode  string
 }
 
 // Default 返回本地开发环境配置。
@@ -30,6 +36,14 @@ func Default() Config {
 		RCenterGRPCAddr: envOrDefault("RCENTER_GRPC_ADDR", "127.0.0.1:9002"),
 		TCPAddr:         envOrDefault("TCP_ADDR", ":8081"),
 		Mongo:           mongoConfig,
+		LogConfig:       DefaultLogConfig(),
+	}
+}
+
+func DefaultLogConfig() LogConfig {
+	return LogConfig{
+		LogLevel: envOrDefault("LOG_LEVEL", "info"),
+		LogMode:  envOrDefault("LOG_MODE", "debug"),
 	}
 }
 

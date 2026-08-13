@@ -2,6 +2,7 @@ package presence
 
 import (
 	"context"
+	"server/internal/platform/logging"
 	"time"
 )
 
@@ -36,7 +37,12 @@ func (g *GamePresenceService) MarkOffline(ctx context.Context, playerID int64, s
 	if playerID <= 0 || serverName == "" {
 		return ErrInvalidPresence
 	}
-	return g.presencesRepo.ClearPresence(ctx, playerID, serverName)
+	if err := g.presencesRepo.ClearPresence(ctx, playerID, serverName); err != nil {
+		logging.Error("mark player offline failed player_id=%d server=%s: %v", playerID, serverName, err)
+		return err
+	}
+	logging.Debug("player offline player_id=%d server=%s", playerID, serverName)
+	return nil
 }
 
 // MarkOnline 记录玩家已连接到指定 logic-server 实例。
@@ -50,7 +56,12 @@ func (g *GamePresenceService) MarkOnline(ctx context.Context, playerID int64, se
 		Status:     StatusOnline,
 		UpdatedAt:  time.Now(),
 	}
-	return g.presencesRepo.SetPresence(ctx, presence, DefaultTTL)
+	if err := g.presencesRepo.SetPresence(ctx, presence, DefaultTTL); err != nil {
+		logging.Error("mark player online failed player_id=%d server=%s: %v", playerID, serverName, err)
+		return err
+	}
+	logging.Debug("player online player_id=%d server=%s", playerID, serverName)
+	return nil
 }
 
 // Get 返回玩家当前的在线记录。
@@ -70,7 +81,12 @@ func (g *GamePresenceService) Refresh(ctx context.Context, playerID int64, serve
 	if playerID <= 0 || serverName == "" {
 		return ErrInvalidPresence
 	}
-	return g.presencesRepo.RefreshPresence(ctx, playerID, serverName, time.Now(), DefaultTTL)
+	if err := g.presencesRepo.RefreshPresence(ctx, playerID, serverName, time.Now(), DefaultTTL); err != nil {
+		logging.Warn("refresh player presence failed player_id=%d server=%s: %v", playerID, serverName, err)
+		return err
+	}
+	logging.Trace("player presence refreshed player_id=%d server=%s", playerID, serverName)
+	return nil
 }
 
 var _ Service = (*GamePresenceService)(nil)

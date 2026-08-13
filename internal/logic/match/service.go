@@ -2,6 +2,7 @@ package match
 
 import (
 	"context"
+	"server/internal/platform/logging"
 	"server/internal/rcenter"
 )
 
@@ -35,7 +36,17 @@ func (g *GameMatchService) Start(ctx context.Context, playerID int64, weapon str
 	if weapon == "" {
 		weapon = "sword"
 	}
-	return g.matchRepo.StartMatch(ctx, playerID, weapon)
+	result, err := g.matchRepo.StartMatch(ctx, playerID, weapon)
+	if err != nil {
+		logging.Warn("match start failed player_id=%d: %v", playerID, err)
+		return nil, err
+	}
+	if result != nil {
+		logging.Info("match start accepted player_id=%d status=%s", playerID, result.Status)
+	} else {
+		logging.Warn("match start returned empty result player_id=%d", playerID)
+	}
+	return result, nil
 }
 
 // Cancel 将玩家移出 rcenter 等待队列。
@@ -46,7 +57,12 @@ func (g *GameMatchService) Cancel(ctx context.Context, playerID int64) error {
 	if playerID <= 0 {
 		return rcenter.ErrInvalidPlayerID
 	}
-	return g.matchRepo.CancelMatch(ctx, playerID)
+	if err := g.matchRepo.CancelMatch(ctx, playerID); err != nil {
+		logging.Warn("match cancel failed player_id=%d: %v", playerID, err)
+		return err
+	}
+	logging.Info("match canceled player_id=%d", playerID)
+	return nil
 }
 
 // Resume 返回玩家可恢复的活跃战斗分配。
@@ -57,7 +73,17 @@ func (g *GameMatchService) Resume(ctx context.Context, playerID int64) (*rcenter
 	if playerID <= 0 {
 		return nil, rcenter.ErrInvalidPlayerID
 	}
-	return g.matchRepo.ResumeMatch(ctx, playerID)
+	result, err := g.matchRepo.ResumeMatch(ctx, playerID)
+	if err != nil {
+		logging.Debug("match resume unavailable player_id=%d: %v", playerID, err)
+		return nil, err
+	}
+	if result != nil {
+		logging.Info("match resumed player_id=%d room=%s", playerID, result.RoomName)
+	} else {
+		logging.Warn("match resume returned empty result player_id=%d", playerID)
+	}
+	return result, nil
 }
 
 // NewService 使用 rcenter 仓储创建局外匹配服务。

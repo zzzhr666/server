@@ -1,6 +1,24 @@
 name: game-demo
 
 services:
+  logs-init:
+    image: alpine:3.22
+    user: "0:0"
+    command:
+      - sh
+      - -c
+      - >-
+        mkdir -p
+        /workspace/logs/state
+        /workspace/logs/rcenter
+        /workspace/logs/logic-1
+        /workspace/logs/logic-2
+        /workspace/logs/battle-1
+        /workspace/logs/battle-2
+        && chmod -R a+rwX /workspace/logs
+    volumes:
+      - .:/workspace
+
   redis:
     image: redis:7.4-alpine
     volumes:
@@ -25,7 +43,11 @@ services:
       MONGO_URI: "mongodb://mongo:27017"
       MONGO_DATABASE: "game"
       STATE_GRPC_ADDR: ":9001"
+    volumes:
+      - ./logs/state:/app/logs
     depends_on:
+      logs-init:
+        condition: service_completed_successfully
       redis:
         condition: service_healthy
       mongo:
@@ -38,7 +60,11 @@ services:
     environment:
       STATE_GRPC_ADDR: "state:9001"
       RCENTER_GRPC_ADDR: ":9002"
+    volumes:
+      - ./logs/rcenter:/app/logs
     depends_on:
+      logs-init:
+        condition: service_completed_successfully
       state:
         condition: service_started
 
@@ -52,7 +78,11 @@ services:
     environment:
       STATE_GRPC_ADDR: "state:9001"
       RCENTER_GRPC_ADDR: "rcenter:9002"
+    volumes:
+      - ./logs/logic-1:/app/logs
     depends_on:
+      logs-init:
+        condition: service_completed_successfully
       state:
         condition: service_started
       rcenter:
@@ -67,7 +97,11 @@ services:
     environment:
       STATE_GRPC_ADDR: "state:9001"
       RCENTER_GRPC_ADDR: "rcenter:9002"
+    volumes:
+      - ./logs/logic-2:/app/logs
     depends_on:
+      logs-init:
+        condition: service_completed_successfully
       state:
         condition: service_started
       rcenter:
@@ -103,9 +137,16 @@ services:
       - "rcenter:9002"
       - "--max-players"
       - "100"
+    environment:
+      LOG_LEVEL: "info"
+      LOG_MODE: "release"
+    volumes:
+      - ./logs/battle-1:/app/logs
     ports:
       - "7001:7001/udp"
     depends_on:
+      logs-init:
+        condition: service_completed_successfully
       rcenter:
         condition: service_started
 
@@ -126,9 +167,16 @@ services:
       - "rcenter:9002"
       - "--max-players"
       - "100"
+    environment:
+      LOG_LEVEL: "info"
+      LOG_MODE: "release"
+    volumes:
+      - ./logs/battle-2:/app/logs
     ports:
       - "7002:7002/udp"
     depends_on:
+      logs-init:
+        condition: service_completed_successfully
       rcenter:
         condition: service_started
   mongo:

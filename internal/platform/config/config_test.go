@@ -3,7 +3,7 @@ package config
 import "testing"
 
 func TestDefaultUsesLocalAddressesWithoutEnvironmentOverrides(t *testing.T) {
-	for _, name := range []string{"HTTP_ADDR", "STATE_GRPC_ADDR", "REDIS_ADDR", "MONGO_URI", "MONGO_DATABASE", "RCENTER_GRPC_ADDR", "TCP_ADDR"} {
+	for _, name := range []string{"HTTP_ADDR", "STATE_GRPC_ADDR", "REDIS_ADDR", "MONGO_URI", "MONGO_DATABASE", "RCENTER_GRPC_ADDR", "TCP_ADDR", "LOG_LEVEL", "LOG_MODE"} {
 		t.Setenv(name, "")
 	}
 
@@ -29,6 +29,12 @@ func TestDefaultUsesLocalAddressesWithoutEnvironmentOverrides(t *testing.T) {
 	if cfg.TCPAddr != ":8081" {
 		t.Fatalf("TCPAddr = %q, want %q", cfg.TCPAddr, ":8081")
 	}
+	if cfg.LogConfig.LogLevel != "info" {
+		t.Fatalf("LogConfig.LogLevel = %q, want %q", cfg.LogConfig.LogLevel, "info")
+	}
+	if cfg.LogConfig.LogMode != "debug" {
+		t.Fatalf("LogConfig.LogMode = %q, want %q", cfg.LogConfig.LogMode, "debug")
+	}
 }
 
 func TestDefaultUsesAddressEnvironmentOverrides(t *testing.T) {
@@ -39,6 +45,8 @@ func TestDefaultUsesAddressEnvironmentOverrides(t *testing.T) {
 	t.Setenv("MONGO_DATABASE", "game_test")
 	t.Setenv("RCENTER_GRPC_ADDR", "rcenter:9002")
 	t.Setenv("TCP_ADDR", ":8089")
+	t.Setenv("LOG_LEVEL", "debug")
+	t.Setenv("LOG_MODE", "release")
 
 	cfg := Default()
 	if cfg.HTTPAddr != ":8088" {
@@ -61,5 +69,11 @@ func TestDefaultUsesAddressEnvironmentOverrides(t *testing.T) {
 	}
 	if cfg.TCPAddr != ":8089" {
 		t.Fatalf("TCPAddr = %q, want %q", cfg.TCPAddr, ":8089")
+	}
+	if cfg.LogConfig.LogLevel != "debug" {
+		t.Fatalf("LogConfig.LogLevel = %q, want %q", cfg.LogConfig.LogLevel, "debug")
+	}
+	if cfg.LogConfig.LogMode != "release" {
+		t.Fatalf("LogConfig.LogMode = %q, want %q", cfg.LogConfig.LogMode, "release")
 	}
 }

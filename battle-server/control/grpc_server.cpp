@@ -1,4 +1,5 @@
 #include "grpc_server.hpp"
+#include "spdlog/spdlog.h"
 
 namespace {
     battle::CreateRoomRequest from_proto_request(const battle::v1::CreateRoomRequest& request) {
@@ -99,6 +100,7 @@ grpc::Status battle::BattleControlServiceImpl::CreateRoom(grpc::ServerContext* c
                                                           v1::CreateRoomResponse* response) {
     (void)context;
     auto res = control_handler_.create_room(from_proto_request(*request));
+    SPDLOG_DEBUG("CreateRoom RPC completed status={}", res.message);
     response->set_status(to_proto_status(res.status));
     response->set_message(res.message);
     return grpc::Status::OK;
@@ -109,6 +111,7 @@ grpc::Status battle::BattleControlServiceImpl::JoinRoom(grpc::ServerContext* con
                                                         v1::JoinRoomResponse* response) {
     (void)context;
     auto res = control_handler_.join_room(from_proto_request(*request));
+    SPDLOG_TRACE("JoinRoom RPC completed status={}", res.message);
     response->set_status(to_proto_status(res.status));
     response->set_message(res.message);
     return grpc::Status::OK;
@@ -119,6 +122,7 @@ grpc::Status battle::BattleControlServiceImpl::EndRoom(grpc::ServerContext* cont
                                                        v1::EndRoomResponse* response) {
     (void)context;
     auto res = control_handler_.end_room(from_proto_request(*request));
+    SPDLOG_DEBUG("EndRoom RPC completed status={}", res.message);
     response->set_status(to_proto_status(res.status));
     response->set_message(res.message);
     return grpc::Status::OK;

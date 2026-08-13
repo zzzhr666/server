@@ -1,6 +1,7 @@
 #include "game_manager.hpp"
 
 #include <utility>
+#include "spdlog/spdlog.h"
 
 battle::RoomManager::RoomManager() : active_players_(0) {}
 
@@ -32,6 +33,7 @@ battle::CreateRoomResult battle::RoomManager::create_room(CreateRoomRequest requ
     auto room = std::make_shared<Room>(std::move(request));
     rooms_.emplace(std::move(room_name), std::move(room));
     active_players_ += player_count;
+    SPDLOG_INFO("room manager created room players={} active_players={}", player_count, active_players_);
     return {
         .status = CreateRoomStatus::OK,
         .message = "room created"
@@ -47,6 +49,7 @@ bool battle::RoomManager::close_room(std::string_view room_name) {
     // 只在房间确实存在时释放预留容量，确保重复 EndRoom 不会导致容量计数下溢。
     active_players_ -= it->second->player_count();
     rooms_.erase(it);
+    SPDLOG_INFO("room manager closed room={} active_players={}", room_name, active_players_);
     return true;
 }
 

@@ -6,6 +6,7 @@ import (
 	"net"
 	"server/internal/contract/statepb"
 	"server/internal/platform/config"
+	"server/internal/platform/logging"
 	"server/internal/platform/mongodb"
 	"server/internal/platform/redisdb"
 	"server/internal/state/grpcserver"
@@ -21,16 +22,37 @@ import (
 func main() {
 	ctx := context.Background()
 	cfg := config.Default()
+	level, err := logging.ParseLevel(cfg.LogConfig.LogLevel)
+	if err != nil {
+		log.Fatalf("parse log level failed: %v", err)
+	}
+	mode, err := logging.ParseMode(cfg.LogConfig.LogMode)
+	if err != nil {
+		log.Fatalf("parse log mode failed: %v", err)
+	}
+	if err := logging.ConfigureDefault(logging.DefaultLoggerOptions{
+		Level:       level,
+		Mode:        mode,
+		ServiceName: "state-server",
+		LogDir:      "./logs",
+	}); err != nil {
+		log.Fatalf("configure logger failed: %v", err)
+	}
+	defer func() {
+		if err := logging.CloseDefault(); err != nil {
+			log.Printf("close logger failed: %v", err)
+		}
+	}()
 
 	// 创建 Redis 客户端，状态服务是 Go 侧唯一直接访问 Redis 的进程。
 	redisClient := redisdb.NewClient(cfg.Redis)
 	defer func(redisClient *redis.Client) {
 		if err := redisClient.Close(); err != nil {
-			log.Fatalf("redis close failed: %v", err)
+			logging.Error("redis close failed: %v", err)
 		}
 	}(redisClient)
 	if err := redisClient.Ping(ctx).Err(); err != nil {
-		log.Fatalf("redis ping failed: %v", err)
+		logging.Fatal("redis ping failed: %v", err)
 	}
 
 	// 将 Redis 访问封装为状态存储实现。
@@ -38,21 +60,21 @@ func main() {
 
 	mongoClient, err := mongo.Connect(mongodb.ClientOptions(cfg.Mongo))
 	if err != nil {
-		log.Fatalf("connect mongodb failed: %v", err)
+		logging.Fatal("connect mongodb failed: %v", err)
 	}
 	defer func(client *mongo.Client) {
 		if err := client.Disconnect(ctx); err != nil {
-			log.Fatalf("disconnect mongodb failed: %v", err)
+			logging.Error("disconnect mongodb failed: %v", err)
 		}
 	}(mongoClient)
 
 	if err := mongoClient.Ping(ctx, nil); err != nil {
-		log.Fatalf("ping mongodb failed: %v", err)
+		logging.Fatal("ping mongodb failed: %v", err)
 	}
 
 	chatStore := mongostore.NewStore(mongoClient.Database(cfg.Mongo.Database))
 	if err := chatStore.EnsureIndexes(ctx); err != nil {
-		log.Fatalf("ensure indexes failed: %v", err)
+		logging.Fatal("ensure indexes failed: %v", err)
 	}
 
 	// 组装状态领域服务与其 gRPC 适配器。
@@ -81,10 +103,10 @@ func main() {
 	}))
 	listener, err := net.Listen("tcp", cfg.StateGRPCAddr)
 	if err != nil {
-		log.Fatalf("failed to listen: %v", err)
+		logging.Fatal("failed to listen: %v", err)
 	}
 	if err := grpcServer.Serve(listener); err != nil {
-		log.Fatalf("grpc serve stopped: %v", err)
+		logging.Fatal("grpc serve stopped: %v", err)
 	}
 
 }

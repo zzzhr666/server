@@ -10,6 +10,7 @@ RUN apt-get update \
           g++ \
           git \
           libgtest-dev \
+          libspdlog-dev \
           ninja-build \
           pkg-config \
       && rm -rf /var/lib/apt/lists/*
@@ -49,6 +50,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update \
       && apt-get install -y --no-install-recommends \
           ca-certificates \
+          libspdlog1.12 \
           zlib1g \
       && rm -rf /var/lib/apt/lists/* \
       && groupadd --system app \
@@ -57,6 +59,8 @@ RUN apt-get update \
 COPY --from=build /usr/local/lib/ /usr/local/lib/
 COPY --from=build /build/battle_server /app/battle_server
 
+RUN mkdir -p /app/logs \
+      && chown -R app:app /app
 RUN ldconfig
 
 USER app

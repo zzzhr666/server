@@ -18,6 +18,7 @@ import (
 	"server/internal/logic/presence"
 	"server/internal/logic/realtime"
 	"server/internal/platform/config"
+	"server/internal/platform/logging"
 	rcentergrpcclient "server/internal/rcenter/grpcclient"
 	stategrpcclient "server/internal/state/grpcclient"
 	"strings"
@@ -53,14 +54,35 @@ func main() {
 	if addr := listenAddrFromPort(*shortPort); addr != "" {
 		cfg.HTTPAddr = addr
 	}
+	level, err := logging.ParseLevel(cfg.LogConfig.LogLevel)
+	if err != nil {
+		log.Fatalf("parse log level failed: %v", err)
+	}
+	mode, err := logging.ParseMode(cfg.LogConfig.LogMode)
+	if err != nil {
+		log.Fatalf("parse log mode failed: %v", err)
+	}
+	if err := logging.ConfigureDefault(logging.DefaultLoggerOptions{
+		Level:       level,
+		Mode:        mode,
+		ServiceName: serverName,
+		LogDir:      "./logs",
+	}); err != nil {
+		log.Fatalf("configure logger failed: %v", err)
+	}
+	defer func() {
+		if err := logging.CloseDefault(); err != nil {
+			log.Printf("close logger failed: %v", err)
+		}
+	}()
 
 	conn, err := grpc.NewClient(cfg.StateGRPCAddr, grpc.WithTransportCredentials(insecure.NewCredentials())) // 本地开发环境不启用 TLS.
 	if err != nil {
-		log.Fatalf("grpc.NewClient failed: %v", err)
+		logging.Fatal("grpc.NewClient failed: %v", err)
 	}
 	defer func() {
 		if err := conn.Close(); err != nil {
-			log.Fatalf("close client connection: %v", err)
+			logging.Error("close client connection: %v", err)
 		}
 	}()
 
@@ -87,11 +109,11 @@ func main() {
 
 	rCenterConn, err := grpc.NewClient(cfg.RCenterGRPCAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
-		log.Fatalf("rcenter grpc.NewClient failed: %v", err)
+		logging.Fatal("rcenter grpc.NewClient failed: %v", err)
 	}
 	defer func() {
 		if err := rCenterConn.Close(); err != nil {
-			log.Fatalf("close rcenter client connection: %v", err)
+			logging.Error("close rcenter client connection: %v", err)
 		}
 	}()
 	rCenterPBClient := rcenterpb.NewRCenterServiceClient(rCenterConn)
@@ -115,7 +137,7 @@ func main() {
 	})
 	tcpListener, err := net.Listen("tcp", cfg.TCPAddr)
 	if err != nil {
-		log.Fatalf("tcp listener failed: %v", err)
+		logging.Fatal("tcp listener failed: %v", err)
 	}
 	tcpServer := realtime.NewServer(tcpListener, tcpHandler)
 
@@ -123,16 +145,16 @@ func main() {
 	defer cancel()
 	go func() {
 		if err := tcpHandler.RunRealtimeSubscriber(ctx); err != nil && ctx.Err() == nil {
-			log.Fatalf("realtime subscriber failed: %v", err)
+			logging.Fatal("realtime subscriber failed: %v", err)
 		}
 	}()
 	go func() {
 		if err := tcpServer.Serve(ctx); err != nil && ctx.Err() == nil {
-			log.Fatalf("tcp server failed: %v", err)
+			logging.Fatal("tcp server failed: %v", err)
 		}
 	}()
-	log.Printf("logic-server listening on %s", cfg.HTTPAddr)
+	logging.Info("logic-server listening on %s", cfg.HTTPAddr)
 	if err := http.ListenAndServe(cfg.HTTPAddr, httpHandler.Routes()); err != nil {
-		log.Fatalf("logic-server stopped: %v", err)
+		logging.Fatal("logic-server stopped: %v", err)
 	}
 }

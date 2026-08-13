@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"server/internal/contract/state"
+	"server/internal/platform/logging"
 	"slices"
 	"strings"
 	"time"
@@ -52,7 +53,7 @@ func (g GameChatService) SendWorldMessage(ctx context.Context, input SendWorldMe
 		return nil, err
 	}
 	now := g.now()
-	return g.repo.SaveMessage(ctx, SaveMessageInput{
+	message, err := g.repo.SaveMessage(ctx, SaveMessageInput{
 		ChannelType:      ChannelWorld,
 		ChannelKey:       state.WorldChatChannelKey,
 		SenderID:         input.SenderID,
@@ -63,6 +64,12 @@ func (g GameChatService) SendWorldMessage(ctx context.Context, input SendWorldMe
 		ClientMessageKey: input.ClientMessageKey,
 		SenderNickname:   input.SenderNickname,
 	})
+	if err != nil {
+		logging.Error("save world chat failed sender_id=%d: %v", input.SenderID, err)
+		return nil, err
+	}
+	logging.Debug("world chat saved sender_id=%d message_key=%s", input.SenderID, message.MessageKey)
+	return message, nil
 }
 
 func (g GameChatService) SendDirectMessage(ctx context.Context, input SendDirectMessageInput) (*Message, error) {
@@ -82,7 +89,7 @@ func (g GameChatService) SendDirectMessage(ctx context.Context, input SendDirect
 		return nil, err
 	}
 	now := g.now()
-	return g.repo.SaveMessage(ctx, SaveMessageInput{
+	message, err := g.repo.SaveMessage(ctx, SaveMessageInput{
 		ChannelType:      ChannelDirect,
 		ChannelKey:       directChannelKey(input.SenderID, input.ReceiverID),
 		SenderID:         input.SenderID,
@@ -94,6 +101,12 @@ func (g GameChatService) SendDirectMessage(ctx context.Context, input SendDirect
 		ClientMessageKey: input.ClientMessageKey,
 		SenderNickname:   input.SenderNickname,
 	})
+	if err != nil {
+		logging.Error("save direct chat failed sender_id=%d receiver_id=%d: %v", input.SenderID, input.ReceiverID, err)
+		return nil, err
+	}
+	logging.Debug("direct chat saved sender_id=%d receiver_id=%d message_key=%s", input.SenderID, input.ReceiverID, message.MessageKey)
+	return message, nil
 }
 
 func (g GameChatService) ListWorldMessages(ctx context.Context, input ListWorldMessagesInput) ([]*Message, error) {
@@ -103,12 +116,18 @@ func (g GameChatService) ListWorldMessages(ctx context.Context, input ListWorldM
 	if input.PlayerID <= 0 {
 		return nil, ErrInvalidPlayerID
 	}
-	return g.repo.ListMessages(ctx, ListMessagesInput{
+	messages, err := g.repo.ListMessages(ctx, ListMessagesInput{
 		ChannelType:      ChannelWorld,
 		ChannelKey:       state.WorldChatChannelKey,
 		Limit:            normalizeLimit(input.Limit),
 		BeforeMessageKey: input.BeforeMessageKey,
 	})
+	if err != nil {
+		logging.Error("list world chat failed player_id=%d: %v", input.PlayerID, err)
+		return nil, err
+	}
+	logging.Debug("world chat page loaded player_id=%d count=%d before=%s", input.PlayerID, len(messages), input.BeforeMessageKey)
+	return messages, nil
 }
 
 func (g GameChatService) ListDirectMessages(ctx context.Context, input ListDirectMessagesInput) ([]*Message, error) {
@@ -121,12 +140,18 @@ func (g GameChatService) ListDirectMessages(ctx context.Context, input ListDirec
 	if err := g.requireFriend(ctx, input.PlayerID, input.FriendID); err != nil {
 		return nil, err
 	}
-	return g.repo.ListMessages(ctx, ListMessagesInput{
+	messages, err := g.repo.ListMessages(ctx, ListMessagesInput{
 		ChannelType:      ChannelDirect,
 		ChannelKey:       directChannelKey(input.PlayerID, input.FriendID),
 		Limit:            normalizeLimit(input.Limit),
 		BeforeMessageKey: input.BeforeMessageKey,
 	})
+	if err != nil {
+		logging.Error("list direct chat failed player_id=%d friend_id=%d: %v", input.PlayerID, input.FriendID, err)
+		return nil, err
+	}
+	logging.Debug("direct chat page loaded player_id=%d friend_id=%d count=%d before=%s", input.PlayerID, input.FriendID, len(messages), input.BeforeMessageKey)
+	return messages, nil
 }
 
 func (g GameChatService) requireFriend(ctx context.Context, playerID, friendID int64) error {

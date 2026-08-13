@@ -5,6 +5,7 @@
 #include "battle_session.hpp"
 #include "game/game_manager.hpp"
 #include "game/room.hpp"
+#include "spdlog/spdlog.h"
 
 
 namespace {
@@ -93,6 +94,7 @@ battle::JoinSessionResult battle::SessionManager::join(JoinSessionRequest reques
 
         existing_session->rebind(request.conv, request.endpoint);
         sessions_by_conv_[request.conv] = existing_session;
+        SPDLOG_DEBUG("session rebound room={} player={} conv={}", request.room_name, request.player_id, request.conv);
         return {
             .status = JoinSessionStatus::AlreadyJoined,
             .message = "session reconnected",
@@ -160,6 +162,7 @@ battle::JoinSessionResult battle::SessionManager::join(JoinSessionRequest reques
     sessions_by_player_[request.player_id] = session;
     sessions_by_conv_[request.conv] = session;
     sessions_by_room_[std::string(session->room_name())].push_back(session);
+    SPDLOG_INFO("session created room={} player={} conv={}", session->room_name(), session->player_id(), session->conv());
 
     return {
         .status = JoinSessionStatus::OK,

@@ -12,6 +12,7 @@ import (
 	"server/internal/logic/match"
 	"server/internal/logic/player"
 	"server/internal/logic/presence"
+	"server/internal/platform/logging"
 	"server/internal/rcenter"
 	"time"
 )
@@ -67,8 +68,10 @@ func NewHandler(config HandlerConfig) *Handler {
 func (h *Handler) serveSession(ctx context.Context, session *session) {
 	authSession, requestID, ok := h.handleAuthenticate(ctx, session)
 	if !ok {
+		logging.Debug("realtime session authentication failed")
 		return
 	}
+	logging.Info("realtime session authenticated player_id=%d", authSession.PlayerID)
 	connInfo, ok := h.handleConnectionReady(ctx, session, authSession, requestID)
 	if !ok {
 		return
@@ -81,8 +84,10 @@ func (h *Handler) serveSession(ctx context.Context, session *session) {
 		cleanupCtx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 		defer cancel()
 		if err := h.presence.MarkOffline(cleanupCtx, authSession.PlayerID, h.serverName); err != nil {
+			logging.Error("realtime offline cleanup failed player_id=%d: %v", authSession.PlayerID, err)
 			return
 		}
+		logging.Info("realtime session disconnected player_id=%d", authSession.PlayerID)
 		h.publishFriendPresenceChanged(cleanupCtx, authSession.PlayerID, false, presence.StatusOffline)
 	}()
 	if !h.handleAuthenticated(ctx, session, authSession.PlayerID, requestID) {
@@ -103,20 +108,24 @@ func (h *Handler) serveSession(ctx context.Context, session *session) {
 func (h *Handler) handleAuthenticate(ctx context.Context, session *session) (*auth.Session, uint64, bool) {
 	envelope, err := session.Read()
 	if err != nil {
+		logging.Warn("realtime authenticate read failed: %v", err)
 		return nil, 0, false
 	}
 	request := envelope.GetAuthenticate()
 	if request == nil {
+		logging.Warn("realtime authenticate request missing")
 		_ = writeError(session, envelope.GetRequestId(), realtimepb.ErrorCode_INVALID_ARGUMENT, "invalid argument")
 		return nil, 0, false
 	}
 
 	authSession, err := h.auth.GetSession(ctx, request.GetToken())
 	if errors.Is(err, auth.ErrSessionNotFound) {
+		logging.Warn("realtime authentication rejected reason=invalid_session")
 		_ = writeError(session, envelope.GetRequestId(), realtimepb.ErrorCode_UNAUTHENTICATED, "invalid session")
 		return nil, 0, false
 	}
 	if err != nil {
+		logging.Error("realtime authentication lookup failed: %v", err)
 		_ = writeError(session, envelope.GetRequestId(), realtimepb.ErrorCode_INTERNAL, "internal server error")
 		return nil, 0, false
 	}
@@ -130,6 +139,7 @@ func (h *Handler) handleAuthenticate(ctx context.Context, session *session) (*au
 func (h *Handler) handleConnectionReady(ctx context.Context, session *session, authSession *auth.Session, requestID uint64) (connectionInfo, bool) {
 	h.replaceExistingConnection(ctx, authSession.PlayerID)
 	if err := h.presence.MarkOnline(ctx, authSession.PlayerID, h.serverName); err != nil {
+		logging.Error("realtime online setup failed player_id=%d: %v", authSession.PlayerID, err)
 		_ = writeError(session, requestID, realtimepb.ErrorCode_INTERNAL, "internal server error")
 		return connectionInfo{}, false
 	}
@@ -137,6 +147,7 @@ func (h *Handler) handleConnectionReady(ctx context.Context, session *session, a
 	connInfo, oldConn := h.connManager.Add(authSession.PlayerID, session)
 	h.publishFriendPresenceChanged(ctx, authSession.PlayerID, true, presence.StatusOnline)
 	if oldConn != nil {
+		logging.Warn("realtime connection replaced player_id=%d", authSession.PlayerID)
 		_ = oldConn.session.Write(&realtimepb.ServerEnvelope{
 			RequestId: 0,
 			Payload: &realtimepb.ServerEnvelope_ConnectionReplaced{
@@ -156,6 +167,7 @@ func (h *Handler) handleAuthenticated(ctx context.Context, session *session, pla
 			Authenticated: &realtimepb.Authenticated{PlayerId: playerID},
 		},
 	}); err != nil {
+		logging.Error("realtime authenticated response failed player_id=%d: %v", playerID, err)
 		return false
 	}
 	return h.handleAutomaticMatchResume(ctx, session, playerID)
@@ -170,6 +182,7 @@ func (h *Handler) handleAutomaticMatchResume(ctx context.Context, session *sessi
 	case errors.Is(err, rcenter.ErrActiveMatchNotFound):
 		return true
 	case err != nil:
+		logging.Error("automatic match resume failed player_id=%d: %v", playerID, err)
 		return true
 	case resumeResult == nil || resumeResult.Status == rcenter.MatchStatusUnexpected:
 		return false
@@ -621,8 +634,11 @@ func (h *Handler) handleSendWorldChat(ctx context.Context, session *session, pla
 		},
 	}
 	if h.realtimeClient != nil {
-		_ = h.realtimeClient.PublishRealtime(ctx, delivery)
+		if err := h.realtimeClient.PublishRealtime(ctx, delivery); err != nil {
+			logging.Error("publish world chat realtime failed sender_id=%d: %v", playerID, err)
+		}
 	}
+	logging.Info("world chat sent sender_id=%d message_key=%s", playerID, message.MessageKey)
 	return true
 }
 
@@ -664,6 +680,7 @@ func (h *Handler) handleSendDirectChat(ctx context.Context, session *session, pl
 		ActorPlayerID:  message.SenderID,
 		ChatMessage:    toStateChatMessage(message),
 	})
+	logging.Info("direct chat sent sender_id=%d receiver_id=%d message_key=%s", playerID, message.ReceiverID, message.MessageKey)
 	return true
 }
 

@@ -2,6 +2,7 @@
 #include "control/grpc_server.hpp"
 #include "game/game_manager.hpp"
 #include "platform/config.hpp"
+#include "platform/logging.hpp"
 
 #include <charconv>
 #include <grpcpp/grpcpp.h>
@@ -14,6 +15,7 @@
 #include "registry/rcenter_client.hpp"
 #include "runtime/battle_runtime.hpp"
 #include "session/session_manager.hpp"
+#include "spdlog/spdlog.h"
 
 namespace {
     enum class CommandLineResult {
@@ -87,6 +89,18 @@ int main(int argc, char* argv[]) {
     if (command_line_result == CommandLineResult::Error) {
         return 1;
     }
+
+    std::string logging_error;
+    if (!battle::InitializeLogging(config.node_name, config.log_level, config.log_mode, logging_error)) {
+        std::cerr << "failed to initialize logging: " << logging_error << '\n';
+        return 1;
+    }
+    struct LoggingGuard {
+        ~LoggingGuard() { battle::ShutdownLogging(); }
+    } logging_guard;
+
+    SPDLOG_INFO("battle server starting: node={}, control={}, udp_bind={}, udp_public={}",
+        config.node_name, config.control_addr, config.udp_bind_addr, config.udp_addr);
     battle::RoomManager room_manager{};
     battle::SessionManager session_manager{room_manager};
     battle::UdpServer udp_server{config.udp_bind_addr, session_manager};
@@ -103,7 +117,7 @@ int main(int argc, char* argv[]) {
         [&rcenter_client](const battle::FinishedBattle& finished) {
             auto res = rcenter_client.finish_match(finished);
             if (!res.ok) {
-                std::cerr << "failed to finish match in rcenter: " << res.message << std::endl;
+                SPDLOG_ERROR("failed to finish match in rcenter: {}", res.message);
             }
         },
         config.tick_rate,
@@ -116,7 +130,7 @@ int main(int argc, char* argv[]) {
     battle::BattleControlServiceImpl service{control_handler};
 
     if (!udp_server.start()) {
-        std::cerr << "failed to start battle udp server on " << config.udp_bind_addr << std::endl;
+        SPDLOG_CRITICAL("failed to start battle udp server on {}", config.udp_bind_addr);
         return 1;
     }
     battle_runtime.start();
@@ -128,20 +142,18 @@ int main(int argc, char* argv[]) {
 
     auto server = std::unique_ptr<grpc::Server>(builder.BuildAndStart());
     if (!server) {
-        std::cerr << "failed to start battle control server on " << config.control_addr << std::endl;
+        SPDLOG_CRITICAL("failed to start battle control server on {}", config.control_addr);
+        battle_runtime.stop();
+        udp_server.stop();
         return 1;
     }
 
-    std::cerr << "battle control server listening on: " << config.control_addr
-        << "\nnode = " << config.node_name
-        << "\nudp bind = " << config.udp_bind_addr
-        << "\nudp public = " << config.udp_addr
-        << "\ntick rate = " << config.tick_rate << std::endl;
+    SPDLOG_INFO("battle control server listening: control={}, node={}, udp_bind={}, udp_public={}, tick_rate={}",
+        config.control_addr, config.node_name, config.udp_bind_addr, config.udp_addr, config.tick_rate);
 
     auto register_res = rcenter_client.register_battle_node(config, room_manager);
     if (!register_res.ok) {
-        std::cerr << "failed to register battle node to rcenter " << config.rcenter_addr
-            << ':' << register_res.message << std::endl;
+        SPDLOG_CRITICAL("failed to register battle node to rcenter {}: {}", config.rcenter_addr, register_res.message);
         battle_runtime.stop();
         udp_server.stop();
         server->Shutdown();

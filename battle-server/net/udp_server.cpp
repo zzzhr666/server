@@ -9,6 +9,7 @@
 #include "runtime/battle_runtime.hpp"
 #include "session/battle_session.hpp"
 #include "session/session_manager.hpp"
+#include "spdlog/spdlog.h"
 
 
 battle::UdpServer::UdpServer(std::string listen_addr, SessionManager& session_manager)
@@ -21,12 +22,14 @@ bool battle::UdpServer::start() {
     // 这样 stop() 与接收线程不会看到半初始化的文件描述符。
     fd_ = socket(AF_INET, SOCK_DGRAM, 0);
     if (fd_ < 0) {
+        SPDLOG_ERROR("create UDP socket failed");
         return false;
     }
     sockaddr_in addr{
         .sin_family = AF_INET,
     };
     if (!parse_listen_addr_(addr)) {
+        SPDLOG_ERROR("parse UDP listen address failed addr={}", listen_addr_);
         close(fd_);
         fd_ = -1;
         return false;
@@ -34,12 +37,14 @@ bool battle::UdpServer::start() {
 
 
     if (bind(fd_, reinterpret_cast<sockaddr*>(&addr), sizeof(addr)) < 0) {
+        SPDLOG_ERROR("bind UDP socket failed addr={}", listen_addr_);
         close(fd_);
         fd_ = -1;
         return false;
     }
 
     running_ = true;
+    SPDLOG_INFO("UDP server started addr={}", listen_addr_);
     thread_ = std::thread([this]() {
         run_loop_();
     });
@@ -55,6 +60,7 @@ void battle::UdpServer::stop() {
     if (thread_.joinable()) {
         thread_.join();
     }
+    SPDLOG_INFO("UDP server stopped");
 }
 
 void battle::UdpServer::set_runtime(BattleRuntime& battle_runtime) {
@@ -77,6 +83,7 @@ void battle::UdpServer::run_loop_() {
         // 避免把畸形字节包带入会话或战斗逻辑。
         auto packet = decode_client_packet(std::string_view{buffer, static_cast<std::size_t>(n)});
         if (!packet.has_value()) {
+            SPDLOG_WARN("invalid UDP packet received");
             send_packet_(make_error("bad_packet", "decode client packet failed"), remote_addr, len);
             continue;
         }
@@ -112,7 +119,7 @@ void battle::UdpServer::send_packet_(const v1::ServerPacket& packet, const socka
     auto bytes = encode_server_packet(packet);
     if (sendto(fd_, bytes.data(), bytes.size(), 0,
                reinterpret_cast<const sockaddr*>(&remote_addr), remote_addr_len) < 0) {
-        // TODO: 记录 UDP 包发送失败，便于排查端点或网络问题。
+        SPDLOG_WARN("send UDP packet failed");
     }
 }
 
@@ -165,6 +172,7 @@ void battle::UdpServer::handle_hello_(const v1::ClientPacket& packet, const sock
         .endpoint = UdpEndpoint{remote_addr}
     });
     if (join_res.status == JoinSessionStatus::OK) {
+        SPDLOG_INFO("UDP session joined room={} player={}", hello.room_name(), hello.player_id());
         send_packet_(make_server_hello(join_res.session->conv(), "session joined"), remote_addr, remote_addr_len);
         // 仅完整 roster 第一次入场时启动房间。重连返回 AlreadyJoined，不能重复
         // 创建 BattleInstance，也不能重新广播一次完整房间的启动流程。
@@ -177,9 +185,11 @@ void battle::UdpServer::handle_hello_(const v1::ClientPacket& packet, const sock
             battle_runtime_->start_room(std::string(join_res.session->room_name()));
         }
     } else if (join_res.status == JoinSessionStatus::AlreadyJoined && join_res.session) {
+        SPDLOG_DEBUG("UDP session reconnected room={} player={}", hello.room_name(), hello.player_id());
         send_packet_(make_server_hello(join_res.session->conv(), "session already joined"), remote_addr,
                      remote_addr_len);
     } else {
+        SPDLOG_WARN("UDP session join failed room={} player={} reason={}", hello.room_name(), hello.player_id(), join_res.message);
         send_packet_(make_error("join_failed", join_res.message), remote_addr, remote_addr_len);
     }
 }

@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"server/internal/contract/state"
+	"server/internal/platform/logging"
 	"time"
 )
 
@@ -78,11 +79,23 @@ type Service struct {
 }
 
 func (s *Service) SaveChatMessage(ctx context.Context, input state.SaveChatMessageInput) (*state.ChatMessage, error) {
-	return s.chats.SaveChatMessage(ctx, input)
+	message, err := s.chats.SaveChatMessage(ctx, input)
+	if err != nil {
+		logging.Error("state save chat failed sender_id=%d receiver_id=%d: %v", input.SenderID, input.ReceiverID, err)
+		return nil, err
+	}
+	logging.Debug("state chat saved sender_id=%d message_key=%s", input.SenderID, message.MessageKey)
+	return message, nil
 }
 
 func (s *Service) ListChatMessages(ctx context.Context, input state.ListChatMessagesInput) ([]*state.ChatMessage, error) {
-	return s.chats.ListChatMessages(ctx, input)
+	messages, err := s.chats.ListChatMessages(ctx, input)
+	if err != nil {
+		logging.Error("state list chat failed channel=%s key=%s: %v", input.ChannelType, input.ChannelKey, err)
+		return nil, err
+	}
+	logging.Trace("state chat page loaded channel=%s count=%d before=%s", input.ChannelType, len(messages), input.BeforeMessageKey)
+	return messages, nil
 }
 
 func (s *Service) AddPlayerCoins(ctx context.Context, input state.AddPlayerCoinsInput) (*state.AddPlayerCoinsResult, error) {
@@ -91,17 +104,33 @@ func (s *Service) AddPlayerCoins(ctx context.Context, input state.AddPlayerCoins
 
 // PublishRealtime 发布一条包含明确路由的实时投递。
 func (s *Service) PublishRealtime(ctx context.Context, delivery *state.RealtimeDelivery) error {
-	return s.realtime.PublishRealtime(ctx, delivery)
+	if err := s.realtime.PublishRealtime(ctx, delivery); err != nil {
+		logging.Error("state publish realtime failed: %v", err)
+		return err
+	}
+	logging.Debug("state realtime published route_type=%s server=%s", delivery.Route.Type, delivery.Route.ServerName)
+	return nil
 }
 
 // SubscribeRealtime 订阅指定路由上的实时投递。
 func (s *Service) SubscribeRealtime(ctx context.Context, route state.RealtimeRoute) (<-chan *state.RealtimeDelivery, error) {
-	return s.realtime.SubscribeRealtime(ctx, route)
+	deliveries, err := s.realtime.SubscribeRealtime(ctx, route)
+	if err != nil {
+		logging.Error("state subscribe realtime failed route_type=%s server=%s: %v", route.Type, route.ServerName, err)
+		return nil, err
+	}
+	logging.Info("state realtime subscribed route_type=%s server=%s", route.Type, route.ServerName)
+	return deliveries, nil
 }
 
 // SetPresence 记录玩家在线状态。
 func (s *Service) SetPresence(ctx context.Context, presence *state.Presence, ttl time.Duration) error {
-	return s.presences.SetPresence(ctx, presence, ttl)
+	if err := s.presences.SetPresence(ctx, presence, ttl); err != nil {
+		logging.Error("state set presence failed player_id=%d: %v", presence.PlayerID, err)
+		return err
+	}
+	logging.Debug("state presence set player_id=%d server=%s", presence.PlayerID, presence.ServerName)
+	return nil
 }
 
 // GetPresence 读取玩家在线状态。
@@ -111,7 +140,12 @@ func (s *Service) GetPresence(ctx context.Context, playerID int64) (*state.Prese
 
 // ClearPresence 删除仍由 serverName 持有的在线状态。
 func (s *Service) ClearPresence(ctx context.Context, playerID int64, serverName string) error {
-	return s.presences.ClearPresence(ctx, playerID, serverName)
+	if err := s.presences.ClearPresence(ctx, playerID, serverName); err != nil {
+		logging.Error("state clear presence failed player_id=%d server=%s: %v", playerID, serverName, err)
+		return err
+	}
+	logging.Debug("state presence cleared player_id=%d server=%s", playerID, serverName)
+	return nil
 }
 
 // RefreshPresence 延长仍由 serverName 持有的在线状态。

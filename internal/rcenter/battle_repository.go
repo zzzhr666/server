@@ -2,9 +2,9 @@ package rcenter
 
 import (
 	"context"
-	"log"
 	"server/internal/battle/grpcclient"
 	"server/internal/contract/battlepb"
+	"server/internal/platform/logging"
 	"sync"
 
 	"google.golang.org/grpc"
@@ -51,6 +51,7 @@ func (b *BattleRepository) CreateRoom(ctx context.Context, nodeName string, inpu
 	entry, ok := b.clients[nodeName]
 	b.mu.Unlock()
 	if !ok {
+		logging.Error("battle node client missing node=%s", nodeName)
 		return ErrBattleNodeNotRegistered
 	}
 	res, err := entry.client.CreateRoom(ctx, grpcclient.CreateRoomInput{
@@ -60,11 +61,14 @@ func (b *BattleRepository) CreateRoom(ctx context.Context, nodeName string, inpu
 		PlayerLoadouts: toBattleGRPCPlayerLoadouts(input.PlayerLoadouts),
 	})
 	if err != nil {
+		logging.Error("create battle room failed node=%s: %v", nodeName, err)
 		return err
 	}
 	if res.Status != grpcclient.CreateRoomStatusOK {
+		logging.Error("battle room rejected node=%s status=%s", nodeName, res.Status)
 		return ErrCreateBattleRoomFailed
 	}
+	logging.Debug("battle room created node=%s room=%s players=%d", nodeName, input.RoomName, len(input.PlayerIDs))
 	return nil
 }
 
@@ -87,6 +91,7 @@ func toBattleGRPCPlayerLoadouts(loadouts []PlayerLoadout) []grpcclient.PlayerLoa
 func (b *BattleRepository) RegisterNode(ctx context.Context, node BattleNode) error {
 	grpcConn, client, err := b.factory(node)
 	if err != nil {
+		logging.Error("connect battle node failed node=%s: %v", node.Name, err)
 		return err
 	}
 	newEntry := &battleClientEntry{
@@ -97,9 +102,12 @@ func (b *BattleRepository) RegisterNode(ctx context.Context, node BattleNode) er
 	oldEntry := b.clients[node.Name]
 	b.clients[node.Name] = newEntry
 	b.mu.Unlock()
+	if oldEntry == nil {
+		logging.Info("battle node registered node=%s control=%s", node.Name, node.ControlAddr)
+	}
 	if oldEntry != nil {
 		if err := oldEntry.conn.Close(); err != nil {
-			log.Println("close old connection error:", err)
+			logging.Error("close old connection error: %v", err)
 		}
 	}
 	return nil

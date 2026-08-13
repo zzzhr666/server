@@ -4,6 +4,7 @@ import (
 	"context"
 	"server/internal/contract/realtimepb"
 	"server/internal/contract/state"
+	"server/internal/platform/logging"
 	"time"
 
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -105,13 +106,18 @@ func (l *localRealtimePusher) Push(ctx context.Context, event state.RealtimeEven
 	}
 	serverEnvelope, ok := toProtoEnvelope(event)
 	if !ok {
+		logging.Warn("realtime event conversion skipped type=%s", event.Type)
 		return false
 	}
 	if event.Type == state.RealtimeEventConnectionReplaced {
 		return l.connections.Close(event.TargetPlayerID, serverEnvelope)
 	}
 
-	return l.connections.Send(event.TargetPlayerID, serverEnvelope)
+	ok = l.connections.Send(event.TargetPlayerID, serverEnvelope)
+	if !ok {
+		logging.Warn("realtime push target unavailable player_id=%d event=%s", event.TargetPlayerID, event.Type)
+	}
+	return ok
 }
 
 func toProtoStateChatMessage(message *state.ChatMessage) *realtimepb.ChatMessage {

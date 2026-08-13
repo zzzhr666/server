@@ -1,6 +1,9 @@
 package friend
 
-import "context"
+import (
+	"context"
+	"server/internal/platform/logging"
+)
 
 // Service 定义 HTTP 和 TCP 层可调用的好友业务操作。
 type Service interface {
@@ -51,7 +54,12 @@ func (g *GameFriendService) SendRequest(ctx context.Context, fromPlayerID, toPla
 	if err := validatePair(fromPlayerID, toPlayerID); err != nil {
 		return err
 	}
-	return g.friendRepo.SendRequest(ctx, fromPlayerID, toPlayerID)
+	if err := g.friendRepo.SendRequest(ctx, fromPlayerID, toPlayerID); err != nil {
+		logging.Warn("friend request failed from_player_id=%d to_player_id=%d: %v", fromPlayerID, toPlayerID, err)
+		return err
+	}
+	logging.Info("friend request sent from_player_id=%d to_player_id=%d", fromPlayerID, toPlayerID)
+	return nil
 }
 
 // ListIncomingRequests 返回玩家收到的全部待处理好友申请。
@@ -84,7 +92,12 @@ func (g *GameFriendService) AcceptRequest(ctx context.Context, fromPlayerID, toP
 	if err := validatePair(fromPlayerID, toPlayerID); err != nil {
 		return err
 	}
-	return g.friendRepo.AcceptRequest(ctx, fromPlayerID, toPlayerID)
+	if err := g.friendRepo.AcceptRequest(ctx, fromPlayerID, toPlayerID); err != nil {
+		logging.Warn("friend request accept failed from_player_id=%d to_player_id=%d: %v", fromPlayerID, toPlayerID, err)
+		return err
+	}
+	logging.Info("friend request accepted from_player_id=%d to_player_id=%d", fromPlayerID, toPlayerID)
+	return nil
 }
 
 // RejectRequest 拒绝由 fromPlayerID 发给 toPlayerID 的申请。
@@ -95,7 +108,12 @@ func (g *GameFriendService) RejectRequest(ctx context.Context, fromPlayerID, toP
 	if err := validatePair(fromPlayerID, toPlayerID); err != nil {
 		return err
 	}
-	return g.friendRepo.RejectRequest(ctx, fromPlayerID, toPlayerID)
+	if err := g.friendRepo.RejectRequest(ctx, fromPlayerID, toPlayerID); err != nil {
+		logging.Debug("friend request reject failed from_player_id=%d to_player_id=%d: %v", fromPlayerID, toPlayerID, err)
+		return err
+	}
+	logging.Info("friend request rejected from_player_id=%d to_player_id=%d", fromPlayerID, toPlayerID)
+	return nil
 }
 
 // ListFriendIDs 返回指定玩家的好友 ID。
@@ -117,7 +135,12 @@ func (g *GameFriendService) DeleteFriend(ctx context.Context, playerID, friendID
 	if err := validatePair(playerID, friendID); err != nil {
 		return err
 	}
-	return g.friendRepo.DeleteFriend(ctx, playerID, friendID)
+	if err := g.friendRepo.DeleteFriend(ctx, playerID, friendID); err != nil {
+		logging.Warn("delete friend failed player_id=%d friend_id=%d: %v", playerID, friendID, err)
+		return err
+	}
+	logging.Info("friend deleted player_id=%d friend_id=%d", playerID, friendID)
+	return nil
 }
 
 // NewService 使用指定仓储创建好友业务服务。

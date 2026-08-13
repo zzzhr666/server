@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <utility>
+#include "spdlog/spdlog.h"
 
 battle::Room::Room(CreateRoomRequest request)
     : room_name_(std::move(request.room_name)),
@@ -52,6 +53,7 @@ battle::JoinRoomResult battle::Room::join(std::int64_t player_id, std::string_vi
         };
     }
     joined_player_ids_.insert(player_id);
+    SPDLOG_DEBUG("room player joined player={} joined={}/{}", player_id, joined_player_ids_.size(), allowed_player_ids_.size());
     return {
         .status = JoinRoomStatus::OK, .message = "player joined",
         .all_players_joined = allowed_player_ids_.size() == joined_player_ids_.size()

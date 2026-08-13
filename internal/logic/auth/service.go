@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"server/internal/logic/player"
+	"server/internal/platform/logging"
 	"time"
 
 	"golang.org/x/crypto/bcrypt"
@@ -92,8 +93,10 @@ func (g *GameAuthService) Register(ctx context.Context, input RegisterInput) (*A
 		SessionExpiresAt: time.Now().Add(g.sessionTTL),
 	})
 	if err != nil {
+		logging.Error("register account failed username=%s: %v", input.Username, err)
 		return nil, err
 	}
+	logging.Info("account registered username=%s player_id=%d", input.Username, result.Player.ID)
 	return &AuthorizeResult{
 		Session: result.Session,
 		Player:  result.Player,
@@ -114,16 +117,20 @@ func (g *GameAuthService) Login(ctx context.Context, input LoginInput) (*Authori
 	// 对账号不存在和密码不匹配返回同一个错误，避免通过登录接口枚举已注册用户名。
 	account, err := g.authRepo.GetAccount(ctx, input.Username)
 	if errors.Is(err, ErrAccountNotFound) {
+		logging.Warn("login rejected username=%s reason=invalid_credentials", input.Username)
 		return nil, ErrInvalidCredentials
 	} else if err != nil {
+		logging.Error("load account failed username=%s: %v", input.Username, err)
 		return nil, err
 	}
 	if correct := checkPassword(account.PasswordHash, input.PlainPassword); !correct {
+		logging.Warn("login rejected username=%s reason=invalid_credentials", input.Username)
 		return nil, ErrInvalidCredentials
 	}
 
 	p, err := g.playerService.Get(ctx, account.PlayerID)
 	if err != nil {
+		logging.Error("load player for login failed player_id=%d: %v", account.PlayerID, err)
 		return nil, err
 	}
 	token, err := generateToken()
@@ -139,8 +146,10 @@ func (g *GameAuthService) Login(ctx context.Context, input LoginInput) (*Authori
 	// 每次登录创建独立随机令牌，不复用旧 session；TTL 由 state-server/Redis 执行，
 	// 即使 logic-server 重启也不会让过期会话重新有效。
 	if err := g.authRepo.CreateSession(ctx, session); err != nil {
+		logging.Error("create session failed player_id=%d: %v", account.PlayerID, err)
 		return nil, err
 	}
+	logging.Info("login succeeded player_id=%d", account.PlayerID)
 
 	return &AuthorizeResult{
 		Session: session,
@@ -156,7 +165,12 @@ func (g *GameAuthService) Logout(ctx context.Context, token string) error {
 	if token == "" {
 		return ErrSessionNotFound
 	}
-	return g.authRepo.DeleteSession(ctx, token)
+	if err := g.authRepo.DeleteSession(ctx, token); err != nil {
+		logging.Error("logout failed: %v", err)
+		return err
+	}
+	logging.Info("logout succeeded")
+	return nil
 }
 
 // GetSession 返回非空令牌对应的已存储会话。
