@@ -3,7 +3,7 @@ package config
 import "testing"
 
 func TestDefaultUsesLocalAddressesWithoutEnvironmentOverrides(t *testing.T) {
-	for _, name := range []string{"HTTP_ADDR", "STATE_GRPC_ADDR", "REDIS_ADDR", "MONGO_URI", "MONGO_DATABASE", "RCENTER_GRPC_ADDR", "TCP_ADDR", "LOG_LEVEL", "LOG_MODE"} {
+	for _, name := range []string{"HTTP_ADDR", "STATE_GRPC_ADDR", "REDIS_ADDR", "MONGO_URI", "MONGO_DATABASE", "RCENTER_GRPC_ADDR", "TCP_ADDR", "LOG_LEVEL", "LOG_MODE", "METRICS_ADDR"} {
 		t.Setenv(name, "")
 	}
 
@@ -35,6 +35,9 @@ func TestDefaultUsesLocalAddressesWithoutEnvironmentOverrides(t *testing.T) {
 	if cfg.LogConfig.LogMode != "debug" {
 		t.Fatalf("LogConfig.LogMode = %q, want %q", cfg.LogConfig.LogMode, "debug")
 	}
+	if cfg.MetricsAddr != ":9200" {
+		t.Fatalf("MetricsAddr = %q, want %q", cfg.MetricsAddr, ":9200")
+	}
 }
 
 func TestDefaultUsesAddressEnvironmentOverrides(t *testing.T) {
@@ -47,6 +50,7 @@ func TestDefaultUsesAddressEnvironmentOverrides(t *testing.T) {
 	t.Setenv("TCP_ADDR", ":8089")
 	t.Setenv("LOG_LEVEL", "debug")
 	t.Setenv("LOG_MODE", "release")
+	t.Setenv("METRICS_ADDR", ":9299")
 
 	cfg := Default()
 	if cfg.HTTPAddr != ":8088" {
@@ -75,5 +79,8 @@ func TestDefaultUsesAddressEnvironmentOverrides(t *testing.T) {
 	}
 	if cfg.LogConfig.LogMode != "release" {
 		t.Fatalf("LogConfig.LogMode = %q, want %q", cfg.LogConfig.LogMode, "release")
+	}
+	if cfg.MetricsAddr != ":9299" {
+		t.Fatalf("MetricsAddr = %q, want %q", cfg.MetricsAddr, ":9299")
 	}
 }

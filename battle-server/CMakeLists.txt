@@ -10,6 +10,7 @@ find_package(Protobuf REQUIRED)
 find_package(gRPC CONFIG REQUIRED)
 find_package(GTest REQUIRED)
 find_package(spdlog CONFIG REQUIRED)
+find_package(prometheus-cpp CONFIG REQUIRED)
 
 enable_testing()
 
@@ -22,8 +23,14 @@ add_library(battle_proto
 )
 
 add_library(battle_platform
+        platform/command_line.cpp
         platform/config.cpp
         platform/logging.cpp
+        platform/stop_signal.cpp
+)
+
+add_library(battle_metrics
+        platform/metrics_server.cpp
 )
 
 add_library(battle_control
@@ -83,6 +90,7 @@ add_library(battle_registry
 )
 
 add_executable(battle_server
+        application.cpp
         main.cpp)
 
 target_include_directories(battle_platform PUBLIC
@@ -90,6 +98,13 @@ target_include_directories(battle_platform PUBLIC
 
 target_link_libraries(battle_platform PUBLIC
 		spdlog::spdlog)
+
+target_include_directories(battle_metrics PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR})
+
+target_link_libraries(battle_metrics PUBLIC
+        prometheus-cpp::core
+        prometheus-cpp::pull)
 
 target_compile_definitions(battle_platform PUBLIC
         SPDLOG_ACTIVE_LEVEL=SPDLOG_LEVEL_TRACE)
@@ -166,6 +181,7 @@ target_link_libraries(battle_registry PUBLIC
 )
 
 target_link_libraries(battle_server PRIVATE
+        battle_metrics
         battle_platform
         battle_control
         battle_ecs
@@ -191,6 +207,15 @@ add_executable(battle_runtime_tests
         runtime/tests/battle_runtime_test.cpp
 )
 
+add_executable(battle_platform_tests
+        platform/tests/command_line_test.cpp
+)
+
+target_link_libraries(battle_platform_tests PRIVATE
+        battle_platform
+        GTest::gtest_main
+)
+
 target_link_libraries(battle_runtime_tests PRIVATE
         battle_runtime
         battle_net
@@ -200,3 +225,4 @@ target_link_libraries(battle_runtime_tests PRIVATE
 include(GoogleTest)
 gtest_discover_tests(battle_ecs_tests)
 gtest_discover_tests(battle_runtime_tests)
+gtest_discover_tests(battle_platform_tests)

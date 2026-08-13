@@ -1,0 +1,26 @@
+global:
+  scrape_interval: 5s
+  evaluation_interval: 5s
+
+scrape_configs:
+  - job_name: logic
+    static_configs:
+      - targets:
+          - logic-1:9200
+          - logic-2:9200
+
+  - job_name: state
+    static_configs:
+      - targets:
+          - state:9200
+
+  - job_name: rcenter
+    static_configs:
+      - targets:
+          - rcenter:9200
+
+  - job_name: battle
+    static_configs:
+      - targets:
+          - battle-1:9200
+          - battle-2:9200

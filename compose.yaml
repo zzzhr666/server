@@ -140,6 +140,7 @@ services:
     environment:
       LOG_LEVEL: "info"
       LOG_MODE: "release"
+      METRICS_ADDR: "0.0.0.0:9200"
     volumes:
       - ./logs/battle-1:/app/logs
     ports:
@@ -170,6 +171,7 @@ services:
     environment:
       LOG_LEVEL: "info"
       LOG_MODE: "release"
+      METRICS_ADDR: "0.0.0.0:9200"
     volumes:
       - ./logs/battle-2:/app/logs
     ports:
@@ -194,6 +196,27 @@ services:
       timeout: 3s
       retries: 5
       start_period: 5s
+  prometheus:
+    image: prom/prometheus:v3.5.0
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+    volumes:
+      - ./deploy/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    ports:
+      - "9090:9090"
+    depends_on:
+      logic-1:
+        condition: service_started
+      logic-2:
+        condition: service_started
+      state:
+        condition: service_started
+      rcenter:
+        condition: service_started
+      battle-1:
+        condition: service_started
+      battle-2:
+        condition: service_started
 volumes:
   game-redis-data:
     external: true

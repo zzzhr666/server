@@ -15,6 +15,7 @@ type Config struct {
 	TCPAddr         string
 	Mongo           mongodb.Config
 	LogConfig       LogConfig
+	MetricsAddr     string
 }
 
 type LogConfig struct {
@@ -37,6 +38,7 @@ func Default() Config {
 		TCPAddr:         envOrDefault("TCP_ADDR", ":8081"),
 		Mongo:           mongoConfig,
 		LogConfig:       DefaultLogConfig(),
+		MetricsAddr:     envOrDefault("METRICS_ADDR", ":9200"),
 	}
 }
 

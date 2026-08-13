@@ -1,0 +1,52 @@
+#pragma once
+
+#include "control/control_handler.hpp"
+#include "control/grpc_server.hpp"
+#include "game/game_manager.hpp"
+#include "net/udp_server.hpp"
+#include "platform/config.hpp"
+#include "platform/metrics_server.hpp"
+#include "registry/node_registrar.hpp"
+#include "registry/rcenter_client.hpp"
+#include "runtime/battle_runtime.hpp"
+#include "session/session_manager.hpp"
+
+#include <memory>
+#include <string>
+
+#include <grpcpp/grpcpp.h>
+
+namespace battle {
+    class StopSignal;
+
+    /// @brief BattleApplication 组装并管理战斗服全部进程级资源。
+    class BattleApplication {
+    public:
+        explicit BattleApplication(Config config);
+        ~BattleApplication();
+
+        BattleApplication(const BattleApplication&) = delete;
+        BattleApplication& operator=(const BattleApplication&) = delete;
+
+        /// @brief 启动所有服务并运行到收到停止信号。
+        bool run(const StopSignal& stop_signal, std::string& error);
+
+    private:
+        void stop();
+
+        Config config_;
+        MetricsServer metrics_server_;
+        RoomManager room_manager_;
+        SessionManager session_manager_;
+        UdpServer udp_server_;
+        RCenterClient rcenter_client_;
+        BattleRuntime battle_runtime_;
+        ControlHandler control_handler_;
+        BattleControlServiceImpl control_service_;
+        NodeRegistrar node_registrar_;
+        std::unique_ptr<grpc::Server> grpc_server_;
+        bool udp_started_{false};
+        bool runtime_started_{false};
+        bool registrar_started_{false};
+    };
+}

@@ -22,7 +22,7 @@ RUN git clone --recurse-submodules \
           https://github.com/grpc/grpc \
           /opt/grpc
 
-  RUN cmake -S /opt/grpc -B /opt/grpc/build -G Ninja \
+RUN cmake -S /opt/grpc -B /opt/grpc/build -G Ninja \
           -DCMAKE_BUILD_TYPE=Release \
           -DgRPC_BUILD_TESTS=OFF \
           -DgRPC_INSTALL=ON \
@@ -32,6 +32,11 @@ RUN git clone --recurse-submodules \
           -DgRPC_RE2_PROVIDER=module \
           -DgRPC_SSL_PROVIDER=module \
       && cmake --build /opt/grpc/build --target install --parallel 2
+
+RUN apt-get update \
+      && apt-get install -y --no-install-recommends \
+          prometheus-cpp-dev \
+      && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /src
 
@@ -50,6 +55,8 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update \
       && apt-get install -y --no-install-recommends \
           ca-certificates \
+          libprometheus-cpp-core1.0 \
+          libprometheus-cpp-pull1.0 \
           libspdlog1.12 \
           zlib1g \
       && rm -rf /var/lib/apt/lists/* \

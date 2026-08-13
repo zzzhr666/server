@@ -96,6 +96,7 @@ battle::Config battle::DefaultConfig() {
         .control_addr = "127.0.0.1:9101",
         .udp_bind_addr = default_bind_udp_addr(),
         .udp_addr = default_public_udp_addr(),
+        .metrics_addr = getenv_string("METRICS_ADDR").value_or("0.0.0.0:9200"),
         .max_players = 100,
         .tick_rate = 60,
         .rcenter_addr = "127.0.0.1:9002",
