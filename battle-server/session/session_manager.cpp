@@ -6,7 +6,7 @@
 #include "game/game_manager.hpp"
 #include "game/room.hpp"
 #include "spdlog/spdlog.h"
-
+#include "platform/metrics.hpp"
 
 namespace {
     battle::JoinSessionStatus from_join_room_status(battle::JoinRoomStatus status) {
@@ -30,8 +30,8 @@ namespace {
     }
 }
 
-battle::SessionManager::SessionManager(RoomManager& room_manager)
-    : room_manager_(room_manager) {}
+battle::SessionManager::SessionManager(RoomManager& room_manager, BattleMetrics& metrics)
+    : metrics_(metrics), room_manager_(room_manager) {}
 
 battle::JoinSessionResult battle::SessionManager::join(JoinSessionRequest request) {
     if (request.room_name.empty() || request.token.empty() || request.player_id <= 0 || request.conv == 0) {
@@ -162,6 +162,7 @@ battle::JoinSessionResult battle::SessionManager::join(JoinSessionRequest reques
     sessions_by_player_[request.player_id] = session;
     sessions_by_conv_[request.conv] = session;
     sessions_by_room_[std::string(session->room_name())].push_back(session);
+    metrics_.set_active_sessions(sessions_by_player_.size());
     SPDLOG_INFO("session created room={} player={} conv={}", session->room_name(), session->player_id(), session->conv());
 
     return {
@@ -196,6 +197,7 @@ void battle::SessionManager::remove_room(std::string_view room_name) {
         session->close();
     }
     sessions_by_room_.erase(it);
+    metrics_.set_active_sessions(sessions_by_player_.size());
 }
 
 bool battle::SessionManager::touch(std::string_view room_name, std::int64_t player_id, const UdpEndpoint& endpoint) {

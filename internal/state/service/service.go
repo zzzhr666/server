@@ -76,6 +76,7 @@ type Service struct {
 	growth        growthStore
 	coins         coinsStore
 	chats         chatStore
+	metrics       *Metrics
 }
 
 func (s *Service) SaveChatMessage(ctx context.Context, input state.SaveChatMessageInput) (*state.ChatMessage, error) {
@@ -103,24 +104,37 @@ func (s *Service) AddPlayerCoins(ctx context.Context, input state.AddPlayerCoins
 }
 
 // PublishRealtime 发布一条包含明确路由的实时投递。
-func (s *Service) PublishRealtime(ctx context.Context, delivery *state.RealtimeDelivery) error {
-	if err := s.realtime.PublishRealtime(ctx, delivery); err != nil {
-		logging.Error("state publish realtime failed: %v", err)
-		return err
+func (s *Service) PublishRealtime(ctx context.Context, delivery *state.RealtimeDelivery) (err error) {
+	defer func() { s.observeRealtime("publish", err) }()
+	if publishErr := s.realtime.PublishRealtime(ctx, delivery); publishErr != nil {
+		logging.Error("state publish realtime failed: %v", publishErr)
+		return publishErr
 	}
 	logging.Debug("state realtime published route_type=%s server=%s", delivery.Route.Type, delivery.Route.ServerName)
 	return nil
 }
 
 // SubscribeRealtime 订阅指定路由上的实时投递。
-func (s *Service) SubscribeRealtime(ctx context.Context, route state.RealtimeRoute) (<-chan *state.RealtimeDelivery, error) {
-	deliveries, err := s.realtime.SubscribeRealtime(ctx, route)
+func (s *Service) SubscribeRealtime(ctx context.Context, route state.RealtimeRoute) (deliveries <-chan *state.RealtimeDelivery, err error) {
+	defer func() { s.observeRealtime("subscribe", err) }()
+	deliveries, err = s.realtime.SubscribeRealtime(ctx, route)
 	if err != nil {
 		logging.Error("state subscribe realtime failed route_type=%s server=%s: %v", route.Type, route.ServerName, err)
 		return nil, err
 	}
 	logging.Info("state realtime subscribed route_type=%s server=%s", route.Type, route.ServerName)
 	return deliveries, nil
+}
+
+func (s *Service) observeRealtime(operation string, err error) {
+	if s.metrics == nil {
+		return
+	}
+	result := "success"
+	if err != nil {
+		result = "error"
+	}
+	s.metrics.RealtimePubsub.WithLabelValues(operation, result).Inc()
 }
 
 // SetPresence 记录玩家在线状态。
@@ -246,6 +260,7 @@ type StoreConfig struct {
 	Growth        growthStore
 	Coins         coinsStore
 	Chats         chatStore
+	Metrics       *Metrics
 }
 
 // NewService 使用存储实现创建状态服务。
@@ -261,5 +276,6 @@ func NewService(storeConfig StoreConfig) *Service {
 		growth:        storeConfig.Growth,
 		coins:         storeConfig.Coins,
 		chats:         storeConfig.Chats,
+		metrics:       storeConfig.Metrics,
 	}
 }

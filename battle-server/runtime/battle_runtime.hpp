@@ -24,6 +24,7 @@ namespace battle {
     class SessionManager;
     class RoomManager;
     class BattleInstance;
+    class BattleMetrics;
 
     /// @brief 向指定 UDP 端点发送服务端协议包的回调。
     using SendPacketCallback = std::function<void(const v1::ServerPacket&, const UdpEndpoint&)>;
@@ -45,7 +46,7 @@ namespace battle {
         using BattleInstanceFactory = std::function<std::unique_ptr<BattleInstance>(BattleInstanceConfig)>;
         /// @brief 战斗结束后通知 rcenter 的回调。
         using FinishMatchCallback = std::function<void(const FinishedBattle&)>;
-        BattleRuntime(RoomManager& room_manager, SessionManager& session_manager,
+        BattleRuntime(RoomManager& room_manager, SessionManager& session_manager, BattleMetrics& metrics,
                       SendPacketCallback send_packet_callback, BattleInstanceFactory factory = {},
                       FinishMatchCallback finish_match_callback = {}, int tick_rate = 60,
                       std::chrono::seconds session_idle_timeout_seconds = std::chrono::seconds{15},
@@ -76,6 +77,7 @@ namespace battle {
     private:
         RoomManager& room_manager_;
         SessionManager& session_manager_;
+        BattleMetrics& metrics_;
         SendPacketCallback send_packet_;
         FinishMatchCallback finish_match_callback_;
         std::mutex mutex_;

@@ -39,6 +39,15 @@ docker compose ps
 docker compose logs -f nginx logic-1 logic-2
 ```
 
+查看 Prometheus 指标：
+
+```bash
+curl http://localhost:9090/api/v1/targets
+curl http://localhost:9090/api/v1/query?query=game_battle_active_rooms
+```
+
+Prometheus 从所有 Go 服务和两个 Battle 节点的 `:9200/metrics` 抓取指标。指标名称、标签和常用查询见 [docs/metrics.md](docs/metrics.md)。
+
 停止服务但保留 Redis 和 MongoDB 数据卷：
 
 ```bash

@@ -43,6 +43,8 @@ func newApplication(ctx context.Context, cfg config.Config) (*application, error
 	if err != nil {
 		return nil, fmt.Errorf("create metrics server: %w", err)
 	}
+	grpcMetrics := grpcserver.NewMetrics(metricsRegistry.Registerer())
+	stateMetrics := service.NewMetrics(metricsRegistry.Registerer())
 
 	redisClient := redisdb.NewClient(cfg.Redis)
 	if err := redisClient.Ping(ctx).Err(); err != nil {
@@ -79,8 +81,9 @@ func newApplication(ctx context.Context, cfg config.Config) (*application, error
 		Growth:        redisStore,
 		Coins:         redisStore,
 		Chats:         mongoStore,
+		Metrics:       stateMetrics,
 	})
-	grpcServer := grpc.NewServer()
+	grpcServer := grpc.NewServer(grpc.UnaryInterceptor(grpcserver.UnaryMetricsInterceptor(grpcMetrics)))
 	statepb.RegisterStateServiceServer(grpcServer, grpcserver.NewServer(grpcserver.ServerConfig{
 		StateClient:    stateService,
 		PresenceClient: stateService,

@@ -6,10 +6,14 @@ import (
 	"reflect"
 	statecontract "server/internal/contract/state"
 	"testing"
+
+	"github.com/prometheus/client_golang/prometheus"
+	dto "github.com/prometheus/client_model/go"
 )
 
 func TestServiceRegisterBattleNode(t *testing.T) {
 	battleRooms := &fakeBattleRoomCreator{}
+	metrics := NewMetrics(prometheus.NewRegistry())
 	svc := NewService(ServiceConfig{
 		BattleNodeController: battleRooms,
 		RewardRule:           DefaultRewardRule(),
@@ -29,6 +33,7 @@ func TestServiceRegisterBattleNode(t *testing.T) {
 				MoveSpeedLevel:   9,
 			},
 		}},
+		Metrics: metrics,
 	})
 
 	err := svc.RegisterBattleNode(context.Background(), BattleNode{
@@ -57,10 +62,27 @@ func TestServiceRegisterBattleNode(t *testing.T) {
 	if battleRooms.registerNodeInput.ControlAddr != "127.0.0.1:9101" {
 		t.Fatalf("registered battle control addr = %q, want 127.0.0.1:9101", battleRooms.registerNodeInput.ControlAddr)
 	}
+	if got := gaugeValue(t, metrics.BattleNodes); got != 1 {
+		t.Fatalf("battle nodes metric = %v, want 1", got)
+	}
+
+	err = svc.RegisterBattleNode(context.Background(), BattleNode{
+		Name:        "battle-1",
+		UDPAddr:     "127.0.0.1:7001",
+		ControlAddr: "127.0.0.1:9101",
+		MaxPlayers:  100,
+	})
+	if err != nil {
+		t.Fatalf("refresh RegisterBattleNode returned error: %v", err)
+	}
+	if got := gaugeValue(t, metrics.BattleNodes); got != 1 {
+		t.Fatalf("battle nodes metric after refresh = %v, want 1", got)
+	}
 }
 
 func TestServiceRegisterBattleNodeInvalidInput(t *testing.T) {
-	svc := newTestService()
+	metrics := NewMetrics(prometheus.NewRegistry())
+	svc := NewService(ServiceConfig{Metrics: metrics})
 
 	err := svc.RegisterBattleNode(context.Background(), BattleNode{
 		Name:       "",
@@ -73,6 +95,27 @@ func TestServiceRegisterBattleNodeInvalidInput(t *testing.T) {
 	if len(svc.ListBattleNodes()) != 0 {
 		t.Fatalf("registered invalid battle node")
 	}
+	if got := gaugeValue(t, metrics.BattleNodes); got != 0 {
+		t.Fatalf("battle nodes metric after invalid registration = %v, want 0", got)
+	}
+}
+
+func gaugeValue(t *testing.T, gauge prometheus.Gauge) float64 {
+	t.Helper()
+	metric := &dto.Metric{}
+	if err := gauge.Write(metric); err != nil {
+		t.Fatalf("write gauge metric: %v", err)
+	}
+	return metric.GetGauge().GetValue()
+}
+
+func counterValue(t *testing.T, counter *prometheus.CounterVec, operation, result string) float64 {
+	t.Helper()
+	metric := &dto.Metric{}
+	if err := counter.WithLabelValues(operation, result).Write(metric); err != nil {
+		t.Fatalf("write counter metric: %v", err)
+	}
+	return metric.GetCounter().GetValue()
 }
 
 func TestServiceStartMatchWaitsForFirstPlayer(t *testing.T) {
@@ -275,6 +318,52 @@ func TestServiceResumeMatchRejectsInvalidPlayer(t *testing.T) {
 	_, err := newTestService().ResumeMatch(context.Background(), 0)
 	if !errors.Is(err, ErrInvalidPlayerID) {
 		t.Fatalf("ResumeMatch error = %v, want %v", err, ErrInvalidPlayerID)
+	}
+}
+
+func TestServiceResumeMatchRecordsOperationMetrics(t *testing.T) {
+	metrics := NewMetrics(prometheus.NewRegistry())
+	svc := NewService(ServiceConfig{
+		BattleNodeController: &fakeBattleRoomCreator{},
+		RewardRule:           DefaultRewardRule(),
+		GrowthClient:         &fakeGrowthClient{},
+		Metrics:              metrics,
+	})
+
+	if _, err := svc.ResumeMatch(context.Background(), 0); !errors.Is(err, ErrInvalidPlayerID) {
+		t.Fatalf("invalid ResumeMatch error = %v, want %v", err, ErrInvalidPlayerID)
+	}
+	if _, err := svc.ResumeMatch(context.Background(), 7); !errors.Is(err, ErrActiveMatchNotFound) {
+		t.Fatalf("missing ResumeMatch error = %v, want %v", err, ErrActiveMatchNotFound)
+	}
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+	if _, err := svc.ResumeMatch(ctx, 7); !errors.Is(err, context.Canceled) {
+		t.Fatalf("canceled ResumeMatch error = %v, want %v", err, context.Canceled)
+	}
+
+	mustRegisterBattleNode(t, svc, BattleNode{
+		Name:        "battle-1",
+		UDPAddr:     "127.0.0.1:7001",
+		ControlAddr: "127.0.0.1:9101",
+		MaxPlayers:  100,
+	})
+	if _, err := svc.StartMatch(context.Background(), 7, ""); err != nil {
+		t.Fatalf("first StartMatch returned error: %v", err)
+	}
+	matched, err := svc.StartMatch(context.Background(), 8, "")
+	if err != nil {
+		t.Fatalf("second StartMatch returned error: %v", err)
+	}
+	if _, err := svc.ResumeMatch(context.Background(), matched.PlayerIDs[0]); err != nil {
+		t.Fatalf("successful ResumeMatch returned error: %v", err)
+	}
+
+	if got := counterValue(t, metrics.MatchOperations, "resume", "error"); got != 3 {
+		t.Fatalf("resume error metric = %v, want 3", got)
+	}
+	if got := counterValue(t, metrics.MatchOperations, "resume", "success"); got != 1 {
+		t.Fatalf("resume success metric = %v, want 1", got)
 	}
 }
 
@@ -566,6 +655,63 @@ func TestServiceFinishMatchInvalidPlayer(t *testing.T) {
 	}
 }
 
+func TestServiceFinishMatchRecordsOperationMetrics(t *testing.T) {
+	metrics := NewMetrics(prometheus.NewRegistry())
+
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+	if err := NewService(ServiceConfig{Metrics: metrics}).FinishMatch(ctx, FinishMatchInput{}); !errors.Is(err, context.Canceled) {
+		t.Fatalf("canceled FinishMatch error = %v, want %v", err, context.Canceled)
+	}
+	if err := NewService(ServiceConfig{Metrics: metrics}).FinishMatch(context.Background(), FinishMatchInput{
+		PlayerIDs: []int64{0},
+	}); !errors.Is(err, ErrInvalidPlayerID) {
+		t.Fatalf("invalid FinishMatch error = %v, want %v", err, ErrInvalidPlayerID)
+	}
+	if err := NewService(ServiceConfig{Metrics: metrics}).FinishMatch(context.Background(), FinishMatchInput{
+		PlayerIDs:   []int64{7},
+		PlayerStats: []PlayerBattleStats{{PlayerID: 7}},
+	}); !errors.Is(err, ErrUnavailableCoinClient) {
+		t.Fatalf("missing coin client FinishMatch error = %v, want %v", err, ErrUnavailableCoinClient)
+	}
+
+	if err := NewService(ServiceConfig{
+		CoinClient: &fakeCoinClient{},
+		RewardRule: DefaultRewardRule(),
+		Metrics:    metrics,
+	}).FinishMatch(context.Background(), FinishMatchInput{
+		PlayerIDs:   []int64{7},
+		PlayerStats: []PlayerBattleStats{{PlayerID: 7, TotalKills: -1}},
+	}); !errors.Is(err, ErrInvalidBattleStats) {
+		t.Fatalf("invalid stats FinishMatch error = %v, want %v", err, ErrInvalidBattleStats)
+	}
+
+	wantCoinErr := statecontract.ErrPlayerNotFound
+	if err := NewService(ServiceConfig{
+		CoinClient: &fakeCoinClient{err: wantCoinErr},
+		RewardRule: DefaultRewardRule(),
+		Metrics:    metrics,
+	}).FinishMatch(context.Background(), FinishMatchInput{
+		PlayerIDs:   []int64{7},
+		PlayerStats: []PlayerBattleStats{{PlayerID: 7}},
+	}); !errors.Is(err, wantCoinErr) {
+		t.Fatalf("coin error FinishMatch error = %v, want %v", err, wantCoinErr)
+	}
+
+	if err := NewService(ServiceConfig{Metrics: metrics}).FinishMatch(context.Background(), FinishMatchInput{
+		PlayerIDs: []int64{7, 8},
+	}); err != nil {
+		t.Fatalf("successful FinishMatch returned error: %v", err)
+	}
+
+	if got := counterValue(t, metrics.MatchOperations, "finish", "error"); got != 5 {
+		t.Fatalf("finish error metric = %v, want 5", got)
+	}
+	if got := counterValue(t, metrics.MatchOperations, "finish", "success"); got != 1 {
+		t.Fatalf("finish success metric = %v, want 1", got)
+	}
+}
+
 func TestServiceStartMatchInvalidPlayer(t *testing.T) {
 	svc := newTestService()
 
@@ -581,6 +727,116 @@ func TestServiceStartMatchWithoutBattleNode(t *testing.T) {
 	_, err := svc.StartMatch(context.Background(), 7, "")
 	if !errors.Is(err, ErrNoAvailableBattleNode) {
 		t.Fatalf("StartMatch error = %v, want %v", err, ErrNoAvailableBattleNode)
+	}
+}
+
+func TestServiceStartMatchRecordsOperationMetrics(t *testing.T) {
+	metrics := NewMetrics(prometheus.NewRegistry())
+	svc := NewService(ServiceConfig{
+		BattleNodeController: &fakeBattleRoomCreator{},
+		RewardRule:           DefaultRewardRule(),
+		GrowthClient:         &fakeGrowthClient{},
+		Metrics:              metrics,
+	})
+
+	if _, err := svc.StartMatch(context.Background(), 7, ""); !errors.Is(err, ErrNoAvailableBattleNode) {
+		t.Fatalf("StartMatch without node error = %v, want %v", err, ErrNoAvailableBattleNode)
+	}
+
+	mustRegisterBattleNode(t, svc, BattleNode{
+		Name:        "battle-1",
+		UDPAddr:     "127.0.0.1:7001",
+		ControlAddr: "127.0.0.1:9101",
+		MaxPlayers:  100,
+	})
+	if _, err := svc.StartMatch(context.Background(), 7, ""); err != nil {
+		t.Fatalf("first StartMatch returned error: %v", err)
+	}
+	if got := gaugeValue(t, metrics.MatchQueue); got != 1 {
+		t.Fatalf("match queue metric after first player = %v, want 1", got)
+	}
+	if _, err := svc.StartMatch(context.Background(), 7, ""); err != nil {
+		t.Fatalf("duplicate waiting StartMatch returned error: %v", err)
+	}
+	if got := gaugeValue(t, metrics.MatchQueue); got != 1 {
+		t.Fatalf("match queue metric after duplicate waiting = %v, want 1", got)
+	}
+	matched, err := svc.StartMatch(context.Background(), 8, "")
+	if err != nil {
+		t.Fatalf("matched StartMatch returned error: %v", err)
+	}
+	if got := gaugeValue(t, metrics.MatchQueue); got != 0 {
+		t.Fatalf("match queue metric after match = %v, want 0", got)
+	}
+	if got := gaugeValue(t, metrics.ActiveMatchPlayers); got != 2 {
+		t.Fatalf("active match players metric after match = %v, want 2", got)
+	}
+
+	if got := counterValue(t, metrics.MatchOperations, "start", "error"); got != 1 {
+		t.Fatalf("start error metric = %v, want 1", got)
+	}
+	if got := counterValue(t, metrics.MatchOperations, "start", "success"); got != 3 {
+		t.Fatalf("start success metric = %v, want 3", got)
+	}
+
+	if err := svc.FinishMatch(context.Background(), FinishMatchInput{PlayerIDs: matched.PlayerIDs}); err != nil {
+		t.Fatalf("FinishMatch returned error: %v", err)
+	}
+	if got := gaugeValue(t, metrics.ActiveMatchPlayers); got != 0 {
+		t.Fatalf("active match players metric after finish = %v, want 0", got)
+	}
+}
+
+func TestServiceStartMatchFailureClearsActiveMatchMetric(t *testing.T) {
+	battleRooms := &fakeBattleRoomCreator{createRoomErr: errors.New("create room failed")}
+	metrics := NewMetrics(prometheus.NewRegistry())
+	svc := NewService(ServiceConfig{
+		BattleNodeController: battleRooms,
+		RewardRule:           DefaultRewardRule(),
+		GrowthClient:         &fakeGrowthClient{},
+		Metrics:              metrics,
+	})
+	mustRegisterBattleNode(t, svc, BattleNode{
+		Name:        "battle-1",
+		UDPAddr:     "127.0.0.1:7001",
+		ControlAddr: "127.0.0.1:9101",
+		MaxPlayers:  100,
+	})
+
+	if _, err := svc.StartMatch(context.Background(), 7, ""); err != nil {
+		t.Fatalf("first StartMatch returned error: %v", err)
+	}
+	if _, err := svc.StartMatch(context.Background(), 8, ""); err == nil {
+		t.Fatalf("second StartMatch unexpectedly succeeded")
+	}
+	if got := gaugeValue(t, metrics.ActiveMatchPlayers); got != 0 {
+		t.Fatalf("active match players metric after room failure = %v, want 0", got)
+	}
+}
+
+func TestServiceCancelMatchUpdatesQueueMetric(t *testing.T) {
+	metrics := NewMetrics(prometheus.NewRegistry())
+	svc := NewService(ServiceConfig{
+		BattleNodeController: &fakeBattleRoomCreator{},
+		RewardRule:           DefaultRewardRule(),
+		GrowthClient:         &fakeGrowthClient{},
+		Metrics:              metrics,
+	})
+	mustRegisterBattleNode(t, svc, BattleNode{
+		Name:        "battle-1",
+		UDPAddr:     "127.0.0.1:7001",
+		ControlAddr: "127.0.0.1:9101",
+		MaxPlayers:  100,
+	})
+
+	if _, err := svc.StartMatch(context.Background(), 7, ""); err != nil {
+		t.Fatalf("StartMatch returned error: %v", err)
+	}
+	if err := svc.CancelMatch(context.Background(), 7); err != nil {
+		t.Fatalf("CancelMatch returned error: %v", err)
+	}
+	if got := gaugeValue(t, metrics.MatchQueue); got != 0 {
+		t.Fatalf("match queue metric after cancel = %v, want 0", got)
 	}
 }
 
@@ -629,6 +885,48 @@ func TestServiceCancelMatchInvalidPlayer(t *testing.T) {
 	err := svc.CancelMatch(context.Background(), 0)
 	if !errors.Is(err, ErrInvalidPlayerID) {
 		t.Fatalf("CancelMatch error = %v, want %v", err, ErrInvalidPlayerID)
+	}
+}
+
+func TestServiceCancelMatchRecordsOperationMetrics(t *testing.T) {
+	metrics := NewMetrics(prometheus.NewRegistry())
+	svc := NewService(ServiceConfig{
+		BattleNodeController: &fakeBattleRoomCreator{},
+		RewardRule:           DefaultRewardRule(),
+		GrowthClient:         &fakeGrowthClient{},
+		Metrics:              metrics,
+	})
+
+	if err := svc.CancelMatch(context.Background(), 0); !errors.Is(err, ErrInvalidPlayerID) {
+		t.Fatalf("invalid CancelMatch error = %v, want %v", err, ErrInvalidPlayerID)
+	}
+	if err := svc.CancelMatch(context.Background(), 7); !errors.Is(err, ErrPlayerNotWaiting) {
+		t.Fatalf("not waiting CancelMatch error = %v, want %v", err, ErrPlayerNotWaiting)
+	}
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+	if err := svc.CancelMatch(ctx, 7); !errors.Is(err, context.Canceled) {
+		t.Fatalf("canceled CancelMatch error = %v, want %v", err, context.Canceled)
+	}
+
+	mustRegisterBattleNode(t, svc, BattleNode{
+		Name:        "battle-1",
+		UDPAddr:     "127.0.0.1:7001",
+		ControlAddr: "127.0.0.1:9101",
+		MaxPlayers:  100,
+	})
+	if _, err := svc.StartMatch(context.Background(), 7, ""); err != nil {
+		t.Fatalf("StartMatch returned error: %v", err)
+	}
+	if err := svc.CancelMatch(context.Background(), 7); err != nil {
+		t.Fatalf("successful CancelMatch returned error: %v", err)
+	}
+
+	if got := counterValue(t, metrics.MatchOperations, "cancel", "error"); got != 3 {
+		t.Fatalf("cancel error metric = %v, want 3", got)
+	}
+	if got := counterValue(t, metrics.MatchOperations, "cancel", "success"); got != 1 {
+		t.Fatalf("cancel success metric = %v, want 1", got)
 	}
 }
 

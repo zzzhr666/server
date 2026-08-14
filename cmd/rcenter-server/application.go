@@ -39,7 +39,7 @@ func newApplication(cfg config.Config) (*application, error) {
 	if err != nil {
 		return nil, fmt.Errorf("create metrics server: %w", err)
 	}
-
+	rcenterMetrics := rcenter.NewMetrics(metricsRegistry.Registerer())
 	stateConn, err := grpc.NewClient(cfg.StateGRPCAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		return nil, fmt.Errorf("create state client connection: %w", err)
@@ -51,6 +51,7 @@ func newApplication(cfg config.Config) (*application, error) {
 		CoinClient:           stateClient,
 		RewardRule:           rcenter.DefaultRewardRule(),
 		GrowthClient:         stateClient,
+		Metrics:              rcenterMetrics,
 	})
 
 	grpcServer := grpc.NewServer()

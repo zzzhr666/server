@@ -3,9 +3,7 @@
 #include <netinet/in.h>
 
 #include <atomic>
-#include <cstdint>
 #include <string>
-#include <string_view>
 #include <thread>
 
 #include "proto/battle/v1/session.pb.h"
@@ -13,11 +11,12 @@
 
 namespace battle {
     class SessionManager;
+    class BattleMetrics;
 
     /// @brief UdpServer 负责 UDP 包收发、协议分发和会话入口，不包含玩法规则。
     class UdpServer {
     public:
-        UdpServer(std::string listen_addr, SessionManager& session_manager);
+        UdpServer(std::string listen_addr, SessionManager& session_manager, BattleMetrics& metrics);
 
         /// @brief 注入处理输入、快照和房间生命周期的运行时。
         void set_runtime(BattleRuntime& battle_runtime);
@@ -54,11 +53,13 @@ namespace battle {
                                      socklen_t remote_addr_len) const;
 
         /// @brief 刷新匹配会话的活跃时间，避免被断线清理。
-        void handle_heartbeat_(const v1::ClientPacket& packet, const sockaddr_in& remote_addr,socklen_t remote_addr_len) const;
+        void handle_heartbeat_(const v1::ClientPacket& packet, const sockaddr_in& remote_addr,
+                               socklen_t remote_addr_len) const;
 
     private:
         std::string listen_addr_;
         SessionManager& session_manager_;
+        BattleMetrics& metrics_;
         BattleRuntime* battle_runtime_;
         std::atomic<bool> running_;
         int fd_;

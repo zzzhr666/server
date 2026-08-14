@@ -34,14 +34,16 @@ type Service interface {
 }
 
 type GameChatService struct {
-	repo   Repository
-	friend FriendChecker
-	now    func() time.Time
+	repo    Repository
+	friend  FriendChecker
+	now     func() time.Time
+	metrics *Metrics
 }
 
-func (g GameChatService) SendWorldMessage(ctx context.Context, input SendWorldMessageInput) (*Message, error) {
-	if err := ctx.Err(); err != nil {
-		return nil, err
+func (g GameChatService) SendWorldMessage(ctx context.Context, input SendWorldMessageInput) (message *Message, err error) {
+	defer func() { g.observeMessage("world", err) }()
+	if ctxErr := ctx.Err(); ctxErr != nil {
+		return nil, ctxErr
 	}
 	if input.SenderID <= 0 {
 		return nil, ErrInvalidPlayerID
@@ -49,11 +51,11 @@ func (g GameChatService) SendWorldMessage(ctx context.Context, input SendWorldMe
 	if input.ClientMessageKey == "" {
 		return nil, ErrInvalidMessage
 	}
-	if err := validateContent(input.Content); err != nil {
-		return nil, err
+	if validationErr := validateContent(input.Content); validationErr != nil {
+		return nil, validationErr
 	}
 	now := g.now()
-	message, err := g.repo.SaveMessage(ctx, SaveMessageInput{
+	message, err = g.repo.SaveMessage(ctx, SaveMessageInput{
 		ChannelType:      ChannelWorld,
 		ChannelKey:       state.WorldChatChannelKey,
 		SenderID:         input.SenderID,
@@ -72,9 +74,10 @@ func (g GameChatService) SendWorldMessage(ctx context.Context, input SendWorldMe
 	return message, nil
 }
 
-func (g GameChatService) SendDirectMessage(ctx context.Context, input SendDirectMessageInput) (*Message, error) {
-	if err := ctx.Err(); err != nil {
-		return nil, err
+func (g GameChatService) SendDirectMessage(ctx context.Context, input SendDirectMessageInput) (message *Message, err error) {
+	defer func() { g.observeMessage("direct", err) }()
+	if ctxErr := ctx.Err(); ctxErr != nil {
+		return nil, ctxErr
 	}
 	if input.SenderID <= 0 || input.ReceiverID <= 0 || input.SenderID == input.ReceiverID {
 		return nil, ErrInvalidPlayerID
@@ -82,14 +85,14 @@ func (g GameChatService) SendDirectMessage(ctx context.Context, input SendDirect
 	if input.ClientMessageKey == "" {
 		return nil, ErrInvalidMessage
 	}
-	if err := validateContent(input.Content); err != nil {
-		return nil, err
+	if validationErr := validateContent(input.Content); validationErr != nil {
+		return nil, validationErr
 	}
-	if err := g.requireFriend(ctx, input.SenderID, input.ReceiverID); err != nil {
-		return nil, err
+	if friendErr := g.requireFriend(ctx, input.SenderID, input.ReceiverID); friendErr != nil {
+		return nil, friendErr
 	}
 	now := g.now()
-	message, err := g.repo.SaveMessage(ctx, SaveMessageInput{
+	message, err = g.repo.SaveMessage(ctx, SaveMessageInput{
 		ChannelType:      ChannelDirect,
 		ChannelKey:       directChannelKey(input.SenderID, input.ReceiverID),
 		SenderID:         input.SenderID,
@@ -109,14 +112,15 @@ func (g GameChatService) SendDirectMessage(ctx context.Context, input SendDirect
 	return message, nil
 }
 
-func (g GameChatService) ListWorldMessages(ctx context.Context, input ListWorldMessagesInput) ([]*Message, error) {
-	if err := ctx.Err(); err != nil {
-		return nil, err
+func (g GameChatService) ListWorldMessages(ctx context.Context, input ListWorldMessagesInput) (messages []*Message, err error) {
+	defer func() { g.observeHistory("world", err) }()
+	if ctxErr := ctx.Err(); ctxErr != nil {
+		return nil, ctxErr
 	}
 	if input.PlayerID <= 0 {
 		return nil, ErrInvalidPlayerID
 	}
-	messages, err := g.repo.ListMessages(ctx, ListMessagesInput{
+	messages, err = g.repo.ListMessages(ctx, ListMessagesInput{
 		ChannelType:      ChannelWorld,
 		ChannelKey:       state.WorldChatChannelKey,
 		Limit:            normalizeLimit(input.Limit),
@@ -130,17 +134,18 @@ func (g GameChatService) ListWorldMessages(ctx context.Context, input ListWorldM
 	return messages, nil
 }
 
-func (g GameChatService) ListDirectMessages(ctx context.Context, input ListDirectMessagesInput) ([]*Message, error) {
-	if err := ctx.Err(); err != nil {
-		return nil, err
+func (g GameChatService) ListDirectMessages(ctx context.Context, input ListDirectMessagesInput) (messages []*Message, err error) {
+	defer func() { g.observeHistory("direct", err) }()
+	if ctxErr := ctx.Err(); ctxErr != nil {
+		return nil, ctxErr
 	}
 	if input.PlayerID <= 0 || input.FriendID <= 0 || input.FriendID == input.PlayerID {
 		return nil, ErrInvalidPlayerID
 	}
-	if err := g.requireFriend(ctx, input.PlayerID, input.FriendID); err != nil {
-		return nil, err
+	if friendErr := g.requireFriend(ctx, input.PlayerID, input.FriendID); friendErr != nil {
+		return nil, friendErr
 	}
-	messages, err := g.repo.ListMessages(ctx, ListMessagesInput{
+	messages, err = g.repo.ListMessages(ctx, ListMessagesInput{
 		ChannelType:      ChannelDirect,
 		ChannelKey:       directChannelKey(input.PlayerID, input.FriendID),
 		Limit:            normalizeLimit(input.Limit),
@@ -165,12 +170,43 @@ func (g GameChatService) requireFriend(ctx context.Context, playerID, friendID i
 	return nil
 }
 
-func NewService(repo Repository, friend FriendChecker) *GameChatService {
+// ServiceConfig 聚合聊天服务所需的仓储、好友检查器和指标。
+type ServiceConfig struct {
+	ChatRepository Repository
+	FriendChecker  FriendChecker
+	Metrics        *Metrics
+}
+
+// NewService 使用配置创建聊天服务。
+func NewService(config ServiceConfig) *GameChatService {
 	return &GameChatService{
-		repo:   repo,
-		friend: friend,
-		now:    time.Now,
+		repo:    config.ChatRepository,
+		friend:  config.FriendChecker,
+		now:     time.Now,
+		metrics: config.Metrics,
 	}
+}
+
+func (g GameChatService) observeMessage(channel string, err error) {
+	if g.metrics == nil {
+		return
+	}
+	result := "success"
+	if err != nil {
+		result = "error"
+	}
+	g.metrics.Messages.WithLabelValues(channel, result).Inc()
+}
+
+func (g GameChatService) observeHistory(channel string, err error) {
+	if g.metrics == nil {
+		return
+	}
+	result := "success"
+	if err != nil {
+		result = "error"
+	}
+	g.metrics.HistoryRequests.WithLabelValues(channel, result).Inc()
 }
 
 func directChannelKey(playerID, friendID int64) string {

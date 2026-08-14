@@ -17,6 +17,6 @@ WORKDIR /app
 COPY --from=build /out/rcenter-server /app/rcenter-server
 
 USER app
-EXPOSE 9002
+EXPOSE 9002 9200
 
 ENTRYPOINT ["/app/rcenter-server"]

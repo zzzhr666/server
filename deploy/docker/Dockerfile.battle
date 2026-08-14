@@ -73,4 +73,6 @@ RUN ldconfig
 USER app
 WORKDIR /app
 
+EXPOSE 9200
+
 ENTRYPOINT ["/app/battle_server"]

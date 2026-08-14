@@ -10,13 +10,15 @@
 battle::BattleApplication::BattleApplication(Config config)
     : config_(std::move(config)),
       metrics_server_(config_.metrics_addr),
-      room_manager_(),
-      session_manager_(room_manager_),
-      udp_server_(config_.udp_bind_addr, session_manager_),
+      battle_metrics_(metrics_server_.registry()),
+      room_manager_(battle_metrics_),
+      session_manager_(room_manager_, battle_metrics_),
+      udp_server_(config_.udp_bind_addr, session_manager_, battle_metrics_),
       rcenter_client_(grpc::CreateChannel(config_.rcenter_addr, grpc::InsecureChannelCredentials())),
       battle_runtime_(
           room_manager_,
           session_manager_,
+          battle_metrics_,
           [this](const v1::ServerPacket& packet, const UdpEndpoint& endpoint) {
               udp_server_.send_packet(packet, endpoint);
           },
@@ -30,7 +32,7 @@ battle::BattleApplication::BattleApplication(Config config)
           config_.tick_rate,
           config_.session_idle_timeout_seconds,
           config_.all_players_disconnected_timeout),
-      control_handler_(room_manager_, battle_runtime_),
+      control_handler_(room_manager_, battle_runtime_, battle_metrics_),
       control_service_(control_handler_),
       node_registrar_(config_, rcenter_client_, room_manager_) {
     udp_server_.set_runtime(battle_runtime_);

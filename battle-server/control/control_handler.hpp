@@ -3,11 +3,12 @@
 #include "game/game_manager.hpp"
 
 namespace battle {
+    class BattleMetrics;
     class BattleRuntime;
     /// @brief ControlHandler 是外部控制协议调用战斗领域逻辑的应用边界。
     class ControlHandler {
     public:
-        ControlHandler(RoomManager& room_manager, BattleRuntime& battle_runtime);
+        ControlHandler(RoomManager& room_manager, BattleRuntime& battle_runtime, BattleMetrics& metrics);
 
         /// @brief 处理控制面预留房间请求。
         [[nodiscard]] CreateRoomResult create_room(const CreateRoomRequest& request) const;
@@ -23,5 +24,6 @@ namespace battle {
         RoomManager& room_manager_;
         /// @brief 负责实际战斗生命周期的运行时。
         BattleRuntime& battle_runtime_;
+        BattleMetrics& metrics_;
     };
 }

@@ -31,6 +31,7 @@ add_library(battle_platform
 
 add_library(battle_metrics
         platform/metrics_server.cpp
+        platform/metrics.cpp
 )
 
 add_library(battle_control
@@ -111,6 +112,9 @@ target_compile_definitions(battle_platform PUBLIC
 
 target_include_directories(battle_game PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR})
+
+target_link_libraries(battle_game PUBLIC
+        battle_metrics)
 
 target_include_directories(battle_gameplay PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR})
@@ -209,10 +213,12 @@ add_executable(battle_runtime_tests
 
 add_executable(battle_platform_tests
         platform/tests/command_line_test.cpp
+        platform/tests/metrics_test.cpp
 )
 
 target_link_libraries(battle_platform_tests PRIVATE
         battle_platform
+        battle_metrics
         GTest::gtest_main
 )
 

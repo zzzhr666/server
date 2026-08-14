@@ -123,3 +123,7 @@
 | Room 生命周期和结束 | `battle-server/runtime` |
 | 武器、成长、波次 | `battle-server/gameplay` |
 | 局内实体和规则 | `battle-server/ecs`、`battle-server/ecs/design.md` |
+
+## 可观测性
+
+Go 服务和 Battle 服务都提供独立的 Prometheus `/metrics` 端点，由 Compose 中的 Prometheus 统一抓取。Go 侧默认暴露 Go runtime、进程资源和局外领域指标；Battle 侧暴露房间、UDP 会话、控制面请求、UDP 收发、tick 耗时和 tick 超时指标。指标只使用稳定的服务、实例、操作和结果维度，不使用玩家 ID、房间名等高基数标签。详细指标定义与 PromQL 示例见 [metrics.md](metrics.md)。

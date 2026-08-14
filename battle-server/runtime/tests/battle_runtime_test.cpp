@@ -9,8 +9,11 @@
 #include <gtest/gtest.h>
 
 #include "game/game_manager.hpp"
+#include "platform/metrics.hpp"
 #include "session/battle_session.hpp"
 #include "session/session_manager.hpp"
+
+#include <prometheus/registry.h>
 
 namespace battle {
 namespace {
@@ -34,11 +37,24 @@ UdpEndpoint endpoint_with_port(std::uint16_t port) {
     return endpoint;
 }
 
-TEST(BattleRuntimeTest, ReceiveInputAndTickBroadcastsMovedSnapshot) {
+struct RuntimeTestContext {
+    prometheus::Registry registry;
+    BattleMetrics metrics;
     RoomManager room_manager;
-    SessionManager session_manager(room_manager);
+    SessionManager session_manager;
+
+    RuntimeTestContext()
+        : metrics(registry),
+          room_manager(metrics),
+          session_manager(room_manager, metrics) {}
+};
+
+TEST(BattleRuntimeTest, ReceiveInputAndTickBroadcastsMovedSnapshot) {
+    RuntimeTestContext context;
+    auto& room_manager = context.room_manager;
+    auto& session_manager = context.session_manager;
     std::vector<std::pair<v1::ServerPacket, UdpEndpoint>> sent_packets;
-    BattleRuntime runtime(room_manager, session_manager,
+    BattleRuntime runtime(room_manager, session_manager, context.metrics,
                           [&sent_packets](const v1::ServerPacket& packet, const UdpEndpoint& endpoint) {
                               sent_packets.emplace_back(packet, endpoint);
                           });
@@ -94,11 +110,12 @@ TEST(BattleRuntimeTest, ReceiveInputAndTickBroadcastsMovedSnapshot) {
 }
 
 TEST(BattleRuntimeTest, ReceiveInputAndTickBroadcastsProjectileSnapshot) {
-    RoomManager room_manager;
-    SessionManager session_manager(room_manager);
+    RuntimeTestContext context;
+    auto& room_manager = context.room_manager;
+    auto& session_manager = context.session_manager;
     std::vector<std::pair<v1::ServerPacket, UdpEndpoint>> sent_packets;
     BattleRuntime runtime(
-        room_manager, session_manager,
+        room_manager, session_manager, context.metrics,
         [&sent_packets](const v1::ServerPacket& packet, const UdpEndpoint& endpoint) {
             sent_packets.emplace_back(packet, endpoint);
         },
@@ -175,11 +192,12 @@ TEST(BattleRuntimeTest, ReceiveInputAndTickBroadcastsProjectileSnapshot) {
 }
 
 TEST(BattleRuntimeTest, TickBroadcastsRangedMonsterKind) {
-    RoomManager room_manager;
-    SessionManager session_manager(room_manager);
+    RuntimeTestContext context;
+    auto& room_manager = context.room_manager;
+    auto& session_manager = context.session_manager;
     std::vector<std::pair<v1::ServerPacket, UdpEndpoint>> sent_packets;
     BattleRuntime runtime(
-        room_manager, session_manager,
+        room_manager, session_manager, context.metrics,
         [&sent_packets](const v1::ServerPacket& packet, const UdpEndpoint& endpoint) {
             sent_packets.emplace_back(packet, endpoint);
         },
@@ -227,9 +245,10 @@ TEST(BattleRuntimeTest, TickBroadcastsRangedMonsterKind) {
 }
 
 TEST(BattleRuntimeTest, ReceiveInputReturnsFalseForMissingRoom) {
-    RoomManager room_manager;
-    SessionManager session_manager(room_manager);
-    BattleRuntime runtime(room_manager, session_manager,
+    RuntimeTestContext context;
+    auto& room_manager = context.room_manager;
+    auto& session_manager = context.session_manager;
+    BattleRuntime runtime(room_manager, session_manager, context.metrics,
                           [](const v1::ServerPacket&, const UdpEndpoint&) {});
 
     EXPECT_FALSE(runtime.receive_input("missing-room", 1001, PlayerInput{
@@ -239,11 +258,12 @@ TEST(BattleRuntimeTest, ReceiveInputReturnsFalseForMissingRoom) {
 }
 
 TEST(BattleRuntimeTest, StartRoomPassesConfiguredPlayerWeaponsToInstance) {
-    RoomManager room_manager;
-    SessionManager session_manager(room_manager);
+    RuntimeTestContext context;
+    auto& room_manager = context.room_manager;
+    auto& session_manager = context.session_manager;
     std::unordered_map<std::int64_t, std::pair<WeaponKind,GrowthLevels>> captured_weapons;
     BattleRuntime runtime(
-        room_manager, session_manager,
+        room_manager, session_manager, context.metrics,
         [](const v1::ServerPacket&, const UdpEndpoint&) {},
         [&captured_weapons](BattleInstanceConfig config) {
             captured_weapons = config.player_loadouts;
@@ -278,11 +298,12 @@ TEST(BattleRuntimeTest, StartRoomPassesConfiguredPlayerWeaponsToInstance) {
 }
 
 TEST(BattleRuntimeTest, EndRoomBroadcastsGameOverAndCleansRoom) {
-    RoomManager room_manager;
-    SessionManager session_manager(room_manager);
+    RuntimeTestContext context;
+    auto& room_manager = context.room_manager;
+    auto& session_manager = context.session_manager;
     std::vector<std::pair<v1::ServerPacket, UdpEndpoint>> sent_packets;
     std::vector<FinishedBattle> finished_battles;
-    BattleRuntime runtime(room_manager, session_manager,
+    BattleRuntime runtime(room_manager, session_manager, context.metrics,
                           [&sent_packets](const v1::ServerPacket& packet, const UdpEndpoint& endpoint) {
                               sent_packets.emplace_back(packet, endpoint);
                           },
@@ -348,10 +369,11 @@ TEST(BattleRuntimeTest, EndRoomBroadcastsGameOverAndCleansRoom) {
 }
 
 TEST(BattleRuntimeTest, TickSkipsSnapshotsForDisconnectedSessions) {
-    RoomManager room_manager;
-    SessionManager session_manager(room_manager);
+    RuntimeTestContext context;
+    auto& room_manager = context.room_manager;
+    auto& session_manager = context.session_manager;
     std::vector<std::pair<v1::ServerPacket, UdpEndpoint>> sent_packets;
-    BattleRuntime runtime(room_manager, session_manager,
+    BattleRuntime runtime(room_manager, session_manager, context.metrics,
                           [&sent_packets](const v1::ServerPacket& packet, const UdpEndpoint& endpoint) {
                               sent_packets.emplace_back(packet, endpoint);
                           });
@@ -383,13 +405,14 @@ TEST(BattleRuntimeTest, TickSkipsSnapshotsForDisconnectedSessions) {
 }
 
 TEST(BattleRuntimeTest, EndRoomNotifiesOnlyConnectedSessionsButFinishesAllPlayers) {
-    RoomManager room_manager;
-    SessionManager session_manager(room_manager);
+    RuntimeTestContext context;
+    auto& room_manager = context.room_manager;
+    auto& session_manager = context.session_manager;
     std::vector<std::pair<v1::ServerPacket, UdpEndpoint>> sent_packets;
     std::vector<FinishedBattle> finished_battles;
     std::vector<std::int64_t> instance_player_ids;
     BattleRuntime runtime(
-        room_manager, session_manager,
+        room_manager, session_manager, context.metrics,
         [&sent_packets](const v1::ServerPacket& packet, const UdpEndpoint& endpoint) {
             sent_packets.emplace_back(packet, endpoint);
         },
@@ -443,11 +466,12 @@ TEST(BattleRuntimeTest, EndRoomNotifiesOnlyConnectedSessionsButFinishesAllPlayer
 }
 
 TEST(BattleRuntimeTest, AllDisconnectedTimeoutEndsRoomAndFinishesAllPlayers) {
-    RoomManager room_manager;
-    SessionManager session_manager(room_manager);
+    RuntimeTestContext context;
+    auto& room_manager = context.room_manager;
+    auto& session_manager = context.session_manager;
     std::vector<FinishedBattle> finished_battles;
     BattleRuntime runtime(
-        room_manager, session_manager,
+        room_manager, session_manager, context.metrics,
         [](const v1::ServerPacket&, const UdpEndpoint&) {},
         {},
         [&finished_battles](const FinishedBattle& finished_battle) {
@@ -485,11 +509,12 @@ TEST(BattleRuntimeTest, AllDisconnectedTimeoutEndsRoomAndFinishesAllPlayers) {
 }
 
 TEST(BattleRuntimeTest, ReconnectedPlayerClearsAllDisconnectedTimeout) {
-    RoomManager room_manager;
-    SessionManager session_manager(room_manager);
+    RuntimeTestContext context;
+    auto& room_manager = context.room_manager;
+    auto& session_manager = context.session_manager;
     std::vector<FinishedBattle> finished_battles;
     BattleRuntime runtime(
-        room_manager, session_manager,
+        room_manager, session_manager, context.metrics,
         [](const v1::ServerPacket&, const UdpEndpoint&) {},
         {},
         [&finished_battles](const FinishedBattle& finished_battle) {
@@ -539,12 +564,13 @@ TEST(BattleRuntimeTest, ReconnectedPlayerClearsAllDisconnectedTimeout) {
 }
 
 TEST(BattleRuntimeTest, TickBroadcastsGameOverAndCleansRoomWhenInstanceEnds) {
-    RoomManager room_manager;
-    SessionManager session_manager(room_manager);
+    RuntimeTestContext context;
+    auto& room_manager = context.room_manager;
+    auto& session_manager = context.session_manager;
     std::vector<std::pair<v1::ServerPacket, UdpEndpoint>> sent_packets;
     std::vector<FinishedBattle> finished_battles;
     BattleRuntime runtime(
-        room_manager, session_manager,
+        room_manager, session_manager, context.metrics,
         [&sent_packets](const v1::ServerPacket& packet, const UdpEndpoint& endpoint) {
             sent_packets.emplace_back(packet, endpoint);
         },
@@ -700,9 +726,10 @@ TEST(BattleRuntimeTest, TickBroadcastsGameOverAndCleansRoomWhenInstanceEnds) {
 }
 
 TEST(BattleRuntimeTest, EndRoomReturnsNotFoundForMissingRoom) {
-    RoomManager room_manager;
-    SessionManager session_manager(room_manager);
-    BattleRuntime runtime(room_manager, session_manager,
+    RuntimeTestContext context;
+    auto& room_manager = context.room_manager;
+    auto& session_manager = context.session_manager;
+    BattleRuntime runtime(room_manager, session_manager, context.metrics,
                           [](const v1::ServerPacket&, const UdpEndpoint&) {});
 
     auto result = runtime.end_room("missing-room", "manual_end");

@@ -11,7 +11,7 @@ import (
 func TestRegisterCreatesAccountPlayerAndSession(t *testing.T) {
 	repo := newFakeAuthRepository()
 	players := newFakePlayerService()
-	service := NewService(repo, players, time.Hour)
+	service := NewService(ServiceConfig{AuthRepository: repo, PlayerService: players, SessionTTL: time.Hour})
 
 	result, err := service.Register(context.Background(), RegisterInput{
 		Username:      "alice",
@@ -86,7 +86,7 @@ func TestRegisterDuplicateAccount(t *testing.T) {
 	}); err != nil {
 		t.Fatalf("CreateAccount returned error: %v", err)
 	}
-	service := NewService(repo, players, time.Hour)
+	service := NewService(ServiceConfig{AuthRepository: repo, PlayerService: players, SessionTTL: time.Hour})
 
 	_, err = service.Register(context.Background(), RegisterInput{
 		Username:      "alice",
@@ -126,7 +126,7 @@ func TestLoginCreatesSession(t *testing.T) {
 	}); err != nil {
 		t.Fatalf("CreateAccount returned error: %v", err)
 	}
-	service := NewService(repo, players, time.Hour)
+	service := NewService(ServiceConfig{AuthRepository: repo, PlayerService: players, SessionTTL: time.Hour})
 
 	result, err := service.Login(context.Background(), LoginInput{
 		Username:      "alice",
@@ -170,7 +170,7 @@ func TestLoginInvalidPassword(t *testing.T) {
 	}); err != nil {
 		t.Fatalf("CreateAccount returned error: %v", err)
 	}
-	service := NewService(repo, newFakePlayerService(), time.Hour)
+	service := NewService(ServiceConfig{AuthRepository: repo, PlayerService: newFakePlayerService(), SessionTTL: time.Hour})
 
 	_, err = service.Login(context.Background(), LoginInput{
 		Username:      "alice",
@@ -197,7 +197,7 @@ func TestLoginMissingPlayerDoesNotCreateSession(t *testing.T) {
 	}); err != nil {
 		t.Fatalf("CreateAccount returned error: %v", err)
 	}
-	service := NewService(repo, newFakePlayerService(), time.Hour)
+	service := NewService(ServiceConfig{AuthRepository: repo, PlayerService: newFakePlayerService(), SessionTTL: time.Hour})
 
 	_, err = service.Login(context.Background(), LoginInput{
 		Username:      "alice",
@@ -219,7 +219,7 @@ func TestGetCurrentPlayer(t *testing.T) {
 		Nickname: "Alice",
 		Avatar:   "alice.png",
 	}
-	service := NewService(repo, players, time.Hour)
+	service := NewService(ServiceConfig{AuthRepository: repo, PlayerService: players, SessionTTL: time.Hour})
 	session := &Session{
 		Token:     "token-1",
 		PlayerID:  7,
@@ -242,7 +242,7 @@ func TestGetCurrentPlayer(t *testing.T) {
 }
 
 func TestGetCurrentPlayerInvalidToken(t *testing.T) {
-	service := NewService(newFakeAuthRepository(), newFakePlayerService(), time.Hour)
+	service := NewService(ServiceConfig{AuthRepository: newFakeAuthRepository(), PlayerService: newFakePlayerService(), SessionTTL: time.Hour})
 
 	_, err := service.GetCurrentPlayer(context.Background(), "missing-token")
 	if !errors.Is(err, ErrSessionNotFound) {
@@ -252,7 +252,7 @@ func TestGetCurrentPlayerInvalidToken(t *testing.T) {
 
 func TestGetCurrentPlayerMissingPlayer(t *testing.T) {
 	repo := newFakeAuthRepository()
-	service := NewService(repo, newFakePlayerService(), time.Hour)
+	service := NewService(ServiceConfig{AuthRepository: repo, PlayerService: newFakePlayerService(), SessionTTL: time.Hour})
 	session := &Session{
 		Token:     "token-1",
 		PlayerID:  7,

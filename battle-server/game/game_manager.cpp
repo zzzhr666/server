@@ -1,9 +1,11 @@
 #include "game_manager.hpp"
 
 #include <utility>
+
+#include "platform/metrics.hpp"
 #include "spdlog/spdlog.h"
 
-battle::RoomManager::RoomManager() : active_players_(0) {}
+battle::RoomManager::RoomManager(BattleMetrics& metrics) : metrics_(metrics), active_players_(0) {}
 
 battle::CreateRoomResult battle::RoomManager::create_room(CreateRoomRequest request) {
     if (request.room_name.empty() || request.token.empty()) {
@@ -32,6 +34,7 @@ battle::CreateRoomResult battle::RoomManager::create_room(CreateRoomRequest requ
     auto room_name = request.room_name;
     auto room = std::make_shared<Room>(std::move(request));
     rooms_.emplace(std::move(room_name), std::move(room));
+    metrics_.set_active_rooms(rooms_.size());
     active_players_ += player_count;
     SPDLOG_INFO("room manager created room players={} active_players={}", player_count, active_players_);
     return {
@@ -49,6 +52,7 @@ bool battle::RoomManager::close_room(std::string_view room_name) {
     // 只在房间确实存在时释放预留容量，确保重复 EndRoom 不会导致容量计数下溢。
     active_players_ -= it->second->player_count();
     rooms_.erase(it);
+    metrics_.set_active_rooms(rooms_.size());
     SPDLOG_INFO("room manager closed room={} active_players={}", room_name, active_players_);
     return true;
 }
@@ -103,7 +107,7 @@ battle::JoinRoomResult battle::RoomManager::join_room(const JoinRoomRequest& req
         std::lock_guard<std::mutex> lock(mutex_);
         const auto it = rooms_.find(request.room_name);
         if (it == rooms_.end()) {
-            return {.status = JoinRoomStatus::RoomNotFound, .message = "room not found",.all_players_joined = false};
+            return {.status = JoinRoomStatus::RoomNotFound, .message = "room not found", .all_players_joined = false};
         }
         room = it->second;
     }

@@ -30,6 +30,7 @@ type Handler struct {
 	connManager    *connectionManager
 	realtimeClient state.RealtimeClient
 	subscriber     *subscriber
+	metrics        *Metrics
 }
 
 // HandlerConfig 定义 Handler 所需的服务依赖。
@@ -43,6 +44,7 @@ type HandlerConfig struct {
 	ChatService     chat.Service
 	ServerName      string
 	RealtimeClient  state.RealtimeClient
+	Metrics         *Metrics
 }
 
 // NewHandler 使用服务依赖创建 TCP 协议处理器。
@@ -57,10 +59,11 @@ func NewHandler(config HandlerConfig) *Handler {
 		chat:        config.ChatService,
 		serverName:  config.ServerName,
 		connManager: newConnectionManager(),
+		metrics:     config.Metrics,
 	}
 	if config.RealtimeClient != nil {
 		handler.realtimeClient = config.RealtimeClient
-		handler.subscriber = newSubscriber(config.ServerName, config.RealtimeClient, handler.connManager)
+		handler.subscriber = newSubscriber(config.ServerName, config.RealtimeClient, handler.connManager, handler.metrics)
 	}
 	return handler
 }
@@ -80,6 +83,9 @@ func (h *Handler) serveSession(ctx context.Context, session *session) {
 	defer func() {
 		if !h.connManager.Remove(authSession.PlayerID, connInfo.id) {
 			return
+		}
+		if h.metrics != nil {
+			h.metrics.Connections.Dec()
 		}
 		cleanupCtx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 		defer cancel()
@@ -145,6 +151,9 @@ func (h *Handler) handleConnectionReady(ctx context.Context, session *session, a
 	}
 
 	connInfo, oldConn := h.connManager.Add(authSession.PlayerID, session)
+	if h.metrics != nil {
+		h.metrics.Connections.Inc()
+	}
 	h.publishFriendPresenceChanged(ctx, authSession.PlayerID, true, presence.StatusOnline)
 	if oldConn != nil {
 		logging.Warn("realtime connection replaced player_id=%d", authSession.PlayerID)
@@ -191,7 +200,10 @@ func (h *Handler) handleAutomaticMatchResume(ctx context.Context, session *sessi
 	}
 }
 
-func (h *Handler) handleEnvelope(ctx context.Context, session *session, authSession *auth.Session, connID connectionID, envelope *realtimepb.ClientEnvelope) bool {
+func (h *Handler) handleEnvelope(ctx context.Context, session *session, authSession *auth.Session, connID connectionID, envelope *realtimepb.ClientEnvelope) (handled bool) {
+	defer func() {
+		h.metrics.observeRequest(realtimeRequestType(envelope), handled)
+	}()
 	playerID := authSession.PlayerID
 	switch {
 	case envelope.GetHeartbeat() != nil:
@@ -234,6 +246,33 @@ func (h *Handler) handleEnvelope(ctx context.Context, session *session, authSess
 		return h.handleListDirectChat(ctx, session, playerID, envelope)
 	default:
 		return writeError(session, envelope.GetRequestId(), realtimepb.ErrorCode_INVALID_ARGUMENT, "unsupported message") == nil
+	}
+}
+
+func realtimeRequestType(envelope *realtimepb.ClientEnvelope) string {
+	if envelope == nil {
+		return "unknown"
+	}
+	switch {
+	case envelope.GetHeartbeat() != nil:
+		return "heartbeat"
+	case envelope.GetMatchStart() != nil, envelope.GetMatchCancel() != nil, envelope.GetMatchResume() != nil:
+		return "match"
+	case envelope.GetPlayerGet() != nil:
+		return "player"
+	case envelope.GetGrowthGet() != nil, envelope.GetGrowthUpgrade() != nil:
+		return "growth"
+	case envelope.GetFriendRequestSend() != nil, envelope.GetFriendRequestListIncoming() != nil,
+		envelope.GetFriendRequestListOutgoing() != nil, envelope.GetFriendRequestAccept() != nil,
+		envelope.GetFriendRequestReject() != nil, envelope.GetFriendList() != nil, envelope.GetFriendDelete() != nil:
+		return "friend"
+	case envelope.GetChatWorldSend() != nil, envelope.GetChatDirectSend() != nil,
+		envelope.GetChatWorldList() != nil, envelope.GetChatDirectList() != nil:
+		return "chat"
+	case envelope.GetLogout() != nil:
+		return "logout"
+	default:
+		return "unknown"
 	}
 }
 
@@ -812,16 +851,21 @@ func (h *Handler) pushRealtimeEvent(ctx context.Context, event *state.RealtimeEv
 		return
 	}
 	if h.connManager.Send(event.TargetPlayerID, serverEnvelope) {
+		h.metrics.observeDelivery("player", true)
 		return
 	}
 	if h.realtimeClient == nil || h.presence == nil {
+		h.metrics.observeDelivery("player", false)
 		return
 	}
 	targetPresence, err := h.presence.Get(ctx, event.TargetPlayerID)
 	if err != nil {
+		h.metrics.observeDelivery("player", false)
 		return
 	}
-	_ = h.realtimeClient.PublishRealtime(ctx, newServerDelivery(targetPresence.ServerName, event))
+	if err := h.realtimeClient.PublishRealtime(ctx, newServerDelivery(targetPresence.ServerName, event)); err != nil {
+		h.metrics.observeDelivery("player", false)
+	}
 }
 
 func (h *Handler) pushMatchResultToPlayers(ctx context.Context, currentPlayerID int64, result *rcenter.MatchResult) {

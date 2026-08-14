@@ -12,6 +12,7 @@
 #include "gameplay/monster_kind_codec.hpp"
 #include "gameplay/weapon.hpp"
 #include "net/packet_codec.hpp"
+#include "platform/metrics.hpp"
 #include "session/battle_session.hpp"
 #include "session/session_manager.hpp"
 #include "spdlog/spdlog.h"
@@ -211,11 +212,12 @@ namespace {
 }
 
 battle::BattleRuntime::BattleRuntime(RoomManager& room_manager, SessionManager& session_manager,
+                                     BattleMetrics& metrics,
                                      SendPacketCallback send_packet_callback, BattleInstanceFactory factory,
                                      FinishMatchCallback finish_match_callback, int tick_rate,
                                      std::chrono::seconds session_idle_timeout_seconds,
                                      std::chrono::seconds all_players_disconnected_timeout_seconds)
-    : room_manager_(room_manager), session_manager_(session_manager),
+    : room_manager_(room_manager), session_manager_(session_manager), metrics_(metrics),
       send_packet_(std::move(send_packet_callback)), finish_match_callback_(std::move(finish_match_callback)),
       running_(false), instance_factory_(std::move(factory)), tick_interval_(tick_interval_from_rate(tick_rate)),
       session_idle_timeout_(session_idle_timeout_seconds),all_players_disconnected_timeout_(all_players_disconnected_timeout_seconds) {
@@ -294,6 +296,7 @@ void battle::BattleRuntime::start_room(const std::string& room_name) {
 }
 
 void battle::BattleRuntime::tick(ecs::DeltaTime delta_time) {
+    const auto tick_started_at = std::chrono::steady_clock::now();
     std::vector<v1::ServerPacket> packets;
     std::vector<UdpEndpoint> endpoints;
     std::vector<std::pair<std::string, BattleEndReason>> end_state;
@@ -344,6 +347,13 @@ void battle::BattleRuntime::tick(ecs::DeltaTime delta_time) {
     }
     for (const auto& room_name : empty_rooms) {
         end_room(room_name, "all_players_disconnected");
+    }
+
+    const auto elapsed = std::chrono::steady_clock::now() - tick_started_at;
+    const auto elapsed_seconds = std::chrono::duration<double>(elapsed).count();
+    metrics_.observe_tick_duration(elapsed_seconds);
+    if (elapsed > tick_interval_) {
+        metrics_.increment_tick_overrun();
     }
 }
 

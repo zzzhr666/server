@@ -10,13 +10,15 @@ type subscriber struct {
 	serverName string
 	client     state.RealtimeClient
 	pusher     *localRealtimePusher
+	metrics    *Metrics
 }
 
-func newSubscriber(serverName string, client state.RealtimeClient, manager *connectionManager) *subscriber {
+func newSubscriber(serverName string, client state.RealtimeClient, manager *connectionManager, metrics *Metrics) *subscriber {
 	return &subscriber{
 		serverName: serverName,
 		client:     client,
 		pusher:     newLocalRealtimePusher(manager),
+		metrics:    metrics,
 	}
 }
 
@@ -46,7 +48,9 @@ func (s *subscriber) Run(ctx context.Context) error {
 			if delivery == nil || delivery.Event == nil || delivery.Route != serverRoute {
 				continue
 			}
-			if !s.pusher.Push(ctx, *delivery.Event) {
+			delivered := s.pusher.Push(ctx, *delivery.Event)
+			s.metrics.observeDelivery("player", delivered)
+			if !delivered {
 				logging.Warn("realtime server delivery push failed server=%s target_player_id=%d", s.serverName, delivery.Event.TargetPlayerID)
 			}
 		case delivery, ok := <-broadcastDeliveries:
@@ -62,6 +66,7 @@ func (s *subscriber) Run(ctx context.Context) error {
 				continue
 			}
 			count := s.pusher.connections.Broadcast(envelope, delivery.Event.ActorPlayerID)
+			s.metrics.observeDelivery("broadcast", count > 0)
 			logging.Debug("realtime broadcast delivered server=%s recipients=%d", s.serverName, count)
 		}
 	}

@@ -6,14 +6,15 @@
 #include <unistd.h>
 
 #include "packet_codec.hpp"
+#include "platform/metrics.hpp"
 #include "runtime/battle_runtime.hpp"
 #include "session/battle_session.hpp"
 #include "session/session_manager.hpp"
 #include "spdlog/spdlog.h"
 
 
-battle::UdpServer::UdpServer(std::string listen_addr, SessionManager& session_manager)
-    : listen_addr_(std::move(listen_addr)), session_manager_(session_manager),
+battle::UdpServer::UdpServer(std::string listen_addr, SessionManager& session_manager, BattleMetrics& metrics)
+    : listen_addr_(std::move(listen_addr)), session_manager_(session_manager), metrics_(metrics),
       battle_runtime_(nullptr), running_(false), fd_(-1),
       next_conv_(1) {}
 
@@ -83,31 +84,37 @@ void battle::UdpServer::run_loop_() {
         // 避免把畸形字节包带入会话或战斗逻辑。
         auto packet = decode_client_packet(std::string_view{buffer, static_cast<std::size_t>(n)});
         if (!packet.has_value()) {
+            metrics_.observe_udp_packet("received", false);
             SPDLOG_WARN("invalid UDP packet received");
             send_packet_(make_error("bad_packet", "decode client packet failed"), remote_addr, len);
             continue;
         }
         switch (packet->payload_case()) {
         case v1::ClientPacket::kHello: {
+            metrics_.observe_udp_packet("received", true);
             handle_hello_(packet.value(), remote_addr, len);
             break;
         }
 
         case v1::ClientPacket::kInput: {
+            metrics_.observe_udp_packet("received", true);
             handle_move_input_(packet.value(), remote_addr, len);
             break;
         }
 
         case v1::ClientPacket::kChooseBlessing: {
+            metrics_.observe_udp_packet("received", true);
             handle_choose_blessing_(packet.value(), remote_addr, len);
             break;
         }
         case v1::ClientPacket::kHeartbeat: {
+            metrics_.observe_udp_packet("received", true);
             handle_heartbeat_(packet.value(),remote_addr,len);
             break;
         }
 
         default: {
+            metrics_.observe_udp_packet("received", false);
             send_packet_(make_error("unexpected_packet", "unexpected packet"), remote_addr, len);
         }
         }
@@ -119,8 +126,11 @@ void battle::UdpServer::send_packet_(const v1::ServerPacket& packet, const socka
     auto bytes = encode_server_packet(packet);
     if (sendto(fd_, bytes.data(), bytes.size(), 0,
                reinterpret_cast<const sockaddr*>(&remote_addr), remote_addr_len) < 0) {
+        metrics_.observe_udp_packet("sent", false);
         SPDLOG_WARN("send UDP packet failed");
+        return;
     }
+    metrics_.observe_udp_packet("sent", true);
 }
 
 bool battle::UdpServer::parse_listen_addr_(sockaddr_in& out) const {

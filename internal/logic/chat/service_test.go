@@ -13,7 +13,7 @@ func TestSendWorldMessageSavesWithWorldRetention(t *testing.T) {
 	repo := &fakeRepository{
 		saved: &Message{MessageKey: "msg-1"},
 	}
-	svc := NewService(repo, &fakeFriendChecker{})
+	svc := NewService(ServiceConfig{ChatRepository: repo, FriendChecker: &fakeFriendChecker{}})
 	svc.now = func() time.Time { return now }
 
 	message, err := svc.SendWorldMessage(context.Background(), SendWorldMessageInput{
@@ -45,7 +45,7 @@ func TestSendWorldMessageSavesWithWorldRetention(t *testing.T) {
 }
 
 func TestSendDirectMessageRequiresFriend(t *testing.T) {
-	svc := NewService(&fakeRepository{}, &fakeFriendChecker{friendIDs: []int64{9}})
+	svc := NewService(ServiceConfig{ChatRepository: &fakeRepository{}, FriendChecker: &fakeFriendChecker{friendIDs: []int64{9}}})
 
 	_, err := svc.SendDirectMessage(context.Background(), SendDirectMessageInput{
 		SenderID:         7,
@@ -64,7 +64,7 @@ func TestSendDirectMessageSavesStableChannelKey(t *testing.T) {
 		saved: &Message{MessageKey: "msg-1"},
 	}
 	friends := &fakeFriendChecker{friendIDs: []int64{7}}
-	svc := NewService(repo, friends)
+	svc := NewService(ServiceConfig{ChatRepository: repo, FriendChecker: friends})
 	svc.now = func() time.Time { return now }
 
 	_, err := svc.SendDirectMessage(context.Background(), SendDirectMessageInput{
@@ -92,7 +92,7 @@ func TestSendDirectMessageSavesStableChannelKey(t *testing.T) {
 
 func TestListWorldMessagesNormalizesLimit(t *testing.T) {
 	repo := &fakeRepository{}
-	svc := NewService(repo, &fakeFriendChecker{})
+	svc := NewService(ServiceConfig{ChatRepository: repo, FriendChecker: &fakeFriendChecker{}})
 
 	_, err := svc.ListWorldMessages(context.Background(), ListWorldMessagesInput{
 		PlayerID:         7,
@@ -111,7 +111,7 @@ func TestListWorldMessagesNormalizesLimit(t *testing.T) {
 }
 
 func TestListDirectMessagesRequiresFriend(t *testing.T) {
-	svc := NewService(&fakeRepository{}, &fakeFriendChecker{friendIDs: []int64{9}})
+	svc := NewService(ServiceConfig{ChatRepository: &fakeRepository{}, FriendChecker: &fakeFriendChecker{friendIDs: []int64{9}}})
 
 	_, err := svc.ListDirectMessages(context.Background(), ListDirectMessagesInput{
 		PlayerID: 7,

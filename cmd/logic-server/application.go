@@ -50,7 +50,9 @@ func newApplication(cfg config.Config, serverName string) (*application, error) 
 	if err != nil {
 		return nil, fmt.Errorf("create metrics server: %w", err)
 	}
-
+	logicMetrics := realtime.NewMetrics(metricsRegistry.Registerer())
+	authMetrics := auth.NewMetrics(metricsRegistry.Registerer())
+	chatMetrics := chat.NewMetrics(metricsRegistry.Registerer())
 	stateConn, err := grpc.NewClient(cfg.StateGRPCAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		return nil, fmt.Errorf("create state client connection: %w", err)
@@ -65,10 +67,19 @@ func newApplication(cfg config.Config, serverName string) (*application, error) 
 	rcenterService := rcentergrpcclient.NewClient(rcenterpb.NewRCenterServiceClient(rcenterConn))
 
 	playerService := player.NewService(player.NewStateRepository(stateService))
-	authService := auth.NewService(auth.NewStateRepository(stateService), playerService, 10*time.Minute)
+	authService := auth.NewService(auth.ServiceConfig{
+		AuthRepository: auth.NewStateRepository(stateService),
+		PlayerService:  playerService,
+		SessionTTL:     10 * time.Minute,
+		Metrics:        authMetrics,
+	})
 	presenceService := presence.NewService(presence.NewStateRepository(stateService))
 	friendService := friend.NewService(friend.NewStateRepository(stateService))
-	chatService := chat.NewService(chat.NewStateRepository(stateService), friendService)
+	chatService := chat.NewService(chat.ServiceConfig{
+		ChatRepository: chat.NewStateRepository(stateService),
+		FriendChecker:  friendService,
+		Metrics:        chatMetrics,
+	})
 	growthService := growth.NewService(growth.NewStateRepository(stateService), growth.DefaultUpgradeRules())
 	matchService := logicmatch.NewService(logicmatch.NewRCenterRepository(rcenterService))
 
@@ -91,6 +102,7 @@ func newApplication(cfg config.Config, serverName string) (*application, error) 
 		ServerName:      serverName,
 		RealtimeClient:  stateService,
 		ChatService:     chatService,
+		Metrics:         logicMetrics,
 	})
 	realtimeListener, err := net.Listen("tcp", cfg.TCPAddr)
 	if err != nil {

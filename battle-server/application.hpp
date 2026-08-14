@@ -16,6 +16,8 @@
 
 #include <grpcpp/grpcpp.h>
 
+#include "platform/metrics.hpp"
+
 namespace battle {
     class StopSignal;
 
@@ -36,6 +38,7 @@ namespace battle {
 
         Config config_;
         MetricsServer metrics_server_;
+        BattleMetrics battle_metrics_;
         RoomManager room_manager_;
         SessionManager session_manager_;
         UdpServer udp_server_;

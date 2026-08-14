@@ -2,11 +2,12 @@
 
 #include <utility>
 
+#include "platform/metrics.hpp"
 #include "runtime/battle_runtime.hpp"
 #include "spdlog/spdlog.h"
 
-battle::ControlHandler::ControlHandler(RoomManager& room_manager, BattleRuntime& battle_runtime)
-    : room_manager_(room_manager), battle_runtime_(battle_runtime) {}
+battle::ControlHandler::ControlHandler(RoomManager& room_manager, BattleRuntime& battle_runtime, BattleMetrics& metrics)
+    : room_manager_(room_manager), battle_runtime_(battle_runtime), metrics_(metrics) {}
 
 battle::CreateRoomResult battle::ControlHandler::create_room(const CreateRoomRequest& request) const {
     const auto room_name = request.room_name;
@@ -16,6 +17,7 @@ battle::CreateRoomResult battle::ControlHandler::create_room(const CreateRoomReq
     } else {
         SPDLOG_WARN("room creation rejected room={} reason={}", room_name, result.message);
     }
+    metrics_.observe_control_request("create_room", result.status == CreateRoomStatus::OK);
     return result;
 }
 
@@ -28,11 +30,15 @@ battle::JoinRoomResult battle::ControlHandler::join_room(const JoinRoomRequest& 
         SPDLOG_WARN("room join rejected room={} player={} reason={}", request.room_name, request.player_id,
                     result.message);
     }
+    metrics_.observe_control_request(
+        "join_room",
+        result.status == JoinRoomStatus::OK || result.status == JoinRoomStatus::AlreadyJoined);
     return result;
 }
 
 battle::EndRoomResult battle::ControlHandler::end_room(const EndRoomRequest& request) const {
     if (request.room_name.empty()) {
+        metrics_.observe_control_request("end_room", false);
         return {
             .status = EndRoomStatus::InvalidRequest,
             .message = "invalid room_name"
@@ -45,5 +51,6 @@ battle::EndRoomResult battle::ControlHandler::end_room(const EndRoomRequest& req
     } else {
         SPDLOG_WARN("room end rejected room={} reason={}", request.room_name, result.message);
     }
+    metrics_.observe_control_request("end_room", result.status == EndRoomStatus::OK);
     return result;
 }

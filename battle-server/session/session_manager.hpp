@@ -13,6 +13,7 @@
 namespace battle {
     class RoomManager;
     class BattleSession;
+    class BattleMetrics;
 
     /// @brief ClientHello 通过校验后创建或重绑会话所需的参数。
     struct JoinSessionRequest {
@@ -45,7 +46,7 @@ namespace battle {
     /// @brief SessionManager 按玩家、conversation 与房间索引 UDP 会话，并维护三者一致性。
     class SessionManager {
     public:
-        explicit SessionManager(RoomManager& room_manager);
+        SessionManager(RoomManager& room_manager, BattleMetrics& metrics);
 
         /// @brief 校验房间准入后创建会话，或对已有玩家执行重绑。
         JoinSessionResult join(JoinSessionRequest request);
@@ -67,6 +68,7 @@ namespace battle {
         std::vector<std::shared_ptr<BattleSession>> connected_sessions_in_room(std::string_view room_name) const;
 
     private:
+        BattleMetrics& metrics_;
         RoomManager& room_manager_;
         mutable std::mutex mutex_;
         /// @brief 以玩家 ID 索引会话，用于同玩家重连。

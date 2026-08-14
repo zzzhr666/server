@@ -7,10 +7,12 @@
 #include <unordered_map>
 
 namespace battle {
+    class BattleMetrics;
+
     /// @brief RoomManager 持有活跃房间并提供线程安全的房间操作。
     class RoomManager {
     public:
-        RoomManager();
+        explicit RoomManager(BattleMetrics& metrics);
 
         /// @brief 为已匹配玩家预留新房间。
         CreateRoomResult create_room(CreateRoomRequest request);
@@ -35,6 +37,7 @@ namespace battle {
 
 
     private:
+        BattleMetrics& metrics_;
         /// @brief 保护房间表和容量计数。
         mutable std::mutex mutex_;
         /// @brief 所有活跃房间预留的玩家总数。

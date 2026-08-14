@@ -40,12 +40,21 @@ type Repository interface {
 	DeleteSession(ctx context.Context, token string) error
 }
 
-// NewService 使用认证仓储、玩家服务和会话 TTL 创建认证服务。
-func NewService(authRepo Repository, playerService player.Service, sessionTTL time.Duration) *GameAuthService {
+// ServiceConfig 聚合认证服务所需的仓储、玩家服务、会话 TTL 和指标。
+type ServiceConfig struct {
+	AuthRepository Repository
+	PlayerService  player.Service
+	SessionTTL     time.Duration
+	Metrics        *Metrics
+}
+
+// NewService 使用配置创建认证服务。
+func NewService(config ServiceConfig) *GameAuthService {
 	return &GameAuthService{
-		authRepo:      authRepo,
-		playerService: playerService,
-		sessionTTL:    sessionTTL,
+		authRepo:      config.AuthRepository,
+		playerService: config.PlayerService,
+		sessionTTL:    config.SessionTTL,
+		metrics:       config.Metrics,
 	}
 }
 
@@ -54,12 +63,14 @@ type GameAuthService struct {
 	authRepo      Repository
 	playerService player.Service
 	sessionTTL    time.Duration
+	metrics       *Metrics
 }
 
 // Register 创建绑定玩家的账号，并立即创建登录会话。
-func (g *GameAuthService) Register(ctx context.Context, input RegisterInput) (*AuthorizeResult, error) {
-	if err := ctx.Err(); err != nil {
-		return nil, err
+func (g *GameAuthService) Register(ctx context.Context, input RegisterInput) (authorized *AuthorizeResult, err error) {
+	defer func() { g.observeAttempt("register", err) }()
+	if ctxErr := ctx.Err(); ctxErr != nil {
+		return nil, ctxErr
 	}
 	if input.Username == "" {
 		return nil, ErrInvalidUsername
@@ -82,7 +93,7 @@ func (g *GameAuthService) Register(ctx context.Context, input RegisterInput) (*A
 		return nil, err
 	}
 
-	result, err := g.authRepo.RegisterAccount(ctx, RegisterAccountInput{
+	registerResult, err := g.authRepo.RegisterAccount(ctx, RegisterAccountInput{
 		Username:         input.Username,
 		PasswordHash:     passwordHash,
 		Nickname:         input.Nickname,
@@ -96,17 +107,18 @@ func (g *GameAuthService) Register(ctx context.Context, input RegisterInput) (*A
 		logging.Error("register account failed username=%s: %v", input.Username, err)
 		return nil, err
 	}
-	logging.Info("account registered username=%s player_id=%d", input.Username, result.Player.ID)
+	logging.Info("account registered username=%s player_id=%d", input.Username, registerResult.Player.ID)
 	return &AuthorizeResult{
-		Session: result.Session,
-		Player:  result.Player,
+		Session: registerResult.Session,
+		Player:  registerResult.Player,
 	}, nil
 }
 
 // Login 校验用户名和密码后创建新的登录会话。
-func (g *GameAuthService) Login(ctx context.Context, input LoginInput) (*AuthorizeResult, error) {
-	if err := ctx.Err(); err != nil {
-		return nil, err
+func (g *GameAuthService) Login(ctx context.Context, input LoginInput) (authorized *AuthorizeResult, err error) {
+	defer func() { g.observeAttempt("login", err) }()
+	if ctxErr := ctx.Err(); ctxErr != nil {
+		return nil, ctxErr
 	}
 	if input.Username == "" {
 		return nil, ErrInvalidUsername
@@ -145,9 +157,9 @@ func (g *GameAuthService) Login(ctx context.Context, input LoginInput) (*Authori
 
 	// 每次登录创建独立随机令牌，不复用旧 session；TTL 由 state-server/Redis 执行，
 	// 即使 logic-server 重启也不会让过期会话重新有效。
-	if err := g.authRepo.CreateSession(ctx, session); err != nil {
-		logging.Error("create session failed player_id=%d: %v", account.PlayerID, err)
-		return nil, err
+	if createErr := g.authRepo.CreateSession(ctx, session); createErr != nil {
+		logging.Error("create session failed player_id=%d: %v", account.PlayerID, createErr)
+		return nil, createErr
 	}
 	logging.Info("login succeeded player_id=%d", account.PlayerID)
 
@@ -158,19 +170,31 @@ func (g *GameAuthService) Login(ctx context.Context, input LoginInput) (*Authori
 }
 
 // Logout 删除令牌标识的会话。
-func (g *GameAuthService) Logout(ctx context.Context, token string) error {
-	if err := ctx.Err(); err != nil {
-		return err
+func (g *GameAuthService) Logout(ctx context.Context, token string) (err error) {
+	defer func() { g.observeAttempt("logout", err) }()
+	if ctxErr := ctx.Err(); ctxErr != nil {
+		return ctxErr
 	}
 	if token == "" {
 		return ErrSessionNotFound
 	}
-	if err := g.authRepo.DeleteSession(ctx, token); err != nil {
-		logging.Error("logout failed: %v", err)
-		return err
+	if deleteErr := g.authRepo.DeleteSession(ctx, token); deleteErr != nil {
+		logging.Error("logout failed: %v", deleteErr)
+		return deleteErr
 	}
 	logging.Info("logout succeeded")
 	return nil
+}
+
+func (g *GameAuthService) observeAttempt(operation string, err error) {
+	if g.metrics == nil {
+		return
+	}
+	result := "success"
+	if err != nil {
+		result = "error"
+	}
+	g.metrics.Attempts.WithLabelValues(operation, result).Inc()
 }
 
 // GetSession 返回非空令牌对应的已存储会话。

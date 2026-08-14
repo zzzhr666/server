@@ -19,7 +19,7 @@ func TestHandlerRunRealtimeSubscriberWithoutClient(t *testing.T) {
 
 func TestSubscriberRunReturnsSubscribeError(t *testing.T) {
 	wantErr := errors.New("state unavailable")
-	subscriber := newSubscriber("logic-test", &fakeSubscriberClient{subscribeErr: wantErr}, newConnectionManager())
+	subscriber := newSubscriber("logic-test", &fakeSubscriberClient{subscribeErr: wantErr}, newConnectionManager(), nil)
 	if err := subscriber.Run(context.Background()); !errors.Is(err, wantErr) {
 		t.Fatalf("Run() error = %v, want %v", err, wantErr)
 	}
@@ -32,7 +32,7 @@ func TestSubscriberRunForwardsEventAndStopsOnCancellation(t *testing.T) {
 	connections := newConnectionManager()
 	connections.Add(8, newSession(serverConn))
 	client := newFakeSubscriberClient()
-	subscriber := newSubscriber("logic-test", client, connections)
+	subscriber := newSubscriber("logic-test", client, connections, nil)
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
@@ -66,7 +66,7 @@ func TestSubscriberRunForwardsEventAndStopsOnCancellation(t *testing.T) {
 
 func TestSubscriberRunReturnsNilWhenEventsClose(t *testing.T) {
 	client := newFakeSubscriberClient()
-	subscriber := newSubscriber("logic-test", client, newConnectionManager())
+	subscriber := newSubscriber("logic-test", client, newConnectionManager(), nil)
 	done := make(chan error, 1)
 	go func() {
 		done <- subscriber.Run(context.Background())
@@ -89,7 +89,7 @@ func TestSubscriberRunBroadcastsToLocalConnectionsExceptActor(t *testing.T) {
 	defer receiverClient.Close()
 	connections.Add(7, newSession(actorServer))
 	connections.Add(8, newSession(receiverServer))
-	subscriber := newSubscriber("logic-test", client, connections)
+	subscriber := newSubscriber("logic-test", client, connections, nil)
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	done := make(chan error, 1)

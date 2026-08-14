@@ -32,6 +32,7 @@ type GameCenterService struct {
 	rewardRule           RewardRule
 	growthClient         state.GrowthClient
 	activeMatches        map[int64]ActiveMatch
+	metrics              *Metrics
 }
 
 type ServiceConfig struct {
@@ -39,6 +40,7 @@ type ServiceConfig struct {
 	CoinClient           state.CoinClient
 	RewardRule           RewardRule
 	GrowthClient         state.GrowthClient
+	Metrics              *Metrics
 }
 
 // NewService 创建空的内存 rcenter 服务。
@@ -55,6 +57,7 @@ func NewService(config ServiceConfig) *GameCenterService {
 		rewardRule:           rewardRule,
 		growthClient:         config.GrowthClient,
 		activeMatches:        make(map[int64]ActiveMatch),
+		metrics:              config.Metrics,
 	}
 }
 
@@ -68,9 +71,11 @@ func validateBattleNode(node BattleNode) error {
 // ResumeMatch 返回分配给玩家的活跃战斗连接数据。
 func (g *GameCenterService) ResumeMatch(ctx context.Context, playerID int64) (*MatchResult, error) {
 	if err := ctx.Err(); err != nil {
+		g.observeMatchOperation("resume", "error")
 		return nil, err
 	}
 	if playerID <= 0 {
+		g.observeMatchOperation("resume", "error")
 		return nil, ErrInvalidPlayerID
 	}
 	g.mu.Lock()
@@ -79,9 +84,10 @@ func (g *GameCenterService) ResumeMatch(ctx context.Context, playerID int64) (*M
 	// 内存中的共享对局数据，破坏其他玩家的恢复结果。
 	res, ok := g.activeMatches[playerID]
 	if !ok {
+		g.observeMatchOperation("resume", "error")
 		return nil, ErrActiveMatchNotFound
 	}
-
+	g.observeMatchOperation("resume", "success")
 	return &MatchResult{
 		Status:         MatchStatusMatched,
 		RoomName:       res.RoomName,
@@ -108,6 +114,9 @@ func (g *GameCenterService) RegisterBattleNode(ctx context.Context, node BattleN
 	defer g.mu.Unlock()
 	node.LastSeen = time.Now()
 	g.battleNodes[node.Name] = node
+	if g.metrics != nil {
+		g.metrics.BattleNodes.Set(float64(len(g.battleNodes)))
+	}
 
 	return nil
 }
@@ -126,9 +135,11 @@ func (g *GameCenterService) ListBattleNodes() []BattleNode {
 // StartMatch 将玩家入队，或与等待时间最长的玩家配对。
 func (g *GameCenterService) StartMatch(ctx context.Context, playerID int64, weapon string) (*MatchResult, error) {
 	if err := ctx.Err(); err != nil {
+		g.observeMatchOperation("start", "error")
 		return nil, err
 	}
 	if playerID <= 0 {
+		g.observeMatchOperation("start", "error")
 		return nil, ErrInvalidPlayerID
 	}
 
@@ -138,15 +149,18 @@ func (g *GameCenterService) StartMatch(ctx context.Context, playerID int64, weap
 	_, ok := g.inGamePlayers[playerID]
 	if ok {
 		g.mu.Unlock()
+		g.observeMatchOperation("start", "error")
 		return nil, ErrPlayerInGame
 	}
 	node, ok := g.selectBattleNode()
 	if !ok {
 		g.mu.Unlock()
+		g.observeMatchOperation("start", "error")
 		return nil, ErrNoAvailableBattleNode
 	}
 	if g.isWaiting(playerID) {
 		g.mu.Unlock()
+		g.observeMatchOperation("start", "success")
 		return &MatchResult{
 			Status: MatchStatusWaiting,
 		}, nil
@@ -157,7 +171,11 @@ func (g *GameCenterService) StartMatch(ctx context.Context, playerID int64, weap
 			playerID: playerID,
 			weapon:   weapon,
 		})
+		if g.metrics != nil {
+			g.metrics.MatchQueue.Set(float64(len(g.waitingPlayers)))
+		}
 		g.mu.Unlock()
+		g.observeMatchOperation("start", "success")
 		return &MatchResult{
 			Status: MatchStatusWaiting,
 		}, nil
@@ -165,6 +183,9 @@ func (g *GameCenterService) StartMatch(ctx context.Context, playerID int64, weap
 
 	waitingPlayer := g.waitingPlayers[0]
 	g.waitingPlayers = g.waitingPlayers[1:]
+	if g.metrics != nil {
+		g.metrics.MatchQueue.Set(float64(len(g.waitingPlayers)))
+	}
 
 	roomName := newRandomName("room")
 	token := newRandomName("token")
@@ -179,16 +200,19 @@ func (g *GameCenterService) StartMatch(ctx context.Context, playerID int64, weap
 	// 局外成长在房间创建前读取并随 loadout 下发，战斗服后续无需访问局外状态。
 	if g.growthClient == nil {
 		g.clearGameContext(playerIDs)
+		g.observeMatchOperation("start", "error")
 		return nil, ErrUnavailableGrowthClient
 	}
 	waitingGrowth, err := g.growthClient.GetGrowth(ctx, waitingPlayer.playerID)
 	if err != nil {
 		g.clearGameContext(playerIDs)
+		g.observeMatchOperation("start", "error")
 		return nil, err
 	}
 	currentGrowth, err := g.growthClient.GetGrowth(ctx, playerID)
 	if err != nil {
 		g.clearGameContext(playerIDs)
+		g.observeMatchOperation("start", "error")
 		return nil, err
 	}
 
@@ -220,6 +244,7 @@ func (g *GameCenterService) StartMatch(ctx context.Context, playerID int64, weap
 		PlayerLoadouts: playerLoadouts,
 	}); err != nil {
 		g.clearGameContext(playerIDs)
+		g.observeMatchOperation("start", "error")
 		return nil, err
 	}
 
@@ -239,7 +264,10 @@ func (g *GameCenterService) StartMatch(ctx context.Context, playerID int64, weap
 	for _, player := range playerIDs {
 		g.activeMatches[player] = activeMatch
 	}
-
+	if g.metrics != nil {
+		g.metrics.ActiveMatchPlayers.Set(float64(len(g.activeMatches)))
+	}
+	g.observeMatchOperation("start", "success")
 	return &MatchResult{
 		Status:         MatchStatusMatched,
 		RoomName:       roomName,
@@ -254,14 +282,17 @@ func (g *GameCenterService) StartMatch(ctx context.Context, playerID int64, weap
 // FinishMatch 释放已匹配玩家，使其可再次进入匹配。
 func (g *GameCenterService) FinishMatch(ctx context.Context, input FinishMatchInput) error {
 	if err := ctx.Err(); err != nil {
+		g.observeMatchOperation("finish", "error")
 		return err
 	}
 	for _, playerID := range input.PlayerIDs {
 		if playerID <= 0 {
+			g.observeMatchOperation("finish", "error")
 			return ErrInvalidPlayerID
 		}
 	}
 	if len(input.PlayerStats) > 0 && g.coinClient == nil {
+		g.observeMatchOperation("finish", "error")
 		return ErrUnavailableCoinClient
 	}
 	// 只有带统计的胜负结束会产生奖励。断线超时仅携带 PlayerIDs，下面不会写金币，
@@ -269,6 +300,7 @@ func (g *GameCenterService) FinishMatch(ctx context.Context, input FinishMatchIn
 	for _, stat := range input.PlayerStats {
 		reward, err := CalculateCoinReward(stat, input.Reason, g.rewardRule)
 		if err != nil {
+			g.observeMatchOperation("finish", "error")
 			return err
 		}
 		_, err = g.coinClient.AddPlayerCoins(ctx, state.AddPlayerCoinsInput{
@@ -276,10 +308,12 @@ func (g *GameCenterService) FinishMatch(ctx context.Context, input FinishMatchIn
 			Amount:   reward,
 		})
 		if err != nil {
+			g.observeMatchOperation("finish", "error")
 			return err
 		}
 	}
 	g.clearGameContext(input.PlayerIDs)
+	g.observeMatchOperation("finish", "success")
 	return nil
 }
 
@@ -310,9 +344,11 @@ func (g *GameCenterService) isWaiting(playerID int64) bool {
 // CancelMatch 将等待中的玩家移出匹配队列。
 func (g *GameCenterService) CancelMatch(ctx context.Context, playerID int64) error {
 	if err := ctx.Err(); err != nil {
+		g.observeMatchOperation("cancel", "error")
 		return err
 	}
 	if playerID <= 0 {
+		g.observeMatchOperation("cancel", "error")
 		return ErrInvalidPlayerID
 	}
 	g.mu.Lock()
@@ -320,9 +356,14 @@ func (g *GameCenterService) CancelMatch(ctx context.Context, playerID int64) err
 	for i, waitingPlayer := range g.waitingPlayers {
 		if waitingPlayer.playerID == playerID {
 			g.waitingPlayers = append(g.waitingPlayers[:i], g.waitingPlayers[i+1:]...)
+			if g.metrics != nil {
+				g.metrics.MatchQueue.Set(float64(len(g.waitingPlayers)))
+			}
+			g.observeMatchOperation("cancel", "success")
 			return nil
 		}
 	}
+	g.observeMatchOperation("cancel", "error")
 	return ErrPlayerNotWaiting
 }
 
@@ -344,4 +385,14 @@ func (g *GameCenterService) clearGameContext(playIDs []int64) {
 		delete(g.inGamePlayers, playerID)
 		delete(g.activeMatches, playerID)
 	}
+	if g.metrics != nil {
+		g.metrics.ActiveMatchPlayers.Set(float64(len(g.activeMatches)))
+	}
+}
+
+func (g *GameCenterService) observeMatchOperation(operation, result string) {
+	if g.metrics == nil {
+		return
+	}
+	g.metrics.MatchOperations.WithLabelValues(operation, result).Inc()
 }
