@@ -20,7 +20,7 @@
  * \ingroup process_docs
  *
  * \defgroup go_shared 共享基础设施
- * \brief 各 Go 进程共用的配置和客户端适配。
+ * \brief 各 Go 进程共用的配置、日志、指标和客户端适配。
  * \ingroup process_docs
  * \}
  */

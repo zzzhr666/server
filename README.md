@@ -1,29 +1,50 @@
-# 游戏服务端
+# 🚀 游戏服务端
+
+[![Go](https://img.shields.io/badge/Go-1.26-00ADD8?logo=go&logoColor=white)](https://go.dev/)
+[![C%2B%2B](https://img.shields.io/badge/C%2B%2B-20-00599C?logo=cplusplus&logoColor=white)](https://isocpp.org/)
+[![gRPC](https://img.shields.io/badge/gRPC-protobuf-244C5A?logo=googlecloud&logoColor=white)](https://grpc.io/)
+[![Docker Compose](https://img.shields.io/badge/Docker_Compose-2496ED?logo=docker&logoColor=white)](https://docs.docker.com/compose/)
+[![Prometheus](https://img.shields.io/badge/Prometheus-3.5-E6522C?logo=prometheus&logoColor=white)](https://prometheus.io/)
 
 本仓库是一个本地开发用的多人动作游戏服务端。Go 服务负责局外大厅，C++ `battle-server` 负责局内战斗。客户端通过 HTTP 完成注册登录，通过原生 TCP 操作大厅，并通过 UDP 参与战斗。
 
 当前实现包含账号、好友、在线状态、局外成长、双人匹配、世界聊天、好友私聊、聊天历史分页、实时聊天推送、四种初始武器、波次战斗、升级祝福、结算奖励，以及断线重连和无人房间清理。
 
-## 服务与端口
+## ✨ 核心特性
 
-| 服务                    | 对宿主机暴露                   | 职责                                 |
-|-----------------------|--------------------------|------------------------------------|
-| `nginx`               | HTTP `:8080`、TCP `:8081` | 客户端入口，分别转发 HTTP API 和局外实时连接        |
-| `logic-1`、`logic-2`   | 否                        | HTTP 注册登录、TCP 认证、好友、在线状态、局外成长、聊天和匹配入口 |
-| `state`               | 否                        | Go 侧状态服务，唯一直接访问 Redis 与 MongoDB 的业务进程 |
-| `rcenter`             | 否                        | battle 节点注册、匹配队列、活跃对局与结算           |
-| `battle-1`、`battle-2` | UDP `:7001`、`:7002`      | 房间、UDP 会话、战斗 tick、ECS 和快照广播        |
-| Redis                 | 否                        | 账号、玩家、会话、好友、在线状态、成长与实时事件路由       |
-| MongoDB               | 否                        | `chat_messages` 聊天消息持久化；TTL 和频道索引由 state-server 启动时创建 |
+| 方向 | 当前实现 |
+| --- | --- |
+| 分层架构 | `logic-server`、`state-server`、`rcenter-server` 和 C++ `battle-server` 按职责拆分，状态访问、匹配调度和战斗模拟边界清晰。 |
+| 多协议链路 | HTTP 承载认证入口，TCP 承载大厅长连接，UDP 承载局内实时交互，gRPC + protobuf 负责服务间通信和契约管理。 |
+| 连接管理 | 覆盖 TCP 认证、连接替换、心跳、登出、UDP conversation、端点重绑、断线检测、重连和超时清理。 |
+| 实时系统 | Redis 路由区分 `server` 定向投递和 `broadcast` 全局广播，`RealtimeDelivery` 统一封装路由与事件，支持跨 logic 实例转发。 |
+| 聊天与持久化 | 世界聊天和好友私聊支持幂等写入、昵称下发、历史分页、容量裁剪、TTL 过期和 MongoDB 索引查询。 |
+| 战斗运行时 | C++20 ECS 使用固定系统顺序，BattleRuntime 负责房间生命周期、固定频率 Tick、快照广播、结算回调和无人房间回收。 |
+| 可观测性 | Go 使用统一结构化日志和 Prometheus 指标，C++ 使用 spdlog 和 Prometheus 指标；日志关注已发生事件，指标关注当前负载和趋势。 |
+| 工程化验证 | Go 与 C++ 分别维护单元测试和服务测试，协议从 `proto/` 生成，Docker Compose 提供完整依赖和 Prometheus 抓取环境。 |
 
-## 快速开始
+详细设计见 [架构文档](docs/architecture.md)、[接口文档](docs/api.md)、[指标文档](docs/metrics.md) 和 [Battle ECS 设计](battle-server/ecs/design.md)。
 
-运行服务依赖 Docker Desktop 和 Docker Compose。Go、CMake、protobuf/gRPC 工具链只在本地运行测试或重新生成协议时需要。
+## 🧩 技术架构
+
+![服务运行拓扑](docs/diagrams/runtime-topology.svg)
+
+局外请求从 Nginx 进入 `logic-server`，由 `state-server` 负责持久化状态，由 `rcenter-server` 负责匹配和战斗节点调度；匹配完成后，客户端切换到 C++ `battle-server` 的 UDP 战斗链路。详细数据流见 [架构文档](docs/architecture.md)。
+
+## 🚀 快速开始
+
+默认使用 Docker Compose 启动完整服务，不要求本地安装 Go 或 C++ 运行时。
 
 构建并启动全部服务：
 
 ```bash
 docker compose up -d --build
+```
+
+局域网游玩时，将 `SERVER_LAN_IP` 设置为运行服务器主机的局域网 IPv4 地址；该地址会随匹配结果下发给客户端：
+
+```bash
+SERVER_LAN_IP=192.168.94.115 docker compose up -d --build
 ```
 
 健康检查：
@@ -54,9 +75,33 @@ Prometheus 从所有 Go 服务和两个 Battle 节点的 `:9200/metrics` 抓取�
 docker compose down
 ```
 
-客户端通过 `http://localhost:8080` 注册或登录，取得 token 后连接 `localhost:8081`，首帧完成认证，其余大厅操作（包括好友和聊天）均使用 TCP protobuf。logic-server 不直接访问存储，而是通过 state gRPC 读写玩家状态和聊天历史，并订阅本实例的 `server` 路由及全局 `broadcast` 路由。battle-server 分别在 UDP `:7001` 和 `:7002` 上接受客户端包；本地下发地址为 `127.0.0.1`，其他机器访问时应在 `compose.yaml` 中将 `--udp-addr` 改为宿主机可访问地址。
+本机客户端通过 `http://localhost:8080` 注册或登录，局域网客户端使用 `http://<SERVER_LAN_IP>:8080`；取得 token 后再连接对应主机的
+TCP `:8081`，首帧完成认证，其余大厅操作（包括好友和聊天）均使用 TCP protobuf。logic-server 不直接访问存储，而是通过 state gRPC
+读写玩家状态和聊天历史，并订阅本实例的 `server` 路由及全局 `broadcast` 路由。battle-server 分别在 UDP `:7001` 和 `:7002`
+上接受客户端包，并将 Compose 中 `SERVER_LAN_IP` 生成的 UDP 地址随匹配结果下发。
 
-## 常用命令
+局域网客户端需要能够访问服务器主机的 TCP `8080`、`8081` 和 UDP `7001`、`7002` 端口。若 Docker Engine 运行在 WSL2 的 NAT
+网络中，还需要在 WSL/Windows 防火墙中放行这些端口，或启用 WSL mirrored networking；`172.29.*` 的 WSL 内部地址通常不能直接作为局域网客户端地址。
+
+## 🔌 服务与端口
+
+| 服务                    | 对宿主机暴露                   | 职责                                 |
+|-----------------------|--------------------------|------------------------------------|
+| `nginx`               | HTTP `:8080`、TCP `:8081` | 客户端入口，分别转发 HTTP API 和局外实时连接        |
+| `logic-1`、`logic-2`   | 否                        | HTTP 注册登录、TCP 认证、好友、在线状态、局外成长、聊天和匹配入口 |
+| `state`               | 否                        | Go 侧状态服务，唯一直接访问 Redis 与 MongoDB 的业务进程 |
+| `rcenter`             | 否                        | battle 节点注册、匹配队列、活跃对局与结算           |
+| `battle-1`、`battle-2` | UDP `:7001`、`:7002`      | 房间、UDP 会话、战斗 tick、ECS 和快照广播        |
+| Redis                 | 否                        | 账号、玩家、会话、好友、在线状态、成长与实时事件路由       |
+| MongoDB               | 否                        | `chat_messages` 聊天消息持久化；TTL 和频道索引由 state-server 启动时创建 |
+
+## 📦 环境要求
+
+- Linux Docker Engine 与 Docker Compose plugin
+- 本地运行 Go 测试需要 Go 1.26.5
+- 本地构建 Battle 需要 CMake、C++20 工具链和 protobuf/gRPC 依赖
+
+## 🧪 常用命令
 
 ```bash
 # Go 全量测试
@@ -76,7 +121,7 @@ bash scripts/reset_storage.sh
 bash scripts/generate_docs.sh
 ```
 
-## 核心行为
+## 💬 核心行为
 
 - 世界聊天消息写入 MongoDB 后通过 `broadcast` 路由发送到所有 logic-server；每个实例再广播给本机在线连接，发送者通过请求响应看到自己的消息。
 - 私聊消息只允许好友之间发送，写入 MongoDB 后按目标玩家所在 logic-server 投递到 `server` 路由；发送者收到 `chat_sent`，接收者收到 `chat_message_pushed`。
@@ -87,4 +132,12 @@ bash scripts/generate_docs.sh
 - 连续 15 秒未收到有效 UDP 心跳或输入的会话会标记为断开；所有玩家均断开后，房间等待 90 秒后以 `all_players_disconnected` 原因结束并释放玩家。
 - 正常胜利或失败会结算击杀奖励；断线超时结束只释放玩家，不发放奖励。
 
-详细接口见 [docs/api.md](docs/api.md)，服务和战斗架构见 [docs/architecture.md](docs/architecture.md)，ECS 细节见 [battle-server/ecs/design.md](battle-server/ecs/design.md)。
+## 📚 文档导航
+
+| 内容 | 文档 |
+| --- | --- |
+| 服务与战斗架构、数据流、生命周期 | [docs/architecture.md](docs/architecture.md) |
+| HTTP、TCP、聊天和 UDP 协议 | [docs/api.md](docs/api.md) |
+| Prometheus 指标和 PromQL | [docs/metrics.md](docs/metrics.md) |
+| Battle ECS 组件、系统和 Tick 顺序 | [battle-server/ecs/design.md](battle-server/ecs/design.md) |
+| 生成后的 Go/C++ API 文档 | 运行 `bash scripts/generate_docs.sh` 后查看 `docs/site/html/index.html` |

@@ -15,12 +15,14 @@ services:
         /workspace/logs/logic-2
         /workspace/logs/battle-1
         /workspace/logs/battle-2
-        && chmod -R a+rwX /workspace/logs
+        && find /workspace/logs -type d -exec chmod 0777 {} +
+        && find /workspace/logs -type f -exec chmod 0666 {} +
     volumes:
       - .:/workspace
 
   redis:
     image: redis:7.4-alpine
+    restart: unless-stopped
     volumes:
       - game-redis-data:/data
     command:
@@ -38,6 +40,7 @@ services:
     build:
       context: .
       dockerfile: deploy/docker/Dockerfile.state
+    restart: unless-stopped
     environment:
       REDIS_ADDR: "redis:6379"
       MONGO_URI: "mongodb://mongo:27017"
@@ -45,6 +48,12 @@ services:
       STATE_GRPC_ADDR: ":9001"
     volumes:
       - ./logs/state:/app/logs
+    healthcheck:
+      test: [ "CMD", "wget", "-q", "--spider", "http://127.0.0.1:9200/metrics" ]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 5s
     depends_on:
       logs-init:
         condition: service_completed_successfully
@@ -57,21 +66,29 @@ services:
     build:
       context: .
       dockerfile: deploy/docker/Dockerfile.rcenter
+    restart: unless-stopped
     environment:
       STATE_GRPC_ADDR: "state:9001"
       RCENTER_GRPC_ADDR: ":9002"
     volumes:
       - ./logs/rcenter:/app/logs
+    healthcheck:
+      test: [ "CMD", "wget", "-q", "--spider", "http://127.0.0.1:9200/metrics" ]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 5s
     depends_on:
       logs-init:
         condition: service_completed_successfully
       state:
-        condition: service_started
+        condition: service_healthy
 
   logic-1:
     build:
       context: .
       dockerfile: deploy/docker/Dockerfile.logic
+    restart: unless-stopped
     command:
       - "--name"
       - "logic-1"
@@ -80,17 +97,24 @@ services:
       RCENTER_GRPC_ADDR: "rcenter:9002"
     volumes:
       - ./logs/logic-1:/app/logs
+    healthcheck:
+      test: [ "CMD", "wget", "-q", "--spider", "http://127.0.0.1:8080/health" ]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 5s
     depends_on:
       logs-init:
         condition: service_completed_successfully
       state:
-        condition: service_started
+        condition: service_healthy
       rcenter:
-        condition: service_started
+        condition: service_healthy
   logic-2:
     build:
       context: .
       dockerfile: deploy/docker/Dockerfile.logic
+    restart: unless-stopped
     command:
       - "--name"
       - "logic-2"
@@ -99,31 +123,39 @@ services:
       RCENTER_GRPC_ADDR: "rcenter:9002"
     volumes:
       - ./logs/logic-2:/app/logs
+    healthcheck:
+      test: [ "CMD", "wget", "-q", "--spider", "http://127.0.0.1:8080/health" ]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 5s
     depends_on:
       logs-init:
         condition: service_completed_successfully
       state:
-        condition: service_started
+        condition: service_healthy
       rcenter:
-        condition: service_started
+        condition: service_healthy
 
   nginx:
     build:
       context: .
       dockerfile: deploy/docker/Dockerfile.nginx
+    restart: unless-stopped
     ports:
       - "8080:8080"
       - "8081:8081"
     depends_on:
       logic-1:
-        condition: service_started
+        condition: service_healthy
       logic-2:
-        condition: service_started
+        condition: service_healthy
 
   battle-1:
     build:
       context: .
       dockerfile: deploy/docker/Dockerfile.battle
+    restart: unless-stopped
     command:
       - "--node-name"
       - "battle-1"
@@ -132,7 +164,7 @@ services:
       - "--udp-bind-addr"
       - "0.0.0.0:7001"
       - "--udp-addr"
-      - "127.0.0.1:7001"
+      - "${SERVER_LAN_IP:-127.0.0.1}:7001"
       - "--rcenter-addr"
       - "rcenter:9002"
       - "--max-players"
@@ -149,12 +181,13 @@ services:
       logs-init:
         condition: service_completed_successfully
       rcenter:
-        condition: service_started
+        condition: service_healthy
 
   battle-2:
     build:
       context: .
       dockerfile: deploy/docker/Dockerfile.battle
+    restart: unless-stopped
     command:
       - "--node-name"
       - "battle-2"
@@ -163,7 +196,7 @@ services:
       - "--udp-bind-addr"
       - "0.0.0.0:7002"
       - "--udp-addr"
-      - "127.0.0.1:7002"
+      - "${SERVER_LAN_IP:-127.0.0.1}:7002"
       - "--rcenter-addr"
       - "rcenter:9002"
       - "--max-players"
@@ -180,13 +213,12 @@ services:
       logs-init:
         condition: service_completed_successfully
       rcenter:
-        condition: service_started
+        condition: service_healthy
   mongo:
     image: mongo:8.0
+    restart: unless-stopped
     command:
       - "mongod"
-      - "--replSet"
-      - "rs0"
       - "--bind_ip_all"
     volumes:
       - game-mongo-data:/data/db
@@ -198,6 +230,7 @@ services:
       start_period: 5s
   prometheus:
     image: prom/prometheus:v3.5.0
+    restart: unless-stopped
     command:
       - "--config.file=/etc/prometheus/prometheus.yml"
     volumes:
@@ -206,19 +239,19 @@ services:
       - "9090:9090"
     depends_on:
       logic-1:
-        condition: service_started
+        condition: service_healthy
       logic-2:
-        condition: service_started
+        condition: service_healthy
       state:
-        condition: service_started
+        condition: service_healthy
       rcenter:
-        condition: service_started
+        condition: service_healthy
       battle-1:
         condition: service_started
       battle-2:
         condition: service_started
 volumes:
   game-redis-data:
-    external: true
+    name: "game-redis-data"
   game-mongo-data:
     name: "game-mongo-data"

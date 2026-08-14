@@ -7,6 +7,7 @@ CREATE_SUBDIRS         = NO
 INPUT                  = ../README.md \
                          api.md \
                          architecture.md \
+                         metrics.md \
                          go-api.dox \
                          battle-server-overview.dox \
                          ../battle-server \

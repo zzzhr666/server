@@ -12,4 +12,5 @@
  * - **玩法**：\ref battle::WavePlanner 、\ref battle::SpawnPlanner 和 \ref battle::WeaponDefinition 定义波次、出生点和武器。
  * - **网络**：\ref battle::UdpServer 解析 UDP 协议并将输入转交会话与运行时。
  * - **注册与结算**：\ref battle::NodeRegistrar 和 \ref battle::RCenterClient 定期注册节点并回传战斗结束结果。
+ * - **可观测性**：\ref battle::MetricsServer 暴露 Prometheus 端点，\ref battle::BattleMetrics 记录房间、会话、UDP、控制面和 Tick 指标。
  */
