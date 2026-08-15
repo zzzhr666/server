@@ -1,5 +1,9 @@
 FROM nginx:1.27-alpine
 
+ENV TZ=Asia/Shanghai
+
+RUN apk add --no-cache tzdata
+
 COPY deploy/nginx/logic.docker.conf /etc/nginx/nginx.conf
 
 EXPOSE 8080 8081

@@ -51,6 +51,7 @@ RUN cmake -S battle-server -B /build -G Ninja \
 FROM ubuntu:24.04
 
 ENV DEBIAN_FRONTEND=noninteractive
+ENV TZ=Asia/Shanghai
 
 RUN apt-get update \
       && apt-get install -y --no-install-recommends \
@@ -58,6 +59,7 @@ RUN apt-get update \
           libprometheus-cpp-core1.0 \
           libprometheus-cpp-pull1.0 \
           libspdlog1.12 \
+          tzdata \
           zlib1g \
       && rm -rf /var/lib/apt/lists/* \
       && groupadd --system app \

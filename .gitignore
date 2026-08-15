@@ -1,6 +1,7 @@
 /.agents/
 /.codex/
 /.idea/
+/.env
 
 /AGENTS.md
 /tmp/

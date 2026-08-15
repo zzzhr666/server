@@ -10,7 +10,11 @@ RUN CGO_ENABLED=0 GOOS=linux go build -trimpath -o /out/logic-server ./cmd/logic
 
 FROM alpine:3.22
 
-RUN addgroup -S app && adduser -S app -G app
+ENV TZ=Asia/Shanghai
+
+RUN apk add --no-cache tzdata \
+      && addgroup -S app \
+      && adduser -S app -G app
 
 WORKDIR /app
 

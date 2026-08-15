@@ -35,16 +35,17 @@
 
 默认使用 Docker Compose 启动完整服务，不要求本地安装 Go 或 C++ 运行时。
 
-构建并启动全部服务：
+首次启动前创建本机局域网配置，再构建并启动全部服务：
 
 ```bash
+cp .env.example .env
 docker compose up -d --build
 ```
 
-局域网游玩时，将 `SERVER_LAN_IP` 设置为运行服务器主机的局域网 IPv4 地址；该地址会随匹配结果下发给客户端：
+将 `.env` 中的 `SERVER_LAN_IP` 设置为运行服务器主机的局域网 IPv4 地址。Compose 后续会自动读取该配置，这个地址会随匹配结果下发给客户端：
 
-```bash
-SERVER_LAN_IP=192.168.94.115 docker compose up -d --build
+```dotenv
+SERVER_LAN_IP=192.168.94.115
 ```
 
 健康检查：
@@ -82,6 +83,11 @@ TCP `:8081`，首帧完成认证，其余大厅操作（包括好友和聊天）
 
 局域网客户端需要能够访问服务器主机的 TCP `8080`、`8081` 和 UDP `7001`、`7002` 端口。若 Docker Engine 运行在 WSL2 的 NAT
 网络中，还需要在 WSL/Windows 防火墙中放行这些端口，或启用 WSL mirrored networking；`172.29.*` 的 WSL 内部地址通常不能直接作为局域网客户端地址。
+在服务器主机的管理员 PowerShell 中执行以下脚本，可一次性添加仅允许本地子网访问的 Windows 防火墙规则：
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\configure_lan_firewall.ps1
+```
 
 ## 🔌 服务与端口
 
