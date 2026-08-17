@@ -21,7 +21,7 @@ func NewRCenterRepository(client rCenterClient) *RCenterRepository {
 	return &RCenterRepository{client: client}
 }
 
-// StartMatch 将开始匹配请求转发给 rcenter。
+// StartMatch 将单人或双人开始匹配请求转发给 rcenter。
 func (r *RCenterRepository) StartMatch(ctx context.Context, playerID int64, weapon string, solo bool) (*rcenter.MatchResult, error) {
 	return r.client.StartMatch(ctx, playerID, weapon, solo)
 }

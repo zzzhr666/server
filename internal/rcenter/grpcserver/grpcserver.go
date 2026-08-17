@@ -29,7 +29,7 @@ func (s *Server) RegisterBattleNode(ctx context.Context, req *rcenterpb.Register
 }
 
 // ListBattleNodes 处理战斗节点列表请求。
-func (s *Server) ListBattleNodes(ctx context.Context, req *rcenterpb.ListBattleNodesRequest) (*rcenterpb.ListBattleNodesResponse, error) {
+func (s *Server) ListBattleNodes(context.Context, *rcenterpb.ListBattleNodesRequest) (*rcenterpb.ListBattleNodesResponse, error) {
 	currentNodes := s.center.ListBattleNodes()
 	respNodes := make([]*rcenterpb.BattleNode, 0, len(currentNodes))
 	for _, node := range currentNodes {
@@ -41,7 +41,7 @@ func (s *Server) ListBattleNodes(ctx context.Context, req *rcenterpb.ListBattleN
 
 }
 
-// StartMatch 处理玩家匹配请求。
+// StartMatch 处理玩家发起单人对局或双人匹配的请求。
 func (s *Server) StartMatch(ctx context.Context, req *rcenterpb.StartMatchRequest) (*rcenterpb.StartMatchResponse, error) {
 	res, err := s.center.StartMatch(ctx, req.GetPlayerId(), req.GetWeapon(), req.GetSolo())
 	if err != nil {
