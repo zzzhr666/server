@@ -52,7 +52,9 @@ type PlayerLoadout struct {
 	MoveSpeedLevel   int32
 }
 
+// FinishMatchInput 描述战斗服上报的一次对局结束及权威战斗统计。
 type FinishMatchInput struct {
+	RoomName    string
 	PlayerIDs   []int64
 	Reason      string
 	PlayerStats []PlayerBattleStats

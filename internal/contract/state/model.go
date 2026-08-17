@@ -29,6 +29,23 @@ type Player struct {
 	Coins    int64
 }
 
+// PlayerCoinReward 描述一名玩家在一次对局结算中获得的金币。
+type PlayerCoinReward struct {
+	PlayerID int64
+	Amount   int64
+}
+
+// SettleMatchRewardsInput 描述一次以稳定结算 ID 标识的多人奖励发放。
+type SettleMatchRewardsInput struct {
+	SettlementID string
+	Rewards      []PlayerCoinReward
+}
+
+// SettleMatchRewardsResult 表示本次调用是否实际发放了奖励。
+type SettleMatchRewardsResult struct {
+	Applied bool
+}
+
 // Growth 保存玩家局外成长等级。
 type Growth struct {
 	PlayerID         int64
@@ -173,21 +190,9 @@ type GrowthClient interface {
 	UpgradeGrowth(ctx context.Context, input UpgradeGrowthInput) (*UpgradeGrowthResult, error)
 }
 
-// AddPlayerCoinsInput 描述一次玩家金币变更。
-type AddPlayerCoinsInput struct {
-	PlayerID int64
-	Amount   int64
-}
-
-// AddPlayerCoinsResult 返回金币变更后的玩家金币数量。
-type AddPlayerCoinsResult struct {
-	PlayerID int64
-	Coins    int64
-}
-
 // CoinClient 定义 state-server 提供的金币状态操作。
 type CoinClient interface {
-	AddPlayerCoins(ctx context.Context, input AddPlayerCoinsInput) (*AddPlayerCoinsResult, error)
+	SettleMatchRewards(ctx context.Context, input SettleMatchRewardsInput) (*SettleMatchRewardsResult, error)
 }
 
 // ChatClient 定义 state-server 提供的聊天消息持久化操作。

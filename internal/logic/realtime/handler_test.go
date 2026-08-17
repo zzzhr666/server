@@ -65,6 +65,74 @@ func TestHandlerServeSessionAuthenticatesRefreshesAndCleansUp(t *testing.T) {
 	}
 }
 
+func TestHandlerServeSessionTimesOutAuthenticatedIdleConnection(t *testing.T) {
+	authService := &fakeHandlerAuth{session: &auth.Session{PlayerID: 7}}
+	presenceService := &fakeHandlerPresence{}
+	handler := NewHandler(HandlerConfig{
+		AuthService:     authService,
+		PresenceService: presenceService,
+		ServerName:      "logic-test",
+		IdleTimeout:     20 * time.Millisecond,
+	})
+	serverConn, clientConn, done := startHandlerSession(t, handler)
+	defer serverConn.Close()
+	defer clientConn.Close()
+
+	authenticateSession(t, clientConn)
+	waitForHandler(t, done)
+
+	if _, ok := handler.connManager.Get(7); ok {
+		t.Fatal("idle connection remains registered after timeout")
+	}
+	if got := presenceService.offlineCallCount(); got != 1 {
+		t.Fatalf("MarkOffline calls = %d, want 1 after idle timeout", got)
+	}
+}
+
+func TestHandlerServeSessionRefreshesIdleDeadlineAfterBusinessPacket(t *testing.T) {
+	serverConn, clientConn := net.Pipe()
+	defer serverConn.Close()
+	defer clientConn.Close()
+	conn := &readDeadlineControlConn{Conn: serverConn}
+	handler := NewHandler(HandlerConfig{
+		AuthService:     &fakeHandlerAuth{session: &auth.Session{PlayerID: 7}},
+		PresenceService: &fakeHandlerPresence{},
+		PlayerService:   &handlerMethodPlayerService{result: &player.Player{ID: 7, Nickname: "player-7"}},
+		ServerName:      "logic-test",
+		IdleTimeout:     time.Second,
+	})
+	done := make(chan struct{})
+	go func() {
+		defer close(done)
+		handler.serveSession(context.Background(), newSession(conn))
+	}()
+
+	authenticateSession(t, clientConn)
+	writeClientEnvelope(t, clientConn, &realtimepb.ClientEnvelope{
+		RequestId: 2,
+		Payload: &realtimepb.ClientEnvelope_PlayerGet{
+			PlayerGet: &realtimepb.PlayerGetRequest{},
+		},
+	})
+	response := readServerEnvelopeWithDeadline(t, clientConn)
+	if response.GetRequestId() != 2 || response.GetPlayer().GetPlayer().GetId() != 7 {
+		t.Fatalf("player response = %v, want player 7 for request 2", response)
+	}
+
+	deadlines := waitForReadDeadlines(t, conn, 4)
+	if deadlines[0].IsZero() || !deadlines[1].IsZero() || deadlines[2].IsZero() || deadlines[3].IsZero() {
+		t.Fatalf("read deadlines = %v, want authentication set/clear followed by two idle deadlines", deadlines)
+	}
+	if !deadlines[3].After(deadlines[2]) {
+		t.Fatalf("refreshed idle deadline = %v, want after previous deadline %v", deadlines[3], deadlines[2])
+	}
+
+	if err := clientConn.Close(); err != nil {
+		t.Fatalf("close client connection: %v", err)
+	}
+	waitForHandler(t, done)
+}
+
 func TestHandlerServeSessionRejectsNonAuthenticationFirstMessage(t *testing.T) {
 	authService := &fakeHandlerAuth{}
 	presenceService := &fakeHandlerPresence{}
@@ -84,6 +152,103 @@ func TestHandlerServeSessionRejectsNonAuthenticationFirstMessage(t *testing.T) {
 	}
 	if got := presenceService.onlineCallCount(); got != 0 {
 		t.Fatalf("MarkOnline calls = %d, want 0", got)
+	}
+}
+
+func TestHandlerServeSessionTimesOutBeforeAuthentication(t *testing.T) {
+	authService := &fakeHandlerAuth{}
+	presenceService := &fakeHandlerPresence{}
+	handler := NewHandler(HandlerConfig{
+		AuthService:           authService,
+		PresenceService:       presenceService,
+		ServerName:            "logic-test",
+		AuthenticationTimeout: 20 * time.Millisecond,
+	})
+	serverConn, clientConn, done := startHandlerSession(t, handler)
+	defer serverConn.Close()
+	defer clientConn.Close()
+
+	waitForHandler(t, done)
+	if got := authService.getSessionCallCount(); got != 0 {
+		t.Fatalf("GetSession calls = %d, want 0 after authentication timeout", got)
+	}
+	if got := presenceService.onlineCallCount(); got != 0 {
+		t.Fatalf("MarkOnline calls = %d, want 0 after authentication timeout", got)
+	}
+}
+
+func TestHandlerAuthenticateAppliesAndClearsReadDeadline(t *testing.T) {
+	serverConn, clientConn := net.Pipe()
+	defer serverConn.Close()
+	defer clientConn.Close()
+	conn := &readDeadlineControlConn{Conn: serverConn}
+	handler := NewHandler(HandlerConfig{
+		AuthService:           &fakeHandlerAuth{session: &auth.Session{PlayerID: 7}},
+		AuthenticationTimeout: time.Second,
+	})
+
+	result := startHandlerAuthentication(handler, newSession(conn))
+	writeClientEnvelope(t, clientConn, authenticateEnvelope(9, "session-token"))
+	got := waitForHandlerAuthentication(t, result)
+
+	if !got.ok || got.authSession == nil || got.authSession.PlayerID != 7 || got.requestID != 9 {
+		t.Fatalf("handleAuthenticate() = (%v, %d, %t), want player 7, request 9, true", got.authSession, got.requestID, got.ok)
+	}
+	deadlines := conn.readDeadlines()
+	if len(deadlines) != 2 {
+		t.Fatalf("SetReadDeadline calls = %d, want 2", len(deadlines))
+	}
+	if deadlines[0].IsZero() {
+		t.Fatal("authentication read deadline = zero, want bounded deadline")
+	}
+	if !deadlines[1].IsZero() {
+		t.Fatalf("cleared authentication read deadline = %v, want zero", deadlines[1])
+	}
+}
+
+func TestHandlerAuthenticateStopsWhenSettingReadDeadlineFails(t *testing.T) {
+	wantErr := errors.New("set read deadline failed")
+	serverConn, clientConn := net.Pipe()
+	defer serverConn.Close()
+	defer clientConn.Close()
+	authService := &fakeHandlerAuth{session: &auth.Session{PlayerID: 7}}
+	handler := NewHandler(HandlerConfig{AuthService: authService})
+
+	authSession, requestID, ok := handler.handleAuthenticate(context.Background(), newSession(&readDeadlineControlConn{
+		Conn:   serverConn,
+		setErr: wantErr,
+	}))
+
+	if ok || authSession != nil || requestID != 0 {
+		t.Fatalf("handleAuthenticate() = (%v, %d, %t), want nil, 0, false", authSession, requestID, ok)
+	}
+	if got := authService.getSessionCallCount(); got != 0 {
+		t.Fatalf("GetSession calls = %d, want 0 after setting read deadline fails", got)
+	}
+}
+
+func TestHandlerAuthenticateStopsWhenClearingReadDeadlineFails(t *testing.T) {
+	wantErr := errors.New("clear read deadline failed")
+	serverConn, clientConn := net.Pipe()
+	defer serverConn.Close()
+	defer clientConn.Close()
+	conn := &readDeadlineControlConn{Conn: serverConn, clearErr: wantErr}
+	authService := &fakeHandlerAuth{session: &auth.Session{PlayerID: 7}}
+	handler := NewHandler(HandlerConfig{AuthService: authService})
+
+	result := startHandlerAuthentication(handler, newSession(conn))
+	writeClientEnvelope(t, clientConn, authenticateEnvelope(9, "session-token"))
+	got := waitForHandlerAuthentication(t, result)
+
+	if got.ok || got.authSession != nil || got.requestID != 0 {
+		t.Fatalf("handleAuthenticate() = (%v, %d, %t), want nil, 0, false", got.authSession, got.requestID, got.ok)
+	}
+	if calls := authService.getSessionCallCount(); calls != 0 {
+		t.Fatalf("GetSession calls = %d, want 0 after clearing read deadline fails", calls)
+	}
+	deadlines := conn.readDeadlines()
+	if len(deadlines) != 2 || deadlines[0].IsZero() || !deadlines[1].IsZero() {
+		t.Fatalf("read deadlines = %v, want bounded deadline followed by zero", deadlines)
 	}
 }
 
@@ -157,6 +322,70 @@ func TestHandlerServeSessionReplacesConnectionOnExistingLogicServer(t *testing.T
 		t.Fatalf("close client connection: %v", err)
 	}
 	waitForHandler(t, done)
+}
+
+func TestHandlerDoesNotPublishConnectionReplacementToCurrentLogicServer(t *testing.T) {
+	presenceService := &fakeHandlerPresence{getResult: &presence.Presence{PlayerID: 7, ServerName: "logic-test"}}
+	realtimeClient := &fakeHandlerRealtimeClient{}
+	handler := NewHandler(HandlerConfig{
+		PresenceService: presenceService,
+		ServerName:      "logic-test",
+		RealtimeClient:  realtimeClient,
+	})
+
+	handler.replaceExistingConnection(context.Background(), 7)
+
+	if published, ok := realtimeClient.publishedEvent(); ok {
+		t.Fatalf("published event = %+v, want no cross-server replacement event for current logic server", published)
+	}
+}
+
+func TestHandlerServeSessionReplacesLocalConnectionWithoutClosingNewConnection(t *testing.T) {
+	presenceService := &fakeHandlerPresence{getResult: &presence.Presence{PlayerID: 7, ServerName: "logic-test"}}
+	realtimeClient := &fakeHandlerRealtimeClient{}
+	handler := NewHandler(HandlerConfig{
+		AuthService:     &fakeHandlerAuth{session: &auth.Session{PlayerID: 7}},
+		PresenceService: presenceService,
+		ServerName:      "logic-test",
+		RealtimeClient:  realtimeClient,
+	})
+
+	oldServerConn, oldClientConn, oldDone := startHandlerSession(t, handler)
+	defer oldServerConn.Close()
+	defer oldClientConn.Close()
+	authenticateSession(t, oldClientConn)
+
+	newServerConn, newClientConn, newDone := startHandlerSession(t, handler)
+	defer newServerConn.Close()
+	defer newClientConn.Close()
+	writeClientEnvelope(t, newClientConn, authenticateEnvelope(2, "session-token"))
+
+	replaced := readServerEnvelopeWithDeadline(t, oldClientConn)
+	if replaced.GetConnectionReplaced() == nil {
+		t.Fatalf("old connection response = %v, want connection replaced", replaced)
+	}
+	waitForHandler(t, oldDone)
+
+	authenticated := readServerEnvelopeWithDeadline(t, newClientConn)
+	if authenticated.GetRequestId() != 2 || authenticated.GetAuthenticated().GetPlayerId() != 7 {
+		t.Fatalf("new connection response = %v, want authenticated player 7 for request 2", authenticated)
+	}
+	writeClientEnvelope(t, newClientConn, heartbeatEnvelope(3))
+	heartbeat := readServerEnvelopeWithDeadline(t, newClientConn)
+	if heartbeat.GetRequestId() != 3 || heartbeat.GetHeartbeatAck() == nil {
+		t.Fatalf("new connection heartbeat response = %v, want heartbeat ack for request 3", heartbeat)
+	}
+	if published, ok := realtimeClient.publishedEvent(); ok {
+		t.Fatalf("published event = %+v, want local replacement without realtime publish", published)
+	}
+
+	if err := newClientConn.Close(); err != nil {
+		t.Fatalf("close new client connection: %v", err)
+	}
+	waitForHandler(t, newDone)
+	if got := presenceService.offlineCallCount(); got != 1 {
+		t.Fatalf("MarkOffline calls = %d, want only the current connection to mark offline", got)
+	}
 }
 
 func TestHandlerServeSessionContinuesWhenConnectionReplacementPublishFails(t *testing.T) {
@@ -561,6 +790,32 @@ func waitForHandler(t *testing.T, done <-chan struct{}) {
 	}
 }
 
+type handlerAuthenticationResult struct {
+	authSession *auth.Session
+	requestID   uint64
+	ok          bool
+}
+
+func startHandlerAuthentication(handler *Handler, session *session) <-chan handlerAuthenticationResult {
+	result := make(chan handlerAuthenticationResult, 1)
+	go func() {
+		authSession, requestID, ok := handler.handleAuthenticate(context.Background(), session)
+		result <- handlerAuthenticationResult{authSession: authSession, requestID: requestID, ok: ok}
+	}()
+	return result
+}
+
+func waitForHandlerAuthentication(t *testing.T, result <-chan handlerAuthenticationResult) handlerAuthenticationResult {
+	t.Helper()
+	select {
+	case got := <-result:
+		return got
+	case <-time.After(time.Second):
+		t.Fatal("handleAuthenticate did not return")
+		return handlerAuthenticationResult{}
+	}
+}
+
 func authenticateEnvelope(requestID uint64, token string) *realtimepb.ClientEnvelope {
 	return &realtimepb.ClientEnvelope{
 		RequestId: requestID,
@@ -810,6 +1065,47 @@ func (f *fakeHandlerRealtimeClient) publishedEvent() (publishedHandlerRealtimeEv
 		return publishedHandlerRealtimeEvent{}, false
 	}
 	return f.published[0], true
+}
+
+type readDeadlineControlConn struct {
+	net.Conn
+	mu        sync.Mutex
+	deadlines []time.Time
+	setErr    error
+	clearErr  error
+}
+
+func (c *readDeadlineControlConn) SetReadDeadline(deadline time.Time) error {
+	c.mu.Lock()
+	c.deadlines = append(c.deadlines, deadline)
+	c.mu.Unlock()
+	if deadline.IsZero() && c.clearErr != nil {
+		return c.clearErr
+	}
+	if !deadline.IsZero() && c.setErr != nil {
+		return c.setErr
+	}
+	return c.Conn.SetReadDeadline(deadline)
+}
+
+func (c *readDeadlineControlConn) readDeadlines() []time.Time {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	return append([]time.Time(nil), c.deadlines...)
+}
+
+func waitForReadDeadlines(t *testing.T, conn *readDeadlineControlConn, count int) []time.Time {
+	t.Helper()
+	deadline := time.Now().Add(time.Second)
+	for time.Now().Before(deadline) {
+		deadlines := conn.readDeadlines()
+		if len(deadlines) >= count {
+			return deadlines
+		}
+		time.Sleep(time.Millisecond)
+	}
+	t.Fatalf("SetReadDeadline calls = %d, want at least %d", len(conn.readDeadlines()), count)
+	return nil
 }
 
 func (f *fakeHandlerPresence) MarkOffline(context.Context, int64, string) error {

@@ -28,18 +28,16 @@ func (c *Client) UpdatePlayerAvatar(ctx context.Context, playerID int64, avatar 
 	return stateproto.FromProtoPlayer(res.GetPlayer()), nil
 }
 
-func (c *Client) AddPlayerCoins(ctx context.Context, input state.AddPlayerCoinsInput) (*state.AddPlayerCoinsResult, error) {
-	res, err := c.grpc.AddPlayerCoins(ctx, &statepb.AddPlayerCoinsRequest{
-		PlayerId: input.PlayerID,
-		Amount:   input.Amount,
+// SettleMatchRewards 通过 state-server 原子、幂等地发放一场对局的多人奖励。
+func (c *Client) SettleMatchRewards(ctx context.Context, input state.SettleMatchRewardsInput) (*state.SettleMatchRewardsResult, error) {
+	res, err := c.grpc.SettleMatchRewards(ctx, &statepb.SettleMatchRewardRequest{
+		SettlementId: input.SettlementID,
+		Rewards:      stateproto.ToProtoSettleMatchRewards(input.Rewards),
 	})
 	if err != nil {
 		return nil, mapGRPCError(err)
 	}
-	return &state.AddPlayerCoinsResult{
-		PlayerID: res.GetPlayerId(),
-		Coins:    res.GetCoins(),
-	}, nil
+	return &state.SettleMatchRewardsResult{Applied: res.GetApplied()}, nil
 }
 
 func (c *Client) GetGrowth(ctx context.Context, playerID int64) (*state.Growth, error) {
@@ -377,7 +375,8 @@ func mapGRPCError(err error) error {
 			return state.ErrInvalidChatMessage
 		case state.ErrInvalidChatChannel.Error():
 			return state.ErrInvalidChatChannel
-
+		case state.ErrInvalidSettlement.Error():
+			return state.ErrInvalidSettlement
 		}
 	case codes.FailedPrecondition:
 		switch st.Message() {

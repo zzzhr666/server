@@ -3451,6 +3451,7 @@ class FinishMatchRequest final : public ::google::protobuf::Message
     kPlayerIdsFieldNumber = 1,
     kPlayerStatsFieldNumber = 3,
     kReasonFieldNumber = 2,
+    kRoomNameFieldNumber = 4,
   };
   // repeated int64 player_ids = 1;
   int player_ids_size() const;
@@ -3502,12 +3503,27 @@ class FinishMatchRequest final : public ::google::protobuf::Message
   ::std::string* PROTOBUF_NONNULL _internal_mutable_reason();
 
   public:
+  // string room_name = 4;
+  void clear_room_name() ;
+  const ::std::string& room_name() const;
+  template <typename Arg_ = const ::std::string&, typename... Args_>
+  void set_room_name(Arg_&& arg, Args_... args);
+  ::std::string* PROTOBUF_NONNULL mutable_room_name();
+  [[nodiscard]] ::std::string* PROTOBUF_NULLABLE release_room_name();
+  void set_allocated_room_name(::std::string* PROTOBUF_NULLABLE value);
+
+  private:
+  const ::std::string& _internal_room_name() const;
+  PROTOBUF_ALWAYS_INLINE void _internal_set_room_name(const ::std::string& value);
+  ::std::string* PROTOBUF_NONNULL _internal_mutable_room_name();
+
+  public:
   // @@protoc_insertion_point(class_scope:rcenter.v1.FinishMatchRequest)
  private:
   class _Internal;
   friend class ::google::protobuf::internal::TcParser;
-  static const ::google::protobuf::internal::TcParseTable<2, 3,
-                                   1, 44,
+  static const ::google::protobuf::internal::TcParseTable<2, 4,
+                                   1, 53,
                                    2>
       _table_;
 
@@ -3532,6 +3548,7 @@ class FinishMatchRequest final : public ::google::protobuf::Message
     ::google::protobuf::internal::CachedSize _player_ids_cached_byte_size_;
     ::google::protobuf::RepeatedPtrField< ::rcenter::v1::PlayerBattleStats > player_stats_;
     ::google::protobuf::internal::ArenaStringPtr reason_;
+    ::google::protobuf::internal::ArenaStringPtr room_name_;
     PROTOBUF_TSAN_DECLARE_MEMBER
   };
   union { Impl_ _impl_; };
@@ -4802,6 +4819,71 @@ inline ::google::protobuf::RepeatedPtrField<::rcenter::v1::PlayerBattleStats>* P
 FinishMatchRequest::_internal_mutable_player_stats() {
   ::google::protobuf::internal::TSanRead(&_impl_);
   return &_impl_.player_stats_;
+}
+
+// string room_name = 4;
+inline void FinishMatchRequest::clear_room_name() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.room_name_.ClearToEmpty();
+  _impl_._has_bits_[0] &= ~0x00000002u;
+}
+inline const ::std::string& FinishMatchRequest::room_name() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:rcenter.v1.FinishMatchRequest.room_name)
+  return _internal_room_name();
+}
+template <typename Arg_, typename... Args_>
+PROTOBUF_ALWAYS_INLINE void FinishMatchRequest::set_room_name(Arg_&& arg, Args_... args) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_._has_bits_[0] |= 0x00000002u;
+  _impl_.room_name_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
+  // @@protoc_insertion_point(field_set:rcenter.v1.FinishMatchRequest.room_name)
+}
+inline ::std::string* PROTOBUF_NONNULL FinishMatchRequest::mutable_room_name()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  ::std::string* _s = _internal_mutable_room_name();
+  // @@protoc_insertion_point(field_mutable:rcenter.v1.FinishMatchRequest.room_name)
+  return _s;
+}
+inline const ::std::string& FinishMatchRequest::_internal_room_name() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.room_name_.Get();
+}
+inline void FinishMatchRequest::_internal_set_room_name(const ::std::string& value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_._has_bits_[0] |= 0x00000002u;
+  _impl_.room_name_.Set(value, GetArena());
+}
+inline ::std::string* PROTOBUF_NONNULL FinishMatchRequest::_internal_mutable_room_name() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_._has_bits_[0] |= 0x00000002u;
+  return _impl_.room_name_.Mutable( GetArena());
+}
+inline ::std::string* PROTOBUF_NULLABLE FinishMatchRequest::release_room_name() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  // @@protoc_insertion_point(field_release:rcenter.v1.FinishMatchRequest.room_name)
+  if ((_impl_._has_bits_[0] & 0x00000002u) == 0) {
+    return nullptr;
+  }
+  _impl_._has_bits_[0] &= ~0x00000002u;
+  auto* released = _impl_.room_name_.Release();
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString()) {
+    _impl_.room_name_.Set("", GetArena());
+  }
+  return released;
+}
+inline void FinishMatchRequest::set_allocated_room_name(::std::string* PROTOBUF_NULLABLE value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (value != nullptr) {
+    _impl_._has_bits_[0] |= 0x00000002u;
+  } else {
+    _impl_._has_bits_[0] &= ~0x00000002u;
+  }
+  _impl_.room_name_.SetAllocated(value, GetArena());
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.room_name_.IsDefault()) {
+    _impl_.room_name_.Set("", GetArena());
+  }
+  // @@protoc_insertion_point(field_set_allocated:rcenter.v1.FinishMatchRequest.room_name)
 }
 
 // -------------------------------------------------------------------

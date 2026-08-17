@@ -45,3 +45,7 @@ func (s *session) Write(e *realtimepb.ServerEnvelope) error {
 	}()
 	return writeServerEnvelope(s.conn, e)
 }
+
+func (s *session) setReadDeadline(deadline time.Time) error {
+	return s.conn.SetReadDeadline(deadline)
+}

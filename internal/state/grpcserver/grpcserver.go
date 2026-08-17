@@ -70,19 +70,17 @@ func (s *Server) ListChatMessages(ctx context.Context, request *statepb.ListChat
 	}, nil
 }
 
-func (s *Server) AddPlayerCoins(ctx context.Context, request *statepb.AddPlayerCoinsRequest) (*statepb.AddPlayerCoinsResponse, error) {
-	res, err := s.coinClient.AddPlayerCoins(ctx, state.AddPlayerCoinsInput{
-		PlayerID: request.GetPlayerId(),
-		Amount:   request.GetAmount(),
+// SettleMatchRewards 处理一场对局的原子、幂等奖励结算请求。
+func (s *Server) SettleMatchRewards(ctx context.Context, request *statepb.SettleMatchRewardRequest) (*statepb.SettleMatchRewardResponse, error) {
+	res, err := s.coinClient.SettleMatchRewards(ctx, state.SettleMatchRewardsInput{
+		SettlementID: request.GetSettlementId(),
+		Rewards:      stateproto.FromProtoSettleMatchRewards(request.GetRewards()),
 	})
 	if err != nil {
 		return nil, mapStateError(err)
 	}
 
-	return &statepb.AddPlayerCoinsResponse{
-		PlayerId: res.PlayerID,
-		Coins:    res.Coins,
-	}, nil
+	return &statepb.SettleMatchRewardResponse{Applied: res.Applied}, nil
 }
 
 func (s *Server) GetGrowth(ctx context.Context, request *statepb.GetGrowthRequest) (*statepb.GetGrowthResponse, error) {

@@ -64,6 +64,7 @@ message FinishMatchRequest {
   repeated int64 player_ids = 1;
   string reason = 2;
   repeated PlayerBattleStats player_stats = 3;
+  string room_name = 4;
 }
 
 message PlayerBattleStats {

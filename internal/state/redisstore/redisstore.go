@@ -13,31 +13,74 @@ import (
 
 const nextPlayerIDKey = "game:next_player_id"
 const optimisticLockRetries = 3
+const settlementRetention = 7 * 24 * time.Hour
 
 // Store 在 Redis 中持久化状态契约模型。
 type Store struct {
 	client *redis.Client
 }
 
-func (s *Store) AddPlayerCoins(ctx context.Context, input state.AddPlayerCoinsInput) (*state.AddPlayerCoinsResult, error) {
-	if input.PlayerID <= 0 || input.Amount <= 0 {
-		return nil, state.ErrInvalidPlayer
+// SettleMatchRewards 使用乐观事务原子发放多人奖励，并按结算 ID 保证幂等。
+func (s *Store) SettleMatchRewards(ctx context.Context, input state.SettleMatchRewardsInput) (*state.SettleMatchRewardsResult, error) {
+	if input.SettlementID == "" || len(input.Rewards) == 0 {
+		return nil, state.ErrInvalidSettlement
 	}
-	key := playerKey(input.PlayerID)
-	exists, err := s.client.Exists(ctx, key).Result()
+
+	playerIDs := make(map[int64]struct{}, len(input.Rewards))
+	markerKey := settlementKey(input.SettlementID)
+	watchKeys := []string{markerKey}
+	for _, playerReward := range input.Rewards {
+		if playerReward.PlayerID <= 0 || playerReward.Amount <= 0 {
+			return nil, state.ErrInvalidPlayer
+		}
+		if _, ok := playerIDs[playerReward.PlayerID]; ok {
+			return nil, state.ErrInvalidSettlement
+		}
+		watchKeys = append(watchKeys, playerKey(playerReward.PlayerID))
+		playerIDs[playerReward.PlayerID] = struct{}{}
+	}
+	applied := false
+	err := retryOptimisticLock(ctx, func() error {
+		return s.client.Watch(ctx, func(tx *redis.Tx) error {
+			applied = false
+			exists, err := tx.Exists(ctx, markerKey).Result()
+			if err != nil {
+				return err
+			}
+			if exists > 0 {
+				return nil
+			}
+			newCoins := make([]int64, len(input.Rewards))
+			for i, reward := range input.Rewards {
+				coins, err := tx.HGet(ctx, playerKey(reward.PlayerID), "coins").Int64()
+				if errors.Is(err, redis.Nil) {
+					return state.ErrPlayerNotFound
+				} else if err != nil {
+					return state.ErrInvalidPlayer
+				} else if coins < 0 || coins > (1<<63-1)-reward.Amount {
+					return state.ErrInvalidPlayer
+				}
+				newCoins[i] = coins + reward.Amount
+			}
+			_, err = tx.TxPipelined(ctx, func(pipeliner redis.Pipeliner) error {
+				for i, reward := range input.Rewards {
+					pipeliner.HSet(ctx, playerKey(reward.PlayerID), "coins", newCoins[i])
+				}
+				pipeliner.Set(ctx, markerKey, "applied", settlementRetention)
+				return nil
+			})
+			if err != nil {
+				return err
+			}
+			applied = true
+			return nil
+		}, watchKeys...)
+	})
 	if err != nil {
 		return nil, err
 	}
-	if exists == 0 {
-		return nil, state.ErrPlayerNotFound
-	}
-	coins, err := s.client.HIncrBy(ctx, key, "coins", input.Amount).Result()
-	if err != nil {
-		return nil, err
-	}
-	return &state.AddPlayerCoinsResult{
-		PlayerID: input.PlayerID,
-		Coins:    coins,
+	return &state.SettleMatchRewardsResult{
+		Applied: applied,
 	}, nil
 }
 
@@ -916,6 +959,10 @@ func friendsKey(playerID int64) string {
 
 func realtimeChannelKey(serverName string) string {
 	return "game:realtime:" + serverName
+}
+
+func settlementKey(settlementID string) string {
+	return "game:settlement:" + settlementID
 }
 
 func validateFriendPair(fromPlayerID, toPlayerID int64) error {

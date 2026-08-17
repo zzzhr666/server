@@ -486,7 +486,7 @@ func TestServiceFinishMatchAllowsPlayersToMatchAgain(t *testing.T) {
 		t.Fatalf("second StartMatch returned error: %v", err)
 	}
 
-	if err := svc.FinishMatch(context.Background(), FinishMatchInput{PlayerIDs: matched.PlayerIDs}); err != nil {
+	if err := svc.FinishMatch(context.Background(), FinishMatchInput{RoomName: matched.RoomName, PlayerIDs: matched.PlayerIDs}); err != nil {
 		t.Fatalf("FinishMatch returned error: %v", err)
 	}
 	for _, playerID := range matched.PlayerIDs {
@@ -501,6 +501,62 @@ func TestServiceFinishMatchAllowsPlayersToMatchAgain(t *testing.T) {
 	}
 	if result.Status != MatchStatusWaiting {
 		t.Fatalf("status = %q, want %q", result.Status, MatchStatusWaiting)
+	}
+}
+
+func TestServiceFinishMatchDoesNotClearNewerRoom(t *testing.T) {
+	svc := newTestService()
+	svc.inGamePlayers[7] = struct{}{}
+	svc.activeMatches[7] = ActiveMatch{RoomName: "room-new", PlayerIDs: []int64{7}}
+
+	if err := svc.FinishMatch(context.Background(), FinishMatchInput{
+		RoomName:  "room-old",
+		PlayerIDs: []int64{7},
+	}); err != nil {
+		t.Fatalf("delayed FinishMatch returned error: %v", err)
+	}
+	if active := svc.activeMatches[7]; active.RoomName != "room-new" {
+		t.Fatalf("active room = %q, want room-new", active.RoomName)
+	}
+	if _, ok := svc.inGamePlayers[7]; !ok {
+		t.Fatal("newer room in-game marker was cleared by delayed callback")
+	}
+}
+
+func TestServiceFinishMatchRequiresRoomName(t *testing.T) {
+	svc := newTestService()
+
+	err := svc.FinishMatch(context.Background(), FinishMatchInput{PlayerIDs: []int64{7}})
+	if !errors.Is(err, ErrInvalidRoomName) {
+		t.Fatalf("FinishMatch error = %v, want %v", err, ErrInvalidRoomName)
+	}
+}
+
+func TestServiceFinishMatchRejectsIncompleteRewardStats(t *testing.T) {
+	coins := &fakeCoinClient{}
+	svc := NewService(ServiceConfig{
+		CoinClient: coins,
+		RewardRule: DefaultRewardRule(),
+	})
+	svc.inGamePlayers[7] = struct{}{}
+	svc.inGamePlayers[8] = struct{}{}
+	activeMatch := ActiveMatch{RoomName: "room-1", PlayerIDs: []int64{7, 8}}
+	svc.activeMatches[7] = activeMatch
+	svc.activeMatches[8] = activeMatch
+
+	err := svc.FinishMatch(context.Background(), FinishMatchInput{
+		RoomName:    "room-1",
+		PlayerIDs:   []int64{7, 8},
+		PlayerStats: []PlayerBattleStats{{PlayerID: 7}},
+	})
+	if !errors.Is(err, ErrInvalidBattleStats) {
+		t.Fatalf("FinishMatch error = %v, want %v", err, ErrInvalidBattleStats)
+	}
+	if coins.calls != 0 {
+		t.Fatalf("settlement calls = %d, want 0", coins.calls)
+	}
+	if len(svc.activeMatches) != 2 {
+		t.Fatalf("active matches = %d, want 2", len(svc.activeMatches))
 	}
 }
 
@@ -535,6 +591,7 @@ func TestServiceFinishMatchAddsCoinRewards(t *testing.T) {
 	}
 
 	err = svc.FinishMatch(context.Background(), FinishMatchInput{
+		RoomName:  matched.RoomName,
 		PlayerIDs: matched.PlayerIDs,
 		Reason:    BattleFinishReasonVictory,
 		PlayerStats: []PlayerBattleStats{
@@ -557,12 +614,15 @@ func TestServiceFinishMatchAddsCoinRewards(t *testing.T) {
 	if err != nil {
 		t.Fatalf("FinishMatch returned error: %v", err)
 	}
-	wantInputs := []statecontract.AddPlayerCoinsInput{
-		{PlayerID: 7, Amount: 170},
-		{PlayerID: 8, Amount: 185},
+	wantInput := statecontract.SettleMatchRewardsInput{
+		SettlementID: matched.RoomName,
+		Rewards: []statecontract.PlayerCoinReward{
+			{PlayerID: 7, Amount: 170},
+			{PlayerID: 8, Amount: 185},
+		},
 	}
-	if !reflect.DeepEqual(coins.inputs, wantInputs) {
-		t.Fatalf("coin inputs = %+v, want %+v", coins.inputs, wantInputs)
+	if coins.calls != 1 || !reflect.DeepEqual(coins.input, wantInput) {
+		t.Fatalf("settlement calls = %d input = %+v, want one call with %+v", coins.calls, coins.input, wantInput)
 	}
 
 	result, err := svc.StartMatch(context.Background(), 7, "")
@@ -592,9 +652,11 @@ func TestServiceFinishMatchRejectsRewardsWithoutCoinClient(t *testing.T) {
 	}
 
 	err = svc.FinishMatch(context.Background(), FinishMatchInput{
+		RoomName:  matched.RoomName,
 		PlayerIDs: matched.PlayerIDs,
 		PlayerStats: []PlayerBattleStats{
 			{PlayerID: 7},
+			{PlayerID: 8},
 		},
 	})
 	if !errors.Is(err, ErrUnavailableCoinClient) {
@@ -631,9 +693,11 @@ func TestServiceFinishMatchReturnsCoinErrorWithoutReleasingPlayers(t *testing.T)
 	}
 
 	err = svc.FinishMatch(context.Background(), FinishMatchInput{
+		RoomName:  matched.RoomName,
 		PlayerIDs: matched.PlayerIDs,
 		PlayerStats: []PlayerBattleStats{
 			{PlayerID: 7},
+			{PlayerID: 8},
 		},
 	})
 	if !errors.Is(err, wantErr) {
@@ -649,7 +713,7 @@ func TestServiceFinishMatchReturnsCoinErrorWithoutReleasingPlayers(t *testing.T)
 func TestServiceFinishMatchInvalidPlayer(t *testing.T) {
 	svc := newTestService()
 
-	err := svc.FinishMatch(context.Background(), FinishMatchInput{PlayerIDs: []int64{7, 0}})
+	err := svc.FinishMatch(context.Background(), FinishMatchInput{RoomName: "room-1", PlayerIDs: []int64{7, 0}})
 	if !errors.Is(err, ErrInvalidPlayerID) {
 		t.Fatalf("FinishMatch error = %v, want %v", err, ErrInvalidPlayerID)
 	}
@@ -664,11 +728,13 @@ func TestServiceFinishMatchRecordsOperationMetrics(t *testing.T) {
 		t.Fatalf("canceled FinishMatch error = %v, want %v", err, context.Canceled)
 	}
 	if err := NewService(ServiceConfig{Metrics: metrics}).FinishMatch(context.Background(), FinishMatchInput{
+		RoomName:  "room-1",
 		PlayerIDs: []int64{0},
 	}); !errors.Is(err, ErrInvalidPlayerID) {
 		t.Fatalf("invalid FinishMatch error = %v, want %v", err, ErrInvalidPlayerID)
 	}
 	if err := NewService(ServiceConfig{Metrics: metrics}).FinishMatch(context.Background(), FinishMatchInput{
+		RoomName:    "room-1",
 		PlayerIDs:   []int64{7},
 		PlayerStats: []PlayerBattleStats{{PlayerID: 7}},
 	}); !errors.Is(err, ErrUnavailableCoinClient) {
@@ -680,6 +746,7 @@ func TestServiceFinishMatchRecordsOperationMetrics(t *testing.T) {
 		RewardRule: DefaultRewardRule(),
 		Metrics:    metrics,
 	}).FinishMatch(context.Background(), FinishMatchInput{
+		RoomName:    "room-1",
 		PlayerIDs:   []int64{7},
 		PlayerStats: []PlayerBattleStats{{PlayerID: 7, TotalKills: -1}},
 	}); !errors.Is(err, ErrInvalidBattleStats) {
@@ -692,6 +759,7 @@ func TestServiceFinishMatchRecordsOperationMetrics(t *testing.T) {
 		RewardRule: DefaultRewardRule(),
 		Metrics:    metrics,
 	}).FinishMatch(context.Background(), FinishMatchInput{
+		RoomName:    "room-1",
 		PlayerIDs:   []int64{7},
 		PlayerStats: []PlayerBattleStats{{PlayerID: 7}},
 	}); !errors.Is(err, wantCoinErr) {
@@ -699,6 +767,7 @@ func TestServiceFinishMatchRecordsOperationMetrics(t *testing.T) {
 	}
 
 	if err := NewService(ServiceConfig{Metrics: metrics}).FinishMatch(context.Background(), FinishMatchInput{
+		RoomName:  "room-1",
 		PlayerIDs: []int64{7, 8},
 	}); err != nil {
 		t.Fatalf("successful FinishMatch returned error: %v", err)
@@ -779,7 +848,7 @@ func TestServiceStartMatchRecordsOperationMetrics(t *testing.T) {
 		t.Fatalf("start success metric = %v, want 3", got)
 	}
 
-	if err := svc.FinishMatch(context.Background(), FinishMatchInput{PlayerIDs: matched.PlayerIDs}); err != nil {
+	if err := svc.FinishMatch(context.Background(), FinishMatchInput{RoomName: matched.RoomName, PlayerIDs: matched.PlayerIDs}); err != nil {
 		t.Fatalf("FinishMatch returned error: %v", err)
 	}
 	if got := gaugeValue(t, metrics.ActiveMatchPlayers); got != 0 {
@@ -965,19 +1034,22 @@ func (f *fakeBattleRoomCreator) CreateRoom(ctx context.Context, nodeName string,
 }
 
 type fakeCoinClient struct {
-	inputs []statecontract.AddPlayerCoinsInput
+	input  statecontract.SettleMatchRewardsInput
+	result *statecontract.SettleMatchRewardsResult
+	calls  int
 	err    error
 }
 
-func (f *fakeCoinClient) AddPlayerCoins(_ context.Context, input statecontract.AddPlayerCoinsInput) (*statecontract.AddPlayerCoinsResult, error) {
-	f.inputs = append(f.inputs, input)
+func (f *fakeCoinClient) SettleMatchRewards(_ context.Context, input statecontract.SettleMatchRewardsInput) (*statecontract.SettleMatchRewardsResult, error) {
+	f.input = input
+	f.calls++
 	if f.err != nil {
 		return nil, f.err
 	}
-	return &statecontract.AddPlayerCoinsResult{
-		PlayerID: input.PlayerID,
-		Coins:    input.Amount,
-	}, nil
+	if f.result != nil {
+		return f.result, nil
+	}
+	return &statecontract.SettleMatchRewardsResult{Applied: true}, nil
 }
 
 type fakeGrowthClient struct {

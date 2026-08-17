@@ -246,7 +246,10 @@ func TestFinishMatchAllowsPlayersToMatchAgain(t *testing.T) {
 		t.Fatalf("second StartMatch returned error: %v", err)
 	}
 
-	if _, err := server.FinishMatch(context.Background(), &rcenterpb.FinishMatchRequest{PlayerIds: matched.GetResult().GetPlayerIds()}); err != nil {
+	if _, err := server.FinishMatch(context.Background(), &rcenterpb.FinishMatchRequest{
+		RoomName:  matched.GetResult().GetRoomName(),
+		PlayerIds: matched.GetResult().GetPlayerIds(),
+	}); err != nil {
 		t.Fatalf("FinishMatch returned error: %v", err)
 	}
 
@@ -262,7 +265,7 @@ func TestFinishMatchAllowsPlayersToMatchAgain(t *testing.T) {
 func TestFinishMatchInvalidPlayerMapsToInvalidArgument(t *testing.T) {
 	server := NewServer(newTestCenterService())
 
-	_, err := server.FinishMatch(context.Background(), &rcenterpb.FinishMatchRequest{PlayerIds: []int64{7, 0}})
+	_, err := server.FinishMatch(context.Background(), &rcenterpb.FinishMatchRequest{RoomName: "room-1", PlayerIds: []int64{7, 0}})
 	if status.Code(err) != codes.InvalidArgument {
 		t.Fatalf("FinishMatch code = %v, want %v", status.Code(err), codes.InvalidArgument)
 	}
@@ -272,6 +275,7 @@ func TestFinishMatchUnavailableCoinClientMapsToUnavailable(t *testing.T) {
 	server := NewServer(newTestCenterService())
 
 	_, err := server.FinishMatch(context.Background(), &rcenterpb.FinishMatchRequest{
+		RoomName:  "room-1",
 		PlayerIds: []int64{7},
 		PlayerStats: []*rcenterpb.PlayerBattleStats{
 			{PlayerId: 7},
@@ -279,6 +283,30 @@ func TestFinishMatchUnavailableCoinClientMapsToUnavailable(t *testing.T) {
 	})
 	if status.Code(err) != codes.Unavailable {
 		t.Fatalf("FinishMatch code = %v, want %v", status.Code(err), codes.Unavailable)
+	}
+}
+
+func TestFinishMatchMissingRoomMapsToInvalidArgument(t *testing.T) {
+	server := NewServer(newTestCenterService())
+
+	_, err := server.FinishMatch(context.Background(), &rcenterpb.FinishMatchRequest{PlayerIds: []int64{7}})
+	if status.Code(err) != codes.InvalidArgument {
+		t.Fatalf("FinishMatch code = %v, want %v", status.Code(err), codes.InvalidArgument)
+	}
+}
+
+func TestFinishMatchIncompleteStatsMapsToInvalidArgument(t *testing.T) {
+	server := NewServer(newTestCenterService())
+
+	_, err := server.FinishMatch(context.Background(), &rcenterpb.FinishMatchRequest{
+		RoomName:  "room-1",
+		PlayerIds: []int64{7, 8},
+		PlayerStats: []*rcenterpb.PlayerBattleStats{
+			{PlayerId: 7},
+		},
+	})
+	if status.Code(err) != codes.InvalidArgument {
+		t.Fatalf("FinishMatch code = %v, want %v", status.Code(err), codes.InvalidArgument)
 	}
 }
 

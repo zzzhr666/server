@@ -1100,7 +1100,7 @@ func (x *NextPlayerIDResponse) GetId() int64 {
 	return 0
 }
 
-type AddPlayerCoinsRequest struct {
+type PlayerCoinReward struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	PlayerId      int64                  `protobuf:"varint,1,opt,name=player_id,json=playerId,proto3" json:"player_id,omitempty"`
 	Amount        int64                  `protobuf:"varint,2,opt,name=amount,proto3" json:"amount,omitempty"`
@@ -1108,20 +1108,20 @@ type AddPlayerCoinsRequest struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *AddPlayerCoinsRequest) Reset() {
-	*x = AddPlayerCoinsRequest{}
+func (x *PlayerCoinReward) Reset() {
+	*x = PlayerCoinReward{}
 	mi := &file_proto_state_v1_state_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *AddPlayerCoinsRequest) String() string {
+func (x *PlayerCoinReward) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*AddPlayerCoinsRequest) ProtoMessage() {}
+func (*PlayerCoinReward) ProtoMessage() {}
 
-func (x *AddPlayerCoinsRequest) ProtoReflect() protoreflect.Message {
+func (x *PlayerCoinReward) ProtoReflect() protoreflect.Message {
 	mi := &file_proto_state_v1_state_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -1133,47 +1133,47 @@ func (x *AddPlayerCoinsRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use AddPlayerCoinsRequest.ProtoReflect.Descriptor instead.
-func (*AddPlayerCoinsRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use PlayerCoinReward.ProtoReflect.Descriptor instead.
+func (*PlayerCoinReward) Descriptor() ([]byte, []int) {
 	return file_proto_state_v1_state_proto_rawDescGZIP(), []int{21}
 }
 
-func (x *AddPlayerCoinsRequest) GetPlayerId() int64 {
+func (x *PlayerCoinReward) GetPlayerId() int64 {
 	if x != nil {
 		return x.PlayerId
 	}
 	return 0
 }
 
-func (x *AddPlayerCoinsRequest) GetAmount() int64 {
+func (x *PlayerCoinReward) GetAmount() int64 {
 	if x != nil {
 		return x.Amount
 	}
 	return 0
 }
 
-type AddPlayerCoinsResponse struct {
+type SettleMatchRewardRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	PlayerId      int64                  `protobuf:"varint,1,opt,name=player_id,json=playerId,proto3" json:"player_id,omitempty"`
-	Coins         int64                  `protobuf:"varint,2,opt,name=coins,proto3" json:"coins,omitempty"`
+	SettlementId  string                 `protobuf:"bytes,1,opt,name=settlement_id,json=settlementId,proto3" json:"settlement_id,omitempty"`
+	Rewards       []*PlayerCoinReward    `protobuf:"bytes,2,rep,name=rewards,proto3" json:"rewards,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *AddPlayerCoinsResponse) Reset() {
-	*x = AddPlayerCoinsResponse{}
+func (x *SettleMatchRewardRequest) Reset() {
+	*x = SettleMatchRewardRequest{}
 	mi := &file_proto_state_v1_state_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *AddPlayerCoinsResponse) String() string {
+func (x *SettleMatchRewardRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*AddPlayerCoinsResponse) ProtoMessage() {}
+func (*SettleMatchRewardRequest) ProtoMessage() {}
 
-func (x *AddPlayerCoinsResponse) ProtoReflect() protoreflect.Message {
+func (x *SettleMatchRewardRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_proto_state_v1_state_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -1185,23 +1185,67 @@ func (x *AddPlayerCoinsResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use AddPlayerCoinsResponse.ProtoReflect.Descriptor instead.
-func (*AddPlayerCoinsResponse) Descriptor() ([]byte, []int) {
+// Deprecated: Use SettleMatchRewardRequest.ProtoReflect.Descriptor instead.
+func (*SettleMatchRewardRequest) Descriptor() ([]byte, []int) {
 	return file_proto_state_v1_state_proto_rawDescGZIP(), []int{22}
 }
 
-func (x *AddPlayerCoinsResponse) GetPlayerId() int64 {
+func (x *SettleMatchRewardRequest) GetSettlementId() string {
 	if x != nil {
-		return x.PlayerId
+		return x.SettlementId
 	}
-	return 0
+	return ""
 }
 
-func (x *AddPlayerCoinsResponse) GetCoins() int64 {
+func (x *SettleMatchRewardRequest) GetRewards() []*PlayerCoinReward {
 	if x != nil {
-		return x.Coins
+		return x.Rewards
 	}
-	return 0
+	return nil
+}
+
+type SettleMatchRewardResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Applied       bool                   `protobuf:"varint,1,opt,name=applied,proto3" json:"applied,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SettleMatchRewardResponse) Reset() {
+	*x = SettleMatchRewardResponse{}
+	mi := &file_proto_state_v1_state_proto_msgTypes[23]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SettleMatchRewardResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SettleMatchRewardResponse) ProtoMessage() {}
+
+func (x *SettleMatchRewardResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_state_v1_state_proto_msgTypes[23]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SettleMatchRewardResponse.ProtoReflect.Descriptor instead.
+func (*SettleMatchRewardResponse) Descriptor() ([]byte, []int) {
+	return file_proto_state_v1_state_proto_rawDescGZIP(), []int{23}
+}
+
+func (x *SettleMatchRewardResponse) GetApplied() bool {
+	if x != nil {
+		return x.Applied
+	}
+	return false
 }
 
 type UpdatePlayerAvatarRequest struct {
@@ -1214,7 +1258,7 @@ type UpdatePlayerAvatarRequest struct {
 
 func (x *UpdatePlayerAvatarRequest) Reset() {
 	*x = UpdatePlayerAvatarRequest{}
-	mi := &file_proto_state_v1_state_proto_msgTypes[23]
+	mi := &file_proto_state_v1_state_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1226,7 +1270,7 @@ func (x *UpdatePlayerAvatarRequest) String() string {
 func (*UpdatePlayerAvatarRequest) ProtoMessage() {}
 
 func (x *UpdatePlayerAvatarRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_state_v1_state_proto_msgTypes[23]
+	mi := &file_proto_state_v1_state_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1239,7 +1283,7 @@ func (x *UpdatePlayerAvatarRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdatePlayerAvatarRequest.ProtoReflect.Descriptor instead.
 func (*UpdatePlayerAvatarRequest) Descriptor() ([]byte, []int) {
-	return file_proto_state_v1_state_proto_rawDescGZIP(), []int{23}
+	return file_proto_state_v1_state_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *UpdatePlayerAvatarRequest) GetPlayerId() int64 {
@@ -1265,7 +1309,7 @@ type UpdatePlayerAvatarResponse struct {
 
 func (x *UpdatePlayerAvatarResponse) Reset() {
 	*x = UpdatePlayerAvatarResponse{}
-	mi := &file_proto_state_v1_state_proto_msgTypes[24]
+	mi := &file_proto_state_v1_state_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1277,7 +1321,7 @@ func (x *UpdatePlayerAvatarResponse) String() string {
 func (*UpdatePlayerAvatarResponse) ProtoMessage() {}
 
 func (x *UpdatePlayerAvatarResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_state_v1_state_proto_msgTypes[24]
+	mi := &file_proto_state_v1_state_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1290,7 +1334,7 @@ func (x *UpdatePlayerAvatarResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdatePlayerAvatarResponse.ProtoReflect.Descriptor instead.
 func (*UpdatePlayerAvatarResponse) Descriptor() ([]byte, []int) {
-	return file_proto_state_v1_state_proto_rawDescGZIP(), []int{24}
+	return file_proto_state_v1_state_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *UpdatePlayerAvatarResponse) GetPlayer() *Player {
@@ -1312,7 +1356,7 @@ type Presence struct {
 
 func (x *Presence) Reset() {
 	*x = Presence{}
-	mi := &file_proto_state_v1_state_proto_msgTypes[25]
+	mi := &file_proto_state_v1_state_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1324,7 +1368,7 @@ func (x *Presence) String() string {
 func (*Presence) ProtoMessage() {}
 
 func (x *Presence) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_state_v1_state_proto_msgTypes[25]
+	mi := &file_proto_state_v1_state_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1337,7 +1381,7 @@ func (x *Presence) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Presence.ProtoReflect.Descriptor instead.
 func (*Presence) Descriptor() ([]byte, []int) {
-	return file_proto_state_v1_state_proto_rawDescGZIP(), []int{25}
+	return file_proto_state_v1_state_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *Presence) GetPlayerId() int64 {
@@ -1378,7 +1422,7 @@ type SetPresenceRequest struct {
 
 func (x *SetPresenceRequest) Reset() {
 	*x = SetPresenceRequest{}
-	mi := &file_proto_state_v1_state_proto_msgTypes[26]
+	mi := &file_proto_state_v1_state_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1390,7 +1434,7 @@ func (x *SetPresenceRequest) String() string {
 func (*SetPresenceRequest) ProtoMessage() {}
 
 func (x *SetPresenceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_state_v1_state_proto_msgTypes[26]
+	mi := &file_proto_state_v1_state_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1403,7 +1447,7 @@ func (x *SetPresenceRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetPresenceRequest.ProtoReflect.Descriptor instead.
 func (*SetPresenceRequest) Descriptor() ([]byte, []int) {
-	return file_proto_state_v1_state_proto_rawDescGZIP(), []int{26}
+	return file_proto_state_v1_state_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *SetPresenceRequest) GetPresence() *Presence {
@@ -1428,7 +1472,7 @@ type SetPresenceResponse struct {
 
 func (x *SetPresenceResponse) Reset() {
 	*x = SetPresenceResponse{}
-	mi := &file_proto_state_v1_state_proto_msgTypes[27]
+	mi := &file_proto_state_v1_state_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1440,7 +1484,7 @@ func (x *SetPresenceResponse) String() string {
 func (*SetPresenceResponse) ProtoMessage() {}
 
 func (x *SetPresenceResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_state_v1_state_proto_msgTypes[27]
+	mi := &file_proto_state_v1_state_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1453,7 +1497,7 @@ func (x *SetPresenceResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetPresenceResponse.ProtoReflect.Descriptor instead.
 func (*SetPresenceResponse) Descriptor() ([]byte, []int) {
-	return file_proto_state_v1_state_proto_rawDescGZIP(), []int{27}
+	return file_proto_state_v1_state_proto_rawDescGZIP(), []int{28}
 }
 
 type GetPresenceRequest struct {
@@ -1465,7 +1509,7 @@ type GetPresenceRequest struct {
 
 func (x *GetPresenceRequest) Reset() {
 	*x = GetPresenceRequest{}
-	mi := &file_proto_state_v1_state_proto_msgTypes[28]
+	mi := &file_proto_state_v1_state_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1477,7 +1521,7 @@ func (x *GetPresenceRequest) String() string {
 func (*GetPresenceRequest) ProtoMessage() {}
 
 func (x *GetPresenceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_state_v1_state_proto_msgTypes[28]
+	mi := &file_proto_state_v1_state_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1490,7 +1534,7 @@ func (x *GetPresenceRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetPresenceRequest.ProtoReflect.Descriptor instead.
 func (*GetPresenceRequest) Descriptor() ([]byte, []int) {
-	return file_proto_state_v1_state_proto_rawDescGZIP(), []int{28}
+	return file_proto_state_v1_state_proto_rawDescGZIP(), []int{29}
 }
 
 func (x *GetPresenceRequest) GetPlayerId() int64 {
@@ -1509,7 +1553,7 @@ type GetPresenceResponse struct {
 
 func (x *GetPresenceResponse) Reset() {
 	*x = GetPresenceResponse{}
-	mi := &file_proto_state_v1_state_proto_msgTypes[29]
+	mi := &file_proto_state_v1_state_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1521,7 +1565,7 @@ func (x *GetPresenceResponse) String() string {
 func (*GetPresenceResponse) ProtoMessage() {}
 
 func (x *GetPresenceResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_state_v1_state_proto_msgTypes[29]
+	mi := &file_proto_state_v1_state_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1534,7 +1578,7 @@ func (x *GetPresenceResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetPresenceResponse.ProtoReflect.Descriptor instead.
 func (*GetPresenceResponse) Descriptor() ([]byte, []int) {
-	return file_proto_state_v1_state_proto_rawDescGZIP(), []int{29}
+	return file_proto_state_v1_state_proto_rawDescGZIP(), []int{30}
 }
 
 func (x *GetPresenceResponse) GetPresence() *Presence {
@@ -1554,7 +1598,7 @@ type ClearPresenceRequest struct {
 
 func (x *ClearPresenceRequest) Reset() {
 	*x = ClearPresenceRequest{}
-	mi := &file_proto_state_v1_state_proto_msgTypes[30]
+	mi := &file_proto_state_v1_state_proto_msgTypes[31]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1566,7 +1610,7 @@ func (x *ClearPresenceRequest) String() string {
 func (*ClearPresenceRequest) ProtoMessage() {}
 
 func (x *ClearPresenceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_state_v1_state_proto_msgTypes[30]
+	mi := &file_proto_state_v1_state_proto_msgTypes[31]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1579,7 +1623,7 @@ func (x *ClearPresenceRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ClearPresenceRequest.ProtoReflect.Descriptor instead.
 func (*ClearPresenceRequest) Descriptor() ([]byte, []int) {
-	return file_proto_state_v1_state_proto_rawDescGZIP(), []int{30}
+	return file_proto_state_v1_state_proto_rawDescGZIP(), []int{31}
 }
 
 func (x *ClearPresenceRequest) GetPlayerId() int64 {
@@ -1604,7 +1648,7 @@ type ClearPresenceResponse struct {
 
 func (x *ClearPresenceResponse) Reset() {
 	*x = ClearPresenceResponse{}
-	mi := &file_proto_state_v1_state_proto_msgTypes[31]
+	mi := &file_proto_state_v1_state_proto_msgTypes[32]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1616,7 +1660,7 @@ func (x *ClearPresenceResponse) String() string {
 func (*ClearPresenceResponse) ProtoMessage() {}
 
 func (x *ClearPresenceResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_state_v1_state_proto_msgTypes[31]
+	mi := &file_proto_state_v1_state_proto_msgTypes[32]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1629,7 +1673,7 @@ func (x *ClearPresenceResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ClearPresenceResponse.ProtoReflect.Descriptor instead.
 func (*ClearPresenceResponse) Descriptor() ([]byte, []int) {
-	return file_proto_state_v1_state_proto_rawDescGZIP(), []int{31}
+	return file_proto_state_v1_state_proto_rawDescGZIP(), []int{32}
 }
 
 type RefreshPresenceRequest struct {
@@ -1644,7 +1688,7 @@ type RefreshPresenceRequest struct {
 
 func (x *RefreshPresenceRequest) Reset() {
 	*x = RefreshPresenceRequest{}
-	mi := &file_proto_state_v1_state_proto_msgTypes[32]
+	mi := &file_proto_state_v1_state_proto_msgTypes[33]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1656,7 +1700,7 @@ func (x *RefreshPresenceRequest) String() string {
 func (*RefreshPresenceRequest) ProtoMessage() {}
 
 func (x *RefreshPresenceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_state_v1_state_proto_msgTypes[32]
+	mi := &file_proto_state_v1_state_proto_msgTypes[33]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1669,7 +1713,7 @@ func (x *RefreshPresenceRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RefreshPresenceRequest.ProtoReflect.Descriptor instead.
 func (*RefreshPresenceRequest) Descriptor() ([]byte, []int) {
-	return file_proto_state_v1_state_proto_rawDescGZIP(), []int{32}
+	return file_proto_state_v1_state_proto_rawDescGZIP(), []int{33}
 }
 
 func (x *RefreshPresenceRequest) GetPlayerId() int64 {
@@ -1708,7 +1752,7 @@ type RefreshPresenceResponse struct {
 
 func (x *RefreshPresenceResponse) Reset() {
 	*x = RefreshPresenceResponse{}
-	mi := &file_proto_state_v1_state_proto_msgTypes[33]
+	mi := &file_proto_state_v1_state_proto_msgTypes[34]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1720,7 +1764,7 @@ func (x *RefreshPresenceResponse) String() string {
 func (*RefreshPresenceResponse) ProtoMessage() {}
 
 func (x *RefreshPresenceResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_state_v1_state_proto_msgTypes[33]
+	mi := &file_proto_state_v1_state_proto_msgTypes[34]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1733,7 +1777,7 @@ func (x *RefreshPresenceResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RefreshPresenceResponse.ProtoReflect.Descriptor instead.
 func (*RefreshPresenceResponse) Descriptor() ([]byte, []int) {
-	return file_proto_state_v1_state_proto_rawDescGZIP(), []int{33}
+	return file_proto_state_v1_state_proto_rawDescGZIP(), []int{34}
 }
 
 type FriendRequest struct {
@@ -1747,7 +1791,7 @@ type FriendRequest struct {
 
 func (x *FriendRequest) Reset() {
 	*x = FriendRequest{}
-	mi := &file_proto_state_v1_state_proto_msgTypes[34]
+	mi := &file_proto_state_v1_state_proto_msgTypes[35]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1759,7 +1803,7 @@ func (x *FriendRequest) String() string {
 func (*FriendRequest) ProtoMessage() {}
 
 func (x *FriendRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_state_v1_state_proto_msgTypes[34]
+	mi := &file_proto_state_v1_state_proto_msgTypes[35]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1772,7 +1816,7 @@ func (x *FriendRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FriendRequest.ProtoReflect.Descriptor instead.
 func (*FriendRequest) Descriptor() ([]byte, []int) {
-	return file_proto_state_v1_state_proto_rawDescGZIP(), []int{34}
+	return file_proto_state_v1_state_proto_rawDescGZIP(), []int{35}
 }
 
 func (x *FriendRequest) GetFromPlayer() int64 {
@@ -1806,7 +1850,7 @@ type SendFriendRequestRequest struct {
 
 func (x *SendFriendRequestRequest) Reset() {
 	*x = SendFriendRequestRequest{}
-	mi := &file_proto_state_v1_state_proto_msgTypes[35]
+	mi := &file_proto_state_v1_state_proto_msgTypes[36]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1818,7 +1862,7 @@ func (x *SendFriendRequestRequest) String() string {
 func (*SendFriendRequestRequest) ProtoMessage() {}
 
 func (x *SendFriendRequestRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_state_v1_state_proto_msgTypes[35]
+	mi := &file_proto_state_v1_state_proto_msgTypes[36]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1831,7 +1875,7 @@ func (x *SendFriendRequestRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SendFriendRequestRequest.ProtoReflect.Descriptor instead.
 func (*SendFriendRequestRequest) Descriptor() ([]byte, []int) {
-	return file_proto_state_v1_state_proto_rawDescGZIP(), []int{35}
+	return file_proto_state_v1_state_proto_rawDescGZIP(), []int{36}
 }
 
 func (x *SendFriendRequestRequest) GetFromPlayerId() int64 {
@@ -1856,7 +1900,7 @@ type SendFriendRequestResponse struct {
 
 func (x *SendFriendRequestResponse) Reset() {
 	*x = SendFriendRequestResponse{}
-	mi := &file_proto_state_v1_state_proto_msgTypes[36]
+	mi := &file_proto_state_v1_state_proto_msgTypes[37]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1868,7 +1912,7 @@ func (x *SendFriendRequestResponse) String() string {
 func (*SendFriendRequestResponse) ProtoMessage() {}
 
 func (x *SendFriendRequestResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_state_v1_state_proto_msgTypes[36]
+	mi := &file_proto_state_v1_state_proto_msgTypes[37]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1881,7 +1925,7 @@ func (x *SendFriendRequestResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SendFriendRequestResponse.ProtoReflect.Descriptor instead.
 func (*SendFriendRequestResponse) Descriptor() ([]byte, []int) {
-	return file_proto_state_v1_state_proto_rawDescGZIP(), []int{36}
+	return file_proto_state_v1_state_proto_rawDescGZIP(), []int{37}
 }
 
 type ListFriendRequestRequest struct {
@@ -1893,7 +1937,7 @@ type ListFriendRequestRequest struct {
 
 func (x *ListFriendRequestRequest) Reset() {
 	*x = ListFriendRequestRequest{}
-	mi := &file_proto_state_v1_state_proto_msgTypes[37]
+	mi := &file_proto_state_v1_state_proto_msgTypes[38]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1905,7 +1949,7 @@ func (x *ListFriendRequestRequest) String() string {
 func (*ListFriendRequestRequest) ProtoMessage() {}
 
 func (x *ListFriendRequestRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_state_v1_state_proto_msgTypes[37]
+	mi := &file_proto_state_v1_state_proto_msgTypes[38]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1918,7 +1962,7 @@ func (x *ListFriendRequestRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListFriendRequestRequest.ProtoReflect.Descriptor instead.
 func (*ListFriendRequestRequest) Descriptor() ([]byte, []int) {
-	return file_proto_state_v1_state_proto_rawDescGZIP(), []int{37}
+	return file_proto_state_v1_state_proto_rawDescGZIP(), []int{38}
 }
 
 func (x *ListFriendRequestRequest) GetPlayerId() int64 {
@@ -1937,7 +1981,7 @@ type ListFriendRequestResponse struct {
 
 func (x *ListFriendRequestResponse) Reset() {
 	*x = ListFriendRequestResponse{}
-	mi := &file_proto_state_v1_state_proto_msgTypes[38]
+	mi := &file_proto_state_v1_state_proto_msgTypes[39]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1949,7 +1993,7 @@ func (x *ListFriendRequestResponse) String() string {
 func (*ListFriendRequestResponse) ProtoMessage() {}
 
 func (x *ListFriendRequestResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_state_v1_state_proto_msgTypes[38]
+	mi := &file_proto_state_v1_state_proto_msgTypes[39]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1962,7 +2006,7 @@ func (x *ListFriendRequestResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListFriendRequestResponse.ProtoReflect.Descriptor instead.
 func (*ListFriendRequestResponse) Descriptor() ([]byte, []int) {
-	return file_proto_state_v1_state_proto_rawDescGZIP(), []int{38}
+	return file_proto_state_v1_state_proto_rawDescGZIP(), []int{39}
 }
 
 func (x *ListFriendRequestResponse) GetRequests() []*FriendRequest {
@@ -1982,7 +2026,7 @@ type HandleFriendRequestRequest struct {
 
 func (x *HandleFriendRequestRequest) Reset() {
 	*x = HandleFriendRequestRequest{}
-	mi := &file_proto_state_v1_state_proto_msgTypes[39]
+	mi := &file_proto_state_v1_state_proto_msgTypes[40]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1994,7 +2038,7 @@ func (x *HandleFriendRequestRequest) String() string {
 func (*HandleFriendRequestRequest) ProtoMessage() {}
 
 func (x *HandleFriendRequestRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_state_v1_state_proto_msgTypes[39]
+	mi := &file_proto_state_v1_state_proto_msgTypes[40]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2007,7 +2051,7 @@ func (x *HandleFriendRequestRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use HandleFriendRequestRequest.ProtoReflect.Descriptor instead.
 func (*HandleFriendRequestRequest) Descriptor() ([]byte, []int) {
-	return file_proto_state_v1_state_proto_rawDescGZIP(), []int{39}
+	return file_proto_state_v1_state_proto_rawDescGZIP(), []int{40}
 }
 
 func (x *HandleFriendRequestRequest) GetFromPlayerId() int64 {
@@ -2032,7 +2076,7 @@ type HandleFriendRequestResponse struct {
 
 func (x *HandleFriendRequestResponse) Reset() {
 	*x = HandleFriendRequestResponse{}
-	mi := &file_proto_state_v1_state_proto_msgTypes[40]
+	mi := &file_proto_state_v1_state_proto_msgTypes[41]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2044,7 +2088,7 @@ func (x *HandleFriendRequestResponse) String() string {
 func (*HandleFriendRequestResponse) ProtoMessage() {}
 
 func (x *HandleFriendRequestResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_state_v1_state_proto_msgTypes[40]
+	mi := &file_proto_state_v1_state_proto_msgTypes[41]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2057,7 +2101,7 @@ func (x *HandleFriendRequestResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use HandleFriendRequestResponse.ProtoReflect.Descriptor instead.
 func (*HandleFriendRequestResponse) Descriptor() ([]byte, []int) {
-	return file_proto_state_v1_state_proto_rawDescGZIP(), []int{40}
+	return file_proto_state_v1_state_proto_rawDescGZIP(), []int{41}
 }
 
 type ListFriendIDsRequest struct {
@@ -2069,7 +2113,7 @@ type ListFriendIDsRequest struct {
 
 func (x *ListFriendIDsRequest) Reset() {
 	*x = ListFriendIDsRequest{}
-	mi := &file_proto_state_v1_state_proto_msgTypes[41]
+	mi := &file_proto_state_v1_state_proto_msgTypes[42]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2081,7 +2125,7 @@ func (x *ListFriendIDsRequest) String() string {
 func (*ListFriendIDsRequest) ProtoMessage() {}
 
 func (x *ListFriendIDsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_state_v1_state_proto_msgTypes[41]
+	mi := &file_proto_state_v1_state_proto_msgTypes[42]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2094,7 +2138,7 @@ func (x *ListFriendIDsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListFriendIDsRequest.ProtoReflect.Descriptor instead.
 func (*ListFriendIDsRequest) Descriptor() ([]byte, []int) {
-	return file_proto_state_v1_state_proto_rawDescGZIP(), []int{41}
+	return file_proto_state_v1_state_proto_rawDescGZIP(), []int{42}
 }
 
 func (x *ListFriendIDsRequest) GetPlayerId() int64 {
@@ -2113,7 +2157,7 @@ type ListFriendIDsResponse struct {
 
 func (x *ListFriendIDsResponse) Reset() {
 	*x = ListFriendIDsResponse{}
-	mi := &file_proto_state_v1_state_proto_msgTypes[42]
+	mi := &file_proto_state_v1_state_proto_msgTypes[43]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2125,7 +2169,7 @@ func (x *ListFriendIDsResponse) String() string {
 func (*ListFriendIDsResponse) ProtoMessage() {}
 
 func (x *ListFriendIDsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_state_v1_state_proto_msgTypes[42]
+	mi := &file_proto_state_v1_state_proto_msgTypes[43]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2138,7 +2182,7 @@ func (x *ListFriendIDsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListFriendIDsResponse.ProtoReflect.Descriptor instead.
 func (*ListFriendIDsResponse) Descriptor() ([]byte, []int) {
-	return file_proto_state_v1_state_proto_rawDescGZIP(), []int{42}
+	return file_proto_state_v1_state_proto_rawDescGZIP(), []int{43}
 }
 
 func (x *ListFriendIDsResponse) GetFriendPlayerIds() []int64 {
@@ -2158,7 +2202,7 @@ type DeleteFriendRequest struct {
 
 func (x *DeleteFriendRequest) Reset() {
 	*x = DeleteFriendRequest{}
-	mi := &file_proto_state_v1_state_proto_msgTypes[43]
+	mi := &file_proto_state_v1_state_proto_msgTypes[44]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2170,7 +2214,7 @@ func (x *DeleteFriendRequest) String() string {
 func (*DeleteFriendRequest) ProtoMessage() {}
 
 func (x *DeleteFriendRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_state_v1_state_proto_msgTypes[43]
+	mi := &file_proto_state_v1_state_proto_msgTypes[44]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2183,7 +2227,7 @@ func (x *DeleteFriendRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteFriendRequest.ProtoReflect.Descriptor instead.
 func (*DeleteFriendRequest) Descriptor() ([]byte, []int) {
-	return file_proto_state_v1_state_proto_rawDescGZIP(), []int{43}
+	return file_proto_state_v1_state_proto_rawDescGZIP(), []int{44}
 }
 
 func (x *DeleteFriendRequest) GetPlayerId() int64 {
@@ -2208,7 +2252,7 @@ type DeleteFriendResponse struct {
 
 func (x *DeleteFriendResponse) Reset() {
 	*x = DeleteFriendResponse{}
-	mi := &file_proto_state_v1_state_proto_msgTypes[44]
+	mi := &file_proto_state_v1_state_proto_msgTypes[45]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2220,7 +2264,7 @@ func (x *DeleteFriendResponse) String() string {
 func (*DeleteFriendResponse) ProtoMessage() {}
 
 func (x *DeleteFriendResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_state_v1_state_proto_msgTypes[44]
+	mi := &file_proto_state_v1_state_proto_msgTypes[45]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2233,7 +2277,7 @@ func (x *DeleteFriendResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteFriendResponse.ProtoReflect.Descriptor instead.
 func (*DeleteFriendResponse) Descriptor() ([]byte, []int) {
-	return file_proto_state_v1_state_proto_rawDescGZIP(), []int{44}
+	return file_proto_state_v1_state_proto_rawDescGZIP(), []int{45}
 }
 
 type RealtimeEvent struct {
@@ -2256,7 +2300,7 @@ type RealtimeEvent struct {
 
 func (x *RealtimeEvent) Reset() {
 	*x = RealtimeEvent{}
-	mi := &file_proto_state_v1_state_proto_msgTypes[45]
+	mi := &file_proto_state_v1_state_proto_msgTypes[46]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2268,7 +2312,7 @@ func (x *RealtimeEvent) String() string {
 func (*RealtimeEvent) ProtoMessage() {}
 
 func (x *RealtimeEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_state_v1_state_proto_msgTypes[45]
+	mi := &file_proto_state_v1_state_proto_msgTypes[46]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2281,7 +2325,7 @@ func (x *RealtimeEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RealtimeEvent.ProtoReflect.Descriptor instead.
 func (*RealtimeEvent) Descriptor() ([]byte, []int) {
-	return file_proto_state_v1_state_proto_rawDescGZIP(), []int{45}
+	return file_proto_state_v1_state_proto_rawDescGZIP(), []int{46}
 }
 
 func (x *RealtimeEvent) GetType() string {
@@ -2378,7 +2422,7 @@ type RealtimeRoute struct {
 
 func (x *RealtimeRoute) Reset() {
 	*x = RealtimeRoute{}
-	mi := &file_proto_state_v1_state_proto_msgTypes[46]
+	mi := &file_proto_state_v1_state_proto_msgTypes[47]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2390,7 +2434,7 @@ func (x *RealtimeRoute) String() string {
 func (*RealtimeRoute) ProtoMessage() {}
 
 func (x *RealtimeRoute) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_state_v1_state_proto_msgTypes[46]
+	mi := &file_proto_state_v1_state_proto_msgTypes[47]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2403,7 +2447,7 @@ func (x *RealtimeRoute) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RealtimeRoute.ProtoReflect.Descriptor instead.
 func (*RealtimeRoute) Descriptor() ([]byte, []int) {
-	return file_proto_state_v1_state_proto_rawDescGZIP(), []int{46}
+	return file_proto_state_v1_state_proto_rawDescGZIP(), []int{47}
 }
 
 func (x *RealtimeRoute) GetType() RealtimeRouteType {
@@ -2430,7 +2474,7 @@ type RealtimeDelivery struct {
 
 func (x *RealtimeDelivery) Reset() {
 	*x = RealtimeDelivery{}
-	mi := &file_proto_state_v1_state_proto_msgTypes[47]
+	mi := &file_proto_state_v1_state_proto_msgTypes[48]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2442,7 +2486,7 @@ func (x *RealtimeDelivery) String() string {
 func (*RealtimeDelivery) ProtoMessage() {}
 
 func (x *RealtimeDelivery) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_state_v1_state_proto_msgTypes[47]
+	mi := &file_proto_state_v1_state_proto_msgTypes[48]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2455,7 +2499,7 @@ func (x *RealtimeDelivery) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RealtimeDelivery.ProtoReflect.Descriptor instead.
 func (*RealtimeDelivery) Descriptor() ([]byte, []int) {
-	return file_proto_state_v1_state_proto_rawDescGZIP(), []int{47}
+	return file_proto_state_v1_state_proto_rawDescGZIP(), []int{48}
 }
 
 func (x *RealtimeDelivery) GetRoute() *RealtimeRoute {
@@ -2481,7 +2525,7 @@ type PublishRealtimeRequest struct {
 
 func (x *PublishRealtimeRequest) Reset() {
 	*x = PublishRealtimeRequest{}
-	mi := &file_proto_state_v1_state_proto_msgTypes[48]
+	mi := &file_proto_state_v1_state_proto_msgTypes[49]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2493,7 +2537,7 @@ func (x *PublishRealtimeRequest) String() string {
 func (*PublishRealtimeRequest) ProtoMessage() {}
 
 func (x *PublishRealtimeRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_state_v1_state_proto_msgTypes[48]
+	mi := &file_proto_state_v1_state_proto_msgTypes[49]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2506,7 +2550,7 @@ func (x *PublishRealtimeRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PublishRealtimeRequest.ProtoReflect.Descriptor instead.
 func (*PublishRealtimeRequest) Descriptor() ([]byte, []int) {
-	return file_proto_state_v1_state_proto_rawDescGZIP(), []int{48}
+	return file_proto_state_v1_state_proto_rawDescGZIP(), []int{49}
 }
 
 func (x *PublishRealtimeRequest) GetDelivery() *RealtimeDelivery {
@@ -2524,7 +2568,7 @@ type PublishRealtimeResponse struct {
 
 func (x *PublishRealtimeResponse) Reset() {
 	*x = PublishRealtimeResponse{}
-	mi := &file_proto_state_v1_state_proto_msgTypes[49]
+	mi := &file_proto_state_v1_state_proto_msgTypes[50]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2536,7 +2580,7 @@ func (x *PublishRealtimeResponse) String() string {
 func (*PublishRealtimeResponse) ProtoMessage() {}
 
 func (x *PublishRealtimeResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_state_v1_state_proto_msgTypes[49]
+	mi := &file_proto_state_v1_state_proto_msgTypes[50]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2549,7 +2593,7 @@ func (x *PublishRealtimeResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PublishRealtimeResponse.ProtoReflect.Descriptor instead.
 func (*PublishRealtimeResponse) Descriptor() ([]byte, []int) {
-	return file_proto_state_v1_state_proto_rawDescGZIP(), []int{49}
+	return file_proto_state_v1_state_proto_rawDescGZIP(), []int{50}
 }
 
 type SubscribeRealtimeRequest struct {
@@ -2562,7 +2606,7 @@ type SubscribeRealtimeRequest struct {
 
 func (x *SubscribeRealtimeRequest) Reset() {
 	*x = SubscribeRealtimeRequest{}
-	mi := &file_proto_state_v1_state_proto_msgTypes[50]
+	mi := &file_proto_state_v1_state_proto_msgTypes[51]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2574,7 +2618,7 @@ func (x *SubscribeRealtimeRequest) String() string {
 func (*SubscribeRealtimeRequest) ProtoMessage() {}
 
 func (x *SubscribeRealtimeRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_state_v1_state_proto_msgTypes[50]
+	mi := &file_proto_state_v1_state_proto_msgTypes[51]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2587,7 +2631,7 @@ func (x *SubscribeRealtimeRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SubscribeRealtimeRequest.ProtoReflect.Descriptor instead.
 func (*SubscribeRealtimeRequest) Descriptor() ([]byte, []int) {
-	return file_proto_state_v1_state_proto_rawDescGZIP(), []int{50}
+	return file_proto_state_v1_state_proto_rawDescGZIP(), []int{51}
 }
 
 func (x *SubscribeRealtimeRequest) GetServerName() string {
@@ -2617,7 +2661,7 @@ type Growth struct {
 
 func (x *Growth) Reset() {
 	*x = Growth{}
-	mi := &file_proto_state_v1_state_proto_msgTypes[51]
+	mi := &file_proto_state_v1_state_proto_msgTypes[52]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2629,7 +2673,7 @@ func (x *Growth) String() string {
 func (*Growth) ProtoMessage() {}
 
 func (x *Growth) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_state_v1_state_proto_msgTypes[51]
+	mi := &file_proto_state_v1_state_proto_msgTypes[52]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2642,7 +2686,7 @@ func (x *Growth) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Growth.ProtoReflect.Descriptor instead.
 func (*Growth) Descriptor() ([]byte, []int) {
-	return file_proto_state_v1_state_proto_rawDescGZIP(), []int{51}
+	return file_proto_state_v1_state_proto_rawDescGZIP(), []int{52}
 }
 
 func (x *Growth) GetPlayerId() int64 {
@@ -2689,7 +2733,7 @@ type GetGrowthRequest struct {
 
 func (x *GetGrowthRequest) Reset() {
 	*x = GetGrowthRequest{}
-	mi := &file_proto_state_v1_state_proto_msgTypes[52]
+	mi := &file_proto_state_v1_state_proto_msgTypes[53]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2701,7 +2745,7 @@ func (x *GetGrowthRequest) String() string {
 func (*GetGrowthRequest) ProtoMessage() {}
 
 func (x *GetGrowthRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_state_v1_state_proto_msgTypes[52]
+	mi := &file_proto_state_v1_state_proto_msgTypes[53]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2714,7 +2758,7 @@ func (x *GetGrowthRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetGrowthRequest.ProtoReflect.Descriptor instead.
 func (*GetGrowthRequest) Descriptor() ([]byte, []int) {
-	return file_proto_state_v1_state_proto_rawDescGZIP(), []int{52}
+	return file_proto_state_v1_state_proto_rawDescGZIP(), []int{53}
 }
 
 func (x *GetGrowthRequest) GetPlayerId() int64 {
@@ -2733,7 +2777,7 @@ type GetGrowthResponse struct {
 
 func (x *GetGrowthResponse) Reset() {
 	*x = GetGrowthResponse{}
-	mi := &file_proto_state_v1_state_proto_msgTypes[53]
+	mi := &file_proto_state_v1_state_proto_msgTypes[54]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2745,7 +2789,7 @@ func (x *GetGrowthResponse) String() string {
 func (*GetGrowthResponse) ProtoMessage() {}
 
 func (x *GetGrowthResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_state_v1_state_proto_msgTypes[53]
+	mi := &file_proto_state_v1_state_proto_msgTypes[54]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2758,7 +2802,7 @@ func (x *GetGrowthResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetGrowthResponse.ProtoReflect.Descriptor instead.
 func (*GetGrowthResponse) Descriptor() ([]byte, []int) {
-	return file_proto_state_v1_state_proto_rawDescGZIP(), []int{53}
+	return file_proto_state_v1_state_proto_rawDescGZIP(), []int{54}
 }
 
 func (x *GetGrowthResponse) GetGrowth() *Growth {
@@ -2780,7 +2824,7 @@ type UpgradeGrowthRequest struct {
 
 func (x *UpgradeGrowthRequest) Reset() {
 	*x = UpgradeGrowthRequest{}
-	mi := &file_proto_state_v1_state_proto_msgTypes[54]
+	mi := &file_proto_state_v1_state_proto_msgTypes[55]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2792,7 +2836,7 @@ func (x *UpgradeGrowthRequest) String() string {
 func (*UpgradeGrowthRequest) ProtoMessage() {}
 
 func (x *UpgradeGrowthRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_state_v1_state_proto_msgTypes[54]
+	mi := &file_proto_state_v1_state_proto_msgTypes[55]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2805,7 +2849,7 @@ func (x *UpgradeGrowthRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpgradeGrowthRequest.ProtoReflect.Descriptor instead.
 func (*UpgradeGrowthRequest) Descriptor() ([]byte, []int) {
-	return file_proto_state_v1_state_proto_rawDescGZIP(), []int{54}
+	return file_proto_state_v1_state_proto_rawDescGZIP(), []int{55}
 }
 
 func (x *UpgradeGrowthRequest) GetPlayerId() int64 {
@@ -2846,7 +2890,7 @@ type UpgradeGrowthResponse struct {
 
 func (x *UpgradeGrowthResponse) Reset() {
 	*x = UpgradeGrowthResponse{}
-	mi := &file_proto_state_v1_state_proto_msgTypes[55]
+	mi := &file_proto_state_v1_state_proto_msgTypes[56]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2858,7 +2902,7 @@ func (x *UpgradeGrowthResponse) String() string {
 func (*UpgradeGrowthResponse) ProtoMessage() {}
 
 func (x *UpgradeGrowthResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_state_v1_state_proto_msgTypes[55]
+	mi := &file_proto_state_v1_state_proto_msgTypes[56]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2871,7 +2915,7 @@ func (x *UpgradeGrowthResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpgradeGrowthResponse.ProtoReflect.Descriptor instead.
 func (*UpgradeGrowthResponse) Descriptor() ([]byte, []int) {
-	return file_proto_state_v1_state_proto_rawDescGZIP(), []int{55}
+	return file_proto_state_v1_state_proto_rawDescGZIP(), []int{56}
 }
 
 func (x *UpgradeGrowthResponse) GetGrowth() *Growth {
@@ -2906,7 +2950,7 @@ type ChatMessage struct {
 
 func (x *ChatMessage) Reset() {
 	*x = ChatMessage{}
-	mi := &file_proto_state_v1_state_proto_msgTypes[56]
+	mi := &file_proto_state_v1_state_proto_msgTypes[57]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2918,7 +2962,7 @@ func (x *ChatMessage) String() string {
 func (*ChatMessage) ProtoMessage() {}
 
 func (x *ChatMessage) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_state_v1_state_proto_msgTypes[56]
+	mi := &file_proto_state_v1_state_proto_msgTypes[57]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2931,7 +2975,7 @@ func (x *ChatMessage) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ChatMessage.ProtoReflect.Descriptor instead.
 func (*ChatMessage) Descriptor() ([]byte, []int) {
-	return file_proto_state_v1_state_proto_rawDescGZIP(), []int{56}
+	return file_proto_state_v1_state_proto_rawDescGZIP(), []int{57}
 }
 
 func (x *ChatMessage) GetMessageKey() string {
@@ -3022,7 +3066,7 @@ type SaveChatMessageRequest struct {
 
 func (x *SaveChatMessageRequest) Reset() {
 	*x = SaveChatMessageRequest{}
-	mi := &file_proto_state_v1_state_proto_msgTypes[57]
+	mi := &file_proto_state_v1_state_proto_msgTypes[58]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3034,7 +3078,7 @@ func (x *SaveChatMessageRequest) String() string {
 func (*SaveChatMessageRequest) ProtoMessage() {}
 
 func (x *SaveChatMessageRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_state_v1_state_proto_msgTypes[57]
+	mi := &file_proto_state_v1_state_proto_msgTypes[58]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3047,7 +3091,7 @@ func (x *SaveChatMessageRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SaveChatMessageRequest.ProtoReflect.Descriptor instead.
 func (*SaveChatMessageRequest) Descriptor() ([]byte, []int) {
-	return file_proto_state_v1_state_proto_rawDescGZIP(), []int{57}
+	return file_proto_state_v1_state_proto_rawDescGZIP(), []int{58}
 }
 
 func (x *SaveChatMessageRequest) GetChannelType() string {
@@ -3129,7 +3173,7 @@ type SaveChatMessageResponse struct {
 
 func (x *SaveChatMessageResponse) Reset() {
 	*x = SaveChatMessageResponse{}
-	mi := &file_proto_state_v1_state_proto_msgTypes[58]
+	mi := &file_proto_state_v1_state_proto_msgTypes[59]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3141,7 +3185,7 @@ func (x *SaveChatMessageResponse) String() string {
 func (*SaveChatMessageResponse) ProtoMessage() {}
 
 func (x *SaveChatMessageResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_state_v1_state_proto_msgTypes[58]
+	mi := &file_proto_state_v1_state_proto_msgTypes[59]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3154,7 +3198,7 @@ func (x *SaveChatMessageResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SaveChatMessageResponse.ProtoReflect.Descriptor instead.
 func (*SaveChatMessageResponse) Descriptor() ([]byte, []int) {
-	return file_proto_state_v1_state_proto_rawDescGZIP(), []int{58}
+	return file_proto_state_v1_state_proto_rawDescGZIP(), []int{59}
 }
 
 func (x *SaveChatMessageResponse) GetMessage() *ChatMessage {
@@ -3176,7 +3220,7 @@ type ListChatMessagesRequest struct {
 
 func (x *ListChatMessagesRequest) Reset() {
 	*x = ListChatMessagesRequest{}
-	mi := &file_proto_state_v1_state_proto_msgTypes[59]
+	mi := &file_proto_state_v1_state_proto_msgTypes[60]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3188,7 +3232,7 @@ func (x *ListChatMessagesRequest) String() string {
 func (*ListChatMessagesRequest) ProtoMessage() {}
 
 func (x *ListChatMessagesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_state_v1_state_proto_msgTypes[59]
+	mi := &file_proto_state_v1_state_proto_msgTypes[60]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3201,7 +3245,7 @@ func (x *ListChatMessagesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListChatMessagesRequest.ProtoReflect.Descriptor instead.
 func (*ListChatMessagesRequest) Descriptor() ([]byte, []int) {
-	return file_proto_state_v1_state_proto_rawDescGZIP(), []int{59}
+	return file_proto_state_v1_state_proto_rawDescGZIP(), []int{60}
 }
 
 func (x *ListChatMessagesRequest) GetChannelType() string {
@@ -3241,7 +3285,7 @@ type ListChatMessagesResponse struct {
 
 func (x *ListChatMessagesResponse) Reset() {
 	*x = ListChatMessagesResponse{}
-	mi := &file_proto_state_v1_state_proto_msgTypes[60]
+	mi := &file_proto_state_v1_state_proto_msgTypes[61]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3253,7 +3297,7 @@ func (x *ListChatMessagesResponse) String() string {
 func (*ListChatMessagesResponse) ProtoMessage() {}
 
 func (x *ListChatMessagesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_state_v1_state_proto_msgTypes[60]
+	mi := &file_proto_state_v1_state_proto_msgTypes[61]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3266,7 +3310,7 @@ func (x *ListChatMessagesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListChatMessagesResponse.ProtoReflect.Descriptor instead.
 func (*ListChatMessagesResponse) Descriptor() ([]byte, []int) {
-	return file_proto_state_v1_state_proto_rawDescGZIP(), []int{60}
+	return file_proto_state_v1_state_proto_rawDescGZIP(), []int{61}
 }
 
 func (x *ListChatMessagesResponse) GetMessages() []*ChatMessage {
@@ -3294,7 +3338,7 @@ type RealtimeChatMessage struct {
 
 func (x *RealtimeChatMessage) Reset() {
 	*x = RealtimeChatMessage{}
-	mi := &file_proto_state_v1_state_proto_msgTypes[61]
+	mi := &file_proto_state_v1_state_proto_msgTypes[62]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3306,7 +3350,7 @@ func (x *RealtimeChatMessage) String() string {
 func (*RealtimeChatMessage) ProtoMessage() {}
 
 func (x *RealtimeChatMessage) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_state_v1_state_proto_msgTypes[61]
+	mi := &file_proto_state_v1_state_proto_msgTypes[62]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3319,7 +3363,7 @@ func (x *RealtimeChatMessage) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RealtimeChatMessage.ProtoReflect.Descriptor instead.
 func (*RealtimeChatMessage) Descriptor() ([]byte, []int) {
-	return file_proto_state_v1_state_proto_rawDescGZIP(), []int{61}
+	return file_proto_state_v1_state_proto_rawDescGZIP(), []int{62}
 }
 
 func (x *RealtimeChatMessage) GetMessageKey() string {
@@ -3452,13 +3496,15 @@ const file_proto_state_v1_state_proto_rawDesc = "" +
 	"\x06player\x18\x01 \x01(\v2\x10.state.v1.PlayerR\x06player\"\x15\n" +
 	"\x13NextPlayerIDRequest\"&\n" +
 	"\x14NextPlayerIDResponse\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\x03R\x02id\"L\n" +
-	"\x15AddPlayerCoinsRequest\x12\x1b\n" +
+	"\x02id\x18\x01 \x01(\x03R\x02id\"G\n" +
+	"\x10PlayerCoinReward\x12\x1b\n" +
 	"\tplayer_id\x18\x01 \x01(\x03R\bplayerId\x12\x16\n" +
-	"\x06amount\x18\x02 \x01(\x03R\x06amount\"K\n" +
-	"\x16AddPlayerCoinsResponse\x12\x1b\n" +
-	"\tplayer_id\x18\x01 \x01(\x03R\bplayerId\x12\x14\n" +
-	"\x05coins\x18\x02 \x01(\x03R\x05coins\"P\n" +
+	"\x06amount\x18\x02 \x01(\x03R\x06amount\"u\n" +
+	"\x18SettleMatchRewardRequest\x12#\n" +
+	"\rsettlement_id\x18\x01 \x01(\tR\fsettlementId\x124\n" +
+	"\arewards\x18\x02 \x03(\v2\x1a.state.v1.PlayerCoinRewardR\arewards\"5\n" +
+	"\x19SettleMatchRewardResponse\x12\x18\n" +
+	"\aapplied\x18\x01 \x01(\bR\aapplied\"P\n" +
 	"\x19UpdatePlayerAvatarRequest\x12\x1b\n" +
 	"\tplayer_id\x18\x01 \x01(\x03R\bplayerId\x12\x16\n" +
 	"\x06avatar\x18\x02 \x01(\tR\x06avatar\"F\n" +
@@ -3630,7 +3676,7 @@ const file_proto_state_v1_state_proto_rawDesc = "" +
 	"\x11RealtimeRouteType\x12#\n" +
 	"\x1fREALTIME_ROUTE_TYPE_UNSPECIFIED\x10\x00\x12\x1e\n" +
 	"\x1aREALTIME_ROUTE_TYPE_SERVER\x10\x01\x12!\n" +
-	"\x1dREALTIME_ROUTE_TYPE_BROADCAST\x10\x022\xcb\x12\n" +
+	"\x1dREALTIME_ROUTE_TYPE_BROADCAST\x10\x022\xd5\x12\n" +
 	"\fStateService\x12P\n" +
 	"\rCreateAccount\x12\x1e.state.v1.CreateAccountRequest\x1a\x1f.state.v1.CreateAccountResponse\x12G\n" +
 	"\n" +
@@ -3658,8 +3704,8 @@ const file_proto_state_v1_state_proto_rawDesc = "" +
 	"\x0fPublishRealtime\x12 .state.v1.PublishRealtimeRequest\x1a!.state.v1.PublishRealtimeResponse\x12U\n" +
 	"\x11SubscribeRealtime\x12\".state.v1.SubscribeRealtimeRequest\x1a\x1a.state.v1.RealtimeDelivery0\x01\x12D\n" +
 	"\tGetGrowth\x12\x1a.state.v1.GetGrowthRequest\x1a\x1b.state.v1.GetGrowthResponse\x12P\n" +
-	"\rUpgradeGrowth\x12\x1e.state.v1.UpgradeGrowthRequest\x1a\x1f.state.v1.UpgradeGrowthResponse\x12S\n" +
-	"\x0eAddPlayerCoins\x12\x1f.state.v1.AddPlayerCoinsRequest\x1a .state.v1.AddPlayerCoinsResponse\x12V\n" +
+	"\rUpgradeGrowth\x12\x1e.state.v1.UpgradeGrowthRequest\x1a\x1f.state.v1.UpgradeGrowthResponse\x12]\n" +
+	"\x12SettleMatchRewards\x12\".state.v1.SettleMatchRewardRequest\x1a#.state.v1.SettleMatchRewardResponse\x12V\n" +
 	"\x0fSaveChatMessage\x12 .state.v1.SaveChatMessageRequest\x1a!.state.v1.SaveChatMessageResponse\x12Y\n" +
 	"\x10ListChatMessages\x12!.state.v1.ListChatMessagesRequest\x1a\".state.v1.ListChatMessagesResponseB*Z(server/internal/contract/statepb;statepbb\x06proto3"
 
@@ -3676,7 +3722,7 @@ func file_proto_state_v1_state_proto_rawDescGZIP() []byte {
 }
 
 var file_proto_state_v1_state_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_proto_state_v1_state_proto_msgTypes = make([]protoimpl.MessageInfo, 62)
+var file_proto_state_v1_state_proto_msgTypes = make([]protoimpl.MessageInfo, 63)
 var file_proto_state_v1_state_proto_goTypes = []any{
 	(RealtimeRouteType)(0),              // 0: state.v1.RealtimeRouteType
 	(*Account)(nil),                     // 1: state.v1.Account
@@ -3700,55 +3746,56 @@ var file_proto_state_v1_state_proto_goTypes = []any{
 	(*GetPlayerResponse)(nil),           // 19: state.v1.GetPlayerResponse
 	(*NextPlayerIDRequest)(nil),         // 20: state.v1.NextPlayerIDRequest
 	(*NextPlayerIDResponse)(nil),        // 21: state.v1.NextPlayerIDResponse
-	(*AddPlayerCoinsRequest)(nil),       // 22: state.v1.AddPlayerCoinsRequest
-	(*AddPlayerCoinsResponse)(nil),      // 23: state.v1.AddPlayerCoinsResponse
-	(*UpdatePlayerAvatarRequest)(nil),   // 24: state.v1.UpdatePlayerAvatarRequest
-	(*UpdatePlayerAvatarResponse)(nil),  // 25: state.v1.UpdatePlayerAvatarResponse
-	(*Presence)(nil),                    // 26: state.v1.Presence
-	(*SetPresenceRequest)(nil),          // 27: state.v1.SetPresenceRequest
-	(*SetPresenceResponse)(nil),         // 28: state.v1.SetPresenceResponse
-	(*GetPresenceRequest)(nil),          // 29: state.v1.GetPresenceRequest
-	(*GetPresenceResponse)(nil),         // 30: state.v1.GetPresenceResponse
-	(*ClearPresenceRequest)(nil),        // 31: state.v1.ClearPresenceRequest
-	(*ClearPresenceResponse)(nil),       // 32: state.v1.ClearPresenceResponse
-	(*RefreshPresenceRequest)(nil),      // 33: state.v1.RefreshPresenceRequest
-	(*RefreshPresenceResponse)(nil),     // 34: state.v1.RefreshPresenceResponse
-	(*FriendRequest)(nil),               // 35: state.v1.FriendRequest
-	(*SendFriendRequestRequest)(nil),    // 36: state.v1.SendFriendRequestRequest
-	(*SendFriendRequestResponse)(nil),   // 37: state.v1.SendFriendRequestResponse
-	(*ListFriendRequestRequest)(nil),    // 38: state.v1.ListFriendRequestRequest
-	(*ListFriendRequestResponse)(nil),   // 39: state.v1.ListFriendRequestResponse
-	(*HandleFriendRequestRequest)(nil),  // 40: state.v1.HandleFriendRequestRequest
-	(*HandleFriendRequestResponse)(nil), // 41: state.v1.HandleFriendRequestResponse
-	(*ListFriendIDsRequest)(nil),        // 42: state.v1.ListFriendIDsRequest
-	(*ListFriendIDsResponse)(nil),       // 43: state.v1.ListFriendIDsResponse
-	(*DeleteFriendRequest)(nil),         // 44: state.v1.DeleteFriendRequest
-	(*DeleteFriendResponse)(nil),        // 45: state.v1.DeleteFriendResponse
-	(*RealtimeEvent)(nil),               // 46: state.v1.RealtimeEvent
-	(*RealtimeRoute)(nil),               // 47: state.v1.RealtimeRoute
-	(*RealtimeDelivery)(nil),            // 48: state.v1.RealtimeDelivery
-	(*PublishRealtimeRequest)(nil),      // 49: state.v1.PublishRealtimeRequest
-	(*PublishRealtimeResponse)(nil),     // 50: state.v1.PublishRealtimeResponse
-	(*SubscribeRealtimeRequest)(nil),    // 51: state.v1.SubscribeRealtimeRequest
-	(*Growth)(nil),                      // 52: state.v1.Growth
-	(*GetGrowthRequest)(nil),            // 53: state.v1.GetGrowthRequest
-	(*GetGrowthResponse)(nil),           // 54: state.v1.GetGrowthResponse
-	(*UpgradeGrowthRequest)(nil),        // 55: state.v1.UpgradeGrowthRequest
-	(*UpgradeGrowthResponse)(nil),       // 56: state.v1.UpgradeGrowthResponse
-	(*ChatMessage)(nil),                 // 57: state.v1.ChatMessage
-	(*SaveChatMessageRequest)(nil),      // 58: state.v1.SaveChatMessageRequest
-	(*SaveChatMessageResponse)(nil),     // 59: state.v1.SaveChatMessageResponse
-	(*ListChatMessagesRequest)(nil),     // 60: state.v1.ListChatMessagesRequest
-	(*ListChatMessagesResponse)(nil),    // 61: state.v1.ListChatMessagesResponse
-	(*RealtimeChatMessage)(nil),         // 62: state.v1.RealtimeChatMessage
-	(*timestamppb.Timestamp)(nil),       // 63: google.protobuf.Timestamp
-	(*durationpb.Duration)(nil),         // 64: google.protobuf.Duration
+	(*PlayerCoinReward)(nil),            // 22: state.v1.PlayerCoinReward
+	(*SettleMatchRewardRequest)(nil),    // 23: state.v1.SettleMatchRewardRequest
+	(*SettleMatchRewardResponse)(nil),   // 24: state.v1.SettleMatchRewardResponse
+	(*UpdatePlayerAvatarRequest)(nil),   // 25: state.v1.UpdatePlayerAvatarRequest
+	(*UpdatePlayerAvatarResponse)(nil),  // 26: state.v1.UpdatePlayerAvatarResponse
+	(*Presence)(nil),                    // 27: state.v1.Presence
+	(*SetPresenceRequest)(nil),          // 28: state.v1.SetPresenceRequest
+	(*SetPresenceResponse)(nil),         // 29: state.v1.SetPresenceResponse
+	(*GetPresenceRequest)(nil),          // 30: state.v1.GetPresenceRequest
+	(*GetPresenceResponse)(nil),         // 31: state.v1.GetPresenceResponse
+	(*ClearPresenceRequest)(nil),        // 32: state.v1.ClearPresenceRequest
+	(*ClearPresenceResponse)(nil),       // 33: state.v1.ClearPresenceResponse
+	(*RefreshPresenceRequest)(nil),      // 34: state.v1.RefreshPresenceRequest
+	(*RefreshPresenceResponse)(nil),     // 35: state.v1.RefreshPresenceResponse
+	(*FriendRequest)(nil),               // 36: state.v1.FriendRequest
+	(*SendFriendRequestRequest)(nil),    // 37: state.v1.SendFriendRequestRequest
+	(*SendFriendRequestResponse)(nil),   // 38: state.v1.SendFriendRequestResponse
+	(*ListFriendRequestRequest)(nil),    // 39: state.v1.ListFriendRequestRequest
+	(*ListFriendRequestResponse)(nil),   // 40: state.v1.ListFriendRequestResponse
+	(*HandleFriendRequestRequest)(nil),  // 41: state.v1.HandleFriendRequestRequest
+	(*HandleFriendRequestResponse)(nil), // 42: state.v1.HandleFriendRequestResponse
+	(*ListFriendIDsRequest)(nil),        // 43: state.v1.ListFriendIDsRequest
+	(*ListFriendIDsResponse)(nil),       // 44: state.v1.ListFriendIDsResponse
+	(*DeleteFriendRequest)(nil),         // 45: state.v1.DeleteFriendRequest
+	(*DeleteFriendResponse)(nil),        // 46: state.v1.DeleteFriendResponse
+	(*RealtimeEvent)(nil),               // 47: state.v1.RealtimeEvent
+	(*RealtimeRoute)(nil),               // 48: state.v1.RealtimeRoute
+	(*RealtimeDelivery)(nil),            // 49: state.v1.RealtimeDelivery
+	(*PublishRealtimeRequest)(nil),      // 50: state.v1.PublishRealtimeRequest
+	(*PublishRealtimeResponse)(nil),     // 51: state.v1.PublishRealtimeResponse
+	(*SubscribeRealtimeRequest)(nil),    // 52: state.v1.SubscribeRealtimeRequest
+	(*Growth)(nil),                      // 53: state.v1.Growth
+	(*GetGrowthRequest)(nil),            // 54: state.v1.GetGrowthRequest
+	(*GetGrowthResponse)(nil),           // 55: state.v1.GetGrowthResponse
+	(*UpgradeGrowthRequest)(nil),        // 56: state.v1.UpgradeGrowthRequest
+	(*UpgradeGrowthResponse)(nil),       // 57: state.v1.UpgradeGrowthResponse
+	(*ChatMessage)(nil),                 // 58: state.v1.ChatMessage
+	(*SaveChatMessageRequest)(nil),      // 59: state.v1.SaveChatMessageRequest
+	(*SaveChatMessageResponse)(nil),     // 60: state.v1.SaveChatMessageResponse
+	(*ListChatMessagesRequest)(nil),     // 61: state.v1.ListChatMessagesRequest
+	(*ListChatMessagesResponse)(nil),    // 62: state.v1.ListChatMessagesResponse
+	(*RealtimeChatMessage)(nil),         // 63: state.v1.RealtimeChatMessage
+	(*timestamppb.Timestamp)(nil),       // 64: google.protobuf.Timestamp
+	(*durationpb.Duration)(nil),         // 65: google.protobuf.Duration
 }
 var file_proto_state_v1_state_proto_depIdxs = []int32{
-	63, // 0: state.v1.Session.expires_at:type_name -> google.protobuf.Timestamp
+	64, // 0: state.v1.Session.expires_at:type_name -> google.protobuf.Timestamp
 	1,  // 1: state.v1.CreateAccountRequest.account:type_name -> state.v1.Account
 	1,  // 2: state.v1.GetAccountResponse.account:type_name -> state.v1.Account
-	63, // 3: state.v1.RegisterAccountRequest.session_expires_at:type_name -> google.protobuf.Timestamp
+	64, // 3: state.v1.RegisterAccountRequest.session_expires_at:type_name -> google.protobuf.Timestamp
 	1,  // 4: state.v1.RegisterAccountResponse.account:type_name -> state.v1.Account
 	3,  // 5: state.v1.RegisterAccountResponse.player:type_name -> state.v1.Player
 	2,  // 6: state.v1.RegisterAccountResponse.session:type_name -> state.v1.Session
@@ -3756,92 +3803,93 @@ var file_proto_state_v1_state_proto_depIdxs = []int32{
 	2,  // 8: state.v1.GetSessionResponse.session:type_name -> state.v1.Session
 	3,  // 9: state.v1.CreatePlayerRequest.player:type_name -> state.v1.Player
 	3,  // 10: state.v1.GetPlayerResponse.player:type_name -> state.v1.Player
-	3,  // 11: state.v1.UpdatePlayerAvatarResponse.player:type_name -> state.v1.Player
-	63, // 12: state.v1.Presence.updated_at:type_name -> google.protobuf.Timestamp
-	26, // 13: state.v1.SetPresenceRequest.presence:type_name -> state.v1.Presence
-	64, // 14: state.v1.SetPresenceRequest.ttl:type_name -> google.protobuf.Duration
-	26, // 15: state.v1.GetPresenceResponse.presence:type_name -> state.v1.Presence
-	63, // 16: state.v1.RefreshPresenceRequest.updated_at:type_name -> google.protobuf.Timestamp
-	64, // 17: state.v1.RefreshPresenceRequest.ttl:type_name -> google.protobuf.Duration
-	63, // 18: state.v1.FriendRequest.created_at:type_name -> google.protobuf.Timestamp
-	35, // 19: state.v1.ListFriendRequestResponse.requests:type_name -> state.v1.FriendRequest
-	62, // 20: state.v1.RealtimeEvent.chat_message:type_name -> state.v1.RealtimeChatMessage
-	0,  // 21: state.v1.RealtimeRoute.type:type_name -> state.v1.RealtimeRouteType
-	47, // 22: state.v1.RealtimeDelivery.route:type_name -> state.v1.RealtimeRoute
-	46, // 23: state.v1.RealtimeDelivery.event:type_name -> state.v1.RealtimeEvent
-	48, // 24: state.v1.PublishRealtimeRequest.delivery:type_name -> state.v1.RealtimeDelivery
-	0,  // 25: state.v1.SubscribeRealtimeRequest.type:type_name -> state.v1.RealtimeRouteType
-	52, // 26: state.v1.GetGrowthResponse.growth:type_name -> state.v1.Growth
-	52, // 27: state.v1.UpgradeGrowthResponse.growth:type_name -> state.v1.Growth
-	63, // 28: state.v1.ChatMessage.created_at:type_name -> google.protobuf.Timestamp
-	63, // 29: state.v1.ChatMessage.expires_at:type_name -> google.protobuf.Timestamp
-	63, // 30: state.v1.SaveChatMessageRequest.created_at:type_name -> google.protobuf.Timestamp
-	63, // 31: state.v1.SaveChatMessageRequest.expires_at:type_name -> google.protobuf.Timestamp
-	57, // 32: state.v1.SaveChatMessageResponse.message:type_name -> state.v1.ChatMessage
-	57, // 33: state.v1.ListChatMessagesResponse.messages:type_name -> state.v1.ChatMessage
-	63, // 34: state.v1.RealtimeChatMessage.created_at:type_name -> google.protobuf.Timestamp
-	63, // 35: state.v1.RealtimeChatMessage.expires_at:type_name -> google.protobuf.Timestamp
-	4,  // 36: state.v1.StateService.CreateAccount:input_type -> state.v1.CreateAccountRequest
-	6,  // 37: state.v1.StateService.GetAccount:input_type -> state.v1.GetAccountRequest
-	8,  // 38: state.v1.StateService.RegisterAccount:input_type -> state.v1.RegisterAccountRequest
-	10, // 39: state.v1.StateService.CreateSession:input_type -> state.v1.CreateSessionRequest
-	12, // 40: state.v1.StateService.GetSession:input_type -> state.v1.GetSessionRequest
-	14, // 41: state.v1.StateService.DeleteSession:input_type -> state.v1.DeleteSessionRequest
-	16, // 42: state.v1.StateService.CreatePlayer:input_type -> state.v1.CreatePlayerRequest
-	18, // 43: state.v1.StateService.GetPlayer:input_type -> state.v1.GetPlayerRequest
-	20, // 44: state.v1.StateService.NextPlayerID:input_type -> state.v1.NextPlayerIDRequest
-	24, // 45: state.v1.StateService.UpdatePlayerAvatar:input_type -> state.v1.UpdatePlayerAvatarRequest
-	27, // 46: state.v1.StateService.SetPresence:input_type -> state.v1.SetPresenceRequest
-	29, // 47: state.v1.StateService.GetPresence:input_type -> state.v1.GetPresenceRequest
-	31, // 48: state.v1.StateService.ClearPresence:input_type -> state.v1.ClearPresenceRequest
-	33, // 49: state.v1.StateService.RefreshPresence:input_type -> state.v1.RefreshPresenceRequest
-	36, // 50: state.v1.StateService.SendFriendRequest:input_type -> state.v1.SendFriendRequestRequest
-	38, // 51: state.v1.StateService.ListIncomingRequest:input_type -> state.v1.ListFriendRequestRequest
-	38, // 52: state.v1.StateService.ListOutgoingRequest:input_type -> state.v1.ListFriendRequestRequest
-	40, // 53: state.v1.StateService.AcceptFriendRequest:input_type -> state.v1.HandleFriendRequestRequest
-	40, // 54: state.v1.StateService.RejectFriendRequest:input_type -> state.v1.HandleFriendRequestRequest
-	42, // 55: state.v1.StateService.ListFriendIDs:input_type -> state.v1.ListFriendIDsRequest
-	44, // 56: state.v1.StateService.DeleteFriend:input_type -> state.v1.DeleteFriendRequest
-	49, // 57: state.v1.StateService.PublishRealtime:input_type -> state.v1.PublishRealtimeRequest
-	51, // 58: state.v1.StateService.SubscribeRealtime:input_type -> state.v1.SubscribeRealtimeRequest
-	53, // 59: state.v1.StateService.GetGrowth:input_type -> state.v1.GetGrowthRequest
-	55, // 60: state.v1.StateService.UpgradeGrowth:input_type -> state.v1.UpgradeGrowthRequest
-	22, // 61: state.v1.StateService.AddPlayerCoins:input_type -> state.v1.AddPlayerCoinsRequest
-	58, // 62: state.v1.StateService.SaveChatMessage:input_type -> state.v1.SaveChatMessageRequest
-	60, // 63: state.v1.StateService.ListChatMessages:input_type -> state.v1.ListChatMessagesRequest
-	5,  // 64: state.v1.StateService.CreateAccount:output_type -> state.v1.CreateAccountResponse
-	7,  // 65: state.v1.StateService.GetAccount:output_type -> state.v1.GetAccountResponse
-	9,  // 66: state.v1.StateService.RegisterAccount:output_type -> state.v1.RegisterAccountResponse
-	11, // 67: state.v1.StateService.CreateSession:output_type -> state.v1.CreateSessionResponse
-	13, // 68: state.v1.StateService.GetSession:output_type -> state.v1.GetSessionResponse
-	15, // 69: state.v1.StateService.DeleteSession:output_type -> state.v1.DeleteSessionResponse
-	17, // 70: state.v1.StateService.CreatePlayer:output_type -> state.v1.CreatePlayerResponse
-	19, // 71: state.v1.StateService.GetPlayer:output_type -> state.v1.GetPlayerResponse
-	21, // 72: state.v1.StateService.NextPlayerID:output_type -> state.v1.NextPlayerIDResponse
-	25, // 73: state.v1.StateService.UpdatePlayerAvatar:output_type -> state.v1.UpdatePlayerAvatarResponse
-	28, // 74: state.v1.StateService.SetPresence:output_type -> state.v1.SetPresenceResponse
-	30, // 75: state.v1.StateService.GetPresence:output_type -> state.v1.GetPresenceResponse
-	32, // 76: state.v1.StateService.ClearPresence:output_type -> state.v1.ClearPresenceResponse
-	34, // 77: state.v1.StateService.RefreshPresence:output_type -> state.v1.RefreshPresenceResponse
-	37, // 78: state.v1.StateService.SendFriendRequest:output_type -> state.v1.SendFriendRequestResponse
-	39, // 79: state.v1.StateService.ListIncomingRequest:output_type -> state.v1.ListFriendRequestResponse
-	39, // 80: state.v1.StateService.ListOutgoingRequest:output_type -> state.v1.ListFriendRequestResponse
-	41, // 81: state.v1.StateService.AcceptFriendRequest:output_type -> state.v1.HandleFriendRequestResponse
-	41, // 82: state.v1.StateService.RejectFriendRequest:output_type -> state.v1.HandleFriendRequestResponse
-	43, // 83: state.v1.StateService.ListFriendIDs:output_type -> state.v1.ListFriendIDsResponse
-	45, // 84: state.v1.StateService.DeleteFriend:output_type -> state.v1.DeleteFriendResponse
-	50, // 85: state.v1.StateService.PublishRealtime:output_type -> state.v1.PublishRealtimeResponse
-	48, // 86: state.v1.StateService.SubscribeRealtime:output_type -> state.v1.RealtimeDelivery
-	54, // 87: state.v1.StateService.GetGrowth:output_type -> state.v1.GetGrowthResponse
-	56, // 88: state.v1.StateService.UpgradeGrowth:output_type -> state.v1.UpgradeGrowthResponse
-	23, // 89: state.v1.StateService.AddPlayerCoins:output_type -> state.v1.AddPlayerCoinsResponse
-	59, // 90: state.v1.StateService.SaveChatMessage:output_type -> state.v1.SaveChatMessageResponse
-	61, // 91: state.v1.StateService.ListChatMessages:output_type -> state.v1.ListChatMessagesResponse
-	64, // [64:92] is the sub-list for method output_type
-	36, // [36:64] is the sub-list for method input_type
-	36, // [36:36] is the sub-list for extension type_name
-	36, // [36:36] is the sub-list for extension extendee
-	0,  // [0:36] is the sub-list for field type_name
+	22, // 11: state.v1.SettleMatchRewardRequest.rewards:type_name -> state.v1.PlayerCoinReward
+	3,  // 12: state.v1.UpdatePlayerAvatarResponse.player:type_name -> state.v1.Player
+	64, // 13: state.v1.Presence.updated_at:type_name -> google.protobuf.Timestamp
+	27, // 14: state.v1.SetPresenceRequest.presence:type_name -> state.v1.Presence
+	65, // 15: state.v1.SetPresenceRequest.ttl:type_name -> google.protobuf.Duration
+	27, // 16: state.v1.GetPresenceResponse.presence:type_name -> state.v1.Presence
+	64, // 17: state.v1.RefreshPresenceRequest.updated_at:type_name -> google.protobuf.Timestamp
+	65, // 18: state.v1.RefreshPresenceRequest.ttl:type_name -> google.protobuf.Duration
+	64, // 19: state.v1.FriendRequest.created_at:type_name -> google.protobuf.Timestamp
+	36, // 20: state.v1.ListFriendRequestResponse.requests:type_name -> state.v1.FriendRequest
+	63, // 21: state.v1.RealtimeEvent.chat_message:type_name -> state.v1.RealtimeChatMessage
+	0,  // 22: state.v1.RealtimeRoute.type:type_name -> state.v1.RealtimeRouteType
+	48, // 23: state.v1.RealtimeDelivery.route:type_name -> state.v1.RealtimeRoute
+	47, // 24: state.v1.RealtimeDelivery.event:type_name -> state.v1.RealtimeEvent
+	49, // 25: state.v1.PublishRealtimeRequest.delivery:type_name -> state.v1.RealtimeDelivery
+	0,  // 26: state.v1.SubscribeRealtimeRequest.type:type_name -> state.v1.RealtimeRouteType
+	53, // 27: state.v1.GetGrowthResponse.growth:type_name -> state.v1.Growth
+	53, // 28: state.v1.UpgradeGrowthResponse.growth:type_name -> state.v1.Growth
+	64, // 29: state.v1.ChatMessage.created_at:type_name -> google.protobuf.Timestamp
+	64, // 30: state.v1.ChatMessage.expires_at:type_name -> google.protobuf.Timestamp
+	64, // 31: state.v1.SaveChatMessageRequest.created_at:type_name -> google.protobuf.Timestamp
+	64, // 32: state.v1.SaveChatMessageRequest.expires_at:type_name -> google.protobuf.Timestamp
+	58, // 33: state.v1.SaveChatMessageResponse.message:type_name -> state.v1.ChatMessage
+	58, // 34: state.v1.ListChatMessagesResponse.messages:type_name -> state.v1.ChatMessage
+	64, // 35: state.v1.RealtimeChatMessage.created_at:type_name -> google.protobuf.Timestamp
+	64, // 36: state.v1.RealtimeChatMessage.expires_at:type_name -> google.protobuf.Timestamp
+	4,  // 37: state.v1.StateService.CreateAccount:input_type -> state.v1.CreateAccountRequest
+	6,  // 38: state.v1.StateService.GetAccount:input_type -> state.v1.GetAccountRequest
+	8,  // 39: state.v1.StateService.RegisterAccount:input_type -> state.v1.RegisterAccountRequest
+	10, // 40: state.v1.StateService.CreateSession:input_type -> state.v1.CreateSessionRequest
+	12, // 41: state.v1.StateService.GetSession:input_type -> state.v1.GetSessionRequest
+	14, // 42: state.v1.StateService.DeleteSession:input_type -> state.v1.DeleteSessionRequest
+	16, // 43: state.v1.StateService.CreatePlayer:input_type -> state.v1.CreatePlayerRequest
+	18, // 44: state.v1.StateService.GetPlayer:input_type -> state.v1.GetPlayerRequest
+	20, // 45: state.v1.StateService.NextPlayerID:input_type -> state.v1.NextPlayerIDRequest
+	25, // 46: state.v1.StateService.UpdatePlayerAvatar:input_type -> state.v1.UpdatePlayerAvatarRequest
+	28, // 47: state.v1.StateService.SetPresence:input_type -> state.v1.SetPresenceRequest
+	30, // 48: state.v1.StateService.GetPresence:input_type -> state.v1.GetPresenceRequest
+	32, // 49: state.v1.StateService.ClearPresence:input_type -> state.v1.ClearPresenceRequest
+	34, // 50: state.v1.StateService.RefreshPresence:input_type -> state.v1.RefreshPresenceRequest
+	37, // 51: state.v1.StateService.SendFriendRequest:input_type -> state.v1.SendFriendRequestRequest
+	39, // 52: state.v1.StateService.ListIncomingRequest:input_type -> state.v1.ListFriendRequestRequest
+	39, // 53: state.v1.StateService.ListOutgoingRequest:input_type -> state.v1.ListFriendRequestRequest
+	41, // 54: state.v1.StateService.AcceptFriendRequest:input_type -> state.v1.HandleFriendRequestRequest
+	41, // 55: state.v1.StateService.RejectFriendRequest:input_type -> state.v1.HandleFriendRequestRequest
+	43, // 56: state.v1.StateService.ListFriendIDs:input_type -> state.v1.ListFriendIDsRequest
+	45, // 57: state.v1.StateService.DeleteFriend:input_type -> state.v1.DeleteFriendRequest
+	50, // 58: state.v1.StateService.PublishRealtime:input_type -> state.v1.PublishRealtimeRequest
+	52, // 59: state.v1.StateService.SubscribeRealtime:input_type -> state.v1.SubscribeRealtimeRequest
+	54, // 60: state.v1.StateService.GetGrowth:input_type -> state.v1.GetGrowthRequest
+	56, // 61: state.v1.StateService.UpgradeGrowth:input_type -> state.v1.UpgradeGrowthRequest
+	23, // 62: state.v1.StateService.SettleMatchRewards:input_type -> state.v1.SettleMatchRewardRequest
+	59, // 63: state.v1.StateService.SaveChatMessage:input_type -> state.v1.SaveChatMessageRequest
+	61, // 64: state.v1.StateService.ListChatMessages:input_type -> state.v1.ListChatMessagesRequest
+	5,  // 65: state.v1.StateService.CreateAccount:output_type -> state.v1.CreateAccountResponse
+	7,  // 66: state.v1.StateService.GetAccount:output_type -> state.v1.GetAccountResponse
+	9,  // 67: state.v1.StateService.RegisterAccount:output_type -> state.v1.RegisterAccountResponse
+	11, // 68: state.v1.StateService.CreateSession:output_type -> state.v1.CreateSessionResponse
+	13, // 69: state.v1.StateService.GetSession:output_type -> state.v1.GetSessionResponse
+	15, // 70: state.v1.StateService.DeleteSession:output_type -> state.v1.DeleteSessionResponse
+	17, // 71: state.v1.StateService.CreatePlayer:output_type -> state.v1.CreatePlayerResponse
+	19, // 72: state.v1.StateService.GetPlayer:output_type -> state.v1.GetPlayerResponse
+	21, // 73: state.v1.StateService.NextPlayerID:output_type -> state.v1.NextPlayerIDResponse
+	26, // 74: state.v1.StateService.UpdatePlayerAvatar:output_type -> state.v1.UpdatePlayerAvatarResponse
+	29, // 75: state.v1.StateService.SetPresence:output_type -> state.v1.SetPresenceResponse
+	31, // 76: state.v1.StateService.GetPresence:output_type -> state.v1.GetPresenceResponse
+	33, // 77: state.v1.StateService.ClearPresence:output_type -> state.v1.ClearPresenceResponse
+	35, // 78: state.v1.StateService.RefreshPresence:output_type -> state.v1.RefreshPresenceResponse
+	38, // 79: state.v1.StateService.SendFriendRequest:output_type -> state.v1.SendFriendRequestResponse
+	40, // 80: state.v1.StateService.ListIncomingRequest:output_type -> state.v1.ListFriendRequestResponse
+	40, // 81: state.v1.StateService.ListOutgoingRequest:output_type -> state.v1.ListFriendRequestResponse
+	42, // 82: state.v1.StateService.AcceptFriendRequest:output_type -> state.v1.HandleFriendRequestResponse
+	42, // 83: state.v1.StateService.RejectFriendRequest:output_type -> state.v1.HandleFriendRequestResponse
+	44, // 84: state.v1.StateService.ListFriendIDs:output_type -> state.v1.ListFriendIDsResponse
+	46, // 85: state.v1.StateService.DeleteFriend:output_type -> state.v1.DeleteFriendResponse
+	51, // 86: state.v1.StateService.PublishRealtime:output_type -> state.v1.PublishRealtimeResponse
+	49, // 87: state.v1.StateService.SubscribeRealtime:output_type -> state.v1.RealtimeDelivery
+	55, // 88: state.v1.StateService.GetGrowth:output_type -> state.v1.GetGrowthResponse
+	57, // 89: state.v1.StateService.UpgradeGrowth:output_type -> state.v1.UpgradeGrowthResponse
+	24, // 90: state.v1.StateService.SettleMatchRewards:output_type -> state.v1.SettleMatchRewardResponse
+	60, // 91: state.v1.StateService.SaveChatMessage:output_type -> state.v1.SaveChatMessageResponse
+	62, // 92: state.v1.StateService.ListChatMessages:output_type -> state.v1.ListChatMessagesResponse
+	65, // [65:93] is the sub-list for method output_type
+	37, // [37:65] is the sub-list for method input_type
+	37, // [37:37] is the sub-list for extension type_name
+	37, // [37:37] is the sub-list for extension extendee
+	0,  // [0:37] is the sub-list for field type_name
 }
 
 func init() { file_proto_state_v1_state_proto_init() }
@@ -3855,7 +3903,7 @@ func file_proto_state_v1_state_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_state_v1_state_proto_rawDesc), len(file_proto_state_v1_state_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   62,
+			NumMessages:   63,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

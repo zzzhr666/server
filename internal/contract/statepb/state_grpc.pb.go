@@ -44,7 +44,7 @@ const (
 	StateService_SubscribeRealtime_FullMethodName   = "/state.v1.StateService/SubscribeRealtime"
 	StateService_GetGrowth_FullMethodName           = "/state.v1.StateService/GetGrowth"
 	StateService_UpgradeGrowth_FullMethodName       = "/state.v1.StateService/UpgradeGrowth"
-	StateService_AddPlayerCoins_FullMethodName      = "/state.v1.StateService/AddPlayerCoins"
+	StateService_SettleMatchRewards_FullMethodName  = "/state.v1.StateService/SettleMatchRewards"
 	StateService_SaveChatMessage_FullMethodName     = "/state.v1.StateService/SaveChatMessage"
 	StateService_ListChatMessages_FullMethodName    = "/state.v1.StateService/ListChatMessages"
 )
@@ -78,7 +78,7 @@ type StateServiceClient interface {
 	SubscribeRealtime(ctx context.Context, in *SubscribeRealtimeRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[RealtimeDelivery], error)
 	GetGrowth(ctx context.Context, in *GetGrowthRequest, opts ...grpc.CallOption) (*GetGrowthResponse, error)
 	UpgradeGrowth(ctx context.Context, in *UpgradeGrowthRequest, opts ...grpc.CallOption) (*UpgradeGrowthResponse, error)
-	AddPlayerCoins(ctx context.Context, in *AddPlayerCoinsRequest, opts ...grpc.CallOption) (*AddPlayerCoinsResponse, error)
+	SettleMatchRewards(ctx context.Context, in *SettleMatchRewardRequest, opts ...grpc.CallOption) (*SettleMatchRewardResponse, error)
 	SaveChatMessage(ctx context.Context, in *SaveChatMessageRequest, opts ...grpc.CallOption) (*SaveChatMessageResponse, error)
 	ListChatMessages(ctx context.Context, in *ListChatMessagesRequest, opts ...grpc.CallOption) (*ListChatMessagesResponse, error)
 }
@@ -350,10 +350,10 @@ func (c *stateServiceClient) UpgradeGrowth(ctx context.Context, in *UpgradeGrowt
 	return out, nil
 }
 
-func (c *stateServiceClient) AddPlayerCoins(ctx context.Context, in *AddPlayerCoinsRequest, opts ...grpc.CallOption) (*AddPlayerCoinsResponse, error) {
+func (c *stateServiceClient) SettleMatchRewards(ctx context.Context, in *SettleMatchRewardRequest, opts ...grpc.CallOption) (*SettleMatchRewardResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(AddPlayerCoinsResponse)
-	err := c.cc.Invoke(ctx, StateService_AddPlayerCoins_FullMethodName, in, out, cOpts...)
+	out := new(SettleMatchRewardResponse)
+	err := c.cc.Invoke(ctx, StateService_SettleMatchRewards_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -409,7 +409,7 @@ type StateServiceServer interface {
 	SubscribeRealtime(*SubscribeRealtimeRequest, grpc.ServerStreamingServer[RealtimeDelivery]) error
 	GetGrowth(context.Context, *GetGrowthRequest) (*GetGrowthResponse, error)
 	UpgradeGrowth(context.Context, *UpgradeGrowthRequest) (*UpgradeGrowthResponse, error)
-	AddPlayerCoins(context.Context, *AddPlayerCoinsRequest) (*AddPlayerCoinsResponse, error)
+	SettleMatchRewards(context.Context, *SettleMatchRewardRequest) (*SettleMatchRewardResponse, error)
 	SaveChatMessage(context.Context, *SaveChatMessageRequest) (*SaveChatMessageResponse, error)
 	ListChatMessages(context.Context, *ListChatMessagesRequest) (*ListChatMessagesResponse, error)
 	mustEmbedUnimplementedStateServiceServer()
@@ -497,8 +497,8 @@ func (UnimplementedStateServiceServer) GetGrowth(context.Context, *GetGrowthRequ
 func (UnimplementedStateServiceServer) UpgradeGrowth(context.Context, *UpgradeGrowthRequest) (*UpgradeGrowthResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method UpgradeGrowth not implemented")
 }
-func (UnimplementedStateServiceServer) AddPlayerCoins(context.Context, *AddPlayerCoinsRequest) (*AddPlayerCoinsResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method AddPlayerCoins not implemented")
+func (UnimplementedStateServiceServer) SettleMatchRewards(context.Context, *SettleMatchRewardRequest) (*SettleMatchRewardResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SettleMatchRewards not implemented")
 }
 func (UnimplementedStateServiceServer) SaveChatMessage(context.Context, *SaveChatMessageRequest) (*SaveChatMessageResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method SaveChatMessage not implemented")
@@ -970,20 +970,20 @@ func _StateService_UpgradeGrowth_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
-func _StateService_AddPlayerCoins_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(AddPlayerCoinsRequest)
+func _StateService_SettleMatchRewards_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SettleMatchRewardRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(StateServiceServer).AddPlayerCoins(ctx, in)
+		return srv.(StateServiceServer).SettleMatchRewards(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: StateService_AddPlayerCoins_FullMethodName,
+		FullMethod: StateService_SettleMatchRewards_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(StateServiceServer).AddPlayerCoins(ctx, req.(*AddPlayerCoinsRequest))
+		return srv.(StateServiceServer).SettleMatchRewards(ctx, req.(*SettleMatchRewardRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1128,8 +1128,8 @@ var StateService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _StateService_UpgradeGrowth_Handler,
 		},
 		{
-			MethodName: "AddPlayerCoins",
-			Handler:    _StateService_AddPlayerCoins_Handler,
+			MethodName: "SettleMatchRewards",
+			Handler:    _StateService_SettleMatchRewards_Handler,
 		},
 		{
 			MethodName: "SaveChatMessage",

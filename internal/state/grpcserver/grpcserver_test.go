@@ -197,42 +197,39 @@ func TestUpdatePlayerAvatarMapsErrors(t *testing.T) {
 	}
 }
 
-func TestAddPlayerCoins(t *testing.T) {
+func TestSettleMatchRewards(t *testing.T) {
 	state := &fakeStateClient{
-		addPlayerCoinsResult: &statecontract.AddPlayerCoinsResult{
-			PlayerID: 7,
-			Coins:    150,
-		},
+		settleMatchRewardsResult: &statecontract.SettleMatchRewardsResult{Applied: true},
 	}
 	server := newTestServer(state)
 
-	res, err := server.AddPlayerCoins(context.Background(), &statepb.AddPlayerCoinsRequest{
-		PlayerId: 7,
-		Amount:   50,
+	res, err := server.SettleMatchRewards(context.Background(), &statepb.SettleMatchRewardRequest{
+		SettlementId: "room-1",
+		Rewards: []*statepb.PlayerCoinReward{
+			{PlayerId: 7, Amount: 50},
+			{PlayerId: 8, Amount: 30},
+		},
 	})
 	if err != nil {
-		t.Fatalf("AddPlayerCoins returned error: %v", err)
+		t.Fatalf("SettleMatchRewards returned error: %v", err)
 	}
-	if state.addPlayerCoinsInput.PlayerID != 7 {
-		t.Fatalf("add player coins input player id = %d, want 7", state.addPlayerCoinsInput.PlayerID)
+	if state.settleMatchRewardsInput.SettlementID != "room-1" {
+		t.Fatalf("settlement id = %q, want room-1", state.settleMatchRewardsInput.SettlementID)
 	}
-	if state.addPlayerCoinsInput.Amount != 50 {
-		t.Fatalf("add player coins input amount = %d, want 50", state.addPlayerCoinsInput.Amount)
+	if len(state.settleMatchRewardsInput.Rewards) != 2 || state.settleMatchRewardsInput.Rewards[0].PlayerID != 7 || state.settleMatchRewardsInput.Rewards[1].Amount != 30 {
+		t.Fatalf("settlement rewards = %+v, want converted request rewards", state.settleMatchRewardsInput.Rewards)
 	}
-	if res.GetPlayerId() != 7 {
-		t.Fatalf("response player id = %d, want 7", res.GetPlayerId())
-	}
-	if res.GetCoins() != 150 {
-		t.Fatalf("response coins = %d, want 150", res.GetCoins())
+	if !res.GetApplied() {
+		t.Fatal("response applied = false, want true")
 	}
 }
 
-func TestAddPlayerCoinsInvalidPlayer(t *testing.T) {
-	server := newTestServer(&fakeStateClient{err: statecontract.ErrInvalidPlayer})
+func TestSettleMatchRewardsInvalidSettlement(t *testing.T) {
+	server := newTestServer(&fakeStateClient{err: statecontract.ErrInvalidSettlement})
 
-	_, err := server.AddPlayerCoins(context.Background(), &statepb.AddPlayerCoinsRequest{})
+	_, err := server.SettleMatchRewards(context.Background(), &statepb.SettleMatchRewardRequest{})
 	if status.Code(err) != codes.InvalidArgument {
-		t.Fatalf("AddPlayerCoins code = %v, want %v", status.Code(err), codes.InvalidArgument)
+		t.Fatalf("SettleMatchRewards code = %v, want %v", status.Code(err), codes.InvalidArgument)
 	}
 }
 
@@ -605,8 +602,8 @@ type fakeStateClient struct {
 	friendIDs                          []int64
 	deletedFriendPlayerID              int64
 	deletedFriendFriendPlayerID        int64
-	addPlayerCoinsInput                statecontract.AddPlayerCoinsInput
-	addPlayerCoinsResult               *statecontract.AddPlayerCoinsResult
+	settleMatchRewardsInput            statecontract.SettleMatchRewardsInput
+	settleMatchRewardsResult           *statecontract.SettleMatchRewardsResult
 	saveChatMessageInput               statecontract.SaveChatMessageInput
 	savedChatMessage                   *statecontract.ChatMessage
 	listChatMessagesInput              statecontract.ListChatMessagesInput
@@ -687,12 +684,12 @@ func (f *fakeStateClient) NextPlayerID(_ context.Context) (int64, error) {
 	return f.nextPlayerID, nil
 }
 
-func (f *fakeStateClient) AddPlayerCoins(_ context.Context, input statecontract.AddPlayerCoinsInput) (*statecontract.AddPlayerCoinsResult, error) {
-	f.addPlayerCoinsInput = input
+func (f *fakeStateClient) SettleMatchRewards(_ context.Context, input statecontract.SettleMatchRewardsInput) (*statecontract.SettleMatchRewardsResult, error) {
+	f.settleMatchRewardsInput = input
 	if f.err != nil {
 		return nil, f.err
 	}
-	return f.addPlayerCoinsResult, nil
+	return f.settleMatchRewardsResult, nil
 }
 
 func (f *fakeStateClient) SaveChatMessage(_ context.Context, input statecontract.SaveChatMessageInput) (*statecontract.ChatMessage, error) {

@@ -56,6 +56,7 @@ func (c *Client) FinishMatch(ctx context.Context, input rcenter.FinishMatchInput
 	req := &rcenterpb.FinishMatchRequest{
 		PlayerIds: input.PlayerIDs,
 		Reason:    input.Reason,
+		RoomName:  input.RoomName,
 	}
 	for _, stat := range input.PlayerStats {
 		req.PlayerStats = append(req.PlayerStats, rcenterproto.ToProtoPlayerBattleStats(stat))
@@ -98,6 +99,10 @@ func mapGRPCError(err error) error {
 			return rcenter.ErrInvalidBattleNode
 		case rcenter.ErrInvalidPlayerID.Error():
 			return rcenter.ErrInvalidPlayerID
+		case rcenter.ErrInvalidRoomName.Error():
+			return rcenter.ErrInvalidRoomName
+		case rcenter.ErrInvalidBattleStats.Error():
+			return rcenter.ErrInvalidBattleStats
 		}
 	case codes.Unavailable:
 		switch st.Message() {

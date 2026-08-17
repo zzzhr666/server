@@ -279,40 +279,76 @@ func (g *GameCenterService) StartMatch(ctx context.Context, playerID int64, weap
 	}, nil
 }
 
-// FinishMatch 释放已匹配玩家，使其可再次进入匹配。
+// FinishMatch 原子发放对局奖励，并仅释放属于上报房间的玩家状态。
 func (g *GameCenterService) FinishMatch(ctx context.Context, input FinishMatchInput) error {
 	if err := ctx.Err(); err != nil {
 		g.observeMatchOperation("finish", "error")
 		return err
 	}
+	if input.RoomName == "" {
+		g.observeMatchOperation("finish", "error")
+		return ErrInvalidRoomName
+	}
+	if len(input.PlayerIDs) == 0 {
+		g.observeMatchOperation("finish", "error")
+		return ErrInvalidPlayerID
+	}
+	playerIDs := make(map[int64]struct{}, len(input.PlayerIDs))
 	for _, playerID := range input.PlayerIDs {
 		if playerID <= 0 {
 			g.observeMatchOperation("finish", "error")
 			return ErrInvalidPlayerID
 		}
+		if _, exists := playerIDs[playerID]; exists {
+			g.observeMatchOperation("finish", "error")
+			return ErrInvalidBattleStats
+		}
+		playerIDs[playerID] = struct{}{}
+	}
+	if len(input.PlayerStats) > 0 && len(input.PlayerStats) != len(playerIDs) {
+		g.observeMatchOperation("finish", "error")
+		return ErrInvalidBattleStats
 	}
 	if len(input.PlayerStats) > 0 && g.coinClient == nil {
 		g.observeMatchOperation("finish", "error")
 		return ErrUnavailableCoinClient
 	}
-	// 只有带统计的胜负结束会产生奖励。断线超时仅携带 PlayerIDs，下面不会写金币，
-	// 但最终仍会清除两名玩家的活跃对局和 inGame 占位。
+	// 先计算完全部奖励，再以房间名作为稳定结算 ID 一次提交，避免部分玩家已到账、
+	// 其余玩家失败后重试导致重复发放。断线超时没有统计，不写金币。
+	rewards := make([]state.PlayerCoinReward, 0, len(input.PlayerStats))
+	statPlayerIDs := make(map[int64]struct{}, len(input.PlayerStats))
 	for _, stat := range input.PlayerStats {
+		if _, belongsToMatch := playerIDs[stat.PlayerID]; !belongsToMatch {
+			g.observeMatchOperation("finish", "error")
+			return ErrInvalidBattleStats
+		}
+		if _, duplicate := statPlayerIDs[stat.PlayerID]; duplicate {
+			g.observeMatchOperation("finish", "error")
+			return ErrInvalidBattleStats
+		}
+		statPlayerIDs[stat.PlayerID] = struct{}{}
 		reward, err := CalculateCoinReward(stat, input.Reason, g.rewardRule)
 		if err != nil {
 			g.observeMatchOperation("finish", "error")
 			return err
 		}
-		_, err = g.coinClient.AddPlayerCoins(ctx, state.AddPlayerCoinsInput{
+		rewards = append(rewards, state.PlayerCoinReward{
 			PlayerID: stat.PlayerID,
 			Amount:   reward,
+		})
+	}
+	if len(rewards) > 0 {
+		_, err := g.coinClient.SettleMatchRewards(ctx, state.SettleMatchRewardsInput{
+			SettlementID: input.RoomName,
+			Rewards:      rewards,
 		})
 		if err != nil {
 			g.observeMatchOperation("finish", "error")
 			return err
 		}
 	}
-	g.clearGameContext(input.PlayerIDs)
+	// 结算成功或已经结算过后才释放对局；房间校验阻止迟到的旧回调误删新对局。
+	g.clearFinishedMatch(input.RoomName, input.PlayerIDs)
 	g.observeMatchOperation("finish", "success")
 	return nil
 }
@@ -382,6 +418,22 @@ func (g *GameCenterService) clearGameContext(playIDs []int64) {
 	// 创建房间失败和正常结算都走这里，保证 inGamePlayers 与 activeMatches 始终成对释放，
 	// 否则玩家会永久收到 ErrPlayerInGame 或过期的 ResumeMatch。
 	for _, playerID := range playIDs {
+		delete(g.inGamePlayers, playerID)
+		delete(g.activeMatches, playerID)
+	}
+	if g.metrics != nil {
+		g.metrics.ActiveMatchPlayers.Set(float64(len(g.activeMatches)))
+	}
+}
+
+func (g *GameCenterService) clearFinishedMatch(roomName string, playerIDs []int64) {
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	for _, playerID := range playerIDs {
+		activeMatch, ok := g.activeMatches[playerID]
+		if !ok || activeMatch.RoomName != roomName {
+			continue
+		}
 		delete(g.inGamePlayers, playerID)
 		delete(g.activeMatches, playerID)
 	}

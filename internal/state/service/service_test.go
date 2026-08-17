@@ -101,27 +101,24 @@ func TestServiceForwardsPlayerOperations(t *testing.T) {
 
 func TestServiceForwardsCoinOperations(t *testing.T) {
 	stores := newFakeStores()
-	stores.addPlayerCoinsResult = &statecontract.AddPlayerCoinsResult{
-		PlayerID: 7,
-		Coins:    150,
-	}
+	stores.settleMatchRewardsResult = &statecontract.SettleMatchRewardsResult{Applied: true}
 	svc := newTestService(stores)
 
-	result, err := svc.AddPlayerCoins(context.Background(), statecontract.AddPlayerCoinsInput{
-		PlayerID: 7,
-		Amount:   50,
+	settlement, err := svc.SettleMatchRewards(context.Background(), statecontract.SettleMatchRewardsInput{
+		SettlementID: "room-1",
+		Rewards:      []statecontract.PlayerCoinReward{{PlayerID: 7, Amount: 50}},
 	})
 	if err != nil {
-		t.Fatalf("AddPlayerCoins returned error: %v", err)
+		t.Fatalf("SettleMatchRewards returned error: %v", err)
 	}
-	if stores.addPlayerCoinsInput.PlayerID != 7 {
-		t.Fatalf("add player coins input player id = %d, want 7", stores.addPlayerCoinsInput.PlayerID)
+	if stores.settleMatchRewardsInput.SettlementID != "room-1" {
+		t.Fatalf("settlement id = %q, want room-1", stores.settleMatchRewardsInput.SettlementID)
 	}
-	if stores.addPlayerCoinsInput.Amount != 50 {
-		t.Fatalf("add player coins input amount = %d, want 50", stores.addPlayerCoinsInput.Amount)
+	if len(stores.settleMatchRewardsInput.Rewards) != 1 || stores.settleMatchRewardsInput.Rewards[0].PlayerID != 7 || stores.settleMatchRewardsInput.Rewards[0].Amount != 50 {
+		t.Fatalf("settlement rewards = %+v, want player 7 amount 50", stores.settleMatchRewardsInput.Rewards)
 	}
-	if result.Coins != 150 {
-		t.Fatalf("result coins = %d, want 150", result.Coins)
+	if !settlement.Applied {
+		t.Fatal("settlement applied = false, want true")
 	}
 }
 
@@ -406,8 +403,8 @@ type fakeStores struct {
 	friendIDs                          []int64
 	deletedFriendPlayerID              int64
 	deletedFriendFriendPlayerID        int64
-	addPlayerCoinsInput                statecontract.AddPlayerCoinsInput
-	addPlayerCoinsResult               *statecontract.AddPlayerCoinsResult
+	settleMatchRewardsInput            statecontract.SettleMatchRewardsInput
+	settleMatchRewardsResult           *statecontract.SettleMatchRewardsResult
 	saveChatMessageInput               statecontract.SaveChatMessageInput
 	savedChatMessage                   *statecontract.ChatMessage
 	listChatMessagesInput              statecontract.ListChatMessagesInput
@@ -495,9 +492,9 @@ func (f *fakeStores) NextPlayerID(_ context.Context) (int64, error) {
 	return f.nextPlayerID, nil
 }
 
-func (f *fakeStores) AddPlayerCoins(_ context.Context, input statecontract.AddPlayerCoinsInput) (*statecontract.AddPlayerCoinsResult, error) {
-	f.addPlayerCoinsInput = input
-	return f.addPlayerCoinsResult, nil
+func (f *fakeStores) SettleMatchRewards(_ context.Context, input statecontract.SettleMatchRewardsInput) (*statecontract.SettleMatchRewardsResult, error) {
+	f.settleMatchRewardsInput = input
+	return f.settleMatchRewardsResult, nil
 }
 
 func (f *fakeStores) SaveChatMessage(_ context.Context, input statecontract.SaveChatMessageInput) (*statecontract.ChatMessage, error) {

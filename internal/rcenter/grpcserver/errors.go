@@ -17,6 +17,10 @@ func mapRCenterError(err error) error {
 		return status.Error(codes.InvalidArgument, err.Error())
 	case errors.Is(err, rcenter.ErrInvalidPlayerID):
 		return status.Error(codes.InvalidArgument, err.Error())
+	case errors.Is(err, rcenter.ErrInvalidRoomName):
+		return status.Error(codes.InvalidArgument, err.Error())
+	case errors.Is(err, rcenter.ErrInvalidBattleStats):
+		return status.Error(codes.InvalidArgument, err.Error())
 	case errors.Is(err, rcenter.ErrNoAvailableBattleNode):
 		return status.Error(codes.Unavailable, err.Error())
 	case errors.Is(err, rcenter.ErrUnavailableCoinClient):

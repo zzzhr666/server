@@ -102,6 +102,11 @@ func TestMapGRPCError(t *testing.T) {
 			want: statecontract.ErrInvalidPlayer,
 		},
 		{
+			name: "invalid settlement",
+			err:  status.Error(codes.InvalidArgument, statecontract.ErrInvalidSettlement.Error()),
+			want: statecontract.ErrInvalidSettlement,
+		},
+		{
 			name: "insufficient coins",
 			err:  status.Error(codes.FailedPrecondition, statecontract.ErrInsufficientCoins.Error()),
 			want: statecontract.ErrInsufficientCoins,
@@ -142,33 +147,31 @@ func TestMapGRPCError(t *testing.T) {
 	}
 }
 
-func TestClientAddPlayerCoins(t *testing.T) {
+func TestClientSettleMatchRewards(t *testing.T) {
 	grpcState := &fakeStateServiceClient{
-		addPlayerCoinsResponse: &statepb.AddPlayerCoinsResponse{
-			PlayerId: 7,
-			Coins:    150,
-		},
+		settleMatchRewardsResponse: &statepb.SettleMatchRewardResponse{Applied: true},
 	}
 	client := NewClient(grpcState)
 
-	result, err := client.AddPlayerCoins(context.Background(), statecontract.AddPlayerCoinsInput{
-		PlayerID: 7,
-		Amount:   50,
+	result, err := client.SettleMatchRewards(context.Background(), statecontract.SettleMatchRewardsInput{
+		SettlementID: "room-1",
+		Rewards: []statecontract.PlayerCoinReward{
+			{PlayerID: 7, Amount: 50},
+			{PlayerID: 8, Amount: 30},
+		},
 	})
 	if err != nil {
-		t.Fatalf("AddPlayerCoins returned error: %v", err)
+		t.Fatalf("SettleMatchRewards returned error: %v", err)
 	}
-	if grpcState.addPlayerCoinsRequest.GetPlayerId() != 7 {
-		t.Fatalf("add player coins player id = %d, want 7", grpcState.addPlayerCoinsRequest.GetPlayerId())
+	if grpcState.settleMatchRewardsRequest.GetSettlementId() != "room-1" {
+		t.Fatalf("settlement id = %q, want room-1", grpcState.settleMatchRewardsRequest.GetSettlementId())
 	}
-	if grpcState.addPlayerCoinsRequest.GetAmount() != 50 {
-		t.Fatalf("add player coins amount = %d, want 50", grpcState.addPlayerCoinsRequest.GetAmount())
+	rewards := grpcState.settleMatchRewardsRequest.GetRewards()
+	if len(rewards) != 2 || rewards[0].GetPlayerId() != 7 || rewards[0].GetAmount() != 50 || rewards[1].GetPlayerId() != 8 || rewards[1].GetAmount() != 30 {
+		t.Fatalf("settlement rewards = %+v, want converted rewards", rewards)
 	}
-	if result.PlayerID != 7 {
-		t.Fatalf("result player id = %d, want 7", result.PlayerID)
-	}
-	if result.Coins != 150 {
-		t.Fatalf("result coins = %d, want 150", result.Coins)
+	if !result.Applied {
+		t.Fatal("result applied = false, want true")
 	}
 }
 
@@ -714,8 +717,8 @@ type fakeStateServiceClient struct {
 	getGrowthRequest           *statepb.GetGrowthRequest
 	upgradeGrowthRequest       *statepb.UpgradeGrowthRequest
 	upgradeGrowthResponse      *statepb.UpgradeGrowthResponse
-	addPlayerCoinsRequest      *statepb.AddPlayerCoinsRequest
-	addPlayerCoinsResponse     *statepb.AddPlayerCoinsResponse
+	settleMatchRewardsRequest  *statepb.SettleMatchRewardRequest
+	settleMatchRewardsResponse *statepb.SettleMatchRewardResponse
 	updatePlayerAvatarRequest  *statepb.UpdatePlayerAvatarRequest
 	updatePlayerAvatarResponse *statepb.UpdatePlayerAvatarResponse
 	saveChatMessageRequest     *statepb.SaveChatMessageRequest
@@ -805,12 +808,12 @@ func (f *fakeStateServiceClient) UpgradeGrowth(_ context.Context, in *statepb.Up
 	return f.upgradeGrowthResponse, nil
 }
 
-func (f *fakeStateServiceClient) AddPlayerCoins(_ context.Context, in *statepb.AddPlayerCoinsRequest, _ ...grpc.CallOption) (*statepb.AddPlayerCoinsResponse, error) {
-	f.addPlayerCoinsRequest = in
+func (f *fakeStateServiceClient) SettleMatchRewards(_ context.Context, in *statepb.SettleMatchRewardRequest, _ ...grpc.CallOption) (*statepb.SettleMatchRewardResponse, error) {
+	f.settleMatchRewardsRequest = in
 	if f.err != nil {
 		return nil, f.err
 	}
-	return f.addPlayerCoinsResponse, nil
+	return f.settleMatchRewardsResponse, nil
 }
 
 func (f *fakeStateServiceClient) SaveChatMessage(_ context.Context, in *statepb.SaveChatMessageRequest, _ ...grpc.CallOption) (*statepb.SaveChatMessageResponse, error) {

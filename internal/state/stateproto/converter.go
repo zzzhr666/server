@@ -370,3 +370,44 @@ func FromProtoRealtimeChatMessage(message *statepb.RealtimeChatMessage) *state.C
 		SenderNickname:   message.GetSenderNickname(),
 	}
 }
+
+// ToProtoSettleMatchReward 将一条领域奖励转换为 protobuf 奖励。
+func ToProtoSettleMatchReward(reward *state.PlayerCoinReward) *statepb.PlayerCoinReward {
+	if reward == nil {
+		return nil
+	}
+	return &statepb.PlayerCoinReward{
+		PlayerId: reward.PlayerID,
+		Amount:   reward.Amount,
+	}
+}
+
+// ToProtoSettleMatchRewards 将领域奖励列表转换为 protobuf 奖励列表。
+func ToProtoSettleMatchRewards(rewards []state.PlayerCoinReward) []*statepb.PlayerCoinReward {
+	if rewards == nil {
+		return nil
+	}
+	result := make([]*statepb.PlayerCoinReward, 0, len(rewards))
+	for i := range rewards {
+		result = append(result, ToProtoSettleMatchReward(&rewards[i]))
+	}
+	return result
+}
+
+// FromProtoSettleMatchRewards 将 protobuf 奖励列表转换为领域奖励列表。
+func FromProtoSettleMatchRewards(rewards []*statepb.PlayerCoinReward) []state.PlayerCoinReward {
+	if rewards == nil {
+		return nil
+	}
+	result := make([]state.PlayerCoinReward, 0, len(rewards))
+	for _, reward := range rewards {
+		if reward == nil {
+			continue
+		}
+		result = append(result, state.PlayerCoinReward{
+			PlayerID: reward.GetPlayerId(),
+			Amount:   reward.GetAmount(),
+		})
+	}
+	return result
+}

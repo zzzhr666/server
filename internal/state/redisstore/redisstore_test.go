@@ -6,6 +6,7 @@ import (
 	"net"
 	"os/exec"
 	statecontract "server/internal/contract/state"
+	"sync"
 	"testing"
 	"time"
 
@@ -224,64 +225,175 @@ func TestFriendMethodsValidateInput(t *testing.T) {
 	}
 }
 
-func TestAddPlayerCoinsSuccess(t *testing.T) {
+func TestSettleMatchRewardsAppliesAtomicallyAndIsIdempotent(t *testing.T) {
 	ctx := context.Background()
 	store, client := newRedisTestStore(t)
-	if err := client.HSet(ctx, playerKey(7), map[string]any{
-		"id":       7,
-		"nickname": "player",
-		"coins":    100,
-	}).Err(); err != nil {
-		t.Fatalf("seed player returned error: %v", err)
+	seedPlayerWithCoins(t, ctx, client, 7, 100)
+	seedPlayerWithCoins(t, ctx, client, 8, 200)
+	input := statecontract.SettleMatchRewardsInput{
+		SettlementID: "room-settlement-1",
+		Rewards: []statecontract.PlayerCoinReward{
+			{PlayerID: 7, Amount: 50},
+			{PlayerID: 8, Amount: 75},
+		},
 	}
 
-	result, err := store.AddPlayerCoins(ctx, statecontract.AddPlayerCoinsInput{
-		PlayerID: 7,
-		Amount:   50,
-	})
+	result, err := store.SettleMatchRewards(ctx, input)
 	if err != nil {
-		t.Fatalf("AddPlayerCoins returned error: %v", err)
+		t.Fatalf("SettleMatchRewards returned error: %v", err)
 	}
-	if result.PlayerID != 7 {
-		t.Fatalf("result player id = %d, want 7", result.PlayerID)
-	}
-	if result.Coins != 150 {
-		t.Fatalf("result coins = %d, want 150", result.Coins)
+	if result == nil || !result.Applied {
+		t.Fatalf("settlement result = %+v, want applied", result)
 	}
 	assertPlayerCoins(t, ctx, client, 7, 150)
+	assertPlayerCoins(t, ctx, client, 8, 275)
+
+	result, err = store.SettleMatchRewards(ctx, input)
+	if err != nil {
+		t.Fatalf("duplicate SettleMatchRewards returned error: %v", err)
+	}
+	if result == nil || result.Applied {
+		t.Fatalf("duplicate settlement result = %+v, want not applied", result)
+	}
+	assertPlayerCoins(t, ctx, client, 7, 150)
+	assertPlayerCoins(t, ctx, client, 8, 275)
 }
 
-func TestAddPlayerCoinsValidatesInputAndMissingPlayer(t *testing.T) {
+func TestSettleMatchRewardsDoesNotPartiallyApplyWhenPlayerMissing(t *testing.T) {
+	ctx := context.Background()
+	store, client := newRedisTestStore(t)
+	seedPlayerWithCoins(t, ctx, client, 7, 100)
+	input := statecontract.SettleMatchRewardsInput{
+		SettlementID: "room-settlement-2",
+		Rewards: []statecontract.PlayerCoinReward{
+			{PlayerID: 7, Amount: 50},
+			{PlayerID: 8, Amount: 75},
+		},
+	}
+
+	if _, err := store.SettleMatchRewards(ctx, input); !errors.Is(err, statecontract.ErrPlayerNotFound) {
+		t.Fatalf("SettleMatchRewards error = %v, want %v", err, statecontract.ErrPlayerNotFound)
+	}
+	assertPlayerCoins(t, ctx, client, 7, 100)
+
+	seedPlayerWithCoins(t, ctx, client, 8, 200)
+	result, err := store.SettleMatchRewards(ctx, input)
+	if err != nil {
+		t.Fatalf("retry SettleMatchRewards returned error: %v", err)
+	}
+	if result == nil || !result.Applied {
+		t.Fatalf("retry settlement result = %+v, want applied", result)
+	}
+	assertPlayerCoins(t, ctx, client, 7, 150)
+	assertPlayerCoins(t, ctx, client, 8, 275)
+}
+
+func TestSettleMatchRewardsConcurrentDuplicateAppliesOnce(t *testing.T) {
+	ctx := context.Background()
+	store, client := newRedisTestStore(t)
+	seedPlayerWithCoins(t, ctx, client, 7, 100)
+	seedPlayerWithCoins(t, ctx, client, 8, 200)
+	input := statecontract.SettleMatchRewardsInput{
+		SettlementID: "room-settlement-concurrent",
+		Rewards: []statecontract.PlayerCoinReward{
+			{PlayerID: 7, Amount: 50},
+			{PlayerID: 8, Amount: 75},
+		},
+	}
+
+	const callerCount = 16
+	start := make(chan struct{})
+	results := make(chan *statecontract.SettleMatchRewardsResult, callerCount)
+	errs := make(chan error, callerCount)
+	var callers sync.WaitGroup
+	for range callerCount {
+		callers.Add(1)
+		go func() {
+			defer callers.Done()
+			<-start
+			result, err := store.SettleMatchRewards(ctx, input)
+			results <- result
+			errs <- err
+		}()
+	}
+	close(start)
+	callers.Wait()
+	close(results)
+	close(errs)
+
+	for err := range errs {
+		if err != nil {
+			t.Fatalf("concurrent SettleMatchRewards returned error: %v", err)
+		}
+	}
+	appliedCount := 0
+	for result := range results {
+		if result == nil {
+			t.Fatal("concurrent settlement result = nil")
+		}
+		if result.Applied {
+			appliedCount++
+		}
+	}
+	if appliedCount != 1 {
+		t.Fatalf("applied results = %d, want 1", appliedCount)
+	}
+	assertPlayerCoins(t, ctx, client, 7, 150)
+	assertPlayerCoins(t, ctx, client, 8, 275)
+}
+
+func TestSettleMatchRewardsValidatesInput(t *testing.T) {
 	ctx := context.Background()
 	store, _ := newRedisTestStore(t)
-
 	tests := []struct {
 		name  string
-		input statecontract.AddPlayerCoinsInput
+		input statecontract.SettleMatchRewardsInput
 		want  error
 	}{
 		{
-			name:  "invalid player",
-			input: statecontract.AddPlayerCoinsInput{PlayerID: 0, Amount: 50},
-			want:  statecontract.ErrInvalidPlayer,
+			name:  "missing settlement id",
+			input: statecontract.SettleMatchRewardsInput{Rewards: []statecontract.PlayerCoinReward{{PlayerID: 7, Amount: 50}}},
+			want:  statecontract.ErrInvalidSettlement,
 		},
 		{
-			name:  "invalid amount",
-			input: statecontract.AddPlayerCoinsInput{PlayerID: 7, Amount: 0},
-			want:  statecontract.ErrInvalidPlayer,
+			name:  "missing rewards",
+			input: statecontract.SettleMatchRewardsInput{SettlementID: "room-settlement-3"},
+			want:  statecontract.ErrInvalidSettlement,
 		},
 		{
-			name:  "missing player",
-			input: statecontract.AddPlayerCoinsInput{PlayerID: 7, Amount: 50},
-			want:  statecontract.ErrPlayerNotFound,
+			name: "invalid player",
+			input: statecontract.SettleMatchRewardsInput{
+				SettlementID: "room-settlement-3",
+				Rewards:      []statecontract.PlayerCoinReward{{PlayerID: 0, Amount: 50}},
+			},
+			want: statecontract.ErrInvalidPlayer,
+		},
+		{
+			name: "invalid amount",
+			input: statecontract.SettleMatchRewardsInput{
+				SettlementID: "room-settlement-3",
+				Rewards:      []statecontract.PlayerCoinReward{{PlayerID: 7, Amount: 0}},
+			},
+			want: statecontract.ErrInvalidPlayer,
+		},
+		{
+			name: "duplicate player",
+			input: statecontract.SettleMatchRewardsInput{
+				SettlementID: "room-settlement-3",
+				Rewards: []statecontract.PlayerCoinReward{
+					{PlayerID: 7, Amount: 50},
+					{PlayerID: 7, Amount: 75},
+				},
+			},
+			want: statecontract.ErrInvalidSettlement,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := store.AddPlayerCoins(ctx, tt.input)
+			_, err := store.SettleMatchRewards(ctx, tt.input)
 			if !errors.Is(err, tt.want) {
-				t.Fatalf("AddPlayerCoins error = %v, want %v", err, tt.want)
+				t.Fatalf("SettleMatchRewards error = %v, want %v", err, tt.want)
 			}
 		})
 	}

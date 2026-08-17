@@ -40,7 +40,7 @@ service StateService {
   rpc GetGrowth(GetGrowthRequest) returns (GetGrowthResponse);
   rpc UpgradeGrowth(UpgradeGrowthRequest) returns (UpgradeGrowthResponse);
 
-  rpc AddPlayerCoins(AddPlayerCoinsRequest) returns (AddPlayerCoinsResponse);
+  rpc SettleMatchRewards(SettleMatchRewardRequest) returns (SettleMatchRewardResponse);
 
   rpc SaveChatMessage(SaveChatMessageRequest) returns (SaveChatMessageResponse);
   rpc ListChatMessages(ListChatMessagesRequest) returns (ListChatMessagesResponse);
@@ -138,14 +138,18 @@ message NextPlayerIDResponse {
   int64 id = 1;
 }
 
-message AddPlayerCoinsRequest {
+message PlayerCoinReward {
   int64 player_id = 1;
   int64 amount = 2;
 }
 
-message AddPlayerCoinsResponse {
-  int64 player_id = 1;
-  int64 coins = 2;
+message SettleMatchRewardRequest {
+  string settlement_id = 1;
+  repeated PlayerCoinReward rewards = 2;
+}
+
+message SettleMatchRewardResponse {
+  bool applied = 1;
 }
 
 message UpdatePlayerAvatarRequest {

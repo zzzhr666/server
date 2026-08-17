@@ -17,49 +17,60 @@ import (
 	"time"
 )
 
+const (
+	defaultAuthenticationTimeout = 5 * time.Second
+	defaultIdleTimeout           = 60 * time.Second
+)
+
 // Handler 处理局外原生 TCP 实时协议。
 type Handler struct {
-	auth           auth.Service
-	presence       presence.Service
-	match          match.Service
-	friend         friend.Service
-	player         player.Service
-	growth         growth.Service
-	chat           chat.Service
-	serverName     string
-	connManager    *connectionManager
-	realtimeClient state.RealtimeClient
-	subscriber     *subscriber
-	metrics        *Metrics
+	auth                  auth.Service
+	presence              presence.Service
+	match                 match.Service
+	friend                friend.Service
+	player                player.Service
+	growth                growth.Service
+	chat                  chat.Service
+	serverName            string
+	connManager           *connectionManager
+	realtimeClient        state.RealtimeClient
+	subscriber            *subscriber
+	metrics               *Metrics
+	authenticationTimeout time.Duration
+	idleTimeout           time.Duration
 }
 
 // HandlerConfig 定义 Handler 所需的服务依赖。
 type HandlerConfig struct {
-	AuthService     auth.Service
-	PresenceService presence.Service
-	MatchService    match.Service
-	FriendService   friend.Service
-	PlayerService   player.Service
-	GrowthService   growth.Service
-	ChatService     chat.Service
-	ServerName      string
-	RealtimeClient  state.RealtimeClient
-	Metrics         *Metrics
+	AuthService           auth.Service
+	PresenceService       presence.Service
+	MatchService          match.Service
+	FriendService         friend.Service
+	PlayerService         player.Service
+	GrowthService         growth.Service
+	ChatService           chat.Service
+	ServerName            string
+	RealtimeClient        state.RealtimeClient
+	Metrics               *Metrics
+	AuthenticationTimeout time.Duration
+	IdleTimeout           time.Duration
 }
 
 // NewHandler 使用服务依赖创建 TCP 协议处理器。
 func NewHandler(config HandlerConfig) *Handler {
 	handler := &Handler{
-		auth:        config.AuthService,
-		presence:    config.PresenceService,
-		match:       config.MatchService,
-		friend:      config.FriendService,
-		player:      config.PlayerService,
-		growth:      config.GrowthService,
-		chat:        config.ChatService,
-		serverName:  config.ServerName,
-		connManager: newConnectionManager(),
-		metrics:     config.Metrics,
+		auth:                  config.AuthService,
+		presence:              config.PresenceService,
+		match:                 config.MatchService,
+		friend:                config.FriendService,
+		player:                config.PlayerService,
+		growth:                config.GrowthService,
+		chat:                  config.ChatService,
+		serverName:            config.ServerName,
+		connManager:           newConnectionManager(),
+		metrics:               config.Metrics,
+		authenticationTimeout: config.AuthenticationTimeout,
+		idleTimeout:           config.IdleTimeout,
 	}
 	if config.RealtimeClient != nil {
 		handler.realtimeClient = config.RealtimeClient
@@ -99,8 +110,16 @@ func (h *Handler) serveSession(ctx context.Context, session *session) {
 	if !h.handleAuthenticated(ctx, session, authSession.PlayerID, requestID) {
 		return
 	}
+	idleTimeout := h.idleTimeout
+	if idleTimeout <= 0 {
+		idleTimeout = defaultIdleTimeout
+	}
 
 	for {
+		if err := session.setReadDeadline(time.Now().Add(idleTimeout)); err != nil {
+			logging.Error("realtime session setReadDeadline failed: %v", err)
+			return
+		}
 		envelope, err := session.Read()
 		if err != nil {
 			return
@@ -112,9 +131,23 @@ func (h *Handler) serveSession(ctx context.Context, session *session) {
 }
 
 func (h *Handler) handleAuthenticate(ctx context.Context, session *session) (*auth.Session, uint64, bool) {
-	envelope, err := session.Read()
-	if err != nil {
-		logging.Warn("realtime authenticate read failed: %v", err)
+	timeout := h.authenticationTimeout
+	if timeout <= 0 {
+		timeout = defaultAuthenticationTimeout
+	}
+
+	if err := session.setReadDeadline(time.Now().Add(timeout)); err != nil {
+		logging.Error("session set read deadline failed: %v", err)
+		return nil, 0, false
+	}
+	envelope, readErr := session.Read()
+	clearErr := session.setReadDeadline(time.Time{})
+	if readErr != nil {
+		logging.Warn("realtime authenticate read failed: %v", readErr)
+		return nil, 0, false
+	}
+	if clearErr != nil {
+		logging.Warn("clear read timeout failed: %v", clearErr)
 		return nil, 0, false
 	}
 	request := envelope.GetAuthenticate()
@@ -810,7 +843,7 @@ func (h *Handler) replaceExistingConnection(ctx context.Context, playerID int64)
 		return
 	}
 	existingPresence, err := h.presence.Get(ctx, playerID)
-	if err != nil {
+	if err != nil || existingPresence == nil || existingPresence.ServerName == "" || existingPresence.ServerName == h.serverName {
 		return
 	}
 	event := &state.RealtimeEvent{

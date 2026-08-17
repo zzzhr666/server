@@ -22,6 +22,7 @@ var (
 	ErrInvalidGrowthField = errors.New("invalid growth field")
 	ErrInsufficientCoins  = errors.New("insufficient coins")
 	ErrMaxGrowthLevel     = errors.New("max growth level")
+	ErrInvalidSettlement  = errors.New("invalid settlement")
 
 	ErrInvalidPlayer = errors.New("invalid player")
 

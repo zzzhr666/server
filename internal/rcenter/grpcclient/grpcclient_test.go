@@ -150,6 +150,7 @@ func TestClientFinishMatchMapsUnavailableCoinClient(t *testing.T) {
 	})
 
 	err := client.FinishMatch(context.Background(), rcenter.FinishMatchInput{
+		RoomName:  "room-1",
 		PlayerIDs: []int64{7},
 		PlayerStats: []rcenter.PlayerBattleStats{
 			{PlayerID: 7},
@@ -157,6 +158,25 @@ func TestClientFinishMatchMapsUnavailableCoinClient(t *testing.T) {
 	})
 	if !errors.Is(err, rcenter.ErrUnavailableCoinClient) {
 		t.Fatalf("FinishMatch error = %v, want %v", err, rcenter.ErrUnavailableCoinClient)
+	}
+}
+
+func TestClientFinishMatchMapsInvalidInput(t *testing.T) {
+	tests := []error{
+		rcenter.ErrInvalidRoomName,
+		rcenter.ErrInvalidBattleStats,
+	}
+	for _, wantErr := range tests {
+		t.Run(wantErr.Error(), func(t *testing.T) {
+			client := NewClient(&fakeRCenterServiceClient{
+				err: status.Error(codes.InvalidArgument, wantErr.Error()),
+			})
+
+			err := client.FinishMatch(context.Background(), rcenter.FinishMatchInput{})
+			if !errors.Is(err, wantErr) {
+				t.Fatalf("FinishMatch error = %v, want %v", err, wantErr)
+			}
+		})
 	}
 }
 
@@ -200,6 +220,7 @@ func TestClientFinishMatch(t *testing.T) {
 	client := NewClient(grpcCenter)
 
 	err := client.FinishMatch(context.Background(), rcenter.FinishMatchInput{
+		RoomName:  "room-settlement-1",
 		PlayerIDs: []int64{7, 8},
 		Reason:    rcenter.BattleFinishReasonVictory,
 		PlayerStats: []rcenter.PlayerBattleStats{
@@ -215,6 +236,9 @@ func TestClientFinishMatch(t *testing.T) {
 	})
 	if err != nil {
 		t.Fatalf("FinishMatch returned error: %v", err)
+	}
+	if grpcCenter.finishMatchRequest.GetRoomName() != "room-settlement-1" {
+		t.Fatalf("room name = %q, want %q", grpcCenter.finishMatchRequest.GetRoomName(), "room-settlement-1")
 	}
 	if !reflect.DeepEqual(grpcCenter.finishMatchRequest.GetPlayerIds(), []int64{7, 8}) {
 		t.Fatalf("player ids = %v, want [7 8]", grpcCenter.finishMatchRequest.GetPlayerIds())

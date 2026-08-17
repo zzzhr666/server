@@ -57,7 +57,7 @@ type growthStore interface {
 }
 
 type coinsStore interface {
-	AddPlayerCoins(ctx context.Context, input state.AddPlayerCoinsInput) (*state.AddPlayerCoinsResult, error)
+	SettleMatchRewards(ctx context.Context, input state.SettleMatchRewardsInput) (*state.SettleMatchRewardsResult, error)
 }
 
 type chatStore interface {
@@ -105,8 +105,9 @@ func (s *Service) ListChatMessages(ctx context.Context, input state.ListChatMess
 	return messages, nil
 }
 
-func (s *Service) AddPlayerCoins(ctx context.Context, input state.AddPlayerCoinsInput) (*state.AddPlayerCoinsResult, error) {
-	return s.coins.AddPlayerCoins(ctx, input)
+// SettleMatchRewards 原子发放一场对局的多人奖励，并由存储层保证结算幂等。
+func (s *Service) SettleMatchRewards(ctx context.Context, input state.SettleMatchRewardsInput) (*state.SettleMatchRewardsResult, error) {
+	return s.coins.SettleMatchRewards(ctx, input)
 }
 
 // PublishRealtime 发布一条包含明确路由的实时投递。

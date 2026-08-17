@@ -49,6 +49,8 @@ func mapStateError(err error) error {
 		return status.Error(codes.FailedPrecondition, err.Error())
 	case errors.Is(err, state.ErrInvalidPlayer):
 		return status.Error(codes.InvalidArgument, err.Error())
+	case errors.Is(err, state.ErrInvalidSettlement):
+		return status.Error(codes.InvalidArgument, err.Error())
 	case errors.Is(err, state.ErrChatMessageNotFound):
 		return status.Error(codes.NotFound, err.Error())
 	case errors.Is(err, state.ErrInvalidChatMessage):
