@@ -21,6 +21,17 @@ type Server struct {
 	chatClient     state.ChatClient
 }
 
+// UpdatePlayerAvatar 处理更新玩家头像的 gRPC 请求。
+func (s *Server) UpdatePlayerAvatar(ctx context.Context, request *statepb.UpdatePlayerAvatarRequest) (*statepb.UpdatePlayerAvatarResponse, error) {
+	res, err := s.stateClient.UpdatePlayerAvatar(ctx, request.GetPlayerId(), request.GetAvatar())
+	if err != nil {
+		return nil, mapStateError(err)
+	}
+	return &statepb.UpdatePlayerAvatarResponse{
+		Player: stateproto.ToProtoPlayer(res),
+	}, nil
+}
+
 // SaveChatMessage 处理保存聊天消息的 gRPC 请求。
 func (s *Server) SaveChatMessage(ctx context.Context, request *statepb.SaveChatMessageRequest) (*statepb.SaveChatMessageResponse, error) {
 	res, err := s.chatClient.SaveChatMessage(ctx, state.SaveChatMessageInput{

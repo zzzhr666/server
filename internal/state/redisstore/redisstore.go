@@ -64,6 +64,10 @@ func (s *Store) GetPlayer(ctx context.Context, id int64) (*state.Player, error) 
 	if len(value) == 0 {
 		return nil, state.ErrPlayerNotFound
 	}
+	return playerFromHash(id, value), nil
+}
+
+func playerFromHash(id int64, value map[string]string) *state.Player {
 	coins, err := strconv.ParseInt(value["coins"], 10, 64)
 	if err != nil {
 		coins = 0
@@ -75,8 +79,43 @@ func (s *Store) GetPlayer(ctx context.Context, id int64) (*state.Player, error) 
 		Email:    value["email"],
 		Phone:    value["phone"],
 		Coins:    coins,
-	}, nil
+	}
+}
 
+// UpdatePlayerAvatar 原子更新已有玩家的头像并返回更新后的完整档案。
+func (s *Store) UpdatePlayerAvatar(ctx context.Context, playerID int64, avatar string) (*state.Player, error) {
+	if playerID <= 0 || avatar == "" {
+		return nil, state.ErrInvalidPlayer
+	}
+	key := playerKey(playerID)
+	var values map[string]string
+	err := retryOptimisticLock(ctx, func() error {
+		return s.client.Watch(ctx, func(tx *redis.Tx) error {
+			exists, err := tx.Exists(ctx, key).Result()
+			if err != nil {
+				return err
+			}
+			if exists == 0 {
+				return state.ErrPlayerNotFound
+			}
+
+			var playerResult *redis.MapStringStringCmd
+			_, err = tx.TxPipelined(ctx, func(pipe redis.Pipeliner) error {
+				pipe.HSet(ctx, key, "avatar", avatar)
+				playerResult = pipe.HGetAll(ctx, key)
+				return nil
+			})
+			if err != nil {
+				return err
+			}
+			values, err = playerResult.Result()
+			return err
+		}, key)
+	})
+	if err != nil {
+		return nil, err
+	}
+	return playerFromHash(playerID, values), nil
 }
 
 // NextPlayerID 递增并返回 Redis 支持的玩家 ID 序列。

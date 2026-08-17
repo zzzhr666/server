@@ -227,6 +227,86 @@ func TestHandlePlayerAndGrowthResponses(t *testing.T) {
 	}
 }
 
+func TestHandleUpdatePlayerAvatar(t *testing.T) {
+	playerService := &handlerMethodPlayerService{
+		updateResult: &player.Player{
+			ID:       7,
+			Nickname: "Alice",
+			Avatar:   string(player.AvatarMage),
+			Email:    "alice@example.com",
+			Phone:    "13800000000",
+			Coins:    900,
+		},
+	}
+	handler := &Handler{player: playerService}
+	envelope := &realtimepb.ClientEnvelope{
+		RequestId: 12,
+		Payload: &realtimepb.ClientEnvelope_PlayerAvatarUpdate{
+			PlayerAvatarUpdate: &realtimepb.PlayerAvatarUpdateRequest{Avatar: string(player.AvatarMage)},
+		},
+	}
+
+	response, keepConnection := invokeHandlerMethod(t, func(session *session) bool {
+		return handler.handleEnvelope(
+			context.Background(),
+			session,
+			&auth.Session{PlayerID: 7},
+			connectionID(0),
+			envelope,
+		)
+	}, nil)
+
+	got := response.GetPlayer().GetPlayer()
+	if response.GetRequestId() != 12 || got.GetId() != 7 || got.GetNickname() != "Alice" ||
+		got.GetAvatar() != string(player.AvatarMage) || got.GetEmail() != "alice@example.com" ||
+		got.GetPhone() != "13800000000" || got.GetCoins() != 900 || !keepConnection {
+		t.Fatalf("avatar update response = %v, keep = %v; want complete updated player", response, keepConnection)
+	}
+	if playerService.updatePlayerID != 7 || playerService.updateAvatar != string(player.AvatarMage) {
+		t.Fatalf("UpdateAvatar input = (%d, %q), want (7, %q)", playerService.updatePlayerID, playerService.updateAvatar, player.AvatarMage)
+	}
+	if got := realtimeRequestType(envelope); got != "player" {
+		t.Fatalf("realtimeRequestType() = %q, want player", got)
+	}
+}
+
+func TestHandleUpdatePlayerAvatarMapsDomainErrors(t *testing.T) {
+	tests := []struct {
+		name string
+		err  error
+		want realtimepb.ErrorCode
+	}{
+		{name: "invalid avatar", err: player.ErrInvalidAvatar, want: realtimepb.ErrorCode_INVALID_ARGUMENT},
+		{name: "missing player", err: player.ErrNotFound, want: realtimepb.ErrorCode_NOT_FOUND},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			handler := &Handler{player: &handlerMethodPlayerService{updateErr: tt.err}}
+
+			response, keepConnection := invokeHandlerMethod(t, func(session *session) bool {
+				return handler.handleUpdatePlayerAvatar(context.Background(), session, 7, avatarUpdateEnvelope(13, string(player.AvatarMage)))
+			}, nil)
+
+			if response.GetRequestId() != 13 || response.GetError().GetCode() != tt.want || !keepConnection {
+				t.Fatalf("avatar update response = %v, keep = %v; want error %v and open connection", response, keepConnection, tt.want)
+			}
+		})
+	}
+}
+
+func TestHandleUpdatePlayerAvatarRejectsNilResult(t *testing.T) {
+	handler := &Handler{player: &handlerMethodPlayerService{}}
+
+	response, keepConnection := invokeHandlerMethod(t, func(session *session) bool {
+		return handler.handleUpdatePlayerAvatar(context.Background(), session, 7, avatarUpdateEnvelope(14, string(player.AvatarMage)))
+	}, nil)
+
+	if response.GetRequestId() != 14 || response.GetError().GetCode() != realtimepb.ErrorCode_INTERNAL || !keepConnection {
+		t.Fatalf("avatar update response = %v, keep = %v; want internal error and open connection", response, keepConnection)
+	}
+}
+
 func TestHandlerDomainErrorCodes(t *testing.T) {
 	if got := growthErrorCode(growth.ErrInvalidUpgradeType); got != realtimepb.ErrorCode_INVALID_ARGUMENT {
 		t.Fatalf("growthErrorCode(invalid type) = %v, want INVALID_ARGUMENT", got)
@@ -319,8 +399,12 @@ func (f *handlerMethodFriendService) DeleteFriend(_ context.Context, playerID, f
 }
 
 type handlerMethodPlayerService struct {
-	result *player.Player
-	err    error
+	result         *player.Player
+	err            error
+	updatePlayerID int64
+	updateAvatar   string
+	updateResult   *player.Player
+	updateErr      error
 }
 
 func (f *handlerMethodPlayerService) Create(context.Context, player.CreateInput) (*player.Player, error) {
@@ -328,6 +412,11 @@ func (f *handlerMethodPlayerService) Create(context.Context, player.CreateInput)
 }
 func (f *handlerMethodPlayerService) Get(context.Context, int64) (*player.Player, error) {
 	return f.result, f.err
+}
+func (f *handlerMethodPlayerService) UpdateAvatar(_ context.Context, playerID int64, avatar string) (*player.Player, error) {
+	f.updatePlayerID = playerID
+	f.updateAvatar = avatar
+	return f.updateResult, f.updateErr
 }
 
 type handlerMethodPresenceService struct {
@@ -404,3 +493,12 @@ var _ presence.Service = (*handlerMethodPresenceService)(nil)
 var _ growth.Service = (*handlerMethodGrowthService)(nil)
 var _ auth.Service = (*handlerMethodAuthService)(nil)
 var _ chat.Service = (*handlerMethodChatService)(nil)
+
+func avatarUpdateEnvelope(requestID uint64, avatar string) *realtimepb.ClientEnvelope {
+	return &realtimepb.ClientEnvelope{
+		RequestId: requestID,
+		Payload: &realtimepb.ClientEnvelope_PlayerAvatarUpdate{
+			PlayerAvatarUpdate: &realtimepb.PlayerAvatarUpdateRequest{Avatar: avatar},
+		},
+	}
+}

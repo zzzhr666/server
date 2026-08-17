@@ -287,6 +287,71 @@ func TestAddPlayerCoinsValidatesInputAndMissingPlayer(t *testing.T) {
 	}
 }
 
+func TestUpdatePlayerAvatarSuccess(t *testing.T) {
+	ctx := context.Background()
+	store, client := newRedisTestStore(t)
+	want := &statecontract.Player{
+		ID:       7,
+		Nickname: "Alice",
+		Avatar:   "adventurer",
+		Email:    "alice@example.com",
+		Phone:    "13800000000",
+		Coins:    120,
+	}
+	if err := store.CreatePlayer(ctx, want); err != nil {
+		t.Fatalf("CreatePlayer returned error: %v", err)
+	}
+
+	got, err := store.UpdatePlayerAvatar(ctx, want.ID, "mage")
+	if err != nil {
+		t.Fatalf("UpdatePlayerAvatar returned error: %v", err)
+	}
+	if got.ID != want.ID || got.Nickname != want.Nickname || got.Avatar != "mage" ||
+		got.Email != want.Email || got.Phone != want.Phone || got.Coins != want.Coins {
+		t.Fatalf("updated player = %#v, want original profile with avatar mage", got)
+	}
+	storedAvatar, err := client.HGet(ctx, playerKey(want.ID), "avatar").Result()
+	if err != nil {
+		t.Fatalf("HGet avatar returned error: %v", err)
+	}
+	if storedAvatar != "mage" {
+		t.Fatalf("stored avatar = %q, want mage", storedAvatar)
+	}
+}
+
+func TestUpdatePlayerAvatarValidatesInputAndMissingPlayer(t *testing.T) {
+	ctx := context.Background()
+	store, client := newRedisTestStore(t)
+
+	tests := []struct {
+		name     string
+		playerID int64
+		avatar   string
+		want     error
+	}{
+		{name: "invalid player", playerID: 0, avatar: "mage", want: statecontract.ErrInvalidPlayer},
+		{name: "empty avatar", playerID: 7, avatar: "", want: statecontract.ErrInvalidPlayer},
+		{name: "missing player", playerID: 7, avatar: "mage", want: statecontract.ErrPlayerNotFound},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := store.UpdatePlayerAvatar(ctx, tt.playerID, tt.avatar)
+			if !errors.Is(err, tt.want) {
+				t.Fatalf("UpdatePlayerAvatar error = %v, want %v", err, tt.want)
+			}
+		})
+	}
+
+	exists, err := client.Exists(ctx, playerKey(7)).Result()
+	if err != nil {
+		t.Fatalf("Exists player returned error: %v", err)
+	}
+	if exists != 0 {
+		t.Fatalf("missing player key was created")
+	}
+}
+
 func TestRegisterAccountCreatesInitialGrowth(t *testing.T) {
 	ctx := context.Background()
 	store, _ := newRedisTestStore(t)

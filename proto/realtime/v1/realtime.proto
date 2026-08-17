@@ -32,6 +32,7 @@ message ClientEnvelope {
     SendDirectChatRequest chat_direct_send = 32;
     ListWorldChatRequest chat_world_list = 33;
     ListDirectChatRequest chat_direct_list = 34;
+    PlayerAvatarUpdateRequest player_avatar_update = 35;
   }
 }
 
@@ -175,6 +176,10 @@ message GrowthUpgradeOption {
 
 message PlayerResponse {
   Player player = 1;
+}
+
+message PlayerAvatarUpdateRequest {
+  string avatar = 1;
 }
 
 message GrowthResponse {

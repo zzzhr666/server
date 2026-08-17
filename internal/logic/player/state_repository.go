@@ -6,6 +6,7 @@ import (
 	"server/internal/contract/state"
 )
 
+// StateRepository 通过 state-server 持久化玩家数据。
 type StateRepository struct {
 	stateClient state.Client
 }
@@ -34,6 +35,15 @@ func (s *StateRepository) Create(ctx context.Context, player *Player) error {
 // Get 通过 state-server 读取玩家。
 func (s *StateRepository) Get(ctx context.Context, id int64) (*Player, error) {
 	player, err := s.stateClient.GetPlayer(ctx, id)
+	if err != nil {
+		return nil, mapStateError(err)
+	}
+	return fromStatePlayer(player), nil
+}
+
+// UpdateAvatar 通过 state-server 更新玩家头像并返回完整档案。
+func (s *StateRepository) UpdateAvatar(ctx context.Context, id int64, avatar string) (*Player, error) {
+	player, err := s.stateClient.UpdatePlayerAvatar(ctx, id, avatar)
 	if err != nil {
 		return nil, mapStateError(err)
 	}

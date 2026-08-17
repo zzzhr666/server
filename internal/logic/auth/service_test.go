@@ -17,7 +17,7 @@ func TestRegisterCreatesAccountPlayerAndSession(t *testing.T) {
 		Username:      "alice",
 		PlainPassword: "password123",
 		Nickname:      "Alice",
-		Avatar:        "alice.png",
+		Avatar:        string(playerpkg.AvatarMage),
 		Email:         "alice@example.com",
 		Phone:         "13800000000",
 	})
@@ -39,7 +39,7 @@ func TestRegisterCreatesAccountPlayerAndSession(t *testing.T) {
 	if result.Player.ID != 1 {
 		t.Fatalf("result player id = %d, want 1", result.Player.ID)
 	}
-	if result.Player.Nickname != "Alice" || result.Player.Avatar != "alice.png" || result.Player.Email != "alice@example.com" || result.Player.Phone != "13800000000" {
+	if result.Player.Nickname != "Alice" || result.Player.Avatar != string(playerpkg.AvatarMage) || result.Player.Email != "alice@example.com" || result.Player.Phone != "13800000000" {
 		t.Fatalf("result player profile = %#v, want register input profile", result.Player)
 	}
 	if repo.registerCalls != 1 {
@@ -67,8 +67,54 @@ func TestRegisterCreatesAccountPlayerAndSession(t *testing.T) {
 	if !ok {
 		t.Fatalf("registered player was not stored")
 	}
-	if player.Nickname != "Alice" || player.Avatar != "alice.png" || player.Email != "alice@example.com" || player.Phone != "13800000000" {
+	if player.Nickname != "Alice" || player.Avatar != string(playerpkg.AvatarMage) || player.Email != "alice@example.com" || player.Phone != "13800000000" {
 		t.Fatalf("player profile = %#v, want register input profile", player)
+	}
+}
+
+func TestRegisterUsesDefaultAvatar(t *testing.T) {
+	repo := newFakeAuthRepository()
+	service := NewService(ServiceConfig{
+		AuthRepository: repo,
+		PlayerService:  newFakePlayerService(),
+		SessionTTL:     time.Hour,
+	})
+
+	result, err := service.Register(context.Background(), RegisterInput{
+		Username:      "alice",
+		PlainPassword: "password123",
+		Nickname:      "Alice",
+	})
+	if err != nil {
+		t.Fatalf("Register returned error: %v", err)
+	}
+	if result.Player.Avatar != string(playerpkg.DefaultAvatar) {
+		t.Fatalf("player avatar = %q, want %q", result.Player.Avatar, playerpkg.DefaultAvatar)
+	}
+	if repo.registerCalls != 1 {
+		t.Fatalf("register calls = %d, want 1", repo.registerCalls)
+	}
+}
+
+func TestRegisterRejectsInvalidAvatar(t *testing.T) {
+	repo := newFakeAuthRepository()
+	service := NewService(ServiceConfig{
+		AuthRepository: repo,
+		PlayerService:  newFakePlayerService(),
+		SessionTTL:     time.Hour,
+	})
+
+	_, err := service.Register(context.Background(), RegisterInput{
+		Username:      "alice",
+		PlainPassword: "password123",
+		Nickname:      "Alice",
+		Avatar:        "https://example.com/avatar.png",
+	})
+	if !errors.Is(err, playerpkg.ErrInvalidAvatar) {
+		t.Fatalf("Register error = %v, want %v", err, playerpkg.ErrInvalidAvatar)
+	}
+	if repo.registerCalls != 0 {
+		t.Fatalf("register calls = %d, want 0", repo.registerCalls)
 	}
 }
 
@@ -390,4 +436,15 @@ func (f *fakePlayerService) Get(_ context.Context, id int64) (*playerpkg.Player,
 		return nil, playerpkg.ErrNotFound
 	}
 	return new(*player), nil
+}
+
+func (f *fakePlayerService) UpdateAvatar(_ context.Context, id int64, avatar string) (*playerpkg.Player, error) {
+	player, ok := f.players[id]
+	if !ok {
+		return nil, playerpkg.ErrNotFound
+	}
+	updated := new(*player)
+	updated.Avatar = avatar
+	f.players[id] = updated
+	return new(*updated), nil
 }

@@ -22,6 +22,7 @@ type playerStore interface {
 	CreatePlayer(ctx context.Context, player *state.Player) error
 	GetPlayer(ctx context.Context, id int64) (*state.Player, error)
 	NextPlayerID(ctx context.Context) (int64, error)
+	UpdatePlayerAvatar(ctx context.Context, playerID int64, avatar string) (*state.Player, error)
 }
 
 type presenceStore interface {
@@ -77,6 +78,11 @@ type Service struct {
 	coins         coinsStore
 	chats         chatStore
 	metrics       *Metrics
+}
+
+// UpdatePlayerAvatar 更新玩家头像并返回最新的完整玩家档案。
+func (s *Service) UpdatePlayerAvatar(ctx context.Context, playerID int64, avatar string) (*state.Player, error) {
+	return s.players.UpdatePlayerAvatar(ctx, playerID, avatar)
 }
 
 func (s *Service) SaveChatMessage(ctx context.Context, input state.SaveChatMessageInput) (*state.ChatMessage, error) {

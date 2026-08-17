@@ -22,7 +22,8 @@ func (h *Handler) handleRegisterAuth(w http.ResponseWriter, r *http.Request) {
 		Email:         req.Email,
 		Phone:         req.Phone,
 	})
-	if errors.Is(err, auth.ErrInvalidUsername) || errors.Is(err, auth.ErrInvalidPassword) || errors.Is(err, player.ErrInvalidNickname) {
+	if errors.Is(err, auth.ErrInvalidUsername) || errors.Is(err, auth.ErrInvalidPassword) ||
+		errors.Is(err, player.ErrInvalidNickname) || errors.Is(err, player.ErrInvalidAvatar) {
 		writeJSON(w, http.StatusBadRequest, errorResponse{Error: err.Error()})
 		return
 	} else if errors.Is(err, auth.ErrAccountExists) {

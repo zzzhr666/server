@@ -19,7 +19,7 @@
   "username":"alice",
   "password":"password123",
   "nickname":"Alice",
-  "avatar":"alice.png",
+  "avatar":"adventurer",
   "email":"alice@example.com",
   "phone":"13800000000"
 }
@@ -30,9 +30,11 @@
 ```json
 {
   "token":"session-token",
-  "player":{"id":1,"nickname":"Alice","avatar":"alice.png","email":"alice@example.com","phone":"13800000000","coins":0}
+  "player":{"id":1,"nickname":"Alice","avatar":"adventurer","email":"alice@example.com","phone":"13800000000","coins":0}
 }
 ```
+
+`avatar` 使用客户端内置资源的稳定标识，可选值为 `adventurer`、`warrior`、`mage`、`priest`、`summoner`；注册时省略或传空值使用默认头像 `adventurer`。
 
 ## TCP 实时协议
 
@@ -54,6 +56,7 @@ ServerEnvelope { request_id: 1, authenticated: { player_id: 7 } }
 | `match_cancel` | `match_canceled` | 取消等待中的匹配 |
 | `match_resume` | `match_result` | 请求当前玩家的活跃对局 |
 | `player_get` | `player` | 返回当前玩家档案与金币 |
+| `player_avatar_update { avatar }` | `player` | 更新预定义头像并返回最新的完整玩家档案 |
 | `growth_get` | `growth` | 返回成长等级和每项升级选项 |
 | `growth_upgrade { type }` | `growth_upgrade_result` | 扣除金币并升级，返回最新成长、余额和费用 |
 | `friend_request_send { to_player_id }` | `friend_request_sent` | 发送好友申请 |

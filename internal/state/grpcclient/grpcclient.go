@@ -16,6 +16,18 @@ type Client struct {
 	grpc statepb.StateServiceClient
 }
 
+// UpdatePlayerAvatar 通过 state-server 更新玩家头像并返回最新档案。
+func (c *Client) UpdatePlayerAvatar(ctx context.Context, playerID int64, avatar string) (*state.Player, error) {
+	res, err := c.grpc.UpdatePlayerAvatar(ctx, &statepb.UpdatePlayerAvatarRequest{
+		PlayerId: playerID,
+		Avatar:   avatar,
+	})
+	if err != nil {
+		return nil, mapGRPCError(err)
+	}
+	return stateproto.FromProtoPlayer(res.GetPlayer()), nil
+}
+
 func (c *Client) AddPlayerCoins(ctx context.Context, input state.AddPlayerCoinsInput) (*state.AddPlayerCoinsResult, error) {
 	res, err := c.grpc.AddPlayerCoins(ctx, &statepb.AddPlayerCoinsRequest{
 		PlayerId: input.PlayerID,

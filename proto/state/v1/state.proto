@@ -19,6 +19,7 @@ service StateService {
   rpc CreatePlayer(CreatePlayerRequest) returns (CreatePlayerResponse);
   rpc GetPlayer(GetPlayerRequest) returns (GetPlayerResponse);
   rpc NextPlayerID(NextPlayerIDRequest) returns (NextPlayerIDResponse);
+  rpc UpdatePlayerAvatar(UpdatePlayerAvatarRequest) returns (UpdatePlayerAvatarResponse);
 
   rpc SetPresence(SetPresenceRequest) returns (SetPresenceResponse);
   rpc GetPresence(GetPresenceRequest) returns (GetPresenceResponse);
@@ -145,6 +146,15 @@ message AddPlayerCoinsRequest {
 message AddPlayerCoinsResponse {
   int64 player_id = 1;
   int64 coins = 2;
+}
+
+message UpdatePlayerAvatarRequest {
+  int64 player_id = 1;
+  string avatar = 2;
+}
+
+message UpdatePlayerAvatarResponse {
+  Player player = 1;
 }
 
 message Presence {

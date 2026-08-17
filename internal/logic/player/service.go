@@ -8,6 +8,8 @@ type Service interface {
 	Create(ctx context.Context, input CreateInput) (*Player, error)
 	// Get 按 ID 返回玩家。
 	Get(ctx context.Context, id int64) (*Player, error)
+	// UpdateAvatar 校验并更新玩家的预定义头像。
+	UpdateAvatar(ctx context.Context, id int64, avatar string) (*Player, error)
 }
 
 // Repository 定义玩家服务依赖的持久化操作。
@@ -18,6 +20,8 @@ type Repository interface {
 	Create(ctx context.Context, p *Player) error
 	// Get 按 ID 读取玩家。
 	Get(ctx context.Context, id int64) (*Player, error)
+	// UpdateAvatar 持久化玩家的头像标识并返回更新后的玩家。
+	UpdateAvatar(ctx context.Context, id int64, avatar string) (*Player, error)
 }
 
 // GamePlayerService 实现玩家领域规则。
@@ -69,4 +73,16 @@ func (s *GamePlayerService) Get(ctx context.Context, id int64) (*Player, error) 
 		return nil, err
 	}
 	return s.playersRepo.Get(ctx, id)
+}
+
+// UpdateAvatar 校验头像标识后更新玩家头像。
+func (s *GamePlayerService) UpdateAvatar(ctx context.Context, id int64, avatar string) (*Player, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
+	resolved, err := ResolveAvatar(avatar)
+	if err != nil {
+		return nil, err
+	}
+	return s.playersRepo.UpdateAvatar(ctx, id, string(resolved))
 }

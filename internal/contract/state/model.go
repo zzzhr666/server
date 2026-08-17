@@ -78,6 +78,7 @@ type Client interface {
 	CreatePlayer(ctx context.Context, player *Player) error
 	GetPlayer(ctx context.Context, id int64) (*Player, error)
 	NextPlayerID(ctx context.Context) (int64, error)
+	UpdatePlayerAvatar(ctx context.Context, playerID int64, avatar string) (*Player, error)
 }
 
 // PresenceClient 定义 state-server 提供的玩家在线状态操作。

@@ -82,6 +82,21 @@ func TestServiceForwardsPlayerOperations(t *testing.T) {
 	if got.Nickname != player.Nickname {
 		t.Fatalf("nickname = %q, want %q", got.Nickname, player.Nickname)
 	}
+
+	updated, err := svc.UpdatePlayerAvatar(context.Background(), id, "mage")
+	if err != nil {
+		t.Fatalf("UpdatePlayerAvatar returned error: %v", err)
+	}
+	if updated.ID != id || updated.Nickname != player.Nickname || updated.Avatar != "mage" {
+		t.Fatalf("updated player = %#v, want id %d nickname %q avatar mage", updated, id, player.Nickname)
+	}
+	stored, err := stores.GetPlayer(context.Background(), id)
+	if err != nil {
+		t.Fatalf("GetPlayer after avatar update returned error: %v", err)
+	}
+	if stored.Avatar != "mage" {
+		t.Fatalf("stored avatar = %q, want mage", stored.Avatar)
+	}
 }
 
 func TestServiceForwardsCoinOperations(t *testing.T) {
@@ -397,6 +412,17 @@ type fakeStores struct {
 	savedChatMessage                   *statecontract.ChatMessage
 	listChatMessagesInput              statecontract.ListChatMessagesInput
 	chatMessages                       []*statecontract.ChatMessage
+}
+
+func (f *fakeStores) UpdatePlayerAvatar(_ context.Context, playerID int64, avatar string) (*statecontract.Player, error) {
+	player, ok := f.players[playerID]
+	if !ok {
+		return nil, statecontract.ErrPlayerNotFound
+	}
+	updated := new(*player)
+	updated.Avatar = avatar
+	f.players[playerID] = updated
+	return new(*updated), nil
 }
 
 func newFakeStores() *fakeStores {

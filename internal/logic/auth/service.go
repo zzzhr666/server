@@ -81,7 +81,10 @@ func (g *GameAuthService) Register(ctx context.Context, input RegisterInput) (au
 	if input.Nickname == "" {
 		return nil, player.ErrInvalidNickname
 	}
-
+	avatar, err := player.ResolveAvatar(input.Avatar)
+	if err != nil {
+		return nil, err
+	}
 	// 明文密码只在当前调用栈中存在；写入 state-server 的 RegisterAccountInput 仅包含
 	// bcrypt 哈希。账号、玩家和首个会话由状态层原子创建，避免注册成功后无法登录。
 	passwordHash, err := hashPassword(input.PlainPassword)
@@ -97,7 +100,7 @@ func (g *GameAuthService) Register(ctx context.Context, input RegisterInput) (au
 		Username:         input.Username,
 		PasswordHash:     passwordHash,
 		Nickname:         input.Nickname,
-		Avatar:           input.Avatar,
+		Avatar:           string(avatar),
 		Email:            input.Email,
 		Phone:            input.Phone,
 		SessionToken:     token,

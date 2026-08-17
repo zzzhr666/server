@@ -65,9 +65,51 @@ func TestStateRepositoryGetMissingPlayer(t *testing.T) {
 	}
 }
 
+func TestStateRepositoryUpdateAvatar(t *testing.T) {
+	client := newFakeStateClient()
+	client.players[7] = &statecontract.Player{
+		ID:       7,
+		Nickname: "Alice",
+		Avatar:   string(AvatarAdventurer),
+		Email:    "alice@example.com",
+		Phone:    "13800000000",
+		Coins:    100,
+	}
+	repo := NewStateRepository(client)
+
+	got, err := repo.UpdateAvatar(context.Background(), 7, string(AvatarMage))
+	if err != nil {
+		t.Fatalf("UpdateAvatar returned error: %v", err)
+	}
+	if got.ID != 7 || got.Nickname != "Alice" || got.Avatar != string(AvatarMage) ||
+		got.Email != "alice@example.com" || got.Phone != "13800000000" || got.Coins != 100 {
+		t.Fatalf("updated player = %#v, want complete profile with mage avatar", got)
+	}
+}
+
+func TestStateRepositoryUpdateAvatarMissingPlayer(t *testing.T) {
+	repo := NewStateRepository(newFakeStateClient())
+
+	_, err := repo.UpdateAvatar(context.Background(), 7, string(AvatarMage))
+	if !errors.Is(err, ErrNotFound) {
+		t.Fatalf("UpdateAvatar error = %v, want %v", err, ErrNotFound)
+	}
+}
+
 type fakeStateClient struct {
 	nextPlayerID int64
 	players      map[int64]*statecontract.Player
+}
+
+func (f *fakeStateClient) UpdatePlayerAvatar(_ context.Context, playerID int64, avatar string) (*statecontract.Player, error) {
+	player, ok := f.players[playerID]
+	if !ok {
+		return nil, statecontract.ErrPlayerNotFound
+	}
+	updated := new(*player)
+	updated.Avatar = avatar
+	f.players[playerID] = updated
+	return new(*updated), nil
 }
 
 func newFakeStateClient() *fakeStateClient {

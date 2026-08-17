@@ -153,12 +153,47 @@ func TestPlayerMethods(t *testing.T) {
 		t.Fatalf("player nickname = %q, want Alice", getRes.GetPlayer().GetNickname())
 	}
 
+	updateRes, err := server.UpdatePlayerAvatar(context.Background(), &statepb.UpdatePlayerAvatarRequest{
+		PlayerId: 7,
+		Avatar:   "mage",
+	})
+	if err != nil {
+		t.Fatalf("UpdatePlayerAvatar returned error: %v", err)
+	}
+	if state.updatedPlayerAvatarID != 7 || state.updatedAvatar != "mage" {
+		t.Fatalf("update avatar input = (%d, %q), want (7, mage)", state.updatedPlayerAvatarID, state.updatedAvatar)
+	}
+	if updateRes.GetPlayer().GetId() != 7 || updateRes.GetPlayer().GetAvatar() != "mage" {
+		t.Fatalf("updated player = %+v, want id 7 avatar mage", updateRes.GetPlayer())
+	}
+
 	nextRes, err := server.NextPlayerID(context.Background(), &statepb.NextPlayerIDRequest{})
 	if err != nil {
 		t.Fatalf("NextPlayerID returned error: %v", err)
 	}
 	if nextRes.GetId() != 8 {
 		t.Fatalf("next player id = %d, want 8", nextRes.GetId())
+	}
+}
+
+func TestUpdatePlayerAvatarMapsErrors(t *testing.T) {
+	tests := []struct {
+		name string
+		err  error
+		want codes.Code
+	}{
+		{name: "invalid input", err: statecontract.ErrInvalidPlayer, want: codes.InvalidArgument},
+		{name: "missing player", err: statecontract.ErrPlayerNotFound, want: codes.NotFound},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			server := newTestServer(&fakeStateClient{err: tt.err})
+			_, err := server.UpdatePlayerAvatar(context.Background(), &statepb.UpdatePlayerAvatarRequest{})
+			if status.Code(err) != tt.want {
+				t.Fatalf("UpdatePlayerAvatar code = %v, want %v", status.Code(err), tt.want)
+			}
+		})
 	}
 }
 
@@ -576,6 +611,23 @@ type fakeStateClient struct {
 	savedChatMessage                   *statecontract.ChatMessage
 	listChatMessagesInput              statecontract.ListChatMessagesInput
 	chatMessages                       []*statecontract.ChatMessage
+	updatedPlayerAvatarID              int64
+	updatedAvatar                      string
+}
+
+func (f *fakeStateClient) UpdatePlayerAvatar(_ context.Context, playerID int64, avatar string) (*statecontract.Player, error) {
+	f.updatedPlayerAvatarID = playerID
+	f.updatedAvatar = avatar
+	if f.err != nil {
+		return nil, f.err
+	}
+	player := &statecontract.Player{ID: playerID, Avatar: avatar}
+	if f.player != nil {
+		player = new(*f.player)
+		player.Avatar = avatar
+	}
+	f.player = player
+	return new(*player), nil
 }
 
 func (f *fakeStateClient) CreateAccount(_ context.Context, account *statecontract.Account) error {

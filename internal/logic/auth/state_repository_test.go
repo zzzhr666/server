@@ -174,6 +174,17 @@ type fakeStateClient struct {
 	players      map[int64]*statecontract.Player
 }
 
+func (f *fakeStateClient) UpdatePlayerAvatar(_ context.Context, playerID int64, avatar string) (*statecontract.Player, error) {
+	player, ok := f.players[playerID]
+	if !ok {
+		return nil, statecontract.ErrPlayerNotFound
+	}
+	updated := new(*player)
+	updated.Avatar = avatar
+	f.players[playerID] = updated
+	return new(*updated), nil
+}
+
 func newFakeStateClient() *fakeStateClient {
 	return &fakeStateClient{
 		nextPlayerID: 1,

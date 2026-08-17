@@ -172,6 +172,29 @@ func TestClientAddPlayerCoins(t *testing.T) {
 	}
 }
 
+func TestClientUpdatePlayerAvatar(t *testing.T) {
+	grpcState := &fakeStateServiceClient{
+		updatePlayerAvatarResponse: &statepb.UpdatePlayerAvatarResponse{
+			Player: &statepb.Player{Id: 7, Nickname: "Alice", Avatar: "mage", Coins: 120},
+		},
+	}
+	client := NewClient(grpcState)
+
+	result, err := client.UpdatePlayerAvatar(context.Background(), 7, "mage")
+	if err != nil {
+		t.Fatalf("UpdatePlayerAvatar returned error: %v", err)
+	}
+	if grpcState.updatePlayerAvatarRequest.GetPlayerId() != 7 {
+		t.Fatalf("update avatar player id = %d, want 7", grpcState.updatePlayerAvatarRequest.GetPlayerId())
+	}
+	if grpcState.updatePlayerAvatarRequest.GetAvatar() != "mage" {
+		t.Fatalf("update avatar = %q, want mage", grpcState.updatePlayerAvatarRequest.GetAvatar())
+	}
+	if result.ID != 7 || result.Nickname != "Alice" || result.Avatar != "mage" || result.Coins != 120 {
+		t.Fatalf("updated player = %#v, want converted response player", result)
+	}
+}
+
 func TestClientChatMessages(t *testing.T) {
 	createdAt := time.Date(2026, 8, 11, 10, 0, 0, 0, time.UTC)
 	expiresAt := createdAt.Add(statecontract.DirectChatRetention)
@@ -657,46 +680,56 @@ func TestClientPublishRealtime(t *testing.T) {
 type fakeStateServiceClient struct {
 	statepb.UnimplementedStateServiceServer
 
-	account                  *statepb.Account
-	createdAccount           *statepb.Account
-	gotUsername              string
-	registerRequest          *statepb.RegisterAccountRequest
-	registerResponse         *statepb.RegisterAccountResponse
-	session                  *statepb.Session
-	createdSession           *statepb.Session
-	deletedToken             string
-	player                   *statepb.Player
-	createdPlayer            *statepb.Player
-	nextPlayerID             int64
-	presence                 *statepb.Presence
-	setPresence              *statepb.Presence
-	setPresenceTTL           time.Duration
-	clearedPlayerID          int64
-	clearedServerName        string
-	refreshRequest           *statepb.RefreshPresenceRequest
-	err                      error
-	sentFriendRequest        *statepb.SendFriendRequestRequest
-	incomingFriendRequest    *statepb.ListFriendRequestRequest
-	outgoingFriendRequest    *statepb.ListFriendRequestRequest
-	incomingFriendRequests   []*statepb.FriendRequest
-	outgoingFriendRequests   []*statepb.FriendRequest
-	acceptedFriendRequest    *statepb.HandleFriendRequestRequest
-	rejectedFriendRequest    *statepb.HandleFriendRequestRequest
-	listFriendIDsRequest     *statepb.ListFriendIDsRequest
-	friendIDs                []int64
-	deletedFriendRequest     *statepb.DeleteFriendRequest
-	publishedRealtimeRequest *statepb.PublishRealtimeRequest
-	subscribeRealtimeRequest *statepb.SubscribeRealtimeRequest
-	growth                   *statepb.Growth
-	getGrowthRequest         *statepb.GetGrowthRequest
-	upgradeGrowthRequest     *statepb.UpgradeGrowthRequest
-	upgradeGrowthResponse    *statepb.UpgradeGrowthResponse
-	addPlayerCoinsRequest    *statepb.AddPlayerCoinsRequest
-	addPlayerCoinsResponse   *statepb.AddPlayerCoinsResponse
-	saveChatMessageRequest   *statepb.SaveChatMessageRequest
-	saveChatMessageResponse  *statepb.SaveChatMessageResponse
-	listChatMessagesRequest  *statepb.ListChatMessagesRequest
-	listChatMessagesResponse *statepb.ListChatMessagesResponse
+	account                    *statepb.Account
+	createdAccount             *statepb.Account
+	gotUsername                string
+	registerRequest            *statepb.RegisterAccountRequest
+	registerResponse           *statepb.RegisterAccountResponse
+	session                    *statepb.Session
+	createdSession             *statepb.Session
+	deletedToken               string
+	player                     *statepb.Player
+	createdPlayer              *statepb.Player
+	nextPlayerID               int64
+	presence                   *statepb.Presence
+	setPresence                *statepb.Presence
+	setPresenceTTL             time.Duration
+	clearedPlayerID            int64
+	clearedServerName          string
+	refreshRequest             *statepb.RefreshPresenceRequest
+	err                        error
+	sentFriendRequest          *statepb.SendFriendRequestRequest
+	incomingFriendRequest      *statepb.ListFriendRequestRequest
+	outgoingFriendRequest      *statepb.ListFriendRequestRequest
+	incomingFriendRequests     []*statepb.FriendRequest
+	outgoingFriendRequests     []*statepb.FriendRequest
+	acceptedFriendRequest      *statepb.HandleFriendRequestRequest
+	rejectedFriendRequest      *statepb.HandleFriendRequestRequest
+	listFriendIDsRequest       *statepb.ListFriendIDsRequest
+	friendIDs                  []int64
+	deletedFriendRequest       *statepb.DeleteFriendRequest
+	publishedRealtimeRequest   *statepb.PublishRealtimeRequest
+	subscribeRealtimeRequest   *statepb.SubscribeRealtimeRequest
+	growth                     *statepb.Growth
+	getGrowthRequest           *statepb.GetGrowthRequest
+	upgradeGrowthRequest       *statepb.UpgradeGrowthRequest
+	upgradeGrowthResponse      *statepb.UpgradeGrowthResponse
+	addPlayerCoinsRequest      *statepb.AddPlayerCoinsRequest
+	addPlayerCoinsResponse     *statepb.AddPlayerCoinsResponse
+	updatePlayerAvatarRequest  *statepb.UpdatePlayerAvatarRequest
+	updatePlayerAvatarResponse *statepb.UpdatePlayerAvatarResponse
+	saveChatMessageRequest     *statepb.SaveChatMessageRequest
+	saveChatMessageResponse    *statepb.SaveChatMessageResponse
+	listChatMessagesRequest    *statepb.ListChatMessagesRequest
+	listChatMessagesResponse   *statepb.ListChatMessagesResponse
+}
+
+func (f *fakeStateServiceClient) UpdatePlayerAvatar(_ context.Context, in *statepb.UpdatePlayerAvatarRequest, _ ...grpc.CallOption) (*statepb.UpdatePlayerAvatarResponse, error) {
+	f.updatePlayerAvatarRequest = in
+	if f.err != nil {
+		return nil, f.err
+	}
+	return f.updatePlayerAvatarResponse, nil
 }
 
 func (f *fakeStateServiceClient) CreateAccount(_ context.Context, in *statepb.CreateAccountRequest, _ ...grpc.CallOption) (*statepb.CreateAccountResponse, error) {

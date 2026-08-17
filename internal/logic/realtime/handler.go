@@ -244,6 +244,8 @@ func (h *Handler) handleEnvelope(ctx context.Context, session *session, authSess
 		return h.handleListWorldChat(ctx, session, playerID, envelope)
 	case envelope.GetChatDirectList() != nil:
 		return h.handleListDirectChat(ctx, session, playerID, envelope)
+	case envelope.GetPlayerAvatarUpdate() != nil:
+		return h.handleUpdatePlayerAvatar(ctx, session, playerID, envelope)
 	default:
 		return writeError(session, envelope.GetRequestId(), realtimepb.ErrorCode_INVALID_ARGUMENT, "unsupported message") == nil
 	}
@@ -258,7 +260,7 @@ func realtimeRequestType(envelope *realtimepb.ClientEnvelope) string {
 		return "heartbeat"
 	case envelope.GetMatchStart() != nil, envelope.GetMatchCancel() != nil, envelope.GetMatchResume() != nil:
 		return "match"
-	case envelope.GetPlayerGet() != nil:
+	case envelope.GetPlayerGet() != nil, envelope.GetPlayerAvatarUpdate() != nil:
 		return "player"
 	case envelope.GetGrowthGet() != nil, envelope.GetGrowthUpgrade() != nil:
 		return "growth"
@@ -772,6 +774,29 @@ func (h *Handler) handleListDirectChat(ctx context.Context, session *session, pl
 	}) == nil
 }
 
+func (h *Handler) handleUpdatePlayerAvatar(ctx context.Context, session *session, playerID int64, envelope *realtimepb.ClientEnvelope) bool {
+	if h.player == nil {
+		_ = writeError(session, envelope.GetRequestId(), realtimepb.ErrorCode_INTERNAL, "player service unavailable")
+		return false
+	}
+	updateAvatar := envelope.GetPlayerAvatarUpdate()
+	updated, err := h.player.UpdateAvatar(ctx, playerID, updateAvatar.GetAvatar())
+	if err != nil {
+		return writeError(session, envelope.GetRequestId(), playerErrorCode(err), err.Error()) == nil
+	}
+	if updated == nil {
+		return writeError(session, envelope.GetRequestId(), realtimepb.ErrorCode_INTERNAL, "unexpected player result") == nil
+	}
+	return session.Write(&realtimepb.ServerEnvelope{
+		RequestId: envelope.GetRequestId(),
+		Payload: &realtimepb.ServerEnvelope_Player{
+			Player: &realtimepb.PlayerResponse{
+				Player: toProtoPlayer(updated),
+			},
+		},
+	}) == nil
+}
+
 // RunRealtimeSubscriber 启动当前 logic-server 的实时事件订阅。
 func (h *Handler) RunRealtimeSubscriber(ctx context.Context) error {
 	if h.subscriber == nil {
@@ -946,10 +971,14 @@ func growthErrorCode(err error) realtimepb.ErrorCode {
 }
 
 func playerErrorCode(err error) realtimepb.ErrorCode {
-	if errors.Is(err, player.ErrNotFound) {
+	switch {
+	case errors.Is(err, player.ErrInvalidAvatar):
+		return realtimepb.ErrorCode_INVALID_ARGUMENT
+	case errors.Is(err, player.ErrNotFound):
 		return realtimepb.ErrorCode_NOT_FOUND
+	default:
+		return realtimepb.ErrorCode_INTERNAL
 	}
-	return realtimepb.ErrorCode_INTERNAL
 }
 
 func isValidWeapon(weapon string) bool {

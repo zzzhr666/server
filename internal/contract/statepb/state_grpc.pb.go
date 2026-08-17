@@ -28,6 +28,7 @@ const (
 	StateService_CreatePlayer_FullMethodName        = "/state.v1.StateService/CreatePlayer"
 	StateService_GetPlayer_FullMethodName           = "/state.v1.StateService/GetPlayer"
 	StateService_NextPlayerID_FullMethodName        = "/state.v1.StateService/NextPlayerID"
+	StateService_UpdatePlayerAvatar_FullMethodName  = "/state.v1.StateService/UpdatePlayerAvatar"
 	StateService_SetPresence_FullMethodName         = "/state.v1.StateService/SetPresence"
 	StateService_GetPresence_FullMethodName         = "/state.v1.StateService/GetPresence"
 	StateService_ClearPresence_FullMethodName       = "/state.v1.StateService/ClearPresence"
@@ -61,6 +62,7 @@ type StateServiceClient interface {
 	CreatePlayer(ctx context.Context, in *CreatePlayerRequest, opts ...grpc.CallOption) (*CreatePlayerResponse, error)
 	GetPlayer(ctx context.Context, in *GetPlayerRequest, opts ...grpc.CallOption) (*GetPlayerResponse, error)
 	NextPlayerID(ctx context.Context, in *NextPlayerIDRequest, opts ...grpc.CallOption) (*NextPlayerIDResponse, error)
+	UpdatePlayerAvatar(ctx context.Context, in *UpdatePlayerAvatarRequest, opts ...grpc.CallOption) (*UpdatePlayerAvatarResponse, error)
 	SetPresence(ctx context.Context, in *SetPresenceRequest, opts ...grpc.CallOption) (*SetPresenceResponse, error)
 	GetPresence(ctx context.Context, in *GetPresenceRequest, opts ...grpc.CallOption) (*GetPresenceResponse, error)
 	ClearPresence(ctx context.Context, in *ClearPresenceRequest, opts ...grpc.CallOption) (*ClearPresenceResponse, error)
@@ -173,6 +175,16 @@ func (c *stateServiceClient) NextPlayerID(ctx context.Context, in *NextPlayerIDR
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(NextPlayerIDResponse)
 	err := c.cc.Invoke(ctx, StateService_NextPlayerID_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *stateServiceClient) UpdatePlayerAvatar(ctx context.Context, in *UpdatePlayerAvatarRequest, opts ...grpc.CallOption) (*UpdatePlayerAvatarResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UpdatePlayerAvatarResponse)
+	err := c.cc.Invoke(ctx, StateService_UpdatePlayerAvatar_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -381,6 +393,7 @@ type StateServiceServer interface {
 	CreatePlayer(context.Context, *CreatePlayerRequest) (*CreatePlayerResponse, error)
 	GetPlayer(context.Context, *GetPlayerRequest) (*GetPlayerResponse, error)
 	NextPlayerID(context.Context, *NextPlayerIDRequest) (*NextPlayerIDResponse, error)
+	UpdatePlayerAvatar(context.Context, *UpdatePlayerAvatarRequest) (*UpdatePlayerAvatarResponse, error)
 	SetPresence(context.Context, *SetPresenceRequest) (*SetPresenceResponse, error)
 	GetPresence(context.Context, *GetPresenceRequest) (*GetPresenceResponse, error)
 	ClearPresence(context.Context, *ClearPresenceRequest) (*ClearPresenceResponse, error)
@@ -435,6 +448,9 @@ func (UnimplementedStateServiceServer) GetPlayer(context.Context, *GetPlayerRequ
 }
 func (UnimplementedStateServiceServer) NextPlayerID(context.Context, *NextPlayerIDRequest) (*NextPlayerIDResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method NextPlayerID not implemented")
+}
+func (UnimplementedStateServiceServer) UpdatePlayerAvatar(context.Context, *UpdatePlayerAvatarRequest) (*UpdatePlayerAvatarResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpdatePlayerAvatar not implemented")
 }
 func (UnimplementedStateServiceServer) SetPresence(context.Context, *SetPresenceRequest) (*SetPresenceResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method SetPresence not implemented")
@@ -669,6 +685,24 @@ func _StateService_NextPlayerID_Handler(srv interface{}, ctx context.Context, de
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(StateServiceServer).NextPlayerID(ctx, req.(*NextPlayerIDRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _StateService_UpdatePlayerAvatar_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdatePlayerAvatarRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(StateServiceServer).UpdatePlayerAvatar(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: StateService_UpdatePlayerAvatar_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(StateServiceServer).UpdatePlayerAvatar(ctx, req.(*UpdatePlayerAvatarRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1032,6 +1066,10 @@ var StateService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "NextPlayerID",
 			Handler:    _StateService_NextPlayerID_Handler,
+		},
+		{
+			MethodName: "UpdatePlayerAvatar",
+			Handler:    _StateService_UpdatePlayerAvatar_Handler,
 		},
 		{
 			MethodName: "SetPresence",
