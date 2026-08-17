@@ -49,7 +49,7 @@ func CalculateCoinReward(stat PlayerBattleStats, reason string, rule RewardRule)
 		}
 		reward, ok := rule.MonsterKillReward[killCount.MonsterKind]
 		if !ok {
-			reward = 10
+			reward = DefaultMonsterKillReward
 		}
 		finalReward += reward * int64(killCount.Count)
 	}
@@ -60,7 +60,7 @@ const (
 	// BattleFinishReasonVictory 表示以胜利结束战斗。
 	BattleFinishReasonVictory string = "victory"
 	// DefaultMonsterKillReward 是未知怪物类型的默认单次击杀奖励。
-	DefaultMonsterKillReward int64 = 10
+	DefaultMonsterKillReward int64 = 2
 )
 
 // DefaultRewardRule 返回本地默认的战斗金币奖励规则。
@@ -69,7 +69,8 @@ func DefaultRewardRule() RewardRule {
 		BaseReward:    50,
 		VictoryReward: 100,
 		MonsterKillReward: map[string]int64{
-			"melee": 10,
+			"melee":  2,
+			"ranged": 3,
 		},
 	}
 }

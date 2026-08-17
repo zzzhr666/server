@@ -48,7 +48,7 @@ func TestCalculateCoinReward(t *testing.T) {
 				},
 			},
 			reason: "defeat",
-			want:   70,
+			want:   54,
 		},
 		{
 			name: "victory adds reward",
@@ -73,5 +73,24 @@ func TestCalculateCoinReward(t *testing.T) {
 				t.Fatalf("reward = %d, want %d", got, tt.want)
 			}
 		})
+	}
+}
+
+func TestDefaultRewardRuleLimitsFullSoloClearReward(t *testing.T) {
+	stat := PlayerBattleStats{
+		PlayerID:   7,
+		TotalKills: 135,
+		Kills: []MonsterKillCount{
+			{MonsterKind: "melee", Count: 95},
+			{MonsterKind: "ranged", Count: 40},
+		},
+	}
+
+	got, err := CalculateCoinReward(stat, BattleFinishReasonVictory, DefaultRewardRule())
+	if err != nil {
+		t.Fatalf("CalculateCoinReward returned error: %v", err)
+	}
+	if got != 460 {
+		t.Fatalf("reward = %d, want 460", got)
 	}
 }

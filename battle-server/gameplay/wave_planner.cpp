@@ -1,27 +1,46 @@
 #include "wave_planner.hpp"
 
+#include <array>
 #include <ranges>
+
+namespace {
+    struct DefaultWaveComposition {
+        std::size_t melee_count;
+        std::size_t ranged_count;
+    };
+
+    constexpr std::array<DefaultWaveComposition, battle::WaveCount> DefaultWaveCompositions{
+        DefaultWaveComposition{.melee_count = 7, .ranged_count = 0},
+        DefaultWaveComposition{.melee_count = 7, .ranged_count = 1},
+        DefaultWaveComposition{.melee_count = 8, .ranged_count = 2},
+        DefaultWaveComposition{.melee_count = 8, .ranged_count = 3},
+        DefaultWaveComposition{.melee_count = 9, .ranged_count = 4},
+        DefaultWaveComposition{.melee_count = 10, .ranged_count = 4},
+        DefaultWaveComposition{.melee_count = 11, .ranged_count = 5},
+        DefaultWaveComposition{.melee_count = 11, .ranged_count = 6},
+        DefaultWaveComposition{.melee_count = 12, .ranged_count = 7},
+        DefaultWaveComposition{.melee_count = 12, .ranged_count = 8},
+    };
+}
 
 battle::WaveConfig battle::default_wave_config() {
     WaveConfig config;
     for (std::size_t i = 0; i < WaveCount; ++i) {
-        const std::size_t total_count = 3 + i;
-        const std::size_t ranged_count = i < 2 ? 0 : 1 + (i - 2) / 3;
-        const std::size_t melee_count = total_count - ranged_count;
+        const auto& composition = DefaultWaveCompositions[i];
         WaveDefinition wave_definition{
             .groups = {
                 WaveMonsterGroup{
                     .kind = MonsterKind::Melee,
-                    .count = melee_count,
+                    .count = composition.melee_count,
                 },
             },
             .health_multiplier = 1.0f + 0.2f * static_cast<float>(i),
             .move_speed_multiplier = 1.0f,
         };
-        if (ranged_count > 0) {
+        if (composition.ranged_count > 0) {
             wave_definition.groups.emplace_back(WaveMonsterGroup{
                 .kind = MonsterKind::Ranged,
-                .count = ranged_count,
+                .count = composition.ranged_count,
             });
         }
         config.waves.emplace_back(wave_definition);

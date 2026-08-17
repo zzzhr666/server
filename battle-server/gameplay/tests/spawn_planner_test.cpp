@@ -43,7 +43,7 @@ TEST(SpawnPlannerTest, PlayerSpawnUsesTunedStatsWithoutReducingHealth) {
     EXPECT_EQ(spawn.max_health, 1000);
     EXPECT_FLOAT_EQ(spawn.move_speed, 11.0f);
     EXPECT_EQ(spawn.attack.damage, 23);
-    EXPECT_FLOAT_EQ(spawn.attack.cooldown_seconds.count(), 0.24f);
+    EXPECT_FLOAT_EQ(spawn.attack.cooldown_seconds.count(), 0.34f);
 }
 
 TEST(SpawnPlannerTest, MonsterSpawnPlacesMonstersOnCircle) {

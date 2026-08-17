@@ -1,5 +1,7 @@
 #include "gameplay/wave_planner.hpp"
 
+#include <array>
+
 #include <gtest/gtest.h>
 
 namespace battle {
@@ -84,24 +86,28 @@ TEST(WavePlannerTest, PlanWaveCarriesRangedMonsterKitingConfiguration) {
 
 TEST(WavePlannerTest, DefaultWaveConfigCreatesTenIncreasingWaves) {
     auto config = default_wave_config();
+    constexpr std::array<std::size_t, 10> expected_melee_counts{
+        7, 7, 8, 8, 9, 10, 11, 11, 12, 12,
+    };
+    constexpr std::array<std::size_t, 10> expected_ranged_counts{
+        0, 1, 2, 3, 4, 4, 5, 6, 7, 8,
+    };
 
     ASSERT_EQ(config.waves.size(), 10);
-    ASSERT_EQ(config.waves[0].groups.size(), 1);
-    EXPECT_EQ(config.waves[0].groups[0].count, 3);
-    EXPECT_EQ(config.waves[0].groups[0].kind, MonsterKind::Melee);
+    for (std::size_t i = 0; i < expected_melee_counts.size(); ++i) {
+        ASSERT_FALSE(config.waves[i].groups.empty()) << "wave " << i + 1;
+        EXPECT_EQ(config.waves[i].groups[0].kind, MonsterKind::Melee) << "wave " << i + 1;
+        EXPECT_EQ(config.waves[i].groups[0].count, expected_melee_counts[i]) << "wave " << i + 1;
 
-    ASSERT_EQ(config.waves[2].groups.size(), 2);
-    EXPECT_EQ(config.waves[2].groups[0].count, 4);
-    EXPECT_EQ(config.waves[2].groups[1].kind, MonsterKind::Ranged);
-    EXPECT_EQ(config.waves[2].groups[1].count, 1);
+        if (expected_ranged_counts[i] == 0) {
+            EXPECT_EQ(config.waves[i].groups.size(), 1) << "wave " << i + 1;
+            continue;
+        }
 
-    ASSERT_EQ(config.waves[5].groups.size(), 2);
-    EXPECT_EQ(config.waves[5].groups[0].count, 6);
-    EXPECT_EQ(config.waves[5].groups[1].count, 2);
-
-    ASSERT_EQ(config.waves[8].groups.size(), 2);
-    EXPECT_EQ(config.waves[8].groups[0].count, 8);
-    EXPECT_EQ(config.waves[8].groups[1].count, 3);
+        ASSERT_EQ(config.waves[i].groups.size(), 2) << "wave " << i + 1;
+        EXPECT_EQ(config.waves[i].groups[1].kind, MonsterKind::Ranged) << "wave " << i + 1;
+        EXPECT_EQ(config.waves[i].groups[1].count, expected_ranged_counts[i]) << "wave " << i + 1;
+    }
     EXPECT_GT(config.waves[9].health_multiplier, config.waves[0].health_multiplier);
 }
 

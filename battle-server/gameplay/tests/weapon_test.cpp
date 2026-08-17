@@ -11,11 +11,11 @@ TEST(WeaponTest, MeleeDefinitionsUseTunedInitialDamageAndCooldown) {
     const auto axe = weapon_definition(WeaponKind::Axe);
 
     EXPECT_EQ(sword.attack.damage, 23);
-    EXPECT_FLOAT_EQ(sword.attack.cooldown_seconds.count(), 0.24f);
+    EXPECT_FLOAT_EQ(sword.attack.cooldown_seconds.count(), 0.34f);
     EXPECT_EQ(dagger.attack.damage, 13);
-    EXPECT_FLOAT_EQ(dagger.attack.cooldown_seconds.count(), 0.13f);
+    EXPECT_FLOAT_EQ(dagger.attack.cooldown_seconds.count(), 0.20f);
     EXPECT_EQ(axe.attack.damage, 38);
-    EXPECT_FLOAT_EQ(axe.attack.cooldown_seconds.count(), 0.48f);
+    EXPECT_FLOAT_EQ(axe.attack.cooldown_seconds.count(), 0.62f);
 }
 
 TEST(WeaponTest, BowDefinitionUsesProjectileAttack) {
@@ -23,9 +23,9 @@ TEST(WeaponTest, BowDefinitionUsesProjectileAttack) {
 
     EXPECT_EQ(bow.kind, WeaponKind::Bow);
     EXPECT_EQ(bow.attack.kind, ecs::AttackKind::Projectile);
-    EXPECT_EQ(bow.attack.damage, 28);
+    EXPECT_EQ(bow.attack.damage, 32);
     EXPECT_FLOAT_EQ(bow.attack.range, 15.0f);
-    EXPECT_FLOAT_EQ(bow.attack.cooldown_seconds.count(), 0.32f);
+    EXPECT_FLOAT_EQ(bow.attack.cooldown_seconds.count(), 0.30f);
     EXPECT_FLOAT_EQ(bow.attack.projectile_speed, 25.0f);
     EXPECT_FLOAT_EQ(bow.attack.projectile_hit_radius, 0.85f);
 }
