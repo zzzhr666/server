@@ -110,7 +110,11 @@
 4. 任一玩家重新 hello 后，清除该房间的无人连接计时。
 5. 计时达到 `all_players_disconnected_timeout`（默认 90 秒）时，以 `all_players_disconnected` 结束房间。
 
-战斗结束时，battle-server 调用 rcenter `FinishMatch`，并携带稳定的 `room_name`。胜利/失败必须携带完整玩家统计；battle-server 对瞬时 RPC 错误执行带 1 秒 deadline 的有限重试，rcenter 再通过 state-server 以 Redis 乐观事务一次发放全部奖励，并用房间名保证重复回调不会重复到账。只有结算成功或已结算后才释放属于该房间的 `ActiveMatch` 与 in-game 标记，迟到的旧房间回调不会清理玩家的新对局。`all_players_disconnected` 等非胜负原因不携带奖励统计，只执行房间感知的状态释放。
+战斗结束时，battle-server 调用 rcenter `FinishMatch`，并携带稳定的 `room_name`。胜利/失败必须携带完整玩家统计；battle-server
+对瞬时 RPC 错误执行有限重试，每次默认使用 3 秒 deadline。节点启动注册默认使用独立的 15 秒 deadline，为容器 DNS 与 gRPC
+冷连接预留时间；两项超时均可通过 battle-server 命令行参数调整。rcenter 再通过 state-server 以 Redis
+乐观事务一次发放全部奖励，并用房间名保证重复回调不会重复到账。只有结算成功或已结算后才释放属于该房间的 `ActiveMatch` 与
+in-game 标记，迟到的旧房间回调不会清理玩家的新对局。`all_players_disconnected` 等非胜负原因不携带奖励统计，只执行房间感知的状态释放。
 
 ## 代码导航
 

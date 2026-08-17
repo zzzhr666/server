@@ -1,5 +1,6 @@
 #pragma once
 
+#include <chrono>
 #include <memory>
 #include <string>
 
@@ -27,7 +28,9 @@ namespace battle {
     /// @brief RCenterClient 封装 battle-server 到 rcenter-server 的控制 RPC。
     class RCenterClient {
     public:
-        explicit RCenterClient(std::shared_ptr<grpc::Channel> channel);
+        RCenterClient(std::shared_ptr<grpc::Channel> channel,
+                      std::chrono::seconds register_timeout,
+                      std::chrono::seconds finish_timeout);
 
         /// @brief 上报节点地址和实时房间容量，供 rcenter 调度使用。
         [[nodiscard]] RegisterBattleNodeResult register_battle_node(const Config& config, const RoomManager& room_manager) const;
@@ -37,5 +40,7 @@ namespace battle {
 
     private:
         std::unique_ptr<rcenter::v1::RCenterService::Stub> stub_;
+        std::chrono::seconds register_timeout_;
+        std::chrono::seconds finish_timeout_;
     };
 }

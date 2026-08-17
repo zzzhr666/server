@@ -9,7 +9,6 @@
 #include "spdlog/spdlog.h"
 
 namespace {
-    constexpr auto kControlRpcTimeout = std::chrono::seconds(1);
     constexpr int kFinishMatchMaxAttempts = 3;
 
     bool is_retryable_finish_status(const grpc::StatusCode code) {
@@ -26,8 +25,12 @@ namespace {
     }
 }
 
-battle::RCenterClient::RCenterClient(std::shared_ptr<grpc::Channel> channel)
-    : stub_(rcenter::v1::RCenterService::NewStub(std::move(channel))) {}
+battle::RCenterClient::RCenterClient(std::shared_ptr<grpc::Channel> channel,
+                                     const std::chrono::seconds register_timeout,
+                                     const std::chrono::seconds finish_timeout)
+    : stub_(rcenter::v1::RCenterService::NewStub(std::move(channel))),
+      register_timeout_(register_timeout),
+      finish_timeout_(finish_timeout) {}
 
 battle::RegisterBattleNodeResult battle::RCenterClient::register_battle_node(
     const Config& config, const RoomManager& room_manager) const {
@@ -41,7 +44,8 @@ battle::RegisterBattleNodeResult battle::RCenterClient::register_battle_node(
     // 仍占用房间配额，不会在同一节点被超额调度。
     node->set_active_players(static_cast<std::int32_t>(room_manager.active_players()));
     grpc::ClientContext ctx;
-    ctx.set_deadline(std::chrono::system_clock::now() + kControlRpcTimeout);
+    // 首次注册包含容器 DNS、TCP 和 HTTP/2 建连，不能复用结算 RPC 的短超时。
+    ctx.set_deadline(std::chrono::system_clock::now() + register_timeout_);
     rcenter::v1::RegisterBattleNodeResponse response;
     grpc::Status status = stub_->RegisterBattleNode(&ctx, request, &response);
 
@@ -87,7 +91,7 @@ battle::FinishMatchResult battle::RCenterClient::finish_match(const FinishedBatt
     for (int attempt = 1; attempt <= kFinishMatchMaxAttempts; ++attempt) {
         attempts = attempt;
         grpc::ClientContext ctx;
-        ctx.set_deadline(std::chrono::system_clock::now() + kControlRpcTimeout);
+        ctx.set_deadline(std::chrono::system_clock::now() + finish_timeout_);
         rcenter::v1::FinishMatchResponse response;
         last_status = stub_->FinishMatch(&ctx, request, &response);
         if (last_status.ok()) {

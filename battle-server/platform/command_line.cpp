@@ -14,6 +14,8 @@ namespace {
             << "  --udp-bind-addr <host:port>  UDP listen address\n"
             << "  --udp-addr <host:port>       UDP address registered for clients\n"
             << "  --rcenter-addr <host:port>   rcenter gRPC address\n"
+            << "  --rcenter-register-timeout-seconds <positive-int>  Node registration RPC timeout\n"
+            << "  --rcenter-finish-timeout-seconds <positive-int>    FinishMatch RPC timeout per attempt\n"
             << "  --metrics-addr <host:port>   Prometheus metrics listen address\n"
             << "  --max-players <positive-int> Reserved player capacity\n"
             << "  --help                       Show this help\n";
@@ -50,6 +52,20 @@ battle::CommandLineResult battle::ParseCommandLine(int argc, char* argv[], Confi
             config.udp_addr = value;
         } else if (option == "--rcenter-addr") {
             config.rcenter_addr = value;
+        } else if (option == "--rcenter-register-timeout-seconds") {
+            int seconds = 0;
+            if (!parse_positive_int(value, seconds)) {
+                std::cerr << "invalid --rcenter-register-timeout-seconds value: " << value << '\n';
+                return CommandLineResult::Error;
+            }
+            config.rcenter_register_timeout_seconds = std::chrono::seconds{seconds};
+        } else if (option == "--rcenter-finish-timeout-seconds") {
+            int seconds = 0;
+            if (!parse_positive_int(value, seconds)) {
+                std::cerr << "invalid --rcenter-finish-timeout-seconds value: " << value << '\n';
+                return CommandLineResult::Error;
+            }
+            config.rcenter_finish_timeout_seconds = std::chrono::seconds{seconds};
         } else if (option == "--metrics-addr") {
             config.metrics_addr = value;
         } else if (option == "--max-players") {

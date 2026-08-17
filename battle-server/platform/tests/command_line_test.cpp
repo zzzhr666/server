@@ -38,3 +38,24 @@ TEST(CommandLineTest, RejectsInvalidPlayerCapacity) {
 
     EXPECT_EQ(parse({"battle_server", "--max-players", "0"}, config), battle::CommandLineResult::Error);
 }
+
+TEST(CommandLineTest, OverridesRCenterRpcTimeouts) {
+    auto config = battle::DefaultConfig();
+
+    const auto result = parse({"battle_server",
+                               "--rcenter-register-timeout-seconds", "20",
+                               "--rcenter-finish-timeout-seconds", "5"}, config);
+
+    EXPECT_EQ(result, battle::CommandLineResult::Ok);
+    EXPECT_EQ(config.rcenter_register_timeout_seconds, std::chrono::seconds{20});
+    EXPECT_EQ(config.rcenter_finish_timeout_seconds, std::chrono::seconds{5});
+}
+
+TEST(CommandLineTest, RejectsInvalidRCenterRpcTimeouts) {
+    auto config = battle::DefaultConfig();
+
+    EXPECT_EQ(parse({"battle_server", "--rcenter-register-timeout-seconds", "0"}, config),
+              battle::CommandLineResult::Error);
+    EXPECT_EQ(parse({"battle_server", "--rcenter-finish-timeout-seconds", "invalid"}, config),
+              battle::CommandLineResult::Error);
+}

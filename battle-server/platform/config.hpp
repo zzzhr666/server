@@ -13,6 +13,8 @@ namespace battle {
         int max_players;
         int tick_rate;
         std::string rcenter_addr;
+        std::chrono::seconds rcenter_register_timeout_seconds;
+        std::chrono::seconds rcenter_finish_timeout_seconds;
         std::chrono::seconds session_idle_timeout_seconds;
         std::chrono::seconds all_players_disconnected_timeout;
         std::string log_level;

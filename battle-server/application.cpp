@@ -14,7 +14,9 @@ battle::BattleApplication::BattleApplication(Config config)
       room_manager_(battle_metrics_),
       session_manager_(room_manager_, battle_metrics_),
       udp_server_(config_.udp_bind_addr, session_manager_, battle_metrics_),
-      rcenter_client_(grpc::CreateChannel(config_.rcenter_addr, grpc::InsecureChannelCredentials())),
+      rcenter_client_(grpc::CreateChannel(config_.rcenter_addr, grpc::InsecureChannelCredentials()),
+                      config_.rcenter_register_timeout_seconds,
+                      config_.rcenter_finish_timeout_seconds),
       battle_runtime_(
           room_manager_,
           session_manager_,
