@@ -7,9 +7,9 @@ battle::WeaponDefinition battle::weapon_definition(WeaponKind kind) {
             .kind = WeaponKind::Sword,
             .attack = {
                 .kind = ecs::AttackKind::Melee,
-                .damage = 25,
+                .damage = SwordAttackDamage,
                 .range = 3.0f,
-                .cooldown_seconds = ecs::DeltaTime{0.22f},
+                .cooldown_seconds = SwordAttackCooldown,
                 .projectile_speed = 0.0f,
             },
         };
@@ -18,9 +18,9 @@ battle::WeaponDefinition battle::weapon_definition(WeaponKind kind) {
             .kind = WeaponKind::Dagger,
             .attack = {
                 .kind = ecs::AttackKind::Melee,
-                .damage = 14,
+                .damage = DaggerAttackDamage,
                 .range = 2.4f,
-                .cooldown_seconds = ecs::DeltaTime{0.12f},
+                .cooldown_seconds = DaggerAttackCooldown,
                 .projectile_speed = 0.0f,
             },
         };
@@ -29,9 +29,9 @@ battle::WeaponDefinition battle::weapon_definition(WeaponKind kind) {
             .kind = WeaponKind::Axe,
             .attack = {
                 .kind = ecs::AttackKind::Melee,
-                .damage = 40,
+                .damage = AxeAttackDamage,
                 .range = 3.5f,
-                .cooldown_seconds = ecs::DeltaTime{0.45f},
+                .cooldown_seconds = AxeAttackCooldown,
                 .projectile_speed = 0.0f,
             },
         };

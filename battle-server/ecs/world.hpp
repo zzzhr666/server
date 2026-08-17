@@ -14,11 +14,11 @@ namespace battle::ecs {
     /// @brief 伤害事件缓冲区的初始预留容量，避免战斗中频繁扩容。
     constexpr std::size_t InitialDamageEventCount = 256;
     constexpr int DefaultPlayerMaxHealth = 1000;
-    constexpr float DefaultPlayerMoveSpeed = 12.0f;
-    constexpr int DefaultPlayerAttackDamage = 25;
+    constexpr float DefaultPlayerMoveSpeed = 11.0f;
+    constexpr int DefaultPlayerAttackDamage = 23;
     constexpr float DefaultPlayerAttackRange = 3.0f;
-    constexpr DeltaTime DefaultPlayerAttackCooldown{0.22f};
-    constexpr float DefaultPlayerDashSpeedMultiplier = 10.0f;
+    constexpr DeltaTime DefaultPlayerAttackCooldown{0.24f};
+    constexpr float DefaultPlayerDashSpeedMultiplier = 25.0f;
     constexpr DeltaTime DefaultPlayerDashCooldown{1.0f};
 
     /// @brief 创建玩家实体时写入的基础组件配置。

@@ -1116,7 +1116,7 @@ TEST(WorldTest, TickMovesPlayerByInputDirectionAndMoveSpeed) {
     world.tick(DeltaTime{1.0f});
 
     const auto& transform = world.registry().get<Transform>(entity);
-    EXPECT_FLOAT_EQ(transform.position.x, 22.0f);
+    EXPECT_FLOAT_EQ(transform.position.x, 10.0f + DefaultPlayerMoveSpeed);
     EXPECT_FLOAT_EQ(transform.position.y, 20.0f);
     EXPECT_FLOAT_EQ(transform.direction.x, 1.0f);
     EXPECT_FLOAT_EQ(transform.direction.y, 0.0f);
@@ -1163,9 +1163,40 @@ TEST(WorldTest, TickDashMovesPlayerWithDashSpeedMultiplierOnce) {
     world.tick(DeltaTime{1.0f});
 
     const auto& transform = world.registry().get<Transform>(entity);
-    EXPECT_FLOAT_EQ(transform.position.x, 130.0f);
+    EXPECT_FLOAT_EQ(transform.position.x,
+                    10.0f + DefaultPlayerMoveSpeed * DefaultPlayerDashSpeedMultiplier);
     EXPECT_FLOAT_EQ(transform.position.y, 20.0f);
     EXPECT_FLOAT_EQ(transform.direction.x, 1.0f);
+    EXPECT_FLOAT_EQ(transform.direction.y, 0.0f);
+    EXPECT_FALSE(world.registry().get<DashRequest>(entity).requested);
+    EXPECT_FLOAT_EQ(world.registry().get<DashCooldown>(entity).remaining_seconds.count(), 1.0f);
+}
+
+TEST(WorldTest, TickDashUsesFacingDirectionWithoutMoveInput) {
+    World world;
+    auto entity = world.create_player(default_player_config());
+
+    ASSERT_TRUE(world.set_player_command(entity, PlayerCommand{
+                                                     .move_x = -1.0f,
+                                                     .move_y = 0.0f,
+                                                     .attack_requested = false,
+                                                     .dash_requested = false,
+                                                 }));
+    world.tick(DeltaTime{0.0f});
+
+    ASSERT_TRUE(world.set_player_command(entity, PlayerCommand{
+                                                     .move_x = 0.0f,
+                                                     .move_y = 0.0f,
+                                                     .attack_requested = false,
+                                                     .dash_requested = true,
+                                                 }));
+    world.tick(DeltaTime{1.0f});
+
+    const auto& transform = world.registry().get<Transform>(entity);
+    EXPECT_FLOAT_EQ(transform.position.x,
+                    10.0f - DefaultPlayerMoveSpeed * DefaultPlayerDashSpeedMultiplier);
+    EXPECT_FLOAT_EQ(transform.position.y, 20.0f);
+    EXPECT_FLOAT_EQ(transform.direction.x, -1.0f);
     EXPECT_FLOAT_EQ(transform.direction.y, 0.0f);
     EXPECT_FALSE(world.registry().get<DashRequest>(entity).requested);
     EXPECT_FLOAT_EQ(world.registry().get<DashCooldown>(entity).remaining_seconds.count(), 1.0f);
@@ -1192,7 +1223,9 @@ TEST(WorldTest, TickDoesNotDashAgainDuringCooldown) {
     world.tick(DeltaTime{0.5f});
 
     const auto& transform = world.registry().get<Transform>(entity);
-    EXPECT_FLOAT_EQ(transform.position.x, 136.0f);
+    EXPECT_FLOAT_EQ(transform.position.x,
+                    10.0f + DefaultPlayerMoveSpeed * DefaultPlayerDashSpeedMultiplier +
+                        DefaultPlayerMoveSpeed * 0.5f);
     EXPECT_FLOAT_EQ(transform.position.y, 20.0f);
     EXPECT_FALSE(world.registry().get<DashRequest>(entity).requested);
     EXPECT_FLOAT_EQ(world.registry().get<DashCooldown>(entity).remaining_seconds.count(), 0.5f);
@@ -1211,7 +1244,7 @@ TEST(WorldTest, TickUsesDeltaSecondsOnce) {
     world.tick(DeltaTime{0.5f});
 
     const auto& transform = world.registry().get<Transform>(entity);
-    EXPECT_FLOAT_EQ(transform.position.x, 16.0f);
+    EXPECT_FLOAT_EQ(transform.position.x, 10.0f + DefaultPlayerMoveSpeed * 0.5f);
     EXPECT_FLOAT_EQ(transform.position.y, 20.0f);
 }
 
@@ -1228,7 +1261,7 @@ TEST(WorldTest, TickMovesPlayerInNegativeInputDirection) {
     world.tick(DeltaTime{1.0f});
 
     const auto& transform = world.registry().get<Transform>(entity);
-    EXPECT_FLOAT_EQ(transform.position.x, -2.0f);
+    EXPECT_FLOAT_EQ(transform.position.x, 10.0f - DefaultPlayerMoveSpeed);
     EXPECT_FLOAT_EQ(transform.position.y, 20.0f);
     EXPECT_FLOAT_EQ(transform.direction.x, -1.0f);
     EXPECT_FLOAT_EQ(transform.direction.y, 0.0f);
@@ -1274,7 +1307,7 @@ TEST(WorldTest, TickWithZeroMoveIntentDoesNotMoveOrChangeDirection) {
     world.tick(DeltaTime{1.0f});
 
     const auto& transform = world.registry().get<Transform>(entity);
-    EXPECT_FLOAT_EQ(transform.position.x, 22.0f);
+    EXPECT_FLOAT_EQ(transform.position.x, 10.0f + DefaultPlayerMoveSpeed);
     EXPECT_FLOAT_EQ(transform.position.y, 20.0f);
     EXPECT_FLOAT_EQ(transform.direction.x, 1.0f);
     EXPECT_FLOAT_EQ(transform.direction.y, 0.0f);
@@ -1929,7 +1962,7 @@ TEST(WorldTest, SnapshotIncludesMovedPlayerTransformAndHealth) {
     const auto& entity_snapshot = snapshot.entities[0];
     EXPECT_EQ(entity_snapshot.entity, entity);
     EXPECT_EQ(entity_snapshot.kind, EntityKind::Player);
-    EXPECT_FLOAT_EQ(entity_snapshot.position.x, 22.0f);
+    EXPECT_FLOAT_EQ(entity_snapshot.position.x, 10.0f + DefaultPlayerMoveSpeed);
     EXPECT_FLOAT_EQ(entity_snapshot.position.y, 20.0f);
     EXPECT_FLOAT_EQ(entity_snapshot.direction.x, 1.0f);
     EXPECT_FLOAT_EQ(entity_snapshot.direction.y, 0.0f);

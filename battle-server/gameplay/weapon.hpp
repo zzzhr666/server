@@ -7,8 +7,14 @@
 
 
 namespace battle {
-    constexpr int BowAttackDamage = 30;
-    constexpr ecs::DeltaTime BowAttackCooldown{0.30f};
+    constexpr int SwordAttackDamage = 23;
+    constexpr ecs::DeltaTime SwordAttackCooldown{0.24f};
+    constexpr int DaggerAttackDamage = 13;
+    constexpr ecs::DeltaTime DaggerAttackCooldown{0.13f};
+    constexpr int AxeAttackDamage = 38;
+    constexpr ecs::DeltaTime AxeAttackCooldown{0.48f};
+    constexpr int BowAttackDamage = 28;
+    constexpr ecs::DeltaTime BowAttackCooldown{0.32f};
     constexpr float BowProjectileHitRadius = 0.85f;
 
     /// @brief 当前支持的初始武器类型。

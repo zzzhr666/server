@@ -182,7 +182,7 @@ TEST(BattleInstanceTest, ConstructorAppliesConfiguredPlayerWeapon) {
                             .count = 1,
                         },
                     },
-                    .health_multiplier = 0.8f,
+                    .health_multiplier = 0.7f,
                     .move_speed_multiplier = 1.0f,
                 },
             },

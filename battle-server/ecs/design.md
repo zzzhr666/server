@@ -77,6 +77,8 @@ blessing_trigger_system
 death_system
 ```
 
+冲刺优先沿当前移动输入方向施加；玩家没有移动输入时，则沿 `Transform.direction` 保存的最后朝向施加。
+
 ![战斗处理流水线](../../docs/diagrams/combat-pipeline.svg)
 
 关键规则：

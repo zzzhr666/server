@@ -35,15 +35,15 @@ TEST(SpawnPlannerTest, PlayerSpawnReusesFourPlayerSlots) {
     EXPECT_FLOAT_EQ(spawn.position.y, 0.0f);
 }
 
-TEST(SpawnPlannerTest, PlayerSpawnUsesDefaultStats) {
+TEST(SpawnPlannerTest, PlayerSpawnUsesTunedStatsWithoutReducingHealth) {
     SpawnPlanner planner;
 
     auto spawn = planner.player_spawn(0);
 
-    EXPECT_EQ(spawn.max_health, ecs::DefaultPlayerMaxHealth);
-    EXPECT_FLOAT_EQ(spawn.move_speed, ecs::DefaultPlayerMoveSpeed);
-    EXPECT_EQ(spawn.attack.damage, ecs::DefaultPlayerAttackDamage);
-    EXPECT_FLOAT_EQ(spawn.attack.cooldown_seconds.count(), ecs::DefaultPlayerAttackCooldown.count());
+    EXPECT_EQ(spawn.max_health, 1000);
+    EXPECT_FLOAT_EQ(spawn.move_speed, 11.0f);
+    EXPECT_EQ(spawn.attack.damage, 23);
+    EXPECT_FLOAT_EQ(spawn.attack.cooldown_seconds.count(), 0.24f);
 }
 
 TEST(SpawnPlannerTest, MonsterSpawnPlacesMonstersOnCircle) {
