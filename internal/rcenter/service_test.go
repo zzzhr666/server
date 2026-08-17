@@ -127,7 +127,7 @@ func TestServiceStartMatchWaitsForFirstPlayer(t *testing.T) {
 		MaxPlayers:  100,
 	})
 
-	result, err := svc.StartMatch(context.Background(), 7, "")
+	result, err := svc.StartMatch(context.Background(), 7, "", false)
 	if err != nil {
 		t.Fatalf("StartMatch returned error: %v", err)
 	}
@@ -176,7 +176,7 @@ func TestServiceStartMatchCreatesRoomForSecondPlayer(t *testing.T) {
 		ActivePlayers: 1,
 	})
 
-	first, err := svc.StartMatch(context.Background(), 7, "axe")
+	first, err := svc.StartMatch(context.Background(), 7, "axe", false)
 	if err != nil {
 		t.Fatalf("first StartMatch returned error: %v", err)
 	}
@@ -184,7 +184,7 @@ func TestServiceStartMatchCreatesRoomForSecondPlayer(t *testing.T) {
 		t.Fatalf("first status = %q, want %q", first.Status, MatchStatusWaiting)
 	}
 
-	second, err := svc.StartMatch(context.Background(), 8, "dagger")
+	second, err := svc.StartMatch(context.Background(), 8, "dagger", false)
 	if err != nil {
 		t.Fatalf("second StartMatch returned error: %v", err)
 	}
@@ -230,6 +230,120 @@ func TestServiceStartMatchCreatesRoomForSecondPlayer(t *testing.T) {
 	}
 }
 
+func TestServiceStartSoloMatchCreatesRoomImmediately(t *testing.T) {
+	battleRooms := &fakeBattleRoomCreator{}
+	svc := NewService(ServiceConfig{
+		BattleNodeController: battleRooms,
+		RewardRule:           DefaultRewardRule(),
+		GrowthClient: &fakeGrowthClient{growths: map[int64]*statecontract.Growth{
+			7: {
+				PlayerID:         7,
+				AttackLevel:      2,
+				AttackSpeedLevel: 3,
+				HealthLevel:      4,
+				MoveSpeedLevel:   5,
+			},
+		}},
+	})
+	mustRegisterBattleNode(t, svc, BattleNode{
+		Name:        "battle-1",
+		UDPAddr:     "127.0.0.1:7001",
+		ControlAddr: "127.0.0.1:9101",
+		MaxPlayers:  100,
+	})
+
+	result, err := svc.StartMatch(context.Background(), 7, "axe", true)
+	if err != nil {
+		t.Fatalf("StartMatch returned error: %v", err)
+	}
+	if result.Status != MatchStatusMatched {
+		t.Fatalf("status = %q, want %q", result.Status, MatchStatusMatched)
+	}
+	if result.RoomName == "" || result.Token == "" {
+		t.Fatalf("matched result is missing room data: %+v", result)
+	}
+	if !reflect.DeepEqual(result.PlayerIDs, []int64{7}) {
+		t.Fatalf("player ids = %v, want [7]", result.PlayerIDs)
+	}
+	wantLoadouts := []PlayerLoadout{
+		{PlayerID: 7, Weapon: "axe", AttackLevel: 2, AttackSpeedLevel: 3, HealthLevel: 4, MoveSpeedLevel: 5},
+	}
+	if !reflect.DeepEqual(result.PlayerLoadouts, wantLoadouts) {
+		t.Fatalf("player loadouts = %+v, want %+v", result.PlayerLoadouts, wantLoadouts)
+	}
+	if len(svc.waitingPlayers) != 0 {
+		t.Fatalf("waiting players = %d, want 0", len(svc.waitingPlayers))
+	}
+	if _, ok := svc.activeMatches[7]; !ok {
+		t.Fatal("active match missing for solo player")
+	}
+	if !reflect.DeepEqual(battleRooms.createRoomInput.PlayerIDs, []int64{7}) {
+		t.Fatalf("battle player ids = %v, want [7]", battleRooms.createRoomInput.PlayerIDs)
+	}
+	if !reflect.DeepEqual(battleRooms.createRoomInput.PlayerLoadouts, wantLoadouts) {
+		t.Fatalf("battle player loadouts = %+v, want %+v", battleRooms.createRoomInput.PlayerLoadouts, wantLoadouts)
+	}
+}
+
+func TestServiceStartMatchRespectsRequiredNodeCapacity(t *testing.T) {
+	newServiceWithOneSlot := func() *GameCenterService {
+		svc := newTestService()
+		mustRegisterBattleNode(t, svc, BattleNode{
+			Name:          "battle-1",
+			UDPAddr:       "127.0.0.1:7001",
+			ControlAddr:   "127.0.0.1:9101",
+			MaxPlayers:    100,
+			ActivePlayers: 99,
+		})
+		return svc
+	}
+
+	solo, err := newServiceWithOneSlot().StartMatch(context.Background(), 7, "axe", true)
+	if err != nil {
+		t.Fatalf("solo StartMatch returned error: %v", err)
+	}
+	if solo.Status != MatchStatusMatched {
+		t.Fatalf("solo status = %q, want %q", solo.Status, MatchStatusMatched)
+	}
+
+	_, err = newServiceWithOneSlot().StartMatch(context.Background(), 8, "axe", false)
+	if !errors.Is(err, ErrNoAvailableBattleNode) {
+		t.Fatalf("duo StartMatch error = %v, want %v", err, ErrNoAvailableBattleNode)
+	}
+}
+
+func TestServiceStartSoloMatchCreateRoomFailureAllowsRetry(t *testing.T) {
+	wantErr := errors.New("battle create failed")
+	battleRooms := &fakeBattleRoomCreator{createRoomErr: wantErr}
+	svc := NewService(ServiceConfig{
+		BattleNodeController: battleRooms,
+		RewardRule:           DefaultRewardRule(),
+		GrowthClient:         &fakeGrowthClient{},
+	})
+	mustRegisterBattleNode(t, svc, BattleNode{
+		Name:        "battle-1",
+		UDPAddr:     "127.0.0.1:7001",
+		ControlAddr: "127.0.0.1:9101",
+		MaxPlayers:  100,
+	})
+
+	if _, err := svc.StartMatch(context.Background(), 7, "axe", true); !errors.Is(err, wantErr) {
+		t.Fatalf("first StartMatch error = %v, want %v", err, wantErr)
+	}
+	if _, exists := svc.inGamePlayers[7]; exists {
+		t.Fatal("failed solo match left player marked in game")
+	}
+
+	battleRooms.createRoomErr = nil
+	result, err := svc.StartMatch(context.Background(), 7, "axe", true)
+	if err != nil {
+		t.Fatalf("retry StartMatch returned error: %v", err)
+	}
+	if result.Status != MatchStatusMatched {
+		t.Fatalf("retry status = %q, want %q", result.Status, MatchStatusMatched)
+	}
+}
+
 func TestServiceStartMatchStoresActiveMatchForAllPlayers(t *testing.T) {
 	svc := newTestService()
 	mustRegisterBattleNode(t, svc, BattleNode{
@@ -239,10 +353,10 @@ func TestServiceStartMatchStoresActiveMatchForAllPlayers(t *testing.T) {
 		MaxPlayers:  100,
 	})
 
-	if _, err := svc.StartMatch(context.Background(), 7, "axe"); err != nil {
+	if _, err := svc.StartMatch(context.Background(), 7, "axe", false); err != nil {
 		t.Fatalf("first StartMatch returned error: %v", err)
 	}
-	matched, err := svc.StartMatch(context.Background(), 8, "dagger")
+	matched, err := svc.StartMatch(context.Background(), 8, "dagger", false)
 	if err != nil {
 		t.Fatalf("second StartMatch returned error: %v", err)
 	}
@@ -283,10 +397,10 @@ func TestServiceResumeMatchReturnsActiveMatch(t *testing.T) {
 		ControlAddr: "127.0.0.1:9101",
 		MaxPlayers:  100,
 	})
-	if _, err := svc.StartMatch(context.Background(), 7, "axe"); err != nil {
+	if _, err := svc.StartMatch(context.Background(), 7, "axe", false); err != nil {
 		t.Fatalf("first StartMatch returned error: %v", err)
 	}
-	matched, err := svc.StartMatch(context.Background(), 8, "dagger")
+	matched, err := svc.StartMatch(context.Background(), 8, "dagger", false)
 	if err != nil {
 		t.Fatalf("second StartMatch returned error: %v", err)
 	}
@@ -348,10 +462,10 @@ func TestServiceResumeMatchRecordsOperationMetrics(t *testing.T) {
 		ControlAddr: "127.0.0.1:9101",
 		MaxPlayers:  100,
 	})
-	if _, err := svc.StartMatch(context.Background(), 7, ""); err != nil {
+	if _, err := svc.StartMatch(context.Background(), 7, "", false); err != nil {
 		t.Fatalf("first StartMatch returned error: %v", err)
 	}
-	matched, err := svc.StartMatch(context.Background(), 8, "")
+	matched, err := svc.StartMatch(context.Background(), 8, "", false)
 	if err != nil {
 		t.Fatalf("second StartMatch returned error: %v", err)
 	}
@@ -382,7 +496,7 @@ func TestServiceStartMatchReturnsCreateRoomError(t *testing.T) {
 		MaxPlayers:  100,
 	})
 
-	first, err := svc.StartMatch(context.Background(), 7, "")
+	first, err := svc.StartMatch(context.Background(), 7, "", false)
 	if err != nil {
 		t.Fatalf("first StartMatch returned error: %v", err)
 	}
@@ -390,13 +504,13 @@ func TestServiceStartMatchReturnsCreateRoomError(t *testing.T) {
 		t.Fatalf("first status = %q, want %q", first.Status, MatchStatusWaiting)
 	}
 
-	_, err = svc.StartMatch(context.Background(), 8, "")
+	_, err = svc.StartMatch(context.Background(), 8, "", false)
 	if !errors.Is(err, wantErr) {
 		t.Fatalf("second StartMatch error = %v, want %v", err, wantErr)
 	}
 
 	battleRooms.createRoomErr = nil
-	third, err := svc.StartMatch(context.Background(), 7, "")
+	third, err := svc.StartMatch(context.Background(), 7, "", false)
 	if err != nil {
 		t.Fatalf("third StartMatch returned error: %v", err)
 	}
@@ -414,7 +528,7 @@ func TestServiceStartMatchDoesNotQueueSamePlayerTwice(t *testing.T) {
 		MaxPlayers:  100,
 	})
 
-	first, err := svc.StartMatch(context.Background(), 7, "")
+	first, err := svc.StartMatch(context.Background(), 7, "", false)
 	if err != nil {
 		t.Fatalf("first StartMatch returned error: %v", err)
 	}
@@ -422,7 +536,7 @@ func TestServiceStartMatchDoesNotQueueSamePlayerTwice(t *testing.T) {
 		t.Fatalf("first status = %q, want %q", first.Status, MatchStatusWaiting)
 	}
 
-	second, err := svc.StartMatch(context.Background(), 7, "")
+	second, err := svc.StartMatch(context.Background(), 7, "", false)
 	if err != nil {
 		t.Fatalf("second StartMatch returned error: %v", err)
 	}
@@ -430,7 +544,7 @@ func TestServiceStartMatchDoesNotQueueSamePlayerTwice(t *testing.T) {
 		t.Fatalf("second status = %q, want %q", second.Status, MatchStatusWaiting)
 	}
 
-	third, err := svc.StartMatch(context.Background(), 8, "")
+	third, err := svc.StartMatch(context.Background(), 8, "", false)
 	if err != nil {
 		t.Fatalf("third StartMatch returned error: %v", err)
 	}
@@ -448,19 +562,19 @@ func TestServiceStartMatchRejectsPlayerInGame(t *testing.T) {
 		MaxPlayers:  100,
 	})
 
-	if _, err := svc.StartMatch(context.Background(), 7, ""); err != nil {
+	if _, err := svc.StartMatch(context.Background(), 7, "", false); err != nil {
 		t.Fatalf("first StartMatch returned error: %v", err)
 	}
-	if _, err := svc.StartMatch(context.Background(), 8, ""); err != nil {
+	if _, err := svc.StartMatch(context.Background(), 8, "", false); err != nil {
 		t.Fatalf("second StartMatch returned error: %v", err)
 	}
 
-	_, err := svc.StartMatch(context.Background(), 7, "")
+	_, err := svc.StartMatch(context.Background(), 7, "", false)
 	if !errors.Is(err, ErrPlayerInGame) {
 		t.Fatalf("third StartMatch error = %v, want %v", err, ErrPlayerInGame)
 	}
 
-	result, err := svc.StartMatch(context.Background(), 9, "")
+	result, err := svc.StartMatch(context.Background(), 9, "", false)
 	if err != nil {
 		t.Fatalf("fourth StartMatch returned error after in-game rejection: %v", err)
 	}
@@ -478,10 +592,10 @@ func TestServiceFinishMatchAllowsPlayersToMatchAgain(t *testing.T) {
 		MaxPlayers:  100,
 	})
 
-	if _, err := svc.StartMatch(context.Background(), 7, ""); err != nil {
+	if _, err := svc.StartMatch(context.Background(), 7, "", false); err != nil {
 		t.Fatalf("first StartMatch returned error: %v", err)
 	}
-	matched, err := svc.StartMatch(context.Background(), 8, "")
+	matched, err := svc.StartMatch(context.Background(), 8, "", false)
 	if err != nil {
 		t.Fatalf("second StartMatch returned error: %v", err)
 	}
@@ -495,7 +609,7 @@ func TestServiceFinishMatchAllowsPlayersToMatchAgain(t *testing.T) {
 		}
 	}
 
-	result, err := svc.StartMatch(context.Background(), 7, "")
+	result, err := svc.StartMatch(context.Background(), 7, "", false)
 	if err != nil {
 		t.Fatalf("StartMatch after FinishMatch returned error: %v", err)
 	}
@@ -582,10 +696,10 @@ func TestServiceFinishMatchAddsCoinRewards(t *testing.T) {
 		MaxPlayers:  100,
 	})
 
-	if _, err := svc.StartMatch(context.Background(), 7, ""); err != nil {
+	if _, err := svc.StartMatch(context.Background(), 7, "", false); err != nil {
 		t.Fatalf("first StartMatch returned error: %v", err)
 	}
-	matched, err := svc.StartMatch(context.Background(), 8, "")
+	matched, err := svc.StartMatch(context.Background(), 8, "", false)
 	if err != nil {
 		t.Fatalf("second StartMatch returned error: %v", err)
 	}
@@ -625,7 +739,7 @@ func TestServiceFinishMatchAddsCoinRewards(t *testing.T) {
 		t.Fatalf("settlement calls = %d input = %+v, want one call with %+v", coins.calls, coins.input, wantInput)
 	}
 
-	result, err := svc.StartMatch(context.Background(), 7, "")
+	result, err := svc.StartMatch(context.Background(), 7, "", false)
 	if err != nil {
 		t.Fatalf("StartMatch after FinishMatch returned error: %v", err)
 	}
@@ -643,10 +757,10 @@ func TestServiceFinishMatchRejectsRewardsWithoutCoinClient(t *testing.T) {
 		MaxPlayers:  100,
 	})
 
-	if _, err := svc.StartMatch(context.Background(), 7, ""); err != nil {
+	if _, err := svc.StartMatch(context.Background(), 7, "", false); err != nil {
 		t.Fatalf("first StartMatch returned error: %v", err)
 	}
-	matched, err := svc.StartMatch(context.Background(), 8, "")
+	matched, err := svc.StartMatch(context.Background(), 8, "", false)
 	if err != nil {
 		t.Fatalf("second StartMatch returned error: %v", err)
 	}
@@ -663,7 +777,7 @@ func TestServiceFinishMatchRejectsRewardsWithoutCoinClient(t *testing.T) {
 		t.Fatalf("FinishMatch error = %v, want %v", err, ErrUnavailableCoinClient)
 	}
 
-	_, err = svc.StartMatch(context.Background(), 7, "")
+	_, err = svc.StartMatch(context.Background(), 7, "", false)
 	if !errors.Is(err, ErrPlayerInGame) {
 		t.Fatalf("StartMatch after failed FinishMatch error = %v, want %v", err, ErrPlayerInGame)
 	}
@@ -684,10 +798,10 @@ func TestServiceFinishMatchReturnsCoinErrorWithoutReleasingPlayers(t *testing.T)
 		MaxPlayers:  100,
 	})
 
-	if _, err := svc.StartMatch(context.Background(), 7, ""); err != nil {
+	if _, err := svc.StartMatch(context.Background(), 7, "", false); err != nil {
 		t.Fatalf("first StartMatch returned error: %v", err)
 	}
-	matched, err := svc.StartMatch(context.Background(), 8, "")
+	matched, err := svc.StartMatch(context.Background(), 8, "", false)
 	if err != nil {
 		t.Fatalf("second StartMatch returned error: %v", err)
 	}
@@ -704,7 +818,7 @@ func TestServiceFinishMatchReturnsCoinErrorWithoutReleasingPlayers(t *testing.T)
 		t.Fatalf("FinishMatch error = %v, want %v", err, wantErr)
 	}
 
-	_, err = svc.StartMatch(context.Background(), 7, "")
+	_, err = svc.StartMatch(context.Background(), 7, "", false)
 	if !errors.Is(err, ErrPlayerInGame) {
 		t.Fatalf("StartMatch after failed FinishMatch error = %v, want %v", err, ErrPlayerInGame)
 	}
@@ -784,7 +898,7 @@ func TestServiceFinishMatchRecordsOperationMetrics(t *testing.T) {
 func TestServiceStartMatchInvalidPlayer(t *testing.T) {
 	svc := newTestService()
 
-	_, err := svc.StartMatch(context.Background(), 0, "")
+	_, err := svc.StartMatch(context.Background(), 0, "", false)
 	if !errors.Is(err, ErrInvalidPlayerID) {
 		t.Fatalf("StartMatch error = %v, want %v", err, ErrInvalidPlayerID)
 	}
@@ -793,7 +907,7 @@ func TestServiceStartMatchInvalidPlayer(t *testing.T) {
 func TestServiceStartMatchWithoutBattleNode(t *testing.T) {
 	svc := newTestService()
 
-	_, err := svc.StartMatch(context.Background(), 7, "")
+	_, err := svc.StartMatch(context.Background(), 7, "", false)
 	if !errors.Is(err, ErrNoAvailableBattleNode) {
 		t.Fatalf("StartMatch error = %v, want %v", err, ErrNoAvailableBattleNode)
 	}
@@ -808,7 +922,7 @@ func TestServiceStartMatchRecordsOperationMetrics(t *testing.T) {
 		Metrics:              metrics,
 	})
 
-	if _, err := svc.StartMatch(context.Background(), 7, ""); !errors.Is(err, ErrNoAvailableBattleNode) {
+	if _, err := svc.StartMatch(context.Background(), 7, "", false); !errors.Is(err, ErrNoAvailableBattleNode) {
 		t.Fatalf("StartMatch without node error = %v, want %v", err, ErrNoAvailableBattleNode)
 	}
 
@@ -818,19 +932,19 @@ func TestServiceStartMatchRecordsOperationMetrics(t *testing.T) {
 		ControlAddr: "127.0.0.1:9101",
 		MaxPlayers:  100,
 	})
-	if _, err := svc.StartMatch(context.Background(), 7, ""); err != nil {
+	if _, err := svc.StartMatch(context.Background(), 7, "", false); err != nil {
 		t.Fatalf("first StartMatch returned error: %v", err)
 	}
 	if got := gaugeValue(t, metrics.MatchQueue); got != 1 {
 		t.Fatalf("match queue metric after first player = %v, want 1", got)
 	}
-	if _, err := svc.StartMatch(context.Background(), 7, ""); err != nil {
+	if _, err := svc.StartMatch(context.Background(), 7, "", false); err != nil {
 		t.Fatalf("duplicate waiting StartMatch returned error: %v", err)
 	}
 	if got := gaugeValue(t, metrics.MatchQueue); got != 1 {
 		t.Fatalf("match queue metric after duplicate waiting = %v, want 1", got)
 	}
-	matched, err := svc.StartMatch(context.Background(), 8, "")
+	matched, err := svc.StartMatch(context.Background(), 8, "", false)
 	if err != nil {
 		t.Fatalf("matched StartMatch returned error: %v", err)
 	}
@@ -872,10 +986,10 @@ func TestServiceStartMatchFailureClearsActiveMatchMetric(t *testing.T) {
 		MaxPlayers:  100,
 	})
 
-	if _, err := svc.StartMatch(context.Background(), 7, ""); err != nil {
+	if _, err := svc.StartMatch(context.Background(), 7, "", false); err != nil {
 		t.Fatalf("first StartMatch returned error: %v", err)
 	}
-	if _, err := svc.StartMatch(context.Background(), 8, ""); err == nil {
+	if _, err := svc.StartMatch(context.Background(), 8, "", false); err == nil {
 		t.Fatalf("second StartMatch unexpectedly succeeded")
 	}
 	if got := gaugeValue(t, metrics.ActiveMatchPlayers); got != 0 {
@@ -898,7 +1012,7 @@ func TestServiceCancelMatchUpdatesQueueMetric(t *testing.T) {
 		MaxPlayers:  100,
 	})
 
-	if _, err := svc.StartMatch(context.Background(), 7, ""); err != nil {
+	if _, err := svc.StartMatch(context.Background(), 7, "", false); err != nil {
 		t.Fatalf("StartMatch returned error: %v", err)
 	}
 	if err := svc.CancelMatch(context.Background(), 7); err != nil {
@@ -918,7 +1032,7 @@ func TestServiceCancelMatchRemovesWaitingPlayer(t *testing.T) {
 		MaxPlayers:  100,
 	})
 
-	first, err := svc.StartMatch(context.Background(), 7, "")
+	first, err := svc.StartMatch(context.Background(), 7, "", false)
 	if err != nil {
 		t.Fatalf("first StartMatch returned error: %v", err)
 	}
@@ -930,7 +1044,7 @@ func TestServiceCancelMatchRemovesWaitingPlayer(t *testing.T) {
 		t.Fatalf("CancelMatch returned error: %v", err)
 	}
 
-	second, err := svc.StartMatch(context.Background(), 8, "")
+	second, err := svc.StartMatch(context.Background(), 8, "", false)
 	if err != nil {
 		t.Fatalf("second StartMatch returned error: %v", err)
 	}
@@ -984,7 +1098,7 @@ func TestServiceCancelMatchRecordsOperationMetrics(t *testing.T) {
 		ControlAddr: "127.0.0.1:9101",
 		MaxPlayers:  100,
 	})
-	if _, err := svc.StartMatch(context.Background(), 7, ""); err != nil {
+	if _, err := svc.StartMatch(context.Background(), 7, "", false); err != nil {
 		t.Fatalf("StartMatch returned error: %v", err)
 	}
 	if err := svc.CancelMatch(context.Background(), 7); err != nil {

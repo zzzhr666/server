@@ -132,8 +132,8 @@ func (g *GameCenterService) ListBattleNodes() []BattleNode {
 	return nodes
 }
 
-// StartMatch 将玩家入队，或与等待时间最长的玩家配对。
-func (g *GameCenterService) StartMatch(ctx context.Context, playerID int64, weapon string) (*MatchResult, error) {
+// StartMatch 为单人模式立即创建房间，或将双人模式玩家加入 FIFO 匹配。
+func (g *GameCenterService) StartMatch(ctx context.Context, playerID int64, weapon string, solo bool) (*MatchResult, error) {
 	if err := ctx.Err(); err != nil {
 		g.observeMatchOperation("start", "error")
 		return nil, err
@@ -152,7 +152,11 @@ func (g *GameCenterService) StartMatch(ctx context.Context, playerID int64, weap
 		g.observeMatchOperation("start", "error")
 		return nil, ErrPlayerInGame
 	}
-	node, ok := g.selectBattleNode()
+	requiredPlayers := 2
+	if solo {
+		requiredPlayers = 1
+	}
+	node, ok := g.selectBattleNode(requiredPlayers)
 	if !ok {
 		g.mu.Unlock()
 		g.observeMatchOperation("start", "error")
@@ -165,36 +169,45 @@ func (g *GameCenterService) StartMatch(ctx context.Context, playerID int64, weap
 			Status: MatchStatusWaiting,
 		}, nil
 	}
-	if len(g.waitingPlayers) == 0 {
-		// 首位玩家仅入 FIFO 队列，不创建房间也不占用 battle 节点容量。
-		g.waitingPlayers = append(g.waitingPlayers, waitingPlayer{
-			playerID: playerID,
-			weapon:   weapon,
-		})
-		if g.metrics != nil {
-			g.metrics.MatchQueue.Set(float64(len(g.waitingPlayers)))
+	currentPlayer := waitingPlayer{
+		playerID: playerID,
+		weapon:   weapon,
+	}
+	players := []waitingPlayer{currentPlayer}
+	if !solo {
+		if len(g.waitingPlayers) == 0 {
+			// 首位玩家仅入 FIFO 队列，不创建房间也不占用 battle 节点容量。
+			g.waitingPlayers = append(g.waitingPlayers, waitingPlayer{
+				playerID: playerID,
+				weapon:   weapon,
+			})
+			if g.metrics != nil {
+				g.metrics.MatchQueue.Set(float64(len(g.waitingPlayers)))
+			}
+			g.mu.Unlock()
+			g.observeMatchOperation("start", "success")
+			return &MatchResult{
+				Status: MatchStatusWaiting,
+			}, nil
 		}
-		g.mu.Unlock()
-		g.observeMatchOperation("start", "success")
-		return &MatchResult{
-			Status: MatchStatusWaiting,
-		}, nil
+		teammate := g.waitingPlayers[0]
+		g.waitingPlayers = g.waitingPlayers[1:]
+		players = []waitingPlayer{teammate, currentPlayer}
 	}
 
-	waitingPlayer := g.waitingPlayers[0]
-	g.waitingPlayers = g.waitingPlayers[1:]
 	if g.metrics != nil {
 		g.metrics.MatchQueue.Set(float64(len(g.waitingPlayers)))
 	}
 
 	roomName := newRandomName("room")
 	token := newRandomName("token")
-	playerIDs := []int64{waitingPlayer.playerID, playerID}
+	playerIDs := make([]int64, 0, len(players))
 
-	// 从队列配对成功后立即预占两名玩家，防止其在创建房间的异步窗口内再次发起匹配。
+	// 确定 roster 后立即预占参与玩家，防止其在创建房间的异步窗口内再次发起匹配。
 	// 任一后续步骤失败都会通过 clearGameContext 回滚此预占。
-	for _, inGamePlayerID := range playerIDs {
-		g.inGamePlayers[inGamePlayerID] = struct{}{}
+	for _, player := range players {
+		playerIDs = append(playerIDs, player.playerID)
+		g.inGamePlayers[player.playerID] = struct{}{}
 	}
 	g.mu.Unlock()
 	// 局外成长在房间创建前读取并随 loadout 下发，战斗服后续无需访问局外状态。
@@ -203,36 +216,25 @@ func (g *GameCenterService) StartMatch(ctx context.Context, playerID int64, weap
 		g.observeMatchOperation("start", "error")
 		return nil, ErrUnavailableGrowthClient
 	}
-	waitingGrowth, err := g.growthClient.GetGrowth(ctx, waitingPlayer.playerID)
-	if err != nil {
-		g.clearGameContext(playerIDs)
-		g.observeMatchOperation("start", "error")
-		return nil, err
-	}
-	currentGrowth, err := g.growthClient.GetGrowth(ctx, playerID)
-	if err != nil {
-		g.clearGameContext(playerIDs)
-		g.observeMatchOperation("start", "error")
-		return nil, err
-	}
 
-	playerLoadouts := []PlayerLoadout{
-		{
-			PlayerID:         waitingPlayer.playerID,
-			Weapon:           waitingPlayer.weapon,
-			AttackLevel:      waitingGrowth.AttackLevel,
-			AttackSpeedLevel: waitingGrowth.AttackSpeedLevel,
-			HealthLevel:      waitingGrowth.HealthLevel,
-			MoveSpeedLevel:   waitingGrowth.MoveSpeedLevel,
-		},
-		{
-			PlayerID:         playerID,
-			Weapon:           weapon,
-			AttackLevel:      currentGrowth.AttackLevel,
-			AttackSpeedLevel: currentGrowth.AttackSpeedLevel,
-			HealthLevel:      currentGrowth.HealthLevel,
-			MoveSpeedLevel:   currentGrowth.MoveSpeedLevel,
-		},
+	playerLoadouts := make([]PlayerLoadout, 0, len(players))
+
+	for _, player := range players {
+		growth, err := g.growthClient.GetGrowth(ctx, player.playerID)
+		if err != nil {
+			g.clearGameContext(playerIDs)
+			g.observeMatchOperation("start", "error")
+			return nil, err
+		}
+
+		playerLoadouts = append(playerLoadouts, PlayerLoadout{
+			PlayerID:         player.playerID,
+			Weapon:           player.weapon,
+			AttackLevel:      growth.AttackLevel,
+			AttackSpeedLevel: growth.AttackSpeedLevel,
+			HealthLevel:      growth.HealthLevel,
+			MoveSpeedLevel:   growth.MoveSpeedLevel,
+		})
 	}
 
 	// CreateRoom 成功才发布 ActiveMatch。这样 TCP ResumeMatch 永远不会给客户端
@@ -257,8 +259,8 @@ func (g *GameCenterService) StartMatch(ctx context.Context, playerID int64, weap
 		PlayerLoadouts: slices.Clone(playerLoadouts),
 		CreatedAt:      time.Now(),
 	}
-	// 再次加锁后为双方写入同一份 ActiveMatch；连接断开并不删除它，直到 battle-server
-	// 调用 FinishMatch 或创建流程失败回滚，确保任意一方均能恢复到同一对局。
+	// 再次加锁后为每位参与玩家写入同一份 ActiveMatch；连接断开并不删除它，直到
+	// battle-server 调用 FinishMatch 或创建流程失败回滚，确保所有玩家均能恢复到同一对局。
 	g.mu.Lock()
 	defer g.mu.Unlock()
 	for _, player := range playerIDs {
@@ -353,11 +355,11 @@ func (g *GameCenterService) FinishMatch(ctx context.Context, input FinishMatchIn
 	return nil
 }
 
-func (g *GameCenterService) selectBattleNode() (BattleNode, bool) {
+func (g *GameCenterService) selectBattleNode(requiredPlayers int) (BattleNode, bool) {
 	var selected BattleNode
 	found := false
 	for _, node := range g.battleNodes {
-		if node.ActivePlayers >= node.MaxPlayers {
+		if node.MaxPlayers-node.ActivePlayers < requiredPlayers {
 			continue
 		}
 		if !found || node.ActivePlayers < selected.ActivePlayers {

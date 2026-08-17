@@ -12,7 +12,7 @@
 | --- | --- | --- |
 | `logic-server` | HTTP 健康检查与注册登录、原生 TCP 大厅协议、认证、好友、在线状态、成长、聊天和匹配请求适配；维护本实例 TCP 连接并消费实时投递 | 无业务持久状态；连接仅在本实例内存中 |
 | `state-server` | 将局外领域操作映射到持久化存储；提供聊天历史和实时投递的 gRPC 接口 | Redis 保存局外状态与实时事件；MongoDB 保存聊天消息 |
-| `rcenter-server` | battle 节点注册、双人 FIFO 匹配、活跃对局、结算与奖励 | 节点、队列、活跃对局在内存；进程重启会丢失这些状态 |
+| `rcenter-server` | battle 节点注册、单人建房、双人 FIFO 匹配、活跃对局、结算与奖励 | 节点、队列、活跃对局在内存；进程重启会丢失这些状态 |
 | `battle-server` | 房间、UDP session、tick、ECS、快照和战斗结束 | 房间和世界在内存；不负责账号和好友 |
 | Redis | 账号、玩家、session、成长、金币、好友、在线状态、实时事件 | `game:*` 键 |
 | MongoDB | 世界频道和好友私聊的消息历史 | `chat_messages` 集合；TTL、频道分页和客户端幂等索引；`game-mongo-data` Docker volume |
@@ -38,7 +38,7 @@
 
 ![匹配流程](diagrams/match-flow.svg)
 
-`rcenter-server` 将第一名玩家放入队列；第二名玩家到来时与队头组成房间。成功创建房间后，为每个玩家写入同一份 `ActiveMatch`，其中包含 `room_name`、token、battle 节点、UDP 地址、玩家列表和局外 loadout。
+`rcenter-server` 根据 `match_start.solo` 选择模式：单人请求跳过队列并立即创建仅包含当前玩家的房间；双人请求将第一名玩家放入 FIFO 队列，第二名玩家到来时与队头组成房间。节点选择会分别预留 1 个或 2 个玩家容量。成功创建房间后，为每个玩家写入同一份 `ActiveMatch`，其中包含 `room_name`、token、battle 节点、UDP 地址、玩家列表和局外 loadout。未携带 `solo` 的旧客户端按双人模式处理。
 
 客户端仅通过 HTTP 注册或登录并取得 session token。logic TCP 完成认证后承载玩家、成长、好友、在线状态、聊天和匹配的全部大厅请求，并自动调用 `ResumeMatch`。客户端也可显式发送 `match_resume`，用于从战斗主动返回大厅后重新进入旧对局。没有活跃对局时，恢复会返回 `active match not found`；客户端应清除本地旧 match 并恢复正常匹配。
 

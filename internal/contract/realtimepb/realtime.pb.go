@@ -1080,6 +1080,7 @@ func (*MatchResumeRequest) Descriptor() ([]byte, []int) {
 type MatchStartRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Weapon        string                 `protobuf:"bytes,1,opt,name=weapon,proto3" json:"weapon,omitempty"`
+	Solo          bool                   `protobuf:"varint,2,opt,name=solo,proto3" json:"solo,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1119,6 +1120,13 @@ func (x *MatchStartRequest) GetWeapon() string {
 		return x.Weapon
 	}
 	return ""
+}
+
+func (x *MatchStartRequest) GetSolo() bool {
+	if x != nil {
+		return x.Solo
+	}
+	return false
 }
 
 type MatchCanceled struct {
@@ -3378,9 +3386,10 @@ const file_proto_realtime_v1_realtime_proto_rawDesc = "" +
 	"\x10HeartbeatRequest\"\x0e\n" +
 	"\fHeartbeatAck\"\x14\n" +
 	"\x12MatchCancelRequest\"\x14\n" +
-	"\x12MatchResumeRequest\"+\n" +
+	"\x12MatchResumeRequest\"?\n" +
 	"\x11MatchStartRequest\x12\x16\n" +
-	"\x06weapon\x18\x01 \x01(\tR\x06weapon\"\x0f\n" +
+	"\x06weapon\x18\x01 \x01(\tR\x06weapon\x12\x12\n" +
+	"\x04solo\x18\x02 \x01(\bR\x04solo\"\x0f\n" +
 	"\rMatchCanceled\"\xaa\x01\n" +
 	"\vMatchResult\x12\x16\n" +
 	"\x06status\x18\x01 \x01(\tR\x06status\x12\x1b\n" +

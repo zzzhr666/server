@@ -16,7 +16,7 @@ func TestRCenterRepositoryStartMatch(t *testing.T) {
 	}
 	repo := NewRCenterRepository(client)
 
-	result, err := repo.StartMatch(context.Background(), 7, "dagger")
+	result, err := repo.StartMatch(context.Background(), 7, "dagger", true)
 	if err != nil {
 		t.Fatalf("StartMatch returned error: %v", err)
 	}
@@ -25,6 +25,9 @@ func TestRCenterRepositoryStartMatch(t *testing.T) {
 	}
 	if client.weapon != "dagger" {
 		t.Fatalf("client weapon = %q, want dagger", client.weapon)
+	}
+	if !client.solo {
+		t.Fatal("client solo = false, want true")
 	}
 	if result.Status != rcenter.MatchStatusWaiting {
 		t.Fatalf("status = %q, want %q", result.Status, rcenter.MatchStatusWaiting)
@@ -63,15 +66,17 @@ func TestRCenterRepositoryResumeMatch(t *testing.T) {
 type fakeRCenterClient struct {
 	playerID         int64
 	weapon           string
+	solo             bool
 	canceledPlayerID int64
 	resumedPlayerID  int64
 	result           *rcenter.MatchResult
 	err              error
 }
 
-func (f *fakeRCenterClient) StartMatch(ctx context.Context, playerID int64, weapon string) (*rcenter.MatchResult, error) {
+func (f *fakeRCenterClient) StartMatch(ctx context.Context, playerID int64, weapon string, solo bool) (*rcenter.MatchResult, error) {
 	f.playerID = playerID
 	f.weapon = weapon
+	f.solo = solo
 	if f.err != nil {
 		return nil, f.err
 	}

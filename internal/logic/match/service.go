@@ -8,14 +8,14 @@ import (
 
 // Repository 定义局外匹配服务使用的 rcenter 操作。
 type Repository interface {
-	StartMatch(ctx context.Context, playerID int64, weapon string) (*rcenter.MatchResult, error)
+	StartMatch(ctx context.Context, playerID int64, weapon string, solo bool) (*rcenter.MatchResult, error)
 	CancelMatch(ctx context.Context, playerID int64) error
 	ResumeMatch(ctx context.Context, playerID int64) (*rcenter.MatchResult, error)
 }
 
 // Service 定义提供给逻辑服 TCP 实时处理器的匹配操作。
 type Service interface {
-	Start(ctx context.Context, playerID int64, weapon string) (*rcenter.MatchResult, error)
+	Start(ctx context.Context, playerID int64, weapon string, solo bool) (*rcenter.MatchResult, error)
 	Cancel(ctx context.Context, playerID int64) error
 	Resume(ctx context.Context, playerID int64) (*rcenter.MatchResult, error)
 }
@@ -25,8 +25,8 @@ type GameMatchService struct {
 	matchRepo Repository
 }
 
-// Start 通过 rcenter 将玩家入队或完成匹配。
-func (g *GameMatchService) Start(ctx context.Context, playerID int64, weapon string) (*rcenter.MatchResult, error) {
+// Start 通过 rcenter 发起单人对局或双人匹配。
+func (g *GameMatchService) Start(ctx context.Context, playerID int64, weapon string, solo bool) (*rcenter.MatchResult, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, err
 	}
@@ -36,7 +36,7 @@ func (g *GameMatchService) Start(ctx context.Context, playerID int64, weapon str
 	if weapon == "" {
 		weapon = "sword"
 	}
-	result, err := g.matchRepo.StartMatch(ctx, playerID, weapon)
+	result, err := g.matchRepo.StartMatch(ctx, playerID, weapon, solo)
 	if err != nil {
 		logging.Warn("match start failed player_id=%d: %v", playerID, err)
 		return nil, err

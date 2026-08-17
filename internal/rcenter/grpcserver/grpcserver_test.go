@@ -107,6 +107,32 @@ func TestStartMatchCreatesMatchedResult(t *testing.T) {
 	}
 }
 
+func TestStartMatchCreatesSoloRoom(t *testing.T) {
+	server := NewServer(newTestCenterService())
+	mustRegisterBattleNode(t, server, &rcenterpb.BattleNode{
+		Name:        "battle-1",
+		UdpAddr:     "127.0.0.1:7001",
+		ControlAddr: "127.0.0.1:9101",
+		MaxPlayers:  100,
+	})
+
+	response, err := server.StartMatch(context.Background(), &rcenterpb.StartMatchRequest{
+		PlayerId: 7,
+		Weapon:   "axe",
+		Solo:     true,
+	})
+	if err != nil {
+		t.Fatalf("StartMatch returned error: %v", err)
+	}
+	result := response.GetResult()
+	if result.GetStatus() != string(rcenter.MatchStatusMatched) {
+		t.Fatalf("status = %q, want %q", result.GetStatus(), rcenter.MatchStatusMatched)
+	}
+	if !reflect.DeepEqual(result.GetPlayerIds(), []int64{7}) {
+		t.Fatalf("player ids = %v, want [7]", result.GetPlayerIds())
+	}
+}
+
 func TestResumeMatchReturnsMatchedResult(t *testing.T) {
 	server := NewServer(newTestCenterService())
 	mustRegisterBattleNode(t, server, &rcenterpb.BattleNode{

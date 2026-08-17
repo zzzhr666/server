@@ -621,7 +621,7 @@ func (h *Handler) handleMatchStart(ctx context.Context, session *session, player
 		return false
 	}
 
-	matchResult, err := h.match.Start(ctx, playerID, weapon)
+	matchResult, err := h.match.Start(ctx, playerID, weapon, envelope.GetMatchStart().GetSolo())
 	if err != nil {
 		return writeError(session, envelope.GetRequestId(), matchErrorCode(err), err.Error()) == nil
 	}

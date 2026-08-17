@@ -48,6 +48,7 @@ message ListBattleNodesResponse {
 message StartMatchRequest {
   int64 player_id = 1;
   string weapon = 2;
+  bool solo = 3;
 }
 
 message StartMatchResponse {

@@ -33,7 +33,8 @@ inline constexpr StartMatchRequest::Impl_::Impl_(
         weapon_(
             &::google::protobuf::internal::fixed_address_empty_string,
             ::_pbi::ConstantInitialized()),
-        player_id_{::int64_t{0}} {}
+        player_id_{::int64_t{0}},
+        solo_{false} {}
 
 template <typename>
 PROTOBUF_CONSTEXPR StartMatchRequest::StartMatchRequest(::_pbi::ConstantInitialized)
@@ -522,11 +523,13 @@ const ::uint32_t
         PROTOBUF_FIELD_OFFSET(::rcenter::v1::ListBattleNodesResponse, _impl_.nodes_),
         0x081, // bitmap
         PROTOBUF_FIELD_OFFSET(::rcenter::v1::StartMatchRequest, _impl_._has_bits_),
-        5, // hasbit index offset
+        6, // hasbit index offset
         PROTOBUF_FIELD_OFFSET(::rcenter::v1::StartMatchRequest, _impl_.player_id_),
         PROTOBUF_FIELD_OFFSET(::rcenter::v1::StartMatchRequest, _impl_.weapon_),
+        PROTOBUF_FIELD_OFFSET(::rcenter::v1::StartMatchRequest, _impl_.solo_),
         1,
         0,
+        2,
         0x081, // bitmap
         PROTOBUF_FIELD_OFFSET(::rcenter::v1::StartMatchResponse, _impl_._has_bits_),
         4, // hasbit index offset
@@ -594,16 +597,16 @@ static const ::_pbi::MigrationSchema
         {38, sizeof(::rcenter::v1::ListBattleNodesRequest)},
         {39, sizeof(::rcenter::v1::ListBattleNodesResponse)},
         {41, sizeof(::rcenter::v1::StartMatchRequest)},
-        {48, sizeof(::rcenter::v1::StartMatchResponse)},
-        {53, sizeof(::rcenter::v1::CancelMatchRequest)},
-        {58, sizeof(::rcenter::v1::CancelMatchResponse)},
-        {59, sizeof(::rcenter::v1::FinishMatchRequest)},
-        {70, sizeof(::rcenter::v1::PlayerBattleStats)},
-        {79, sizeof(::rcenter::v1::MonsterKillCount)},
-        {86, sizeof(::rcenter::v1::FinishMatchResponse)},
-        {87, sizeof(::rcenter::v1::PlayerLoadout)},
-        {94, sizeof(::rcenter::v1::ResumeMatchRequest)},
-        {99, sizeof(::rcenter::v1::ResumeMatchResponse)},
+        {50, sizeof(::rcenter::v1::StartMatchResponse)},
+        {55, sizeof(::rcenter::v1::CancelMatchRequest)},
+        {60, sizeof(::rcenter::v1::CancelMatchResponse)},
+        {61, sizeof(::rcenter::v1::FinishMatchRequest)},
+        {72, sizeof(::rcenter::v1::PlayerBattleStats)},
+        {81, sizeof(::rcenter::v1::MonsterKillCount)},
+        {88, sizeof(::rcenter::v1::FinishMatchResponse)},
+        {89, sizeof(::rcenter::v1::PlayerLoadout)},
+        {96, sizeof(::rcenter::v1::ResumeMatchRequest)},
+        {101, sizeof(::rcenter::v1::ResumeMatchResponse)},
 };
 static const ::_pb::Message* PROTOBUF_NONNULL const file_default_instances[] = {
     &::rcenter::v1::_BattleNode_default_instance_._instance,
@@ -640,44 +643,44 @@ const char descriptor_table_protodef_proto_2frcenter_2fv1_2frcenter_2eproto[] AB
     "\n\032RegisterBattleNodeResponse\"\030\n\026ListBatt"
     "leNodesRequest\"@\n\027ListBattleNodesRespons"
     "e\022%\n\005nodes\030\001 \003(\0132\026.rcenter.v1.BattleNode"
-    "\"6\n\021StartMatchRequest\022\021\n\tplayer_id\030\001 \001(\003"
-    "\022\016\n\006weapon\030\002 \001(\t\"=\n\022StartMatchResponse\022\'"
-    "\n\006result\030\001 \001(\0132\027.rcenter.v1.MatchResult\""
-    "\'\n\022CancelMatchRequest\022\021\n\tplayer_id\030\001 \001(\003"
-    "\"\025\n\023CancelMatchResponse\"\200\001\n\022FinishMatchR"
-    "equest\022\022\n\nplayer_ids\030\001 \003(\003\022\016\n\006reason\030\002 \001"
-    "(\t\0223\n\014player_stats\030\003 \003(\0132\035.rcenter.v1.Pl"
-    "ayerBattleStats\022\021\n\troom_name\030\004 \001(\t\"h\n\021Pl"
-    "ayerBattleStats\022\021\n\tplayer_id\030\001 \001(\003\022\023\n\013to"
-    "tal_kills\030\002 \001(\005\022+\n\005kills\030\003 \003(\0132\034.rcenter"
-    ".v1.MonsterKillCount\"7\n\020MonsterKillCount"
-    "\022\024\n\014monster_kind\030\001 \001(\t\022\r\n\005count\030\002 \001(\005\"\025\n"
-    "\023FinishMatchResponse\"2\n\rPlayerLoadout\022\021\n"
-    "\tplayer_id\030\001 \001(\003\022\016\n\006weapon\030\002 \001(\t\"\'\n\022Resu"
-    "meMatchRequest\022\021\n\tplayer_id\030\001 \001(\003\">\n\023Res"
-    "umeMatchResponse\022\'\n\006result\030\001 \001(\0132\027.rcent"
-    "er.v1.MatchResult2\216\004\n\016RCenterService\022c\n\022"
-    "RegisterBattleNode\022%.rcenter.v1.Register"
-    "BattleNodeRequest\032&.rcenter.v1.RegisterB"
-    "attleNodeResponse\022Z\n\017ListBattleNodes\022\".r"
-    "center.v1.ListBattleNodesRequest\032#.rcent"
-    "er.v1.ListBattleNodesResponse\022K\n\nStartMa"
-    "tch\022\035.rcenter.v1.StartMatchRequest\032\036.rce"
-    "nter.v1.StartMatchResponse\022N\n\013CancelMatc"
-    "h\022\036.rcenter.v1.CancelMatchRequest\032\037.rcen"
-    "ter.v1.CancelMatchResponse\022N\n\013FinishMatc"
-    "h\022\036.rcenter.v1.FinishMatchRequest\032\037.rcen"
-    "ter.v1.FinishMatchResponse\022N\n\013ResumeMatc"
-    "h\022\036.rcenter.v1.ResumeMatchRequest\032\037.rcen"
-    "ter.v1.ResumeMatchResponseB.Z,server/int"
-    "ernal/contract/rcenterpb;rcenterpbb\006prot"
-    "o3"
+    "\"D\n\021StartMatchRequest\022\021\n\tplayer_id\030\001 \001(\003"
+    "\022\016\n\006weapon\030\002 \001(\t\022\014\n\004solo\030\003 \001(\010\"=\n\022StartM"
+    "atchResponse\022\'\n\006result\030\001 \001(\0132\027.rcenter.v"
+    "1.MatchResult\"\'\n\022CancelMatchRequest\022\021\n\tp"
+    "layer_id\030\001 \001(\003\"\025\n\023CancelMatchResponse\"\200\001"
+    "\n\022FinishMatchRequest\022\022\n\nplayer_ids\030\001 \003(\003"
+    "\022\016\n\006reason\030\002 \001(\t\0223\n\014player_stats\030\003 \003(\0132\035"
+    ".rcenter.v1.PlayerBattleStats\022\021\n\troom_na"
+    "me\030\004 \001(\t\"h\n\021PlayerBattleStats\022\021\n\tplayer_"
+    "id\030\001 \001(\003\022\023\n\013total_kills\030\002 \001(\005\022+\n\005kills\030\003"
+    " \003(\0132\034.rcenter.v1.MonsterKillCount\"7\n\020Mo"
+    "nsterKillCount\022\024\n\014monster_kind\030\001 \001(\t\022\r\n\005"
+    "count\030\002 \001(\005\"\025\n\023FinishMatchResponse\"2\n\rPl"
+    "ayerLoadout\022\021\n\tplayer_id\030\001 \001(\003\022\016\n\006weapon"
+    "\030\002 \001(\t\"\'\n\022ResumeMatchRequest\022\021\n\tplayer_i"
+    "d\030\001 \001(\003\">\n\023ResumeMatchResponse\022\'\n\006result"
+    "\030\001 \001(\0132\027.rcenter.v1.MatchResult2\216\004\n\016RCen"
+    "terService\022c\n\022RegisterBattleNode\022%.rcent"
+    "er.v1.RegisterBattleNodeRequest\032&.rcente"
+    "r.v1.RegisterBattleNodeResponse\022Z\n\017ListB"
+    "attleNodes\022\".rcenter.v1.ListBattleNodesR"
+    "equest\032#.rcenter.v1.ListBattleNodesRespo"
+    "nse\022K\n\nStartMatch\022\035.rcenter.v1.StartMatc"
+    "hRequest\032\036.rcenter.v1.StartMatchResponse"
+    "\022N\n\013CancelMatch\022\036.rcenter.v1.CancelMatch"
+    "Request\032\037.rcenter.v1.CancelMatchResponse"
+    "\022N\n\013FinishMatch\022\036.rcenter.v1.FinishMatch"
+    "Request\032\037.rcenter.v1.FinishMatchResponse"
+    "\022N\n\013ResumeMatch\022\036.rcenter.v1.ResumeMatch"
+    "Request\032\037.rcenter.v1.ResumeMatchResponse"
+    "B.Z,server/internal/contract/rcenterpb;r"
+    "centerpbb\006proto3"
 };
 static ::absl::once_flag descriptor_table_proto_2frcenter_2fv1_2frcenter_2eproto_once;
 PROTOBUF_CONSTINIT const ::_pbi::DescriptorTable descriptor_table_proto_2frcenter_2fv1_2frcenter_2eproto = {
     false,
     false,
-    1802,
+    1816,
     descriptor_table_protodef_proto_2frcenter_2fv1_2frcenter_2eproto,
     "proto/rcenter/v1/rcenter.proto",
     &descriptor_table_proto_2frcenter_2fv1_2frcenter_2eproto_once,
@@ -2422,7 +2425,13 @@ StartMatchRequest::StartMatchRequest(
   _internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
       from._internal_metadata_);
   new (&_impl_) Impl_(internal_visibility(), arena, from._impl_, from);
-  _impl_.player_id_ = from._impl_.player_id_;
+  ::memcpy(reinterpret_cast<char *>(&_impl_) +
+               offsetof(Impl_, player_id_),
+           reinterpret_cast<const char *>(&from._impl_) +
+               offsetof(Impl_, player_id_),
+           offsetof(Impl_, solo_) -
+               offsetof(Impl_, player_id_) +
+               sizeof(Impl_::solo_));
 
   // @@protoc_insertion_point(copy_constructor:rcenter.v1.StartMatchRequest)
 }
@@ -2434,7 +2443,12 @@ PROTOBUF_NDEBUG_INLINE StartMatchRequest::Impl_::Impl_(
 
 inline void StartMatchRequest::SharedCtor(::_pb::Arena* PROTOBUF_NULLABLE arena) {
   new (&_impl_) Impl_(internal_visibility(), arena);
-  _impl_.player_id_ = {};
+  ::memset(reinterpret_cast<char *>(&_impl_) +
+               offsetof(Impl_, player_id_),
+           0,
+           offsetof(Impl_, solo_) -
+               offsetof(Impl_, player_id_) +
+               sizeof(Impl_::solo_));
 }
 StartMatchRequest::~StartMatchRequest() {
   // @@protoc_insertion_point(destructor:rcenter.v1.StartMatchRequest)
@@ -2491,16 +2505,16 @@ StartMatchRequest::GetClassData() const {
   return StartMatchRequest_class_data_.base();
 }
 PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
-const ::_pbi::TcParseTable<1, 2, 0, 43, 2>
+const ::_pbi::TcParseTable<2, 3, 0, 43, 2>
 StartMatchRequest::_table_ = {
   {
     PROTOBUF_FIELD_OFFSET(StartMatchRequest, _impl_._has_bits_),
     0, // no _extensions_
-    2, 8,  // max_field_number, fast_idx_mask
+    3, 24,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
-    4294967292,  // skipmap
+    4294967288,  // skipmap
     offsetof(decltype(_table_), field_entries),
-    2,  // num_field_entries
+    3,  // num_field_entries
     0,  // num_aux_entries
     offsetof(decltype(_table_), field_names),  // no aux_entries
     StartMatchRequest_class_data_.base(),
@@ -2510,12 +2524,16 @@ StartMatchRequest::_table_ = {
     ::_pbi::TcParser::GetTable<::rcenter::v1::StartMatchRequest>(),  // to_prefetch
     #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
   }, {{
-    // string weapon = 2;
-    {::_pbi::TcParser::FastUS1,
-     {18, 0, 0, PROTOBUF_FIELD_OFFSET(StartMatchRequest, _impl_.weapon_)}},
+    {::_pbi::TcParser::MiniParse, {}},
     // int64 player_id = 1;
     {::_pbi::TcParser::SingularVarintNoZag1<::uint64_t, offsetof(StartMatchRequest, _impl_.player_id_), 1>(),
      {8, 1, 0, PROTOBUF_FIELD_OFFSET(StartMatchRequest, _impl_.player_id_)}},
+    // string weapon = 2;
+    {::_pbi::TcParser::FastUS1,
+     {18, 0, 0, PROTOBUF_FIELD_OFFSET(StartMatchRequest, _impl_.weapon_)}},
+    // bool solo = 3;
+    {::_pbi::TcParser::SingularVarintNoZag1<bool, offsetof(StartMatchRequest, _impl_.solo_), 2>(),
+     {24, 2, 0, PROTOBUF_FIELD_OFFSET(StartMatchRequest, _impl_.solo_)}},
   }}, {{
     65535, 65535
   }}, {{
@@ -2525,6 +2543,9 @@ StartMatchRequest::_table_ = {
     // string weapon = 2;
     {PROTOBUF_FIELD_OFFSET(StartMatchRequest, _impl_.weapon_), _Internal::kHasBitsOffset + 0, 0,
     (0 | ::_fl::kFcOptional | ::_fl::kUtf8String | ::_fl::kRepAString)},
+    // bool solo = 3;
+    {PROTOBUF_FIELD_OFFSET(StartMatchRequest, _impl_.solo_), _Internal::kHasBitsOffset + 2, 0,
+    (0 | ::_fl::kFcOptional | ::_fl::kBool)},
   }},
   // no aux_entries
   {{
@@ -2544,7 +2565,11 @@ PROTOBUF_NOINLINE void StartMatchRequest::Clear() {
   if ((cached_has_bits & 0x00000001u) != 0) {
     _impl_.weapon_.ClearNonDefaultToEmpty();
   }
-  _impl_.player_id_ = ::int64_t{0};
+  if ((cached_has_bits & 0x00000006u) != 0) {
+    ::memset(&_impl_.player_id_, 0, static_cast<::size_t>(
+        reinterpret_cast<char*>(&_impl_.solo_) -
+        reinterpret_cast<char*>(&_impl_.player_id_)) + sizeof(_impl_.solo_));
+  }
   _impl_._has_bits_.Clear();
   _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
 }
@@ -2583,6 +2608,15 @@ PROTOBUF_NOINLINE void StartMatchRequest::Clear() {
     }
   }
 
+  // bool solo = 3;
+  if ((this_._impl_._has_bits_[0] & 0x00000004u) != 0) {
+    if (this_._internal_solo() != 0) {
+      target = stream->EnsureSpace(target);
+      target = ::_pbi::WireFormatLite::WriteBoolToArray(
+          3, this_._internal_solo(), target);
+    }
+  }
+
   if (ABSL_PREDICT_FALSE(this_._internal_metadata_.have_unknown_fields())) {
     target =
         ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
@@ -2608,7 +2642,7 @@ PROTOBUF_NOINLINE void StartMatchRequest::Clear() {
 
   ::_pbi::Prefetch5LinesFrom7Lines(&this_);
   cached_has_bits = this_._impl_._has_bits_[0];
-  if ((cached_has_bits & 0x00000003u) != 0) {
+  if ((cached_has_bits & 0x00000007u) != 0) {
     // string weapon = 2;
     if ((cached_has_bits & 0x00000001u) != 0) {
       if (!this_._internal_weapon().empty()) {
@@ -2621,6 +2655,12 @@ PROTOBUF_NOINLINE void StartMatchRequest::Clear() {
       if (this_._internal_player_id() != 0) {
         total_size += ::_pbi::WireFormatLite::Int64SizePlusOne(
             this_._internal_player_id());
+      }
+    }
+    // bool solo = 3;
+    if ((cached_has_bits & 0x00000004u) != 0) {
+      if (this_._internal_solo() != 0) {
+        total_size += 2;
       }
     }
   }
@@ -2637,7 +2677,7 @@ void StartMatchRequest::MergeImpl(::google::protobuf::MessageLite& to_msg, const
   (void) cached_has_bits;
 
   cached_has_bits = from._impl_._has_bits_[0];
-  if ((cached_has_bits & 0x00000003u) != 0) {
+  if ((cached_has_bits & 0x00000007u) != 0) {
     if ((cached_has_bits & 0x00000001u) != 0) {
       if (!from._internal_weapon().empty()) {
         _this->_internal_set_weapon(from._internal_weapon());
@@ -2650,6 +2690,11 @@ void StartMatchRequest::MergeImpl(::google::protobuf::MessageLite& to_msg, const
     if ((cached_has_bits & 0x00000002u) != 0) {
       if (from._internal_player_id() != 0) {
         _this->_impl_.player_id_ = from._impl_.player_id_;
+      }
+    }
+    if ((cached_has_bits & 0x00000004u) != 0) {
+      if (from._internal_solo() != 0) {
+        _this->_impl_.solo_ = from._impl_.solo_;
       }
     }
   }
@@ -2672,7 +2717,12 @@ void StartMatchRequest::InternalSwap(StartMatchRequest* PROTOBUF_RESTRICT PROTOB
   _internal_metadata_.InternalSwap(&other->_internal_metadata_);
   swap(_impl_._has_bits_[0], other->_impl_._has_bits_[0]);
   ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.weapon_, &other->_impl_.weapon_, arena);
-  swap(_impl_.player_id_, other->_impl_.player_id_);
+  ::google::protobuf::internal::memswap<
+      PROTOBUF_FIELD_OFFSET(StartMatchRequest, _impl_.solo_)
+      + sizeof(StartMatchRequest::_impl_.solo_)
+      - PROTOBUF_FIELD_OFFSET(StartMatchRequest, _impl_.player_id_)>(
+          reinterpret_cast<char*>(&_impl_.player_id_),
+          reinterpret_cast<char*>(&other->_impl_.player_id_));
 }
 
 ::google::protobuf::Metadata StartMatchRequest::GetMetadata() const {

@@ -33,7 +33,7 @@ func TestClientStartMatch(t *testing.T) {
 	}
 	client := NewClient(grpcCenter)
 
-	result, err := client.StartMatch(context.Background(), 7, "axe")
+	result, err := client.StartMatch(context.Background(), 7, "axe", true)
 	if err != nil {
 		t.Fatalf("StartMatch returned error: %v", err)
 	}
@@ -42,6 +42,9 @@ func TestClientStartMatch(t *testing.T) {
 	}
 	if grpcCenter.startMatchRequest.GetWeapon() != "axe" {
 		t.Fatalf("weapon = %q, want axe", grpcCenter.startMatchRequest.GetWeapon())
+	}
+	if !grpcCenter.startMatchRequest.GetSolo() {
+		t.Fatal("solo = false, want true")
 	}
 	if result.Status != rcenter.MatchStatusMatched {
 		t.Fatalf("status = %q, want %q", result.Status, rcenter.MatchStatusMatched)
@@ -116,7 +119,7 @@ func TestClientStartMatchMapsInvalidPlayer(t *testing.T) {
 		err: status.Error(codes.InvalidArgument, rcenter.ErrInvalidPlayerID.Error()),
 	})
 
-	_, err := client.StartMatch(context.Background(), 0, "")
+	_, err := client.StartMatch(context.Background(), 0, "", false)
 	if !errors.Is(err, rcenter.ErrInvalidPlayerID) {
 		t.Fatalf("StartMatch error = %v, want %v", err, rcenter.ErrInvalidPlayerID)
 	}
@@ -127,7 +130,7 @@ func TestClientStartMatchMapsNoAvailableBattleNode(t *testing.T) {
 		err: status.Error(codes.Unavailable, rcenter.ErrNoAvailableBattleNode.Error()),
 	})
 
-	_, err := client.StartMatch(context.Background(), 7, "")
+	_, err := client.StartMatch(context.Background(), 7, "", false)
 	if !errors.Is(err, rcenter.ErrNoAvailableBattleNode) {
 		t.Fatalf("StartMatch error = %v, want %v", err, rcenter.ErrNoAvailableBattleNode)
 	}
@@ -138,7 +141,7 @@ func TestClientStartMatchMapsUnavailableGrowthClient(t *testing.T) {
 		err: status.Error(codes.Unavailable, rcenter.ErrUnavailableGrowthClient.Error()),
 	})
 
-	_, err := client.StartMatch(context.Background(), 7, "")
+	_, err := client.StartMatch(context.Background(), 7, "", false)
 	if !errors.Is(err, rcenter.ErrUnavailableGrowthClient) {
 		t.Fatalf("StartMatch error = %v, want %v", err, rcenter.ErrUnavailableGrowthClient)
 	}
@@ -209,7 +212,7 @@ func TestClientStartMatchMapsPlayerInGame(t *testing.T) {
 		err: status.Error(codes.FailedPrecondition, rcenter.ErrPlayerInGame.Error()),
 	})
 
-	_, err := client.StartMatch(context.Background(), 7, "")
+	_, err := client.StartMatch(context.Background(), 7, "", false)
 	if !errors.Is(err, rcenter.ErrPlayerInGame) {
 		t.Fatalf("StartMatch error = %v, want %v", err, rcenter.ErrPlayerInGame)
 	}

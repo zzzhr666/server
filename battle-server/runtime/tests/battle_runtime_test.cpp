@@ -49,6 +49,30 @@ struct RuntimeTestContext {
           session_manager(room_manager, metrics) {}
 };
 
+TEST(BattleRuntimeTest, SoloRoomFirstJoinCompletesRoster) {
+    RuntimeTestContext context;
+
+    ASSERT_EQ(context.room_manager.create_room({
+                  .room_name = "solo-room",
+                  .token = "solo-token",
+                  .player_ids = {1001},
+              }).status,
+              CreateRoomStatus::OK);
+
+    const auto joined = context.session_manager.join({
+        .room_name = "solo-room",
+        .token = "solo-token",
+        .player_id = 1001,
+        .conv = 1,
+        .endpoint = endpoint_with_port(7001),
+    });
+
+    EXPECT_EQ(joined.status, JoinSessionStatus::OK);
+    EXPECT_TRUE(joined.all_players_joined);
+    ASSERT_NE(joined.session, nullptr);
+    EXPECT_EQ(joined.session->player_id(), 1001);
+}
+
 TEST(BattleRuntimeTest, ReceiveInputAndTickBroadcastsMovedSnapshot) {
     RuntimeTestContext context;
     auto& room_manager = context.room_manager;

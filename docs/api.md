@@ -52,7 +52,7 @@ ServerEnvelope { request_id: 1, authenticated: { player_id: 7 } }
 | 客户端 payload | 成功响应 | 行为 |
 | --- | --- | --- |
 | `heartbeat` | `heartbeat_ack` | 刷新在线状态 |
-| `match_start { weapon }` | `match_result` | 开始匹配，合法武器为 `sword`、`dagger`、`axe`、`bow`；空值默认 `sword` |
+| `match_start { weapon, solo }` | `match_result` | 开始对局；`solo=true` 立即创建单人房间，缺省或 `false` 进入双人匹配；合法武器为 `sword`、`dagger`、`axe`、`bow`，空值默认 `sword` |
 | `match_cancel` | `match_canceled` | 取消等待中的匹配 |
 | `match_resume` | `match_result` | 请求当前玩家的活跃对局 |
 | `player_get` | `player` | 返回当前玩家档案与金币 |
@@ -72,7 +72,7 @@ ServerEnvelope { request_id: 1, authenticated: { player_id: 7 } }
 | `chat_world_list { limit, before_message_key }` | `chat_messages` | 分页读取世界频道历史 |
 | `chat_direct_list { friend_id, limit, before_message_key }` | `chat_messages` | 分页读取与好友的私聊历史 |
 
-匹配和恢复使用 `match_result`，其中包含 `status`、`room_name`、`token`、`battle_node_name` 和 `battle_udp_addr`。`status=matched` 后，客户端向 `battle_udp_addr` 发送 UDP `ClientHello(room_name, player_id, token)`。
+匹配和恢复使用 `match_result`，其中包含 `status`、`room_name`、`token`、`battle_node_name` 和 `battle_udp_addr`。单人请求直接返回 `status=matched`；双人请求可能先返回 `status=waiting`。`status=matched` 后，客户端向 `battle_udp_addr` 发送 UDP `ClientHello(room_name, player_id, token)`。
 
 成长升级的合法 `type` 为 `attack`、`attack_speed`、`health`、`move_speed`。业务请求失败时服务端发送 `error { code, message }` 并保持连接；`code` 取值为 `UNAUTHENTICATED`、`INVALID_ARGUMENT`、`NOT_FOUND`、`CONFLICT` 或 `INTERNAL`。协议帧错误、认证失败、logout 和写入失败会关闭连接。
 

@@ -80,6 +80,7 @@ message MatchResumeRequest{}
 
 message MatchStartRequest{
   string weapon = 1;
+  bool solo = 2;
 }
 
 message MatchCanceled {}

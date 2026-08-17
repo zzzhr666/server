@@ -361,6 +361,7 @@ type StartMatchRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	PlayerId      int64                  `protobuf:"varint,1,opt,name=player_id,json=playerId,proto3" json:"player_id,omitempty"`
 	Weapon        string                 `protobuf:"bytes,2,opt,name=weapon,proto3" json:"weapon,omitempty"`
+	Solo          bool                   `protobuf:"varint,3,opt,name=solo,proto3" json:"solo,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -407,6 +408,13 @@ func (x *StartMatchRequest) GetWeapon() string {
 		return x.Weapon
 	}
 	return ""
+}
+
+func (x *StartMatchRequest) GetSolo() bool {
+	if x != nil {
+		return x.Solo
+	}
+	return false
 }
 
 type StartMatchResponse struct {
@@ -918,10 +926,11 @@ const file_proto_rcenter_v1_rcenter_proto_rawDesc = "" +
 	"\x1aRegisterBattleNodeResponse\"\x18\n" +
 	"\x16ListBattleNodesRequest\"G\n" +
 	"\x17ListBattleNodesResponse\x12,\n" +
-	"\x05nodes\x18\x01 \x03(\v2\x16.rcenter.v1.BattleNodeR\x05nodes\"H\n" +
+	"\x05nodes\x18\x01 \x03(\v2\x16.rcenter.v1.BattleNodeR\x05nodes\"\\\n" +
 	"\x11StartMatchRequest\x12\x1b\n" +
 	"\tplayer_id\x18\x01 \x01(\x03R\bplayerId\x12\x16\n" +
-	"\x06weapon\x18\x02 \x01(\tR\x06weapon\"E\n" +
+	"\x06weapon\x18\x02 \x01(\tR\x06weapon\x12\x12\n" +
+	"\x04solo\x18\x03 \x01(\bR\x04solo\"E\n" +
 	"\x12StartMatchResponse\x12/\n" +
 	"\x06result\x18\x01 \x01(\v2\x17.rcenter.v1.MatchResultR\x06result\"1\n" +
 	"\x12CancelMatchRequest\x12\x1b\n" +

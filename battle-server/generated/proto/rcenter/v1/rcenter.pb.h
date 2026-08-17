@@ -283,6 +283,7 @@ class StartMatchRequest final : public ::google::protobuf::Message
   enum : int {
     kWeaponFieldNumber = 2,
     kPlayerIdFieldNumber = 1,
+    kSoloFieldNumber = 3,
   };
   // string weapon = 2;
   void clear_weapon() ;
@@ -309,11 +310,21 @@ class StartMatchRequest final : public ::google::protobuf::Message
   void _internal_set_player_id(::int64_t value);
 
   public:
+  // bool solo = 3;
+  void clear_solo() ;
+  bool solo() const;
+  void set_solo(bool value);
+
+  private:
+  bool _internal_solo() const;
+  void _internal_set_solo(bool value);
+
+  public:
   // @@protoc_insertion_point(class_scope:rcenter.v1.StartMatchRequest)
  private:
   class _Internal;
   friend class ::google::protobuf::internal::TcParser;
-  static const ::google::protobuf::internal::TcParseTable<1, 2,
+  static const ::google::protobuf::internal::TcParseTable<2, 3,
                                    0, 43,
                                    2>
       _table_;
@@ -337,6 +348,7 @@ class StartMatchRequest final : public ::google::protobuf::Message
     ::google::protobuf::internal::CachedSize _cached_size_;
     ::google::protobuf::internal::ArenaStringPtr weapon_;
     ::int64_t player_id_;
+    bool solo_;
     PROTOBUF_TSAN_DECLARE_MEMBER
   };
   union { Impl_ _impl_; };
@@ -4520,6 +4532,30 @@ inline void StartMatchRequest::set_allocated_weapon(::std::string* PROTOBUF_NULL
     _impl_.weapon_.Set("", GetArena());
   }
   // @@protoc_insertion_point(field_set_allocated:rcenter.v1.StartMatchRequest.weapon)
+}
+
+// bool solo = 3;
+inline void StartMatchRequest::clear_solo() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.solo_ = false;
+  _impl_._has_bits_[0] &= ~0x00000004u;
+}
+inline bool StartMatchRequest::solo() const {
+  // @@protoc_insertion_point(field_get:rcenter.v1.StartMatchRequest.solo)
+  return _internal_solo();
+}
+inline void StartMatchRequest::set_solo(bool value) {
+  _internal_set_solo(value);
+  _impl_._has_bits_[0] |= 0x00000004u;
+  // @@protoc_insertion_point(field_set:rcenter.v1.StartMatchRequest.solo)
+}
+inline bool StartMatchRequest::_internal_solo() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.solo_;
+}
+inline void StartMatchRequest::_internal_set_solo(bool value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.solo_ = value;
 }
 
 // -------------------------------------------------------------------

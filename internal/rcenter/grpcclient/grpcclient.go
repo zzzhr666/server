@@ -20,11 +20,12 @@ func NewClient(client rcenterpb.RCenterServiceClient) *Client {
 	return &Client{client: client}
 }
 
-// StartMatch asks rcenter to queue or match one player.
-func (c *Client) StartMatch(ctx context.Context, playerID int64, weapon string) (*rcenter.MatchResult, error) {
+// StartMatch 请求 rcenter 发起单人对局或双人匹配。
+func (c *Client) StartMatch(ctx context.Context, playerID int64, weapon string, solo bool) (*rcenter.MatchResult, error) {
 	res, err := c.client.StartMatch(ctx, &rcenterpb.StartMatchRequest{
 		PlayerId: playerID,
 		Weapon:   weapon,
+		Solo:     solo,
 	})
 	if err != nil {
 		return nil, mapGRPCError(err)

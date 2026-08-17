@@ -20,7 +20,7 @@ func TestServiceStart(t *testing.T) {
 	}
 	service := NewService(repo)
 
-	result, err := service.Start(context.Background(), 7, "axe")
+	result, err := service.Start(context.Background(), 7, "axe", true)
 	if err != nil {
 		t.Fatalf("Start returned error: %v", err)
 	}
@@ -29,6 +29,9 @@ func TestServiceStart(t *testing.T) {
 	}
 	if repo.weapon != "axe" {
 		t.Fatalf("repo weapon = %q, want axe", repo.weapon)
+	}
+	if !repo.solo {
+		t.Fatal("repo solo = false, want true")
 	}
 	if result.RoomName != "room-1" {
 		t.Fatalf("room name = %q, want room-1", result.RoomName)
@@ -43,7 +46,7 @@ func TestServiceStartDefaultsEmptyWeaponToSword(t *testing.T) {
 	}
 	service := NewService(repo)
 
-	_, err := service.Start(context.Background(), 7, "")
+	_, err := service.Start(context.Background(), 7, "", false)
 	if err != nil {
 		t.Fatalf("Start returned error: %v", err)
 	}
@@ -55,7 +58,7 @@ func TestServiceStartDefaultsEmptyWeaponToSword(t *testing.T) {
 func TestServiceStartInvalidPlayer(t *testing.T) {
 	service := NewService(&fakeRepository{})
 
-	_, err := service.Start(context.Background(), 0, "")
+	_, err := service.Start(context.Background(), 0, "", false)
 	if !errors.Is(err, rcenter.ErrInvalidPlayerID) {
 		t.Fatalf("Start error = %v, want %v", err, rcenter.ErrInvalidPlayerID)
 	}
@@ -66,7 +69,7 @@ func TestServiceStartCanceledContext(t *testing.T) {
 	cancel()
 	service := NewService(&fakeRepository{})
 
-	_, err := service.Start(ctx, 7, "")
+	_, err := service.Start(ctx, 7, "", false)
 	if !errors.Is(err, context.Canceled) {
 		t.Fatalf("Start error = %v, want %v", err, context.Canceled)
 	}
@@ -131,15 +134,17 @@ func TestServiceResumeInvalidPlayer(t *testing.T) {
 type fakeRepository struct {
 	playerID         int64
 	weapon           string
+	solo             bool
 	canceledPlayerID int64
 	resumedPlayerID  int64
 	result           *rcenter.MatchResult
 	err              error
 }
 
-func (f *fakeRepository) StartMatch(ctx context.Context, playerID int64, weapon string) (*rcenter.MatchResult, error) {
+func (f *fakeRepository) StartMatch(ctx context.Context, playerID int64, weapon string, solo bool) (*rcenter.MatchResult, error) {
 	f.playerID = playerID
 	f.weapon = weapon
+	f.solo = solo
 	if f.err != nil {
 		return nil, f.err
 	}
