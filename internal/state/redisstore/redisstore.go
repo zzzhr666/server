@@ -4,8 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"server/internal/contract/state"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/redis/go-redis/v9"
@@ -20,7 +22,7 @@ type Store struct {
 	client *redis.Client
 }
 
-// SettleMatchRewards 使用乐观事务原子发放多人奖励，并按结算 ID 保证幂等。
+// SettleMatchRewards 使用乐观事务原子结算多人奖励与排行榜数据，并按结算 ID 保证幂等。
 func (s *Store) SettleMatchRewards(ctx context.Context, input state.SettleMatchRewardsInput) (*state.SettleMatchRewardsResult, error) {
 	if input.SettlementID == "" || len(input.Rewards) == 0 {
 		return nil, state.ErrInvalidSettlement
@@ -39,8 +41,13 @@ func (s *Store) SettleMatchRewards(ctx context.Context, input state.SettleMatchR
 		watchKeys = append(watchKeys, playerKey(playerReward.PlayerID))
 		playerIDs[playerReward.PlayerID] = struct{}{}
 	}
+	leaderboard := input.Leaderboard
+	clearTimeMember, err := validateLeaderboardRecord(leaderboard, playerIDs)
+	if err != nil {
+		return nil, err
+	}
 	applied := false
-	err := retryOptimisticLock(ctx, func() error {
+	err = retryOptimisticLock(ctx, func() error {
 		return s.client.Watch(ctx, func(tx *redis.Tx) error {
 			applied = false
 			exists, err := tx.Exists(ctx, markerKey).Result()
@@ -65,6 +72,26 @@ func (s *Store) SettleMatchRewards(ctx context.Context, input state.SettleMatchR
 			_, err = tx.TxPipelined(ctx, func(pipeliner redis.Pipeliner) error {
 				for i, reward := range input.Rewards {
 					pipeliner.HSet(ctx, playerKey(reward.PlayerID), "coins", newCoins[i])
+				}
+
+				if leaderboard != nil {
+					for _, player := range leaderboard.Players {
+						if player.TotalKills == 0 {
+							continue
+						}
+						pipeliner.ZIncrBy(ctx, totalKillsLeaderboardKey, float64(player.TotalKills), strconv.FormatInt(player.PlayerID, 10))
+					}
+					if leaderboard.Cleared {
+						pipeliner.ZAddArgs(ctx, clearTimeLeaderboardKey(leaderboard.Mode, leaderboard.MapVersion), redis.ZAddArgs{
+							LT: true,
+							Members: []redis.Z{
+								{
+									Score:  float64(leaderboard.CombatDurationMS),
+									Member: clearTimeMember,
+								},
+							},
+						})
+					}
 				}
 				pipeliner.Set(ctx, markerKey, "applied", settlementRetention)
 				return nil
@@ -875,6 +902,83 @@ func (s *Store) UpgradeGrowth(ctx context.Context, input state.UpgradeGrowthInpu
 	return result, nil
 }
 
+// ListLeaderboard 按排行榜类型读取指定数量的排名记录。
+func (s *Store) ListLeaderboard(ctx context.Context, input state.ListLeaderboardInput) (*state.ListLeaderboardResult, error) {
+	key, descending, err := resolveLeaderboardQuery(input)
+	if err != nil {
+		return nil, err
+	}
+	stop := input.Limit - 1
+
+	var records []redis.Z
+	if descending {
+		records, err = s.client.ZRevRangeWithScores(ctx, key, 0, stop).Result()
+	} else {
+		records, err = s.client.ZRangeWithScores(ctx, key, 0, stop).Result()
+	}
+	if err != nil {
+		return nil, err
+	}
+	entries := make([]state.LeaderboardEntry, 0, len(records))
+	playerInfos := make(map[int64]*redis.MapStringStringCmd)
+	for index, record := range records {
+		member, ok := record.Member.(string)
+		if !ok {
+			return nil, fmt.Errorf("invalid member type")
+		}
+		playerIDs, err := parseLeaderboardMember(input.Type, member)
+		if err != nil {
+			return nil, err
+		}
+		entry := state.LeaderboardEntry{
+			Rank:    int64(index + 1),
+			Players: make([]state.LeaderboardPlayer, len(playerIDs)),
+			Score:   int64(record.Score),
+		}
+		for i, playerID := range playerIDs {
+			entry.Players[i].PlayerID = playerID
+			playerInfos[playerID] = nil
+		}
+		entries = append(entries, entry)
+	}
+
+	if len(playerInfos) > 0 {
+		_, err = s.client.Pipelined(ctx, func(pipeliner redis.Pipeliner) error {
+			for playerID := range playerInfos {
+				playerInfos[playerID] = pipeliner.HGetAll(ctx, playerKey(playerID))
+			}
+			return nil
+		})
+		if err != nil {
+			return nil, err
+		}
+	}
+	for i := range entries {
+		for j := range entries[i].Players {
+			player := &entries[i].Players[j]
+			values, err := playerInfos[player.PlayerID].Result()
+			if err != nil {
+				return nil, err
+			}
+			if len(values) == 0 {
+				continue
+			}
+			player.Nickname = values["nickname"]
+			player.Avatar = values["avatar"]
+		}
+	}
+	resultMapVersion := input.MapVersion
+	if input.Type == state.LeaderboardTypeTotalKills {
+		resultMapVersion = ""
+	}
+
+	return &state.ListLeaderboardResult{
+		Type:       input.Type,
+		MapVersion: resultMapVersion,
+		Entries:    entries,
+	}, nil
+}
+
 func parseGrowth(value map[string]string) (*state.Growth, error) {
 	playerID, err := strconv.ParseInt(value["player_id"], 10, 64)
 	if err != nil {
@@ -963,6 +1067,127 @@ func realtimeChannelKey(serverName string) string {
 
 func settlementKey(settlementID string) string {
 	return "game:settlement:" + settlementID
+}
+
+const (
+	totalKillsLeaderboardKey = "game:leaderboard:total_kills"
+	leaderboardModeSolo      = "solo"
+	leaderboardModeDuo       = "duo"
+
+	maxLeaderboardLimit int64 = 100
+)
+
+func resolveLeaderboardQuery(input state.ListLeaderboardInput) (key string, descending bool, err error) {
+	if input.Limit <= 0 || input.Limit > maxLeaderboardLimit {
+		return "", false, state.ErrInvalidLeaderboardQuery
+	}
+	if input.Type == state.LeaderboardTypeSoloClearTime {
+		if input.MapVersion == "" {
+			return "", false, state.ErrInvalidLeaderboardQuery
+		}
+		return clearTimeLeaderboardKey(leaderboardModeSolo, input.MapVersion), false, nil
+	}
+	if input.Type == state.LeaderboardTypeDuoClearTime {
+		if input.MapVersion == "" {
+			return "", false, state.ErrInvalidLeaderboardQuery
+		}
+		return clearTimeLeaderboardKey(leaderboardModeDuo, input.MapVersion), false, nil
+	}
+	if input.Type == state.LeaderboardTypeTotalKills {
+		return totalKillsLeaderboardKey, true, nil
+	}
+	return "", false, state.ErrInvalidLeaderboardQuery
+}
+
+func parseLeaderboardMember(leaderboardType state.LeaderboardType, member string) ([]int64, error) {
+	if leaderboardType == state.LeaderboardTypeDuoClearTime {
+		playerIDsString := strings.Split(member, ":")
+		if len(playerIDsString) != 2 {
+			return nil, fmt.Errorf("invalid leaderboard member %q", member)
+		}
+		playerIDs := make([]int64, 0, len(playerIDsString))
+		for _, playerID := range playerIDsString {
+			playerIDInt, err := strconv.ParseInt(playerID, 10, 64)
+			if err != nil {
+				return nil, fmt.Errorf("invalid leaderboard member %q: %w", member, err)
+			}
+			if playerIDInt <= 0 {
+				return nil, fmt.Errorf("invalid leaderboard member %q", member)
+			}
+			playerIDs = append(playerIDs, playerIDInt)
+		}
+		if playerIDs[0] >= playerIDs[1] {
+			return nil, fmt.Errorf("invalid leaderboard member %q", member)
+		}
+		return playerIDs, nil
+	}
+
+	if leaderboardType == state.LeaderboardTypeSoloClearTime || leaderboardType == state.LeaderboardTypeTotalKills {
+		playerID, err := strconv.ParseInt(member, 10, 64)
+		if err != nil {
+			return nil, fmt.Errorf("invalid leaderboard member %q: %w", member, err)
+		}
+		if playerID <= 0 {
+			return nil, fmt.Errorf("invalid leaderboard member %q", member)
+		}
+		return []int64{playerID}, nil
+	}
+
+	return nil, state.ErrInvalidLeaderboardQuery
+}
+
+func clearTimeLeaderboardKey(mode, mapVersion string) string {
+	return "game:leaderboard:clear_time:" + mode + ":" + mapVersion
+}
+
+func duoLeaderboardMember(first, second int64) string {
+	if first > second {
+		first, second = second, first
+	}
+	return strconv.FormatInt(first, 10) + ":" + strconv.FormatInt(second, 10)
+}
+
+func validateLeaderboardRecord(record *state.MatchLeaderboardRecord, rewardPlayerIDs map[int64]struct{}) (string, error) {
+	if record == nil {
+		return "", nil
+	}
+	if record.MapVersion == "" || record.CombatDurationMS < 0 || record.Cleared && record.CombatDurationMS == 0 {
+		return "", state.ErrInvalidSettlement
+	}
+	expectedPlayers := 0
+	switch record.Mode {
+	case leaderboardModeSolo:
+		expectedPlayers = 1
+	case leaderboardModeDuo:
+		expectedPlayers = 2
+	default:
+		return "", state.ErrInvalidSettlement
+	}
+	if len(record.Players) != expectedPlayers || len(record.Players) != len(rewardPlayerIDs) {
+		return "", state.ErrInvalidSettlement
+	}
+
+	seenPlayerIDs := make(map[int64]struct{}, len(record.Players))
+	for _, player := range record.Players {
+		if player.PlayerID <= 0 {
+			return "", state.ErrInvalidPlayer
+		}
+		if player.TotalKills < 0 {
+			return "", state.ErrInvalidSettlement
+		}
+		if _, rewarded := rewardPlayerIDs[player.PlayerID]; !rewarded {
+			return "", state.ErrInvalidSettlement
+		}
+		if _, duplicate := seenPlayerIDs[player.PlayerID]; duplicate {
+			return "", state.ErrInvalidSettlement
+		}
+		seenPlayerIDs[player.PlayerID] = struct{}{}
+	}
+
+	if record.Mode == leaderboardModeSolo {
+		return strconv.FormatInt(record.Players[0].PlayerID, 10), nil
+	}
+	return duoLeaderboardMember(record.Players[0].PlayerID, record.Players[1].PlayerID), nil
 }
 
 func validateFriendPair(fromPlayerID, toPlayerID int64) error {

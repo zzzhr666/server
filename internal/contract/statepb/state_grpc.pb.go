@@ -47,6 +47,7 @@ const (
 	StateService_SettleMatchRewards_FullMethodName  = "/state.v1.StateService/SettleMatchRewards"
 	StateService_SaveChatMessage_FullMethodName     = "/state.v1.StateService/SaveChatMessage"
 	StateService_ListChatMessages_FullMethodName    = "/state.v1.StateService/ListChatMessages"
+	StateService_ListLeaderboard_FullMethodName     = "/state.v1.StateService/ListLeaderboard"
 )
 
 // StateServiceClient is the client API for StateService service.
@@ -81,6 +82,7 @@ type StateServiceClient interface {
 	SettleMatchRewards(ctx context.Context, in *SettleMatchRewardRequest, opts ...grpc.CallOption) (*SettleMatchRewardResponse, error)
 	SaveChatMessage(ctx context.Context, in *SaveChatMessageRequest, opts ...grpc.CallOption) (*SaveChatMessageResponse, error)
 	ListChatMessages(ctx context.Context, in *ListChatMessagesRequest, opts ...grpc.CallOption) (*ListChatMessagesResponse, error)
+	ListLeaderboard(ctx context.Context, in *ListLeaderboardRequest, opts ...grpc.CallOption) (*ListLeaderboardResponse, error)
 }
 
 type stateServiceClient struct {
@@ -380,6 +382,16 @@ func (c *stateServiceClient) ListChatMessages(ctx context.Context, in *ListChatM
 	return out, nil
 }
 
+func (c *stateServiceClient) ListLeaderboard(ctx context.Context, in *ListLeaderboardRequest, opts ...grpc.CallOption) (*ListLeaderboardResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListLeaderboardResponse)
+	err := c.cc.Invoke(ctx, StateService_ListLeaderboard_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // StateServiceServer is the server API for StateService service.
 // All implementations must embed UnimplementedStateServiceServer
 // for forward compatibility.
@@ -412,6 +424,7 @@ type StateServiceServer interface {
 	SettleMatchRewards(context.Context, *SettleMatchRewardRequest) (*SettleMatchRewardResponse, error)
 	SaveChatMessage(context.Context, *SaveChatMessageRequest) (*SaveChatMessageResponse, error)
 	ListChatMessages(context.Context, *ListChatMessagesRequest) (*ListChatMessagesResponse, error)
+	ListLeaderboard(context.Context, *ListLeaderboardRequest) (*ListLeaderboardResponse, error)
 	mustEmbedUnimplementedStateServiceServer()
 }
 
@@ -505,6 +518,9 @@ func (UnimplementedStateServiceServer) SaveChatMessage(context.Context, *SaveCha
 }
 func (UnimplementedStateServiceServer) ListChatMessages(context.Context, *ListChatMessagesRequest) (*ListChatMessagesResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListChatMessages not implemented")
+}
+func (UnimplementedStateServiceServer) ListLeaderboard(context.Context, *ListLeaderboardRequest) (*ListLeaderboardResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListLeaderboard not implemented")
 }
 func (UnimplementedStateServiceServer) mustEmbedUnimplementedStateServiceServer() {}
 func (UnimplementedStateServiceServer) testEmbeddedByValue()                      {}
@@ -1024,6 +1040,24 @@ func _StateService_ListChatMessages_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _StateService_ListLeaderboard_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListLeaderboardRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(StateServiceServer).ListLeaderboard(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: StateService_ListLeaderboard_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(StateServiceServer).ListLeaderboard(ctx, req.(*ListLeaderboardRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // StateService_ServiceDesc is the grpc.ServiceDesc for StateService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1138,6 +1172,10 @@ var StateService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListChatMessages",
 			Handler:    _StateService_ListChatMessages_Handler,
+		},
+		{
+			MethodName: "ListLeaderboard",
+			Handler:    _StateService_ListLeaderboard_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

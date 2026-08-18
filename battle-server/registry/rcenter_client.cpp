@@ -67,7 +67,7 @@ battle::FinishMatchResult battle::RCenterClient::finish_match(const FinishedBatt
     }
     request.set_reason(finished.reason);
     request.set_room_name(finished.room_name);
-
+    request.set_combat_duration_ms(finished.settlement.combat_duration_ms);
     // 非胜负结束（如全员断线）仅请求 rcenter 释放匹配上下文，不能附带奖励统计；
     // 胜利或失败必须带完整统计，供 rcenter 以权威规则计算金币。
     if (finished.reason == "victory" || finished.reason == "defeat") {

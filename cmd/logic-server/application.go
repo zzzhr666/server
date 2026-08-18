@@ -13,6 +13,7 @@ import (
 	"server/internal/logic/friend"
 	"server/internal/logic/growth"
 	"server/internal/logic/httpapi"
+	"server/internal/logic/leaderboard"
 	logicmatch "server/internal/logic/match"
 	"server/internal/logic/player"
 	"server/internal/logic/presence"
@@ -81,6 +82,7 @@ func newApplication(cfg config.Config, serverName string) (*application, error) 
 		Metrics:        chatMetrics,
 	})
 	growthService := growth.NewService(growth.NewStateRepository(stateService), growth.DefaultUpgradeRules())
+	leaderboardService := leaderboard.NewService(leaderboard.NewStateRepository(stateService))
 	matchService := logicmatch.NewService(logicmatch.NewRCenterRepository(rcenterService))
 
 	httpHandler := httpapi.NewHandler(httpapi.HandlerConfig{
@@ -93,16 +95,17 @@ func newApplication(cfg config.Config, serverName string) (*application, error) 
 		ReadHeaderTimeout: 5 * time.Second,
 	}
 	realtimeHandler := realtime.NewHandler(realtime.HandlerConfig{
-		AuthService:     authService,
-		PresenceService: presenceService,
-		MatchService:    matchService,
-		FriendService:   friendService,
-		PlayerService:   playerService,
-		GrowthService:   growthService,
-		ServerName:      serverName,
-		RealtimeClient:  stateService,
-		ChatService:     chatService,
-		Metrics:         logicMetrics,
+		AuthService:        authService,
+		PresenceService:    presenceService,
+		MatchService:       matchService,
+		FriendService:      friendService,
+		PlayerService:      playerService,
+		GrowthService:      growthService,
+		LeaderboardService: leaderboardService,
+		ServerName:         serverName,
+		RealtimeClient:     stateService,
+		ChatService:        chatService,
+		Metrics:            logicMetrics,
 	})
 	realtimeListener, err := net.Listen("tcp", cfg.TCPAddr)
 	if err != nil {

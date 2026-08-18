@@ -4,8 +4,10 @@ import (
 	"testing"
 	"time"
 
+	"server/internal/contract/realtimepb"
 	"server/internal/logic/friend"
 	"server/internal/logic/growth"
+	"server/internal/logic/leaderboard"
 	"server/internal/logic/player"
 	"server/internal/logic/presence"
 )
@@ -60,5 +62,94 @@ func TestToProtoFriendModels(t *testing.T) {
 	}
 	if got := toProtoFriendSummary(nil, nil); got != nil {
 		t.Fatalf("toProtoFriendSummary(nil, nil) = %+v, want nil", got)
+	}
+}
+
+func TestLeaderboardTypeConversions(t *testing.T) {
+	tests := []struct {
+		name       string
+		protoType  realtimepb.LeaderboardType
+		domainType leaderboard.Type
+	}{
+		{
+			name:       "solo",
+			protoType:  realtimepb.LeaderboardType_LEADERBOARD_TYPE_SOLO_CLEAR_TIME,
+			domainType: leaderboard.TypeSoloClearTime,
+		},
+		{
+			name:       "duo",
+			protoType:  realtimepb.LeaderboardType_LEADERBOARD_TYPE_DUO_CLEAR_TIME,
+			domainType: leaderboard.TypeDuoClearTime,
+		},
+		{
+			name:       "total kills",
+			protoType:  realtimepb.LeaderboardType_LEADERBOARD_TYPE_TOTAL_KILLS,
+			domainType: leaderboard.TypeTotalKills,
+		},
+		{
+			name:       "unknown",
+			protoType:  realtimepb.LeaderboardType(99),
+			domainType: "",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := toLeaderboardType(tt.protoType); got != tt.domainType {
+				t.Fatalf("toLeaderboardType(%v) = %q, want %q", tt.protoType, got, tt.domainType)
+			}
+			wantProtoType := tt.protoType
+			if tt.domainType == "" {
+				wantProtoType = realtimepb.LeaderboardType_LEADERBOARD_TYPE_UNSPECIFIED
+			}
+			if got := toProtoLeaderboardType(tt.domainType); got != wantProtoType {
+				t.Fatalf("toProtoLeaderboardType(%q) = %v, want %v", tt.domainType, got, wantProtoType)
+			}
+		})
+	}
+}
+
+func TestLeaderboardProtocolConversions(t *testing.T) {
+	input := toLeaderboardListInput(&realtimepb.ListLeaderboardRequest{
+		Type:       realtimepb.LeaderboardType_LEADERBOARD_TYPE_DUO_CLEAR_TIME,
+		MapVersion: "wave-v1",
+		Limit:      10,
+	})
+	if input.Type != leaderboard.TypeDuoClearTime || input.MapVersion != "wave-v1" || input.Limit != 10 {
+		t.Fatalf("toLeaderboardListInput() = %+v, want duo wave-v1 limit 10", input)
+	}
+
+	response := toProtoLeaderboardResult(&leaderboard.Result{
+		Type:       leaderboard.TypeDuoClearTime,
+		MapVersion: "wave-v1",
+		Entries: []leaderboard.Entry{
+			{
+				Rank:  1,
+				Score: 82_000,
+				Players: []leaderboard.Player{
+					{PlayerID: 7, Nickname: "Alice", Avatar: "mage"},
+					{PlayerID: 8, Nickname: "Bob", Avatar: "knight"},
+				},
+			},
+		},
+	})
+	if response.GetType() != realtimepb.LeaderboardType_LEADERBOARD_TYPE_DUO_CLEAR_TIME || response.GetMapVersion() != "wave-v1" || len(response.GetEntries()) != 1 {
+		t.Fatalf("toProtoLeaderboardResult() = %+v, want converted metadata and entry", response)
+	}
+	entry := response.GetEntries()[0]
+	if entry.GetRank() != 1 || entry.GetScore() != 82_000 || len(entry.GetPlayers()) != 2 {
+		t.Fatalf("leaderboard entry = %+v, want rank 1 score 82000 and two players", entry)
+	}
+	if entry.GetPlayers()[0].GetNickname() != "Alice" || entry.GetPlayers()[0].GetAvatar() != "mage" || entry.GetPlayers()[1].GetPlayerId() != 8 {
+		t.Fatalf("leaderboard players = %+v, want complete converted players", entry.GetPlayers())
+	}
+}
+
+func TestLeaderboardProtocolConversionsHandleNil(t *testing.T) {
+	if got := toLeaderboardListInput(nil); got != (leaderboard.ListInput{}) {
+		t.Fatalf("toLeaderboardListInput(nil) = %+v, want empty", got)
+	}
+	if got := toProtoLeaderboardResult(nil); got != nil {
+		t.Fatalf("toProtoLeaderboardResult(nil) = %+v, want nil", got)
 	}
 }

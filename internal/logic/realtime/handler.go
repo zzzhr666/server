@@ -9,6 +9,7 @@ import (
 	"server/internal/logic/chat"
 	"server/internal/logic/friend"
 	"server/internal/logic/growth"
+	"server/internal/logic/leaderboard"
 	"server/internal/logic/match"
 	"server/internal/logic/player"
 	"server/internal/logic/presence"
@@ -31,6 +32,7 @@ type Handler struct {
 	player                player.Service
 	growth                growth.Service
 	chat                  chat.Service
+	leaderboard           leaderboard.Service
 	serverName            string
 	connManager           *connectionManager
 	realtimeClient        state.RealtimeClient
@@ -49,6 +51,7 @@ type HandlerConfig struct {
 	PlayerService         player.Service
 	GrowthService         growth.Service
 	ChatService           chat.Service
+	LeaderboardService    leaderboard.Service
 	ServerName            string
 	RealtimeClient        state.RealtimeClient
 	Metrics               *Metrics
@@ -66,6 +69,7 @@ func NewHandler(config HandlerConfig) *Handler {
 		player:                config.PlayerService,
 		growth:                config.GrowthService,
 		chat:                  config.ChatService,
+		leaderboard:           config.LeaderboardService,
 		serverName:            config.ServerName,
 		connManager:           newConnectionManager(),
 		metrics:               config.Metrics,
@@ -279,6 +283,8 @@ func (h *Handler) handleEnvelope(ctx context.Context, session *session, authSess
 		return h.handleListDirectChat(ctx, session, playerID, envelope)
 	case envelope.GetPlayerAvatarUpdate() != nil:
 		return h.handleUpdatePlayerAvatar(ctx, session, playerID, envelope)
+	case envelope.GetLeaderboardList() != nil:
+		return h.handleListLeaderboard(ctx, session, envelope)
 	default:
 		return writeError(session, envelope.GetRequestId(), realtimepb.ErrorCode_INVALID_ARGUMENT, "unsupported message") == nil
 	}
@@ -304,6 +310,8 @@ func realtimeRequestType(envelope *realtimepb.ClientEnvelope) string {
 	case envelope.GetChatWorldSend() != nil, envelope.GetChatDirectSend() != nil,
 		envelope.GetChatWorldList() != nil, envelope.GetChatDirectList() != nil:
 		return "chat"
+	case envelope.GetLeaderboardList() != nil:
+		return "leaderboard"
 	case envelope.GetLogout() != nil:
 		return "logout"
 	default:
@@ -830,6 +838,31 @@ func (h *Handler) handleUpdatePlayerAvatar(ctx context.Context, session *session
 	}) == nil
 }
 
+func (h *Handler) handleListLeaderboard(ctx context.Context, session *session, envelope *realtimepb.ClientEnvelope) bool {
+	if h.leaderboard == nil {
+		_ = writeError(session, envelope.GetRequestId(), realtimepb.ErrorCode_INTERNAL, "leaderboard service unavailable")
+		return false
+	}
+	res, err := h.leaderboard.List(ctx, toLeaderboardListInput(envelope.GetLeaderboardList()))
+	if err != nil {
+		code := leaderboardErrorCode(err)
+		message := "internal server error"
+		if code == realtimepb.ErrorCode_INVALID_ARGUMENT {
+			message = err.Error()
+		}
+		return writeError(session, envelope.GetRequestId(), code, message) == nil
+	}
+	if res == nil {
+		return writeError(session, envelope.GetRequestId(), realtimepb.ErrorCode_INTERNAL, "unexpected leaderboard result") == nil
+	}
+	return session.Write(&realtimepb.ServerEnvelope{
+		RequestId: envelope.GetRequestId(),
+		Payload: &realtimepb.ServerEnvelope_Leaderboard{
+			Leaderboard: toProtoLeaderboardResult(res),
+		},
+	}) == nil
+}
+
 // RunRealtimeSubscriber 启动当前 logic-server 的实时事件订阅。
 func (h *Handler) RunRealtimeSubscriber(ctx context.Context) error {
 	if h.subscriber == nil {
@@ -877,6 +910,13 @@ func chatErrorCode(err error) realtimepb.ErrorCode {
 	default:
 		return realtimepb.ErrorCode_INTERNAL
 	}
+}
+
+func leaderboardErrorCode(err error) realtimepb.ErrorCode {
+	if errors.Is(err, leaderboard.ErrInvalidQuery) {
+		return realtimepb.ErrorCode_INVALID_ARGUMENT
+	}
+	return realtimepb.ErrorCode_INTERNAL
 }
 
 func (h *Handler) publishFriendPresenceChanged(ctx context.Context, playerID int64, online bool, status string) {

@@ -411,3 +411,157 @@ func FromProtoSettleMatchRewards(rewards []*statepb.PlayerCoinReward) []state.Pl
 	}
 	return result
 }
+
+// ToProtoPlayerLeaderboardRecord 将玩家排行榜结算记录转换为 protobuf 消息。
+func ToProtoPlayerLeaderboardRecord(record *state.PlayerLeaderboardRecord) *statepb.PlayerLeaderboardRecord {
+	if record == nil {
+		return nil
+	}
+	return &statepb.PlayerLeaderboardRecord{
+		PlayerId:   record.PlayerID,
+		TotalKills: record.TotalKills,
+	}
+}
+
+// FromProtoPlayerLeaderboardRecord 将 protobuf 玩家排行榜记录转换为领域模型。
+func FromProtoPlayerLeaderboardRecord(record *statepb.PlayerLeaderboardRecord) *state.PlayerLeaderboardRecord {
+	if record == nil {
+		return nil
+	}
+	return &state.PlayerLeaderboardRecord{
+		PlayerID:   record.GetPlayerId(),
+		TotalKills: record.GetTotalKills(),
+	}
+}
+
+// ToProtoMatchLeaderboardRecord 将对局排行榜结算记录转换为 protobuf 消息。
+func ToProtoMatchLeaderboardRecord(record *state.MatchLeaderboardRecord) *statepb.MatchLeaderboardRecord {
+	if record == nil {
+		return nil
+	}
+	ret := &statepb.MatchLeaderboardRecord{
+		Mode:             record.Mode,
+		MapVersion:       record.MapVersion,
+		Cleared:          record.Cleared,
+		CombatDurationMs: record.CombatDurationMS,
+	}
+	leaderboardRecords := make([]*statepb.PlayerLeaderboardRecord, 0, len(record.Players))
+	for _, p := range record.Players {
+		leaderboardRecords = append(leaderboardRecords, ToProtoPlayerLeaderboardRecord(&p))
+	}
+	ret.Players = leaderboardRecords
+	return ret
+}
+
+// FromProtoMatchLeaderboardRecord 将 protobuf 对局排行榜记录转换为领域模型。
+func FromProtoMatchLeaderboardRecord(record *statepb.MatchLeaderboardRecord) *state.MatchLeaderboardRecord {
+	if record == nil {
+		return nil
+	}
+	ret := &state.MatchLeaderboardRecord{
+		Mode:             record.GetMode(),
+		MapVersion:       record.GetMapVersion(),
+		Cleared:          record.GetCleared(),
+		CombatDurationMS: record.GetCombatDurationMs(),
+	}
+	leaderboardRecords := make([]state.PlayerLeaderboardRecord, 0, len(record.Players))
+	for _, p := range record.Players {
+		if p == nil {
+			continue
+		}
+		leaderboardRecords = append(leaderboardRecords, *FromProtoPlayerLeaderboardRecord(p))
+	}
+	ret.Players = leaderboardRecords
+	return ret
+}
+
+// ToProtoLeaderboardType 将领域排行榜类型转换为 protobuf 枚举。
+func ToProtoLeaderboardType(leaderboardType state.LeaderboardType) statepb.LeaderboardType {
+	switch leaderboardType {
+	case state.LeaderboardTypeSoloClearTime:
+		return statepb.LeaderboardType_SOLO_CLEAR_TIME
+	case state.LeaderboardTypeDuoClearTime:
+		return statepb.LeaderboardType_DUO_CLEAR_TIME
+	case state.LeaderboardTypeTotalKills:
+		return statepb.LeaderboardType_TOTAL_KILLS
+	default:
+		return statepb.LeaderboardType_UNSPECIFIED
+	}
+}
+
+// FromProtoLeaderboardType 将 protobuf 排行榜枚举转换为领域类型。
+func FromProtoLeaderboardType(leaderboardType statepb.LeaderboardType) state.LeaderboardType {
+	switch leaderboardType {
+	case statepb.LeaderboardType_SOLO_CLEAR_TIME:
+		return state.LeaderboardTypeSoloClearTime
+	case statepb.LeaderboardType_DUO_CLEAR_TIME:
+		return state.LeaderboardTypeDuoClearTime
+	case statepb.LeaderboardType_TOTAL_KILLS:
+		return state.LeaderboardTypeTotalKills
+	default:
+		return ""
+	}
+}
+
+// ToProtoLeaderboardResult 将领域排行榜结果转换为 protobuf 响应。
+func ToProtoLeaderboardResult(result *state.ListLeaderboardResult) *statepb.ListLeaderboardResponse {
+	if result == nil {
+		return nil
+	}
+	entries := make([]*statepb.LeaderboardEntry, 0, len(result.Entries))
+	for _, entry := range result.Entries {
+		players := make([]*statepb.LeaderboardPlayer, 0, len(entry.Players))
+		for _, player := range entry.Players {
+			players = append(players, &statepb.LeaderboardPlayer{
+				PlayerId: player.PlayerID,
+				Nickname: player.Nickname,
+				Avatar:   player.Avatar,
+			})
+		}
+		entries = append(entries, &statepb.LeaderboardEntry{
+			Rank:    entry.Rank,
+			Players: players,
+			Score:   entry.Score,
+		})
+	}
+	return &statepb.ListLeaderboardResponse{
+		Type:       ToProtoLeaderboardType(result.Type),
+		MapVersion: result.MapVersion,
+		Entries:    entries,
+	}
+
+}
+
+// FromProtoLeaderboardResult 将 protobuf 排行榜响应转换为领域结果。
+func FromProtoLeaderboardResult(response *statepb.ListLeaderboardResponse) *state.ListLeaderboardResult {
+	if response == nil {
+		return nil
+	}
+	entries := make([]state.LeaderboardEntry, 0, len(response.Entries))
+	for _, entry := range response.Entries {
+		if entry == nil {
+			continue
+		}
+		players := make([]state.LeaderboardPlayer, 0, len(entry.GetPlayers()))
+		for _, player := range entry.GetPlayers() {
+			if player == nil {
+				continue
+			}
+			players = append(players, state.LeaderboardPlayer{
+				PlayerID: player.GetPlayerId(),
+				Nickname: player.GetNickname(),
+				Avatar:   player.GetAvatar(),
+			})
+		}
+		entries = append(entries, state.LeaderboardEntry{
+			Rank:    entry.GetRank(),
+			Players: players,
+			Score:   entry.GetScore(),
+		})
+	}
+	return &state.ListLeaderboardResult{
+		Type:       FromProtoLeaderboardType(response.GetType()),
+		MapVersion: response.GetMapVersion(),
+		Entries:    entries,
+	}
+}

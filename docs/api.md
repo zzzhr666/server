@@ -71,10 +71,51 @@ ServerEnvelope { request_id: 1, authenticated: { player_id: 7 } }
 | `chat_direct_send { receiver_id, content, client_message_key }` | `chat_sent` | 向好友发送私聊消息，并主动推送给接收者 |
 | `chat_world_list { limit, before_message_key }` | `chat_messages` | 分页读取世界频道历史 |
 | `chat_direct_list { friend_id, limit, before_message_key }` | `chat_messages` | 分页读取与好友的私聊历史 |
+| `leaderboard_list { type, map_version, limit }` | `leaderboard` | 查询单人通关、双人通关或累计击杀榜 |
 
 匹配和恢复使用 `match_result`，其中包含 `status`、`room_name`、`token`、`battle_node_name` 和 `battle_udp_addr`。单人请求直接返回 `status=matched`；双人请求可能先返回 `status=waiting`。`status=matched` 后，客户端向 `battle_udp_addr` 发送 UDP `ClientHello(room_name, player_id, token)`。
 
 成长升级的合法 `type` 为 `attack`、`attack_speed`、`health`、`move_speed`。业务请求失败时服务端发送 `error { code, message }` 并保持连接；`code` 取值为 `UNAUTHENTICATED`、`INVALID_ARGUMENT`、`NOT_FOUND`、`CONFLICT` 或 `INTERNAL`。协议帧错误、认证失败、logout 和写入失败会关闭连接。
+
+### 排行榜协议
+
+`leaderboard_list.type` 使用 `LeaderboardType`，支持：
+
+| 类型 | `map_version` | 排序与 `score` | `players` |
+| --- | --- | --- | --- |
+| `LEADERBOARD_TYPE_SOLO_CLEAR_TIME` | 必填，当前为 `wave-v1` | 纯战斗毫秒数升序 | 1 名玩家 |
+| `LEADERBOARD_TYPE_DUO_CLEAR_TIME` | 必填，当前为 `wave-v1` | 队伍纯战斗毫秒数升序 | 组成该队伍的 2 名玩家 |
+| `LEADERBOARD_TYPE_TOTAL_KILLS` | 忽略 | 跨单人和双人模式的累计击杀数降序 | 1 名玩家 |
+
+请求的 `limit=0` 使用默认值 20，合法范围为 1 到 100；负数或大于 100 返回 `INVALID_ARGUMENT`。响应会回显规范化后的 `type`、`map_version` 和从 1 开始的 `rank`。玩家信息包含 `player_id`、`nickname` 和 `avatar`；若排行榜中的历史玩家档案已不存在，仍返回其 ID，昵称和头像为空。
+
+通关榜只记录胜利局，并使用玩家或双人队伍在同一地图版本下的历史最短时间。计时只覆盖 battle-server 的 `Fighting` 阶段，祝福选择阶段不计入。累计击杀榜同时统计正常胜利和失败的对局。
+
+示例：
+
+```text
+ClientEnvelope {
+  request_id: 20
+  leaderboard_list {
+    type: LEADERBOARD_TYPE_DUO_CLEAR_TIME
+    map_version: "wave-v1"
+    limit: 20
+  }
+}
+ServerEnvelope {
+  request_id: 20
+  leaderboard {
+    type: LEADERBOARD_TYPE_DUO_CLEAR_TIME
+    map_version: "wave-v1"
+    entries {
+      rank: 1
+      players { player_id: 7 nickname: "Alice" avatar: "mage" }
+      players { player_id: 8 nickname: "Bob" avatar: "warrior" }
+      score: 83250
+    }
+  }
+}
+```
 
 ### 聊天协议
 

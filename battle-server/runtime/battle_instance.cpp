@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <array>
+#include <chrono>
 #include <random>
 #include <ranges>
 #include <utility>
@@ -77,6 +78,7 @@ void battle::BattleInstance::tick(ecs::DeltaTime delta_time) {
         return;
     }
     tick_fighting_(delta_time);
+    combat_elapsed_time_ += delta_time;
 }
 
 bool battle::BattleInstance::receive_input(std::int64_t player_id, PlayerInput input) {
@@ -146,6 +148,7 @@ battle::BattleWorldSnapshot battle::BattleInstance::snapshot() const {
 battle::BattleSettlement battle::BattleInstance::settlement() const {
     BattleSettlement result{
         .reason = end_reason_,
+        .combat_duration_ms = std::chrono::duration_cast<std::chrono::milliseconds>(combat_elapsed_time_).count()
     };
     result.players.reserve(player_battle_stats_.size());
     for (const auto& [player_id, stats] : player_battle_stats_) {

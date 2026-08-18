@@ -107,6 +107,11 @@ func TestMapGRPCError(t *testing.T) {
 			want: statecontract.ErrInvalidSettlement,
 		},
 		{
+			name: "invalid leaderboard query",
+			err:  status.Error(codes.InvalidArgument, statecontract.ErrInvalidLeaderboardQuery.Error()),
+			want: statecontract.ErrInvalidLeaderboardQuery,
+		},
+		{
 			name: "insufficient coins",
 			err:  status.Error(codes.FailedPrecondition, statecontract.ErrInsufficientCoins.Error()),
 			want: statecontract.ErrInsufficientCoins,
@@ -159,6 +164,16 @@ func TestClientSettleMatchRewards(t *testing.T) {
 			{PlayerID: 7, Amount: 50},
 			{PlayerID: 8, Amount: 30},
 		},
+		Leaderboard: &statecontract.MatchLeaderboardRecord{
+			Mode:             "duo",
+			MapVersion:       "wave-v1",
+			Cleared:          true,
+			CombatDurationMS: 83_250,
+			Players: []statecontract.PlayerLeaderboardRecord{
+				{PlayerID: 7, TotalKills: 13},
+				{PlayerID: 8, TotalKills: 17},
+			},
+		},
 	})
 	if err != nil {
 		t.Fatalf("SettleMatchRewards returned error: %v", err)
@@ -169,6 +184,14 @@ func TestClientSettleMatchRewards(t *testing.T) {
 	rewards := grpcState.settleMatchRewardsRequest.GetRewards()
 	if len(rewards) != 2 || rewards[0].GetPlayerId() != 7 || rewards[0].GetAmount() != 50 || rewards[1].GetPlayerId() != 8 || rewards[1].GetAmount() != 30 {
 		t.Fatalf("settlement rewards = %+v, want converted rewards", rewards)
+	}
+	leaderboard := grpcState.settleMatchRewardsRequest.GetLeaderboard()
+	if leaderboard == nil || leaderboard.GetMode() != "duo" || leaderboard.GetMapVersion() != "wave-v1" || !leaderboard.GetCleared() || leaderboard.GetCombatDurationMs() != 83_250 {
+		t.Fatalf("settlement leaderboard = %+v, want converted metadata", leaderboard)
+	}
+	players := leaderboard.GetPlayers()
+	if len(players) != 2 || players[0].GetPlayerId() != 7 || players[0].GetTotalKills() != 13 || players[1].GetPlayerId() != 8 || players[1].GetTotalKills() != 17 {
+		t.Fatalf("settlement leaderboard players = %+v, want converted players", players)
 	}
 	if !result.Applied {
 		t.Fatal("result applied = false, want true")
@@ -277,6 +300,57 @@ func TestClientChatMessages(t *testing.T) {
 	}
 	if len(messages) != 1 || messages[0].MessageKey != "msg-1" || messages[0].SenderID != 7 {
 		t.Fatalf("chat messages = %+v, want one message from player 7", messages)
+	}
+}
+
+func TestClientListLeaderboard(t *testing.T) {
+	grpcState := &fakeStateServiceClient{
+		listLeaderboardResponse: &statepb.ListLeaderboardResponse{
+			Type:       statepb.LeaderboardType_DUO_CLEAR_TIME,
+			MapVersion: "wave-v1",
+			Entries: []*statepb.LeaderboardEntry{
+				{
+					Rank:  1,
+					Score: 82_000,
+					Players: []*statepb.LeaderboardPlayer{
+						{PlayerId: 7, Nickname: "Alice", Avatar: "mage"},
+						{PlayerId: 8, Nickname: "Bob", Avatar: "knight"},
+					},
+				},
+			},
+		},
+	}
+	client := NewClient(grpcState)
+
+	result, err := client.ListLeaderboard(context.Background(), statecontract.ListLeaderboardInput{
+		Type:       statecontract.LeaderboardTypeDuoClearTime,
+		MapVersion: "wave-v1",
+		Limit:      10,
+	})
+	if err != nil {
+		t.Fatalf("ListLeaderboard returned error: %v", err)
+	}
+	request := grpcState.listLeaderboardRequest
+	if request.GetType() != statepb.LeaderboardType_DUO_CLEAR_TIME || request.GetMapVersion() != "wave-v1" || request.GetLimit() != 10 {
+		t.Fatalf("ListLeaderboard request = %+v, want duo wave-v1 limit 10", request)
+	}
+	if result.Type != statecontract.LeaderboardTypeDuoClearTime || result.MapVersion != "wave-v1" || len(result.Entries) != 1 {
+		t.Fatalf("ListLeaderboard result = %+v, want converted result", result)
+	}
+	players := result.Entries[0].Players
+	if len(players) != 2 || players[0].Nickname != "Alice" || players[0].Avatar != "mage" || players[1].PlayerID != 8 {
+		t.Fatalf("ListLeaderboard players = %+v, want converted duo", players)
+	}
+}
+
+func TestClientListLeaderboardMapsInvalidQuery(t *testing.T) {
+	client := NewClient(&fakeStateServiceClient{
+		err: status.Error(codes.InvalidArgument, statecontract.ErrInvalidLeaderboardQuery.Error()),
+	})
+
+	_, err := client.ListLeaderboard(context.Background(), statecontract.ListLeaderboardInput{})
+	if !errors.Is(err, statecontract.ErrInvalidLeaderboardQuery) {
+		t.Fatalf("ListLeaderboard error = %v, want %v", err, statecontract.ErrInvalidLeaderboardQuery)
 	}
 }
 
@@ -725,6 +799,8 @@ type fakeStateServiceClient struct {
 	saveChatMessageResponse    *statepb.SaveChatMessageResponse
 	listChatMessagesRequest    *statepb.ListChatMessagesRequest
 	listChatMessagesResponse   *statepb.ListChatMessagesResponse
+	listLeaderboardRequest     *statepb.ListLeaderboardRequest
+	listLeaderboardResponse    *statepb.ListLeaderboardResponse
 }
 
 func (f *fakeStateServiceClient) UpdatePlayerAvatar(_ context.Context, in *statepb.UpdatePlayerAvatarRequest, _ ...grpc.CallOption) (*statepb.UpdatePlayerAvatarResponse, error) {
@@ -832,6 +908,14 @@ func (f *fakeStateServiceClient) ListChatMessages(_ context.Context, in *statepb
 	return f.listChatMessagesResponse, nil
 }
 
+func (f *fakeStateServiceClient) ListLeaderboard(_ context.Context, in *statepb.ListLeaderboardRequest, _ ...grpc.CallOption) (*statepb.ListLeaderboardResponse, error) {
+	f.listLeaderboardRequest = in
+	if f.err != nil {
+		return nil, f.err
+	}
+	return f.listLeaderboardResponse, nil
+}
+
 func (f *fakeStateServiceClient) SetPresence(_ context.Context, in *statepb.SetPresenceRequest, _ ...grpc.CallOption) (*statepb.SetPresenceResponse, error) {
 	f.setPresence = in.GetPresence()
 	f.setPresenceTTL = in.GetTtl().AsDuration()
@@ -911,3 +995,4 @@ func (f *fakeStateServiceClient) SubscribeRealtime(_ context.Context, in *statep
 }
 
 var _ statepb.StateServiceClient = (*fakeStateServiceClient)(nil)
+var _ statecontract.LeaderboardClient = (*Client)(nil)

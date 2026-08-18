@@ -13,6 +13,7 @@ import (
 	"server/internal/logic/chat"
 	"server/internal/logic/friend"
 	"server/internal/logic/growth"
+	"server/internal/logic/leaderboard"
 	"server/internal/logic/player"
 	"server/internal/logic/presence"
 )
@@ -307,6 +308,96 @@ func TestHandleUpdatePlayerAvatarRejectsNilResult(t *testing.T) {
 	}
 }
 
+func TestHandleListLeaderboardDispatchesAndReturnsDuoEntries(t *testing.T) {
+	leaderboardService := &handlerMethodLeaderboardService{result: &leaderboard.Result{
+		Type:       leaderboard.TypeDuoClearTime,
+		MapVersion: "wave-v1",
+		Entries: []leaderboard.Entry{{
+			Rank: 1,
+			Players: []leaderboard.Player{
+				{PlayerID: 7, Nickname: "Alice", Avatar: "alice.png"},
+				{PlayerID: 8, Nickname: "Bob", Avatar: "bob.png"},
+			},
+			Score: 12_345,
+		}},
+	}}
+	handler := &Handler{leaderboard: leaderboardService}
+	envelope := &realtimepb.ClientEnvelope{
+		RequestId: 15,
+		Payload: &realtimepb.ClientEnvelope_LeaderboardList{
+			LeaderboardList: &realtimepb.ListLeaderboardRequest{
+				Type:       realtimepb.LeaderboardType_LEADERBOARD_TYPE_DUO_CLEAR_TIME,
+				MapVersion: "wave-v1",
+				Limit:      10,
+			},
+		},
+	}
+
+	response, keepConnection := invokeHandlerMethod(t, func(session *session) bool {
+		return handler.handleEnvelope(context.Background(), session, &auth.Session{PlayerID: 7}, 0, envelope)
+	}, nil)
+
+	if leaderboardService.input.Type != leaderboard.TypeDuoClearTime || leaderboardService.input.MapVersion != "wave-v1" || leaderboardService.input.Limit != 10 {
+		t.Fatalf("leaderboard input = %+v, want duo wave-v1 limit 10", leaderboardService.input)
+	}
+	entries := response.GetLeaderboard().GetEntries()
+	if response.GetRequestId() != 15 || response.GetLeaderboard().GetType() != realtimepb.LeaderboardType_LEADERBOARD_TYPE_DUO_CLEAR_TIME ||
+		response.GetLeaderboard().GetMapVersion() != "wave-v1" || len(entries) != 1 || len(entries[0].GetPlayers()) != 2 ||
+		entries[0].GetPlayers()[0].GetPlayerId() != 7 || entries[0].GetPlayers()[1].GetPlayerId() != 8 || entries[0].GetScore() != 12_345 || !keepConnection {
+		t.Fatalf("leaderboard response = %v, keep = %v; want converted duo entry and open connection", response, keepConnection)
+	}
+	if got := realtimeRequestType(envelope); got != "leaderboard" {
+		t.Fatalf("realtimeRequestType() = %q, want leaderboard", got)
+	}
+}
+
+func TestHandleListLeaderboardErrors(t *testing.T) {
+	tests := []struct {
+		name        string
+		service     leaderboard.Service
+		wantCode    realtimepb.ErrorCode
+		wantMessage string
+	}{
+		{
+			name:        "invalid query",
+			service:     &handlerMethodLeaderboardService{err: leaderboard.ErrInvalidQuery},
+			wantCode:    realtimepb.ErrorCode_INVALID_ARGUMENT,
+			wantMessage: leaderboard.ErrInvalidQuery.Error(),
+		},
+		{
+			name:        "internal service failure",
+			service:     &handlerMethodLeaderboardService{err: errors.New("state unavailable")},
+			wantCode:    realtimepb.ErrorCode_INTERNAL,
+			wantMessage: "internal server error",
+		},
+		{
+			name:        "nil result",
+			service:     &handlerMethodLeaderboardService{},
+			wantCode:    realtimepb.ErrorCode_INTERNAL,
+			wantMessage: "unexpected leaderboard result",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			handler := &Handler{leaderboard: tt.service}
+			response, keepConnection := invokeHandlerMethod(t, func(session *session) bool {
+				return handler.handleListLeaderboard(context.Background(), session, &realtimepb.ClientEnvelope{
+					RequestId: 16,
+					Payload: &realtimepb.ClientEnvelope_LeaderboardList{
+						LeaderboardList: &realtimepb.ListLeaderboardRequest{},
+					},
+				})
+			}, nil)
+
+			if response.GetRequestId() != 16 || response.GetError().GetCode() != tt.wantCode ||
+				response.GetError().GetMessage() != tt.wantMessage || !keepConnection {
+				t.Fatalf("leaderboard response = %v, keep = %v; want %v %q and open connection", response, keepConnection, tt.wantCode, tt.wantMessage)
+			}
+		})
+	}
+}
+
 func TestHandlerDomainErrorCodes(t *testing.T) {
 	if got := growthErrorCode(growth.ErrInvalidUpgradeType); got != realtimepb.ErrorCode_INVALID_ARGUMENT {
 		t.Fatalf("growthErrorCode(invalid type) = %v, want INVALID_ARGUMENT", got)
@@ -319,6 +410,12 @@ func TestHandlerDomainErrorCodes(t *testing.T) {
 	}
 	if got := playerErrorCode(player.ErrNotFound); got != realtimepb.ErrorCode_NOT_FOUND {
 		t.Fatalf("playerErrorCode(not found) = %v, want NOT_FOUND", got)
+	}
+	if got := leaderboardErrorCode(leaderboard.ErrInvalidQuery); got != realtimepb.ErrorCode_INVALID_ARGUMENT {
+		t.Fatalf("leaderboardErrorCode(invalid query) = %v, want INVALID_ARGUMENT", got)
+	}
+	if got := leaderboardErrorCode(errors.New("state unavailable")); got != realtimepb.ErrorCode_INTERNAL {
+		t.Fatalf("leaderboardErrorCode(internal) = %v, want INTERNAL", got)
 	}
 }
 
@@ -430,6 +527,17 @@ type handlerMethodGrowthService struct {
 	upgrade *growth.UpgradeResult
 }
 
+type handlerMethodLeaderboardService struct {
+	input  leaderboard.ListInput
+	result *leaderboard.Result
+	err    error
+}
+
+func (f *handlerMethodLeaderboardService) List(_ context.Context, input leaderboard.ListInput) (*leaderboard.Result, error) {
+	f.input = input
+	return f.result, f.err
+}
+
 func (f *handlerMethodGrowthService) Upgrade(context.Context, int64, growth.UpgradeType) (*growth.UpgradeResult, error) {
 	return f.upgrade, nil
 }
@@ -491,6 +599,7 @@ var _ friend.Service = (*handlerMethodFriendService)(nil)
 var _ player.Service = (*handlerMethodPlayerService)(nil)
 var _ presence.Service = (*handlerMethodPresenceService)(nil)
 var _ growth.Service = (*handlerMethodGrowthService)(nil)
+var _ leaderboard.Service = (*handlerMethodLeaderboardService)(nil)
 var _ auth.Service = (*handlerMethodAuthService)(nil)
 var _ chat.Service = (*handlerMethodChatService)(nil)
 

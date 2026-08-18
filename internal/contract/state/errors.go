@@ -30,4 +30,7 @@ var (
 	ErrInvalidChatMessage  = errors.New("invalid chat message")
 	ErrInvalidChatChannel  = errors.New("invalid chat channel")
 	ErrChatMessageExists   = errors.New("chat message exists")
+
+	// ErrInvalidLeaderboardQuery 表示排行榜类型、地图版本或返回数量不合法。
+	ErrInvalidLeaderboardQuery = errors.New("invalid leaderboard query")
 )

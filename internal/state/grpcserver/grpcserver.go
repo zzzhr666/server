@@ -12,13 +12,14 @@ import (
 // Server 以 protobuf/gRPC 方法暴露状态契约操作。
 type Server struct {
 	statepb.UnimplementedStateServiceServer
-	stateClient    state.Client
-	presenceClient state.PresenceClient
-	friendClient   state.FriendClient
-	realtimeClient state.RealtimeClient
-	growthClient   state.GrowthClient
-	coinClient     state.CoinClient
-	chatClient     state.ChatClient
+	stateClient       state.Client
+	presenceClient    state.PresenceClient
+	friendClient      state.FriendClient
+	realtimeClient    state.RealtimeClient
+	growthClient      state.GrowthClient
+	coinClient        state.CoinClient
+	chatClient        state.ChatClient
+	leaderboardClient state.LeaderboardClient
 }
 
 // UpdatePlayerAvatar 处理更新玩家头像的 gRPC 请求。
@@ -70,11 +71,25 @@ func (s *Server) ListChatMessages(ctx context.Context, request *statepb.ListChat
 	}, nil
 }
 
-// SettleMatchRewards 处理一场对局的原子、幂等奖励结算请求。
+// ListLeaderboard 处理读取排行榜的 gRPC 请求。
+func (s *Server) ListLeaderboard(ctx context.Context, request *statepb.ListLeaderboardRequest) (*statepb.ListLeaderboardResponse, error) {
+	result, err := s.leaderboardClient.ListLeaderboard(ctx, state.ListLeaderboardInput{
+		Type:       stateproto.FromProtoLeaderboardType(request.GetType()),
+		MapVersion: request.GetMapVersion(),
+		Limit:      request.GetLimit(),
+	})
+	if err != nil {
+		return nil, mapStateError(err)
+	}
+	return stateproto.ToProtoLeaderboardResult(result), nil
+}
+
+// SettleMatchRewards 处理一场对局的原子、幂等奖励与排行榜结算请求。
 func (s *Server) SettleMatchRewards(ctx context.Context, request *statepb.SettleMatchRewardRequest) (*statepb.SettleMatchRewardResponse, error) {
 	res, err := s.coinClient.SettleMatchRewards(ctx, state.SettleMatchRewardsInput{
 		SettlementID: request.GetSettlementId(),
 		Rewards:      stateproto.FromProtoSettleMatchRewards(request.GetRewards()),
+		Leaderboard:  stateproto.FromProtoMatchLeaderboardRecord(request.GetLeaderboard()),
 	})
 	if err != nil {
 		return nil, mapStateError(err)
@@ -343,24 +358,26 @@ func (s *Server) SubscribeRealtime(request *statepb.SubscribeRealtimeRequest, g 
 
 // ServerConfig 提供 gRPC 适配器使用的状态客户端。
 type ServerConfig struct {
-	StateClient    state.Client
-	PresenceClient state.PresenceClient
-	FriendClient   state.FriendClient
-	RealtimeClient state.RealtimeClient
-	GrowthClient   state.GrowthClient
-	CoinClient     state.CoinClient
-	ChatClient     state.ChatClient
+	StateClient       state.Client
+	PresenceClient    state.PresenceClient
+	FriendClient      state.FriendClient
+	RealtimeClient    state.RealtimeClient
+	GrowthClient      state.GrowthClient
+	CoinClient        state.CoinClient
+	ChatClient        state.ChatClient
+	LeaderboardClient state.LeaderboardClient
 }
 
 // NewServer 创建 gRPC 状态服务适配器。
 func NewServer(config ServerConfig) *Server {
 	return &Server{
-		stateClient:    config.StateClient,
-		presenceClient: config.PresenceClient,
-		friendClient:   config.FriendClient,
-		realtimeClient: config.RealtimeClient,
-		growthClient:   config.GrowthClient,
-		coinClient:     config.CoinClient,
-		chatClient:     config.ChatClient,
+		stateClient:       config.StateClient,
+		presenceClient:    config.PresenceClient,
+		friendClient:      config.FriendClient,
+		realtimeClient:    config.RealtimeClient,
+		growthClient:      config.GrowthClient,
+		coinClient:        config.CoinClient,
+		chatClient:        config.ChatClient,
+		leaderboardClient: config.LeaderboardClient,
 	}
 }

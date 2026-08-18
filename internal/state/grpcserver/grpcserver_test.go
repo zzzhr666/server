@@ -209,6 +209,16 @@ func TestSettleMatchRewards(t *testing.T) {
 			{PlayerId: 7, Amount: 50},
 			{PlayerId: 8, Amount: 30},
 		},
+		Leaderboard: &statepb.MatchLeaderboardRecord{
+			Mode:             "duo",
+			MapVersion:       "wave-v1",
+			Cleared:          true,
+			CombatDurationMs: 83_250,
+			Players: []*statepb.PlayerLeaderboardRecord{
+				{PlayerId: 7, TotalKills: 13},
+				{PlayerId: 8, TotalKills: 17},
+			},
+		},
 	})
 	if err != nil {
 		t.Fatalf("SettleMatchRewards returned error: %v", err)
@@ -218,6 +228,13 @@ func TestSettleMatchRewards(t *testing.T) {
 	}
 	if len(state.settleMatchRewardsInput.Rewards) != 2 || state.settleMatchRewardsInput.Rewards[0].PlayerID != 7 || state.settleMatchRewardsInput.Rewards[1].Amount != 30 {
 		t.Fatalf("settlement rewards = %+v, want converted request rewards", state.settleMatchRewardsInput.Rewards)
+	}
+	leaderboard := state.settleMatchRewardsInput.Leaderboard
+	if leaderboard == nil || leaderboard.Mode != "duo" || leaderboard.MapVersion != "wave-v1" || !leaderboard.Cleared || leaderboard.CombatDurationMS != 83_250 {
+		t.Fatalf("settlement leaderboard = %+v, want converted metadata", leaderboard)
+	}
+	if len(leaderboard.Players) != 2 || leaderboard.Players[0].PlayerID != 7 || leaderboard.Players[0].TotalKills != 13 || leaderboard.Players[1].PlayerID != 8 || leaderboard.Players[1].TotalKills != 17 {
+		t.Fatalf("settlement leaderboard players = %+v, want converted players", leaderboard.Players)
 	}
 	if !res.GetApplied() {
 		t.Fatal("response applied = false, want true")
@@ -302,6 +319,54 @@ func TestChatMessages(t *testing.T) {
 	}
 	if len(listRes.GetMessages()) != 1 || listRes.GetMessages()[0].GetMessageKey() != "msg-1" {
 		t.Fatalf("chat messages = %+v, want one saved message", listRes.GetMessages())
+	}
+}
+
+func TestListLeaderboard(t *testing.T) {
+	state := &fakeStateClient{
+		listLeaderboardResult: &statecontract.ListLeaderboardResult{
+			Type:       statecontract.LeaderboardTypeDuoClearTime,
+			MapVersion: "wave-v1",
+			Entries: []statecontract.LeaderboardEntry{
+				{
+					Rank:  1,
+					Score: 82_000,
+					Players: []statecontract.LeaderboardPlayer{
+						{PlayerID: 7, Nickname: "Alice", Avatar: "mage"},
+						{PlayerID: 8, Nickname: "Bob", Avatar: "knight"},
+					},
+				},
+			},
+		},
+	}
+	server := newTestServer(state)
+
+	response, err := server.ListLeaderboard(context.Background(), &statepb.ListLeaderboardRequest{
+		Type:       statepb.LeaderboardType_DUO_CLEAR_TIME,
+		MapVersion: "wave-v1",
+		Limit:      10,
+	})
+	if err != nil {
+		t.Fatalf("ListLeaderboard returned error: %v", err)
+	}
+	if state.listLeaderboardInput.Type != statecontract.LeaderboardTypeDuoClearTime || state.listLeaderboardInput.MapVersion != "wave-v1" || state.listLeaderboardInput.Limit != 10 {
+		t.Fatalf("ListLeaderboard input = %+v, want duo wave-v1 limit 10", state.listLeaderboardInput)
+	}
+	if response.GetType() != statepb.LeaderboardType_DUO_CLEAR_TIME || response.GetMapVersion() != "wave-v1" || len(response.GetEntries()) != 1 {
+		t.Fatalf("ListLeaderboard response = %+v, want converted result", response)
+	}
+	players := response.GetEntries()[0].GetPlayers()
+	if len(players) != 2 || players[0].GetNickname() != "Alice" || players[0].GetAvatar() != "mage" || players[1].GetPlayerId() != 8 {
+		t.Fatalf("ListLeaderboard players = %+v, want converted duo", players)
+	}
+}
+
+func TestListLeaderboardInvalidQuery(t *testing.T) {
+	server := newTestServer(&fakeStateClient{err: statecontract.ErrInvalidLeaderboardQuery})
+
+	_, err := server.ListLeaderboard(context.Background(), &statepb.ListLeaderboardRequest{})
+	if status.Code(err) != codes.InvalidArgument {
+		t.Fatalf("ListLeaderboard code = %v, want %v", status.Code(err), codes.InvalidArgument)
 	}
 }
 
@@ -558,11 +623,12 @@ func TestFriendErrors(t *testing.T) {
 
 func newTestServer(state *fakeStateClient) *Server {
 	return NewServer(ServerConfig{
-		StateClient:    state,
-		PresenceClient: state,
-		FriendClient:   state,
-		CoinClient:     state,
-		ChatClient:     state,
+		StateClient:       state,
+		PresenceClient:    state,
+		FriendClient:      state,
+		CoinClient:        state,
+		ChatClient:        state,
+		LeaderboardClient: state,
 	})
 }
 
@@ -608,6 +674,8 @@ type fakeStateClient struct {
 	savedChatMessage                   *statecontract.ChatMessage
 	listChatMessagesInput              statecontract.ListChatMessagesInput
 	chatMessages                       []*statecontract.ChatMessage
+	listLeaderboardInput               statecontract.ListLeaderboardInput
+	listLeaderboardResult              *statecontract.ListLeaderboardResult
 	updatedPlayerAvatarID              int64
 	updatedAvatar                      string
 }
@@ -706,6 +774,14 @@ func (f *fakeStateClient) ListChatMessages(_ context.Context, input statecontrac
 		return nil, f.err
 	}
 	return f.chatMessages, nil
+}
+
+func (f *fakeStateClient) ListLeaderboard(_ context.Context, input statecontract.ListLeaderboardInput) (*statecontract.ListLeaderboardResult, error) {
+	f.listLeaderboardInput = input
+	if f.err != nil {
+		return nil, f.err
+	}
+	return f.listLeaderboardResult, nil
 }
 
 func (f *fakeStateClient) SetPresence(_ context.Context, presence *statecontract.Presence, ttl time.Duration) error {

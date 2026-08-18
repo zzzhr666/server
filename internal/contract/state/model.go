@@ -35,15 +35,72 @@ type PlayerCoinReward struct {
 	Amount   int64
 }
 
-// SettleMatchRewardsInput 描述一次以稳定结算 ID 标识的多人奖励发放。
+// PlayerLeaderboardRecord 描述一名玩家在一场对局中的排行榜结算数据。
+type PlayerLeaderboardRecord struct {
+	PlayerID   int64
+	TotalKills int32
+}
+
+// MatchLeaderboardRecord 描述一场对局用于更新通关时间榜和总击杀榜的数据。
+type MatchLeaderboardRecord struct {
+	Mode             string
+	MapVersion       string
+	Cleared          bool
+	CombatDurationMS int64
+	Players          []PlayerLeaderboardRecord
+}
+
+// SettleMatchRewardsInput 描述一次以稳定结算 ID 标识的多人奖励与排行榜结算。
 type SettleMatchRewardsInput struct {
 	SettlementID string
 	Rewards      []PlayerCoinReward
+	Leaderboard  *MatchLeaderboardRecord
 }
 
-// SettleMatchRewardsResult 表示本次调用是否实际发放了奖励。
+// SettleMatchRewardsResult 表示本次调用是否实际应用了对局结算。
 type SettleMatchRewardsResult struct {
 	Applied bool
+}
+
+// LeaderboardType 标识排行榜的计分维度。
+type LeaderboardType string
+
+const (
+	// LeaderboardTypeSoloClearTime 表示单人模式最短纯战斗时间榜。
+	LeaderboardTypeSoloClearTime LeaderboardType = "solo_clear_time"
+	// LeaderboardTypeDuoClearTime 表示双人队伍最短纯战斗时间榜。
+	LeaderboardTypeDuoClearTime LeaderboardType = "duo_clear_time"
+	// LeaderboardTypeTotalKills 表示跨模式累计总击杀榜。
+	LeaderboardTypeTotalKills LeaderboardType = "total_kills"
+)
+
+// ListLeaderboardInput 描述一次排行榜读取的类型、地图版本和数量上限。
+type ListLeaderboardInput struct {
+	Type       LeaderboardType
+	MapVersion string
+	Limit      int64
+}
+
+// LeaderboardPlayer 描述排行榜条目中用于展示的玩家资料。
+type LeaderboardPlayer struct {
+	PlayerID int64
+	Nickname string
+	Avatar   string
+}
+
+// LeaderboardEntry 表示一条带排名、参与玩家和计分值的排行榜记录。
+// Score 在通关时间榜中为毫秒数，在总击杀榜中为累计击杀数。
+type LeaderboardEntry struct {
+	Rank    int64
+	Players []LeaderboardPlayer
+	Score   int64
+}
+
+// ListLeaderboardResult 返回指定类型和地图版本的排行榜条目。
+type ListLeaderboardResult struct {
+	Type       LeaderboardType
+	MapVersion string
+	Entries    []LeaderboardEntry
 }
 
 // Growth 保存玩家局外成长等级。
@@ -190,7 +247,7 @@ type GrowthClient interface {
 	UpgradeGrowth(ctx context.Context, input UpgradeGrowthInput) (*UpgradeGrowthResult, error)
 }
 
-// CoinClient 定义 state-server 提供的金币状态操作。
+// CoinClient 定义 state-server 提供的对局奖励与排行榜结算操作。
 type CoinClient interface {
 	SettleMatchRewards(ctx context.Context, input SettleMatchRewardsInput) (*SettleMatchRewardsResult, error)
 }
@@ -201,6 +258,11 @@ type ChatClient interface {
 	SaveChatMessage(ctx context.Context, input SaveChatMessageInput) (*ChatMessage, error)
 	// ListChatMessages 返回指定频道的持久化聊天记录。
 	ListChatMessages(ctx context.Context, input ListChatMessagesInput) ([]*ChatMessage, error)
+}
+
+// LeaderboardClient 定义 state-server 提供的排行榜读取操作。
+type LeaderboardClient interface {
+	ListLeaderboard(ctx context.Context, input ListLeaderboardInput) (*ListLeaderboardResult, error)
 }
 
 // ChatChannelType 标识聊天频道的业务类型。

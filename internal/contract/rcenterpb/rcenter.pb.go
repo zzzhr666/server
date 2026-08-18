@@ -542,13 +542,14 @@ func (*CancelMatchResponse) Descriptor() ([]byte, []int) {
 }
 
 type FinishMatchRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	PlayerIds     []int64                `protobuf:"varint,1,rep,packed,name=player_ids,json=playerIds,proto3" json:"player_ids,omitempty"`
-	Reason        string                 `protobuf:"bytes,2,opt,name=reason,proto3" json:"reason,omitempty"`
-	PlayerStats   []*PlayerBattleStats   `protobuf:"bytes,3,rep,name=player_stats,json=playerStats,proto3" json:"player_stats,omitempty"`
-	RoomName      string                 `protobuf:"bytes,4,opt,name=room_name,json=roomName,proto3" json:"room_name,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state            protoimpl.MessageState `protogen:"open.v1"`
+	PlayerIds        []int64                `protobuf:"varint,1,rep,packed,name=player_ids,json=playerIds,proto3" json:"player_ids,omitempty"`
+	Reason           string                 `protobuf:"bytes,2,opt,name=reason,proto3" json:"reason,omitempty"`
+	PlayerStats      []*PlayerBattleStats   `protobuf:"bytes,3,rep,name=player_stats,json=playerStats,proto3" json:"player_stats,omitempty"`
+	RoomName         string                 `protobuf:"bytes,4,opt,name=room_name,json=roomName,proto3" json:"room_name,omitempty"`
+	CombatDurationMs int64                  `protobuf:"varint,5,opt,name=combat_duration_ms,json=combatDurationMs,proto3" json:"combat_duration_ms,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
 }
 
 func (x *FinishMatchRequest) Reset() {
@@ -607,6 +608,13 @@ func (x *FinishMatchRequest) GetRoomName() string {
 		return x.RoomName
 	}
 	return ""
+}
+
+func (x *FinishMatchRequest) GetCombatDurationMs() int64 {
+	if x != nil {
+		return x.CombatDurationMs
+	}
+	return 0
 }
 
 type PlayerBattleStats struct {
@@ -935,13 +943,14 @@ const file_proto_rcenter_v1_rcenter_proto_rawDesc = "" +
 	"\x06result\x18\x01 \x01(\v2\x17.rcenter.v1.MatchResultR\x06result\"1\n" +
 	"\x12CancelMatchRequest\x12\x1b\n" +
 	"\tplayer_id\x18\x01 \x01(\x03R\bplayerId\"\x15\n" +
-	"\x13CancelMatchResponse\"\xaa\x01\n" +
+	"\x13CancelMatchResponse\"\xd8\x01\n" +
 	"\x12FinishMatchRequest\x12\x1d\n" +
 	"\n" +
 	"player_ids\x18\x01 \x03(\x03R\tplayerIds\x12\x16\n" +
 	"\x06reason\x18\x02 \x01(\tR\x06reason\x12@\n" +
 	"\fplayer_stats\x18\x03 \x03(\v2\x1d.rcenter.v1.PlayerBattleStatsR\vplayerStats\x12\x1b\n" +
-	"\troom_name\x18\x04 \x01(\tR\broomName\"\x85\x01\n" +
+	"\troom_name\x18\x04 \x01(\tR\broomName\x12,\n" +
+	"\x12combat_duration_ms\x18\x05 \x01(\x03R\x10combatDurationMs\"\x85\x01\n" +
 	"\x11PlayerBattleStats\x12\x1b\n" +
 	"\tplayer_id\x18\x01 \x01(\x03R\bplayerId\x12\x1f\n" +
 	"\vtotal_kills\x18\x02 \x01(\x05R\n" +

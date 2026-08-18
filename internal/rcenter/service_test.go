@@ -4,8 +4,9 @@ import (
 	"context"
 	"errors"
 	"reflect"
-	statecontract "server/internal/contract/state"
 	"testing"
+
+	statecontract "server/internal/contract/state"
 
 	"github.com/prometheus/client_golang/prometheus"
 	dto "github.com/prometheus/client_model/go"
@@ -584,7 +585,9 @@ func TestServiceStartMatchRejectsPlayerInGame(t *testing.T) {
 }
 
 func TestServiceFinishMatchAllowsPlayersToMatchAgain(t *testing.T) {
+	coins := &fakeCoinClient{}
 	svc := newTestService()
+	svc.coinClient = coins
 	mustRegisterBattleNode(t, svc, BattleNode{
 		Name:        "battle-1",
 		UDPAddr:     "127.0.0.1:7001",
@@ -602,6 +605,9 @@ func TestServiceFinishMatchAllowsPlayersToMatchAgain(t *testing.T) {
 
 	if err := svc.FinishMatch(context.Background(), FinishMatchInput{RoomName: matched.RoomName, PlayerIDs: matched.PlayerIDs}); err != nil {
 		t.Fatalf("FinishMatch returned error: %v", err)
+	}
+	if coins.calls != 0 {
+		t.Fatalf("settlement calls = %d, want 0 without battle stats", coins.calls)
 	}
 	for _, playerID := range matched.PlayerIDs {
 		if _, ok := svc.activeMatches[playerID]; ok {
@@ -705,9 +711,10 @@ func TestServiceFinishMatchAddsCoinRewards(t *testing.T) {
 	}
 
 	err = svc.FinishMatch(context.Background(), FinishMatchInput{
-		RoomName:  matched.RoomName,
-		PlayerIDs: matched.PlayerIDs,
-		Reason:    BattleFinishReasonVictory,
+		RoomName:         matched.RoomName,
+		PlayerIDs:        matched.PlayerIDs,
+		Reason:           BattleFinishReasonVictory,
+		CombatDurationMS: 83_250,
 		PlayerStats: []PlayerBattleStats{
 			{
 				PlayerID:   7,
@@ -734,6 +741,16 @@ func TestServiceFinishMatchAddsCoinRewards(t *testing.T) {
 			{PlayerID: 7, Amount: 170},
 			{PlayerID: 8, Amount: 185},
 		},
+		Leaderboard: &statecontract.MatchLeaderboardRecord{
+			Mode:             leaderboardModeDuo,
+			MapVersion:       leaderboardMapVersionV1,
+			Cleared:          true,
+			CombatDurationMS: 83_250,
+			Players: []statecontract.PlayerLeaderboardRecord{
+				{PlayerID: 7, TotalKills: 2},
+				{PlayerID: 8, TotalKills: 1},
+			},
+		},
 	}
 	if coins.calls != 1 || !reflect.DeepEqual(coins.input, wantInput) {
 		t.Fatalf("settlement calls = %d input = %+v, want one call with %+v", coins.calls, coins.input, wantInput)
@@ -745,6 +762,57 @@ func TestServiceFinishMatchAddsCoinRewards(t *testing.T) {
 	}
 	if result.Status != MatchStatusWaiting {
 		t.Fatalf("status = %q, want %q", result.Status, MatchStatusWaiting)
+	}
+}
+
+func TestServiceFinishMatchBuildsSoloDefeatLeaderboard(t *testing.T) {
+	coins := &fakeCoinClient{}
+	svc := NewService(ServiceConfig{
+		CoinClient: coins,
+		RewardRule: DefaultRewardRule(),
+	})
+
+	err := svc.FinishMatch(context.Background(), FinishMatchInput{
+		RoomName:         "room-solo",
+		PlayerIDs:        []int64{7},
+		Reason:           "defeat",
+		CombatDurationMS: 47_000,
+		PlayerStats: []PlayerBattleStats{
+			{PlayerID: 7, TotalKills: 4},
+		},
+	})
+	if err != nil {
+		t.Fatalf("FinishMatch returned error: %v", err)
+	}
+	wantInput := statecontract.SettleMatchRewardsInput{
+		SettlementID: "room-solo",
+		Rewards: []statecontract.PlayerCoinReward{
+			{PlayerID: 7, Amount: 50},
+		},
+		Leaderboard: &statecontract.MatchLeaderboardRecord{
+			Mode:             leaderboardModeSolo,
+			MapVersion:       leaderboardMapVersionV1,
+			Cleared:          false,
+			CombatDurationMS: 47_000,
+			Players: []statecontract.PlayerLeaderboardRecord{
+				{PlayerID: 7, TotalKills: 4},
+			},
+		},
+	}
+	if coins.calls != 1 || !reflect.DeepEqual(coins.input, wantInput) {
+		t.Fatalf("settlement calls = %d input = %+v, want one call with %+v", coins.calls, coins.input, wantInput)
+	}
+}
+
+func TestServiceFinishMatchRejectsUnsupportedPlayerCount(t *testing.T) {
+	svc := newTestService()
+
+	err := svc.FinishMatch(context.Background(), FinishMatchInput{
+		RoomName:  "room-1",
+		PlayerIDs: []int64{7, 8, 9},
+	})
+	if !errors.Is(err, ErrInvalidBattleStats) {
+		t.Fatalf("FinishMatch error = %v, want %v", err, ErrInvalidBattleStats)
 	}
 }
 

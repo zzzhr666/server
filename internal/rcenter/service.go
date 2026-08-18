@@ -4,10 +4,17 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/hex"
-	"server/internal/contract/state"
 	"slices"
 	"sync"
 	"time"
+
+	"server/internal/contract/state"
+)
+
+const (
+	leaderboardModeSolo     = "solo"
+	leaderboardModeDuo      = "duo"
+	leaderboardMapVersionV1 = "wave-v1"
 )
 
 // BattleNodeController 通过控制面协调已注册的战斗节点。
@@ -281,7 +288,7 @@ func (g *GameCenterService) StartMatch(ctx context.Context, playerID int64, weap
 	}, nil
 }
 
-// FinishMatch 原子发放对局奖励，并仅释放属于上报房间的玩家状态。
+// FinishMatch 原子结算对局奖励与排行榜数据，并仅释放属于上报房间的玩家状态。
 func (g *GameCenterService) FinishMatch(ctx context.Context, input FinishMatchInput) error {
 	if err := ctx.Err(); err != nil {
 		g.observeMatchOperation("finish", "error")
@@ -294,6 +301,10 @@ func (g *GameCenterService) FinishMatch(ctx context.Context, input FinishMatchIn
 	if len(input.PlayerIDs) == 0 {
 		g.observeMatchOperation("finish", "error")
 		return ErrInvalidPlayerID
+	}
+	if len(input.PlayerIDs) > 2 {
+		g.observeMatchOperation("finish", "error")
+		return ErrInvalidBattleStats
 	}
 	playerIDs := make(map[int64]struct{}, len(input.PlayerIDs))
 	for _, playerID := range input.PlayerIDs {
@@ -319,6 +330,7 @@ func (g *GameCenterService) FinishMatch(ctx context.Context, input FinishMatchIn
 	// 其余玩家失败后重试导致重复发放。断线超时没有统计，不写金币。
 	rewards := make([]state.PlayerCoinReward, 0, len(input.PlayerStats))
 	statPlayerIDs := make(map[int64]struct{}, len(input.PlayerStats))
+	leaderboardPlayers := make([]state.PlayerLeaderboardRecord, 0, len(input.PlayerStats))
 	for _, stat := range input.PlayerStats {
 		if _, belongsToMatch := playerIDs[stat.PlayerID]; !belongsToMatch {
 			g.observeMatchOperation("finish", "error")
@@ -338,11 +350,27 @@ func (g *GameCenterService) FinishMatch(ctx context.Context, input FinishMatchIn
 			PlayerID: stat.PlayerID,
 			Amount:   reward,
 		})
+		leaderboardPlayers = append(leaderboardPlayers, state.PlayerLeaderboardRecord{
+			PlayerID:   stat.PlayerID,
+			TotalKills: stat.TotalKills,
+		})
 	}
 	if len(rewards) > 0 {
+		mode := leaderboardModeDuo
+		if len(input.PlayerIDs) == 1 {
+			mode = leaderboardModeSolo
+		}
+		leaderboardRecord := &state.MatchLeaderboardRecord{
+			Mode:             mode,
+			MapVersion:       leaderboardMapVersionV1,
+			Cleared:          input.Reason == BattleFinishReasonVictory,
+			CombatDurationMS: input.CombatDurationMS,
+			Players:          leaderboardPlayers,
+		}
 		_, err := g.coinClient.SettleMatchRewards(ctx, state.SettleMatchRewardsInput{
 			SettlementID: input.RoomName,
 			Rewards:      rewards,
+			Leaderboard:  leaderboardRecord,
 		})
 		if err != nil {
 			g.observeMatchOperation("finish", "error")

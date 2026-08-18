@@ -44,6 +44,8 @@ service StateService {
 
   rpc SaveChatMessage(SaveChatMessageRequest) returns (SaveChatMessageResponse);
   rpc ListChatMessages(ListChatMessagesRequest) returns (ListChatMessagesResponse);
+
+  rpc ListLeaderboard(ListLeaderboardRequest) returns (ListLeaderboardResponse);
 }
 
 message Account {
@@ -143,9 +145,23 @@ message PlayerCoinReward {
   int64 amount = 2;
 }
 
+message PlayerLeaderboardRecord {
+  int64 player_id = 1;
+  int32 total_kills = 2;
+}
+
+message MatchLeaderboardRecord {
+  string mode = 1;
+  string map_version = 2;
+  bool cleared = 3;
+  int64 combat_duration_ms = 4;
+  repeated PlayerLeaderboardRecord players = 5;
+}
+
 message SettleMatchRewardRequest {
   string settlement_id = 1;
   repeated PlayerCoinReward rewards = 2;
+  MatchLeaderboardRecord leaderboard = 3;
 }
 
 message SettleMatchRewardResponse {
@@ -367,4 +383,35 @@ message RealtimeChatMessage {
   google.protobuf.Timestamp expires_at = 8;
   string client_message_key = 9;
   string sender_nickname = 10;
+}
+
+enum LeaderboardType {
+  UNSPECIFIED = 0;
+  SOLO_CLEAR_TIME = 1;
+  DUO_CLEAR_TIME = 2;
+  TOTAL_KILLS = 3;
+}
+
+message ListLeaderboardRequest {
+  LeaderboardType type = 1;
+  string map_version = 2;
+  int64 limit = 3;
+}
+
+message LeaderboardPlayer {
+  int64 player_id = 1;
+  string nickname = 2;
+  string avatar = 3;
+}
+
+message LeaderboardEntry {
+  int64 rank = 1;
+  repeated LeaderboardPlayer players = 2;
+  int64 score = 3;
+}
+
+message ListLeaderboardResponse {
+  LeaderboardType type = 1;
+  string map_version = 2;
+  repeated LeaderboardEntry entries = 3;
 }

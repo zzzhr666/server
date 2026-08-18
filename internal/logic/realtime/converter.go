@@ -6,6 +6,7 @@ import (
 	"server/internal/logic/chat"
 	"server/internal/logic/friend"
 	"server/internal/logic/growth"
+	"server/internal/logic/leaderboard"
 	"server/internal/logic/player"
 	"server/internal/logic/presence"
 
@@ -191,5 +192,69 @@ func toStateChatMessage(message *chat.Message) *state.ChatMessage {
 		ExpiresAt:        message.ExpiresAt,
 		ClientMessageKey: message.ClientMessageKey,
 		SenderNickname:   message.SenderNickname,
+	}
+}
+
+func toLeaderboardType(value realtimepb.LeaderboardType) leaderboard.Type {
+	switch value {
+	case realtimepb.LeaderboardType_LEADERBOARD_TYPE_SOLO_CLEAR_TIME:
+		return leaderboard.TypeSoloClearTime
+	case realtimepb.LeaderboardType_LEADERBOARD_TYPE_DUO_CLEAR_TIME:
+		return leaderboard.TypeDuoClearTime
+	case realtimepb.LeaderboardType_LEADERBOARD_TYPE_TOTAL_KILLS:
+		return leaderboard.TypeTotalKills
+	default:
+		return ""
+	}
+}
+
+func toProtoLeaderboardType(value leaderboard.Type) realtimepb.LeaderboardType {
+	switch value {
+	case leaderboard.TypeSoloClearTime:
+		return realtimepb.LeaderboardType_LEADERBOARD_TYPE_SOLO_CLEAR_TIME
+	case leaderboard.TypeDuoClearTime:
+		return realtimepb.LeaderboardType_LEADERBOARD_TYPE_DUO_CLEAR_TIME
+	case leaderboard.TypeTotalKills:
+		return realtimepb.LeaderboardType_LEADERBOARD_TYPE_TOTAL_KILLS
+	default:
+		return realtimepb.LeaderboardType_LEADERBOARD_TYPE_UNSPECIFIED
+	}
+}
+
+func toLeaderboardListInput(request *realtimepb.ListLeaderboardRequest) leaderboard.ListInput {
+	if request == nil {
+		return leaderboard.ListInput{}
+	}
+	return leaderboard.ListInput{
+		Type:       toLeaderboardType(request.GetType()),
+		MapVersion: request.GetMapVersion(),
+		Limit:      request.GetLimit(),
+	}
+}
+
+func toProtoLeaderboardResult(result *leaderboard.Result) *realtimepb.LeaderboardResponse {
+	if result == nil {
+		return nil
+	}
+	entries := make([]*realtimepb.LeaderboardEntry, 0, len(result.Entries))
+	for _, entry := range result.Entries {
+		players := make([]*realtimepb.LeaderboardPlayer, 0, len(entry.Players))
+		for _, curPlayer := range entry.Players {
+			players = append(players, &realtimepb.LeaderboardPlayer{
+				PlayerId: curPlayer.PlayerID,
+				Nickname: curPlayer.Nickname,
+				Avatar:   curPlayer.Avatar,
+			})
+		}
+		entries = append(entries, &realtimepb.LeaderboardEntry{
+			Rank:    entry.Rank,
+			Players: players,
+			Score:   entry.Score,
+		})
+	}
+	return &realtimepb.LeaderboardResponse{
+		Type:       toProtoLeaderboardType(result.Type),
+		MapVersion: result.MapVersion,
+		Entries:    entries,
 	}
 }

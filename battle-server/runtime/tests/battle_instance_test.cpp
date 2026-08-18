@@ -958,6 +958,65 @@ TEST(BattleInstanceTest, SettlementIncludesEndReasonAndPlayerStats) {
     EXPECT_EQ(player.kills[0].count, 1);
 }
 
+TEST(BattleInstanceTest, SettlementIncludesAccumulatedFightingTime) {
+    BattleInstance instance({
+        .room_name = "room-1",
+        .player_ids = {1001},
+        .wave_config = WaveConfig{
+            .waves = {
+                WaveDefinition{
+                    .groups = {
+                        WaveMonsterGroup{
+                            .kind = MonsterKind::Melee,
+                            .count = 1,
+                        },
+                    },
+                },
+            },
+        },
+    });
+
+    instance.tick(ecs::DeltaTime{0.25f});
+    instance.tick(ecs::DeltaTime{0.25f});
+
+    EXPECT_EQ(instance.settlement().combat_duration_ms, 500);
+}
+
+TEST(BattleInstanceTest, SettlementExcludesRewardSelectionTime) {
+    BattleInstance instance({
+        .room_name = "room-1",
+        .player_ids = {1001},
+        .wave_config = reward_selection_test_wave_config(),
+        .player_config_override = ecs::CreatePlayerConfig{
+            .max_health = 100,
+            .move_speed = 5.0f,
+            .attack = ecs::AttackDefinition{
+                .damage = 25,
+                .range = 20.0f,
+                .cooldown_seconds = ecs::DeltaTime{0.5f},
+            },
+        },
+        .progression_config = ProgressionConfig{
+            .base_experience_to_next_level = 1,
+            .experience_to_next_level_growth = 1,
+            .melee_experience = 1,
+            .ranged_experience = 1,
+        },
+    });
+
+    ASSERT_TRUE(instance.receive_input(1001, PlayerInput{
+                                                   .attack_requested = true,
+                                               }));
+    instance.tick(ecs::DeltaTime{0.25f});
+    ASSERT_EQ(instance.phase(), BattlePhase::RewardSelection);
+    ASSERT_EQ(instance.settlement().combat_duration_ms, 250);
+
+    instance.tick(SelectionTime);
+
+    EXPECT_EQ(instance.phase(), BattlePhase::Fighting);
+    EXPECT_EQ(instance.settlement().combat_duration_ms, 250);
+}
+
 TEST(BattleInstanceTest, TickEndsWithVictoryWhenWaveConfigIsEmpty) {
     BattleInstance instance({
         .room_name = "room-1",

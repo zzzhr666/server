@@ -33,6 +33,7 @@ message ClientEnvelope {
     ListWorldChatRequest chat_world_list = 33;
     ListDirectChatRequest chat_direct_list = 34;
     PlayerAvatarUpdateRequest player_avatar_update = 35;
+    ListLeaderboardRequest leaderboard_list = 36;
   }
 }
 
@@ -63,6 +64,7 @@ message ServerEnvelope {
     ChatSendResponse chat_sent = 29;
     ChatMessagesResponse chat_messages = 30;
     ChatMessagePushed chat_message_pushed = 31;
+    LeaderboardResponse leaderboard = 32;
   }
 }
 
@@ -289,4 +291,35 @@ message ChatMessagesResponse {
 
 message ChatMessagePushed {
   ChatMessage message = 1;
+}
+
+enum LeaderboardType {
+  LEADERBOARD_TYPE_UNSPECIFIED = 0;
+  LEADERBOARD_TYPE_SOLO_CLEAR_TIME = 1;
+  LEADERBOARD_TYPE_DUO_CLEAR_TIME = 2;
+  LEADERBOARD_TYPE_TOTAL_KILLS = 3;
+}
+
+message ListLeaderboardRequest {
+  LeaderboardType type = 1;
+  string map_version = 2;
+  int64 limit = 3;
+}
+
+message LeaderboardPlayer {
+  int64 player_id = 1;
+  string nickname = 2;
+  string avatar = 3;
+}
+
+message LeaderboardEntry {
+  int64 rank = 1;
+  repeated LeaderboardPlayer players = 2;
+  int64 score = 3;
+}
+
+message LeaderboardResponse {
+  LeaderboardType type = 1;
+  string map_version = 2;
+  repeated LeaderboardEntry entries = 3;
 }

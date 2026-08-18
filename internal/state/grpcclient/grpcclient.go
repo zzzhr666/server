@@ -28,11 +28,12 @@ func (c *Client) UpdatePlayerAvatar(ctx context.Context, playerID int64, avatar 
 	return stateproto.FromProtoPlayer(res.GetPlayer()), nil
 }
 
-// SettleMatchRewards 通过 state-server 原子、幂等地发放一场对局的多人奖励。
+// SettleMatchRewards 通过 state-server 原子、幂等地结算一场对局的奖励与排行榜数据。
 func (c *Client) SettleMatchRewards(ctx context.Context, input state.SettleMatchRewardsInput) (*state.SettleMatchRewardsResult, error) {
 	res, err := c.grpc.SettleMatchRewards(ctx, &statepb.SettleMatchRewardRequest{
 		SettlementId: input.SettlementID,
 		Rewards:      stateproto.ToProtoSettleMatchRewards(input.Rewards),
+		Leaderboard:  stateproto.ToProtoMatchLeaderboardRecord(input.Leaderboard),
 	})
 	if err != nil {
 		return nil, mapGRPCError(err)
@@ -318,6 +319,19 @@ func (c *Client) ListChatMessages(ctx context.Context, input state.ListChatMessa
 	return messages, nil
 }
 
+// ListLeaderboard 通过 state-server 读取指定类型的排行榜。
+func (c *Client) ListLeaderboard(ctx context.Context, input state.ListLeaderboardInput) (*state.ListLeaderboardResult, error) {
+	response, err := c.grpc.ListLeaderboard(ctx, &statepb.ListLeaderboardRequest{
+		Type:       stateproto.ToProtoLeaderboardType(input.Type),
+		MapVersion: input.MapVersion,
+		Limit:      input.Limit,
+	})
+	if err != nil {
+		return nil, mapGRPCError(err)
+	}
+	return stateproto.FromProtoLeaderboardResult(response), nil
+}
+
 // NewClient 使用生成的 gRPC 绑定创建状态契约客户端。
 func NewClient(grpcClient statepb.StateServiceClient) *Client {
 	return &Client{grpc: grpcClient}
@@ -377,6 +391,8 @@ func mapGRPCError(err error) error {
 			return state.ErrInvalidChatChannel
 		case state.ErrInvalidSettlement.Error():
 			return state.ErrInvalidSettlement
+		case state.ErrInvalidLeaderboardQuery.Error():
+			return state.ErrInvalidLeaderboardQuery
 		}
 	case codes.FailedPrecondition:
 		switch st.Message() {

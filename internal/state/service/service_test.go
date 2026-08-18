@@ -122,6 +122,34 @@ func TestServiceForwardsCoinOperations(t *testing.T) {
 	}
 }
 
+func TestServiceForwardsLeaderboardOperations(t *testing.T) {
+	stores := newFakeStores()
+	stores.listLeaderboardResult = &statecontract.ListLeaderboardResult{
+		Type:       statecontract.LeaderboardTypeDuoClearTime,
+		MapVersion: "wave-v1",
+		Entries: []statecontract.LeaderboardEntry{
+			{Rank: 1, Score: 82_000},
+		},
+	}
+	svc := newTestService(stores)
+	input := statecontract.ListLeaderboardInput{
+		Type:       statecontract.LeaderboardTypeDuoClearTime,
+		MapVersion: "wave-v1",
+		Limit:      10,
+	}
+
+	result, err := svc.ListLeaderboard(context.Background(), input)
+	if err != nil {
+		t.Fatalf("ListLeaderboard returned error: %v", err)
+	}
+	if stores.listLeaderboardInput != input {
+		t.Fatalf("ListLeaderboard input = %+v, want %+v", stores.listLeaderboardInput, input)
+	}
+	if result != stores.listLeaderboardResult {
+		t.Fatalf("ListLeaderboard result = %+v, want %+v", result, stores.listLeaderboardResult)
+	}
+}
+
 func TestServiceForwardsChatOperations(t *testing.T) {
 	stores := newFakeStores()
 	createdAt := time.Date(2026, 8, 11, 10, 0, 0, 0, time.UTC)
@@ -405,6 +433,8 @@ type fakeStores struct {
 	deletedFriendFriendPlayerID        int64
 	settleMatchRewardsInput            statecontract.SettleMatchRewardsInput
 	settleMatchRewardsResult           *statecontract.SettleMatchRewardsResult
+	listLeaderboardInput               statecontract.ListLeaderboardInput
+	listLeaderboardResult              *statecontract.ListLeaderboardResult
 	saveChatMessageInput               statecontract.SaveChatMessageInput
 	savedChatMessage                   *statecontract.ChatMessage
 	listChatMessagesInput              statecontract.ListChatMessagesInput
@@ -441,6 +471,7 @@ func newTestService(stores *fakeStores) *Service {
 		Friends:       stores,
 		Coins:         stores,
 		Chats:         stores,
+		Leaderboards:  stores,
 	})
 }
 
@@ -495,6 +526,11 @@ func (f *fakeStores) NextPlayerID(_ context.Context) (int64, error) {
 func (f *fakeStores) SettleMatchRewards(_ context.Context, input statecontract.SettleMatchRewardsInput) (*statecontract.SettleMatchRewardsResult, error) {
 	f.settleMatchRewardsInput = input
 	return f.settleMatchRewardsResult, nil
+}
+
+func (f *fakeStores) ListLeaderboard(_ context.Context, input statecontract.ListLeaderboardInput) (*statecontract.ListLeaderboardResult, error) {
+	f.listLeaderboardInput = input
+	return f.listLeaderboardResult, nil
 }
 
 func (f *fakeStores) SaveChatMessage(_ context.Context, input statecontract.SaveChatMessageInput) (*statecontract.ChatMessage, error) {

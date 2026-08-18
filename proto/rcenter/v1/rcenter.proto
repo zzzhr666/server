@@ -66,6 +66,7 @@ message FinishMatchRequest {
   string reason = 2;
   repeated PlayerBattleStats player_stats = 3;
   string room_name = 4;
+  int64 combat_duration_ms = 5;
 }
 
 message PlayerBattleStats {

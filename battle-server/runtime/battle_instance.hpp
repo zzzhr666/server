@@ -142,5 +142,7 @@ namespace battle {
         std::uint64_t server_tick_{};
         std::uint64_t next_event_id_{1};
         std::vector<PendingBattleEvent>pending_battle_events_;
+
+        ecs::DeltaTime combat_elapsed_time_{0.0f};
     };
 }

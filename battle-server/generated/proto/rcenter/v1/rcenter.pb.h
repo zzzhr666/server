@@ -3464,6 +3464,7 @@ class FinishMatchRequest final : public ::google::protobuf::Message
     kPlayerStatsFieldNumber = 3,
     kReasonFieldNumber = 2,
     kRoomNameFieldNumber = 4,
+    kCombatDurationMsFieldNumber = 5,
   };
   // repeated int64 player_ids = 1;
   int player_ids_size() const;
@@ -3530,11 +3531,21 @@ class FinishMatchRequest final : public ::google::protobuf::Message
   ::std::string* PROTOBUF_NONNULL _internal_mutable_room_name();
 
   public:
+  // int64 combat_duration_ms = 5;
+  void clear_combat_duration_ms() ;
+  ::int64_t combat_duration_ms() const;
+  void set_combat_duration_ms(::int64_t value);
+
+  private:
+  ::int64_t _internal_combat_duration_ms() const;
+  void _internal_set_combat_duration_ms(::int64_t value);
+
+  public:
   // @@protoc_insertion_point(class_scope:rcenter.v1.FinishMatchRequest)
  private:
   class _Internal;
   friend class ::google::protobuf::internal::TcParser;
-  static const ::google::protobuf::internal::TcParseTable<2, 4,
+  static const ::google::protobuf::internal::TcParseTable<3, 5,
                                    1, 53,
                                    2>
       _table_;
@@ -3561,6 +3572,7 @@ class FinishMatchRequest final : public ::google::protobuf::Message
     ::google::protobuf::RepeatedPtrField< ::rcenter::v1::PlayerBattleStats > player_stats_;
     ::google::protobuf::internal::ArenaStringPtr reason_;
     ::google::protobuf::internal::ArenaStringPtr room_name_;
+    ::int64_t combat_duration_ms_;
     PROTOBUF_TSAN_DECLARE_MEMBER
   };
   union { Impl_ _impl_; };
@@ -4920,6 +4932,30 @@ inline void FinishMatchRequest::set_allocated_room_name(::std::string* PROTOBUF_
     _impl_.room_name_.Set("", GetArena());
   }
   // @@protoc_insertion_point(field_set_allocated:rcenter.v1.FinishMatchRequest.room_name)
+}
+
+// int64 combat_duration_ms = 5;
+inline void FinishMatchRequest::clear_combat_duration_ms() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.combat_duration_ms_ = ::int64_t{0};
+  _impl_._has_bits_[0] &= ~0x00000004u;
+}
+inline ::int64_t FinishMatchRequest::combat_duration_ms() const {
+  // @@protoc_insertion_point(field_get:rcenter.v1.FinishMatchRequest.combat_duration_ms)
+  return _internal_combat_duration_ms();
+}
+inline void FinishMatchRequest::set_combat_duration_ms(::int64_t value) {
+  _internal_set_combat_duration_ms(value);
+  _impl_._has_bits_[0] |= 0x00000004u;
+  // @@protoc_insertion_point(field_set:rcenter.v1.FinishMatchRequest.combat_duration_ms)
+}
+inline ::int64_t FinishMatchRequest::_internal_combat_duration_ms() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.combat_duration_ms_;
+}
+inline void FinishMatchRequest::_internal_set_combat_duration_ms(::int64_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.combat_duration_ms_ = value;
 }
 
 // -------------------------------------------------------------------

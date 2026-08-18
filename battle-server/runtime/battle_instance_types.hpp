@@ -112,6 +112,7 @@ namespace battle {
     struct BattleSettlement {
         std::vector<PlayerSettlement> players;
         BattleEndReason reason = BattleEndReason::None;
+        std::int64_t combat_duration_ms = 0;
     };
 
     enum class BattlePhase : std::uint8_t {

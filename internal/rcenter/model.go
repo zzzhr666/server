@@ -52,12 +52,13 @@ type PlayerLoadout struct {
 	MoveSpeedLevel   int32
 }
 
-// FinishMatchInput 描述战斗服上报的一次对局结束及权威战斗统计。
+// FinishMatchInput 描述战斗服上报的一次对局结束、权威战斗统计和纯战斗耗时。
 type FinishMatchInput struct {
-	RoomName    string
-	PlayerIDs   []int64
-	Reason      string
-	PlayerStats []PlayerBattleStats
+	RoomName         string
+	PlayerIDs        []int64
+	Reason           string
+	PlayerStats      []PlayerBattleStats
+	CombatDurationMS int64
 }
 
 // ActiveMatch 存储已匹配玩家可以恢复的战斗连接数据。

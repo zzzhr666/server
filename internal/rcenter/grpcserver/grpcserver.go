@@ -74,9 +74,10 @@ func (s *Server) CancelMatch(ctx context.Context, req *rcenterpb.CancelMatchRequ
 // FinishMatch 处理战斗服发来的战斗完成通知。
 func (s *Server) FinishMatch(ctx context.Context, request *rcenterpb.FinishMatchRequest) (*rcenterpb.FinishMatchResponse, error) {
 	input := rcenter.FinishMatchInput{
-		RoomName:  request.GetRoomName(),
-		PlayerIDs: request.GetPlayerIds(),
-		Reason:    request.GetReason(),
+		RoomName:         request.GetRoomName(),
+		PlayerIDs:        request.GetPlayerIds(),
+		Reason:           request.GetReason(),
+		CombatDurationMS: request.GetCombatDurationMs(),
 	}
 	for _, stat := range request.GetPlayerStats() {
 		input.PlayerStats = append(input.PlayerStats, rcenterproto.FromProtoPlayerBattleStats(stat))

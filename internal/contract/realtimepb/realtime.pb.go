@@ -80,6 +80,58 @@ func (ErrorCode) EnumDescriptor() ([]byte, []int) {
 	return file_proto_realtime_v1_realtime_proto_rawDescGZIP(), []int{0}
 }
 
+type LeaderboardType int32
+
+const (
+	LeaderboardType_LEADERBOARD_TYPE_UNSPECIFIED     LeaderboardType = 0
+	LeaderboardType_LEADERBOARD_TYPE_SOLO_CLEAR_TIME LeaderboardType = 1
+	LeaderboardType_LEADERBOARD_TYPE_DUO_CLEAR_TIME  LeaderboardType = 2
+	LeaderboardType_LEADERBOARD_TYPE_TOTAL_KILLS     LeaderboardType = 3
+)
+
+// Enum value maps for LeaderboardType.
+var (
+	LeaderboardType_name = map[int32]string{
+		0: "LEADERBOARD_TYPE_UNSPECIFIED",
+		1: "LEADERBOARD_TYPE_SOLO_CLEAR_TIME",
+		2: "LEADERBOARD_TYPE_DUO_CLEAR_TIME",
+		3: "LEADERBOARD_TYPE_TOTAL_KILLS",
+	}
+	LeaderboardType_value = map[string]int32{
+		"LEADERBOARD_TYPE_UNSPECIFIED":     0,
+		"LEADERBOARD_TYPE_SOLO_CLEAR_TIME": 1,
+		"LEADERBOARD_TYPE_DUO_CLEAR_TIME":  2,
+		"LEADERBOARD_TYPE_TOTAL_KILLS":     3,
+	}
+)
+
+func (x LeaderboardType) Enum() *LeaderboardType {
+	p := new(LeaderboardType)
+	*p = x
+	return p
+}
+
+func (x LeaderboardType) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (LeaderboardType) Descriptor() protoreflect.EnumDescriptor {
+	return file_proto_realtime_v1_realtime_proto_enumTypes[1].Descriptor()
+}
+
+func (LeaderboardType) Type() protoreflect.EnumType {
+	return &file_proto_realtime_v1_realtime_proto_enumTypes[1]
+}
+
+func (x LeaderboardType) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use LeaderboardType.Descriptor instead.
+func (LeaderboardType) EnumDescriptor() ([]byte, []int) {
+	return file_proto_realtime_v1_realtime_proto_rawDescGZIP(), []int{1}
+}
+
 // ClientEnvelope 表示客户端在 TCP 连接上发送的一次请求。
 // 首帧 payload 必须是 AuthenticateRequest。
 type ClientEnvelope struct {
@@ -109,6 +161,7 @@ type ClientEnvelope struct {
 	//	*ClientEnvelope_ChatWorldList
 	//	*ClientEnvelope_ChatDirectList
 	//	*ClientEnvelope_PlayerAvatarUpdate
+	//	*ClientEnvelope_LeaderboardList
 	Payload       isClientEnvelope_Payload `protobuf_oneof:"payload"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -347,6 +400,15 @@ func (x *ClientEnvelope) GetPlayerAvatarUpdate() *PlayerAvatarUpdateRequest {
 	return nil
 }
 
+func (x *ClientEnvelope) GetLeaderboardList() *ListLeaderboardRequest {
+	if x != nil {
+		if x, ok := x.Payload.(*ClientEnvelope_LeaderboardList); ok {
+			return x.LeaderboardList
+		}
+	}
+	return nil
+}
+
 type isClientEnvelope_Payload interface {
 	isClientEnvelope_Payload()
 }
@@ -435,6 +497,10 @@ type ClientEnvelope_PlayerAvatarUpdate struct {
 	PlayerAvatarUpdate *PlayerAvatarUpdateRequest `protobuf:"bytes,35,opt,name=player_avatar_update,json=playerAvatarUpdate,proto3,oneof"`
 }
 
+type ClientEnvelope_LeaderboardList struct {
+	LeaderboardList *ListLeaderboardRequest `protobuf:"bytes,36,opt,name=leaderboard_list,json=leaderboardList,proto3,oneof"`
+}
+
 func (*ClientEnvelope_Authenticate) isClientEnvelope_Payload() {}
 
 func (*ClientEnvelope_Heartbeat) isClientEnvelope_Payload() {}
@@ -477,6 +543,8 @@ func (*ClientEnvelope_ChatDirectList) isClientEnvelope_Payload() {}
 
 func (*ClientEnvelope_PlayerAvatarUpdate) isClientEnvelope_Payload() {}
 
+func (*ClientEnvelope_LeaderboardList) isClientEnvelope_Payload() {}
+
 // ServerEnvelope 表示服务端响应或主动推送的事件。
 type ServerEnvelope struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -506,6 +574,7 @@ type ServerEnvelope struct {
 	//	*ServerEnvelope_ChatSent
 	//	*ServerEnvelope_ChatMessages
 	//	*ServerEnvelope_ChatMessagePushed
+	//	*ServerEnvelope_Leaderboard
 	Payload       isServerEnvelope_Payload `protobuf_oneof:"payload"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -753,6 +822,15 @@ func (x *ServerEnvelope) GetChatMessagePushed() *ChatMessagePushed {
 	return nil
 }
 
+func (x *ServerEnvelope) GetLeaderboard() *LeaderboardResponse {
+	if x != nil {
+		if x, ok := x.Payload.(*ServerEnvelope_Leaderboard); ok {
+			return x.Leaderboard
+		}
+	}
+	return nil
+}
+
 type isServerEnvelope_Payload interface {
 	isServerEnvelope_Payload()
 }
@@ -845,6 +923,10 @@ type ServerEnvelope_ChatMessagePushed struct {
 	ChatMessagePushed *ChatMessagePushed `protobuf:"bytes,31,opt,name=chat_message_pushed,json=chatMessagePushed,proto3,oneof"`
 }
 
+type ServerEnvelope_Leaderboard struct {
+	Leaderboard *LeaderboardResponse `protobuf:"bytes,32,opt,name=leaderboard,proto3,oneof"`
+}
+
 func (*ServerEnvelope_Authenticated) isServerEnvelope_Payload() {}
 
 func (*ServerEnvelope_HeartbeatAck) isServerEnvelope_Payload() {}
@@ -888,6 +970,8 @@ func (*ServerEnvelope_ChatSent) isServerEnvelope_Payload() {}
 func (*ServerEnvelope_ChatMessages) isServerEnvelope_Payload() {}
 
 func (*ServerEnvelope_ChatMessagePushed) isServerEnvelope_Payload() {}
+
+func (*ServerEnvelope_Leaderboard) isServerEnvelope_Payload() {}
 
 type Authenticated struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
@@ -3318,11 +3402,251 @@ func (x *ChatMessagePushed) GetMessage() *ChatMessage {
 	return nil
 }
 
+type ListLeaderboardRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Type          LeaderboardType        `protobuf:"varint,1,opt,name=type,proto3,enum=realtime.v1.LeaderboardType" json:"type,omitempty"`
+	MapVersion    string                 `protobuf:"bytes,2,opt,name=map_version,json=mapVersion,proto3" json:"map_version,omitempty"`
+	Limit         int64                  `protobuf:"varint,3,opt,name=limit,proto3" json:"limit,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListLeaderboardRequest) Reset() {
+	*x = ListLeaderboardRequest{}
+	mi := &file_proto_realtime_v1_realtime_proto_msgTypes[51]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListLeaderboardRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListLeaderboardRequest) ProtoMessage() {}
+
+func (x *ListLeaderboardRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_realtime_v1_realtime_proto_msgTypes[51]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListLeaderboardRequest.ProtoReflect.Descriptor instead.
+func (*ListLeaderboardRequest) Descriptor() ([]byte, []int) {
+	return file_proto_realtime_v1_realtime_proto_rawDescGZIP(), []int{51}
+}
+
+func (x *ListLeaderboardRequest) GetType() LeaderboardType {
+	if x != nil {
+		return x.Type
+	}
+	return LeaderboardType_LEADERBOARD_TYPE_UNSPECIFIED
+}
+
+func (x *ListLeaderboardRequest) GetMapVersion() string {
+	if x != nil {
+		return x.MapVersion
+	}
+	return ""
+}
+
+func (x *ListLeaderboardRequest) GetLimit() int64 {
+	if x != nil {
+		return x.Limit
+	}
+	return 0
+}
+
+type LeaderboardPlayer struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	PlayerId      int64                  `protobuf:"varint,1,opt,name=player_id,json=playerId,proto3" json:"player_id,omitempty"`
+	Nickname      string                 `protobuf:"bytes,2,opt,name=nickname,proto3" json:"nickname,omitempty"`
+	Avatar        string                 `protobuf:"bytes,3,opt,name=avatar,proto3" json:"avatar,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *LeaderboardPlayer) Reset() {
+	*x = LeaderboardPlayer{}
+	mi := &file_proto_realtime_v1_realtime_proto_msgTypes[52]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *LeaderboardPlayer) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*LeaderboardPlayer) ProtoMessage() {}
+
+func (x *LeaderboardPlayer) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_realtime_v1_realtime_proto_msgTypes[52]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use LeaderboardPlayer.ProtoReflect.Descriptor instead.
+func (*LeaderboardPlayer) Descriptor() ([]byte, []int) {
+	return file_proto_realtime_v1_realtime_proto_rawDescGZIP(), []int{52}
+}
+
+func (x *LeaderboardPlayer) GetPlayerId() int64 {
+	if x != nil {
+		return x.PlayerId
+	}
+	return 0
+}
+
+func (x *LeaderboardPlayer) GetNickname() string {
+	if x != nil {
+		return x.Nickname
+	}
+	return ""
+}
+
+func (x *LeaderboardPlayer) GetAvatar() string {
+	if x != nil {
+		return x.Avatar
+	}
+	return ""
+}
+
+type LeaderboardEntry struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Rank          int64                  `protobuf:"varint,1,opt,name=rank,proto3" json:"rank,omitempty"`
+	Players       []*LeaderboardPlayer   `protobuf:"bytes,2,rep,name=players,proto3" json:"players,omitempty"`
+	Score         int64                  `protobuf:"varint,3,opt,name=score,proto3" json:"score,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *LeaderboardEntry) Reset() {
+	*x = LeaderboardEntry{}
+	mi := &file_proto_realtime_v1_realtime_proto_msgTypes[53]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *LeaderboardEntry) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*LeaderboardEntry) ProtoMessage() {}
+
+func (x *LeaderboardEntry) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_realtime_v1_realtime_proto_msgTypes[53]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use LeaderboardEntry.ProtoReflect.Descriptor instead.
+func (*LeaderboardEntry) Descriptor() ([]byte, []int) {
+	return file_proto_realtime_v1_realtime_proto_rawDescGZIP(), []int{53}
+}
+
+func (x *LeaderboardEntry) GetRank() int64 {
+	if x != nil {
+		return x.Rank
+	}
+	return 0
+}
+
+func (x *LeaderboardEntry) GetPlayers() []*LeaderboardPlayer {
+	if x != nil {
+		return x.Players
+	}
+	return nil
+}
+
+func (x *LeaderboardEntry) GetScore() int64 {
+	if x != nil {
+		return x.Score
+	}
+	return 0
+}
+
+type LeaderboardResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Type          LeaderboardType        `protobuf:"varint,1,opt,name=type,proto3,enum=realtime.v1.LeaderboardType" json:"type,omitempty"`
+	MapVersion    string                 `protobuf:"bytes,2,opt,name=map_version,json=mapVersion,proto3" json:"map_version,omitempty"`
+	Entries       []*LeaderboardEntry    `protobuf:"bytes,3,rep,name=entries,proto3" json:"entries,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *LeaderboardResponse) Reset() {
+	*x = LeaderboardResponse{}
+	mi := &file_proto_realtime_v1_realtime_proto_msgTypes[54]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *LeaderboardResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*LeaderboardResponse) ProtoMessage() {}
+
+func (x *LeaderboardResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_realtime_v1_realtime_proto_msgTypes[54]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use LeaderboardResponse.ProtoReflect.Descriptor instead.
+func (*LeaderboardResponse) Descriptor() ([]byte, []int) {
+	return file_proto_realtime_v1_realtime_proto_rawDescGZIP(), []int{54}
+}
+
+func (x *LeaderboardResponse) GetType() LeaderboardType {
+	if x != nil {
+		return x.Type
+	}
+	return LeaderboardType_LEADERBOARD_TYPE_UNSPECIFIED
+}
+
+func (x *LeaderboardResponse) GetMapVersion() string {
+	if x != nil {
+		return x.MapVersion
+	}
+	return ""
+}
+
+func (x *LeaderboardResponse) GetEntries() []*LeaderboardEntry {
+	if x != nil {
+		return x.Entries
+	}
+	return nil
+}
+
 var File_proto_realtime_v1_realtime_proto protoreflect.FileDescriptor
 
 const file_proto_realtime_v1_realtime_proto_rawDesc = "" +
 	"\n" +
-	" proto/realtime/v1/realtime.proto\x12\vrealtime.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"\xb1\r\n" +
+	" proto/realtime/v1/realtime.proto\x12\vrealtime.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"\x83\x0e\n" +
 	"\x0eClientEnvelope\x12\x1d\n" +
 	"\n" +
 	"request_id\x18\x01 \x01(\x04R\trequestId\x12F\n" +
@@ -3351,8 +3675,9 @@ const file_proto_realtime_v1_realtime_proto_rawDesc = "" +
 	"\x10chat_direct_send\x18  \x01(\v2\".realtime.v1.SendDirectChatRequestH\x00R\x0echatDirectSend\x12K\n" +
 	"\x0fchat_world_list\x18! \x01(\v2!.realtime.v1.ListWorldChatRequestH\x00R\rchatWorldList\x12N\n" +
 	"\x10chat_direct_list\x18\" \x01(\v2\".realtime.v1.ListDirectChatRequestH\x00R\x0echatDirectList\x12Z\n" +
-	"\x14player_avatar_update\x18# \x01(\v2&.realtime.v1.PlayerAvatarUpdateRequestH\x00R\x12playerAvatarUpdateB\t\n" +
-	"\apayload\"\xa5\r\n" +
+	"\x14player_avatar_update\x18# \x01(\v2&.realtime.v1.PlayerAvatarUpdateRequestH\x00R\x12playerAvatarUpdate\x12P\n" +
+	"\x10leaderboard_list\x18$ \x01(\v2#.realtime.v1.ListLeaderboardRequestH\x00R\x0fleaderboardListB\t\n" +
+	"\apayload\"\xeb\r\n" +
 	"\x0eServerEnvelope\x12\x1d\n" +
 	"\n" +
 	"request_id\x18\x01 \x01(\x04R\trequestId\x12B\n" +
@@ -3379,7 +3704,8 @@ const file_proto_realtime_v1_realtime_proto_rawDesc = "" +
 	"logout_ack\x18\x1c \x01(\v2\x1b.realtime.v1.LogoutResponseH\x00R\tlogoutAck\x12<\n" +
 	"\tchat_sent\x18\x1d \x01(\v2\x1d.realtime.v1.ChatSendResponseH\x00R\bchatSent\x12H\n" +
 	"\rchat_messages\x18\x1e \x01(\v2!.realtime.v1.ChatMessagesResponseH\x00R\fchatMessages\x12P\n" +
-	"\x13chat_message_pushed\x18\x1f \x01(\v2\x1e.realtime.v1.ChatMessagePushedH\x00R\x11chatMessagePushedB\t\n" +
+	"\x13chat_message_pushed\x18\x1f \x01(\v2\x1e.realtime.v1.ChatMessagePushedH\x00R\x11chatMessagePushed\x12D\n" +
+	"\vleaderboard\x18  \x01(\v2 .realtime.v1.LeaderboardResponseH\x00R\vleaderboardB\t\n" +
 	"\apayload\",\n" +
 	"\rAuthenticated\x12\x1b\n" +
 	"\tplayer_id\x18\x01 \x01(\x03R\bplayerId\"\x12\n" +
@@ -3526,14 +3852,37 @@ const file_proto_realtime_v1_realtime_proto_rawDesc = "" +
 	"\x14ChatMessagesResponse\x124\n" +
 	"\bmessages\x18\x01 \x03(\v2\x18.realtime.v1.ChatMessageR\bmessages\"G\n" +
 	"\x11ChatMessagePushed\x122\n" +
-	"\amessage\x18\x01 \x01(\v2\x18.realtime.v1.ChatMessageR\amessage*r\n" +
+	"\amessage\x18\x01 \x01(\v2\x18.realtime.v1.ChatMessageR\amessage\"\x81\x01\n" +
+	"\x16ListLeaderboardRequest\x120\n" +
+	"\x04type\x18\x01 \x01(\x0e2\x1c.realtime.v1.LeaderboardTypeR\x04type\x12\x1f\n" +
+	"\vmap_version\x18\x02 \x01(\tR\n" +
+	"mapVersion\x12\x14\n" +
+	"\x05limit\x18\x03 \x01(\x03R\x05limit\"d\n" +
+	"\x11LeaderboardPlayer\x12\x1b\n" +
+	"\tplayer_id\x18\x01 \x01(\x03R\bplayerId\x12\x1a\n" +
+	"\bnickname\x18\x02 \x01(\tR\bnickname\x12\x16\n" +
+	"\x06avatar\x18\x03 \x01(\tR\x06avatar\"v\n" +
+	"\x10LeaderboardEntry\x12\x12\n" +
+	"\x04rank\x18\x01 \x01(\x03R\x04rank\x128\n" +
+	"\aplayers\x18\x02 \x03(\v2\x1e.realtime.v1.LeaderboardPlayerR\aplayers\x12\x14\n" +
+	"\x05score\x18\x03 \x01(\x03R\x05score\"\xa1\x01\n" +
+	"\x13LeaderboardResponse\x120\n" +
+	"\x04type\x18\x01 \x01(\x0e2\x1c.realtime.v1.LeaderboardTypeR\x04type\x12\x1f\n" +
+	"\vmap_version\x18\x02 \x01(\tR\n" +
+	"mapVersion\x127\n" +
+	"\aentries\x18\x03 \x03(\v2\x1d.realtime.v1.LeaderboardEntryR\aentries*r\n" +
 	"\tErrorCode\x12\x0f\n" +
 	"\vUNSPECIFIED\x10\x00\x12\x13\n" +
 	"\x0fUNAUTHENTICATED\x10\x01\x12\x14\n" +
 	"\x10INVALID_ARGUMENT\x10\x02\x12\r\n" +
 	"\tNOT_FOUND\x10\x03\x12\f\n" +
 	"\bCONFLICT\x10\x04\x12\f\n" +
-	"\bINTERNAL\x10\x05B0Z.server/internal/contract/realtimepb;realtimepbb\x06proto3"
+	"\bINTERNAL\x10\x05*\xa0\x01\n" +
+	"\x0fLeaderboardType\x12 \n" +
+	"\x1cLEADERBOARD_TYPE_UNSPECIFIED\x10\x00\x12$\n" +
+	" LEADERBOARD_TYPE_SOLO_CLEAR_TIME\x10\x01\x12#\n" +
+	"\x1fLEADERBOARD_TYPE_DUO_CLEAR_TIME\x10\x02\x12 \n" +
+	"\x1cLEADERBOARD_TYPE_TOTAL_KILLS\x10\x03B0Z.server/internal/contract/realtimepb;realtimepbb\x06proto3"
 
 var (
 	file_proto_realtime_v1_realtime_proto_rawDescOnce sync.Once
@@ -3547,126 +3896,137 @@ func file_proto_realtime_v1_realtime_proto_rawDescGZIP() []byte {
 	return file_proto_realtime_v1_realtime_proto_rawDescData
 }
 
-var file_proto_realtime_v1_realtime_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_proto_realtime_v1_realtime_proto_msgTypes = make([]protoimpl.MessageInfo, 51)
+var file_proto_realtime_v1_realtime_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
+var file_proto_realtime_v1_realtime_proto_msgTypes = make([]protoimpl.MessageInfo, 55)
 var file_proto_realtime_v1_realtime_proto_goTypes = []any{
 	(ErrorCode)(0),                            // 0: realtime.v1.ErrorCode
-	(*ClientEnvelope)(nil),                    // 1: realtime.v1.ClientEnvelope
-	(*ServerEnvelope)(nil),                    // 2: realtime.v1.ServerEnvelope
-	(*Authenticated)(nil),                     // 3: realtime.v1.Authenticated
-	(*HeartbeatRequest)(nil),                  // 4: realtime.v1.HeartbeatRequest
-	(*HeartbeatAck)(nil),                      // 5: realtime.v1.HeartbeatAck
-	(*MatchCancelRequest)(nil),                // 6: realtime.v1.MatchCancelRequest
-	(*MatchResumeRequest)(nil),                // 7: realtime.v1.MatchResumeRequest
-	(*MatchStartRequest)(nil),                 // 8: realtime.v1.MatchStartRequest
-	(*MatchCanceled)(nil),                     // 9: realtime.v1.MatchCanceled
-	(*MatchResult)(nil),                       // 10: realtime.v1.MatchResult
-	(*AuthenticateRequest)(nil),               // 11: realtime.v1.AuthenticateRequest
-	(*ProtocolError)(nil),                     // 12: realtime.v1.ProtocolError
-	(*ConnectionReplaced)(nil),                // 13: realtime.v1.ConnectionReplaced
-	(*FriendPresenceChanged)(nil),             // 14: realtime.v1.FriendPresenceChanged
-	(*FriendRemoved)(nil),                     // 15: realtime.v1.FriendRemoved
-	(*FriendRequestReceived)(nil),             // 16: realtime.v1.FriendRequestReceived
-	(*FriendRequestHandled)(nil),              // 17: realtime.v1.FriendRequestHandled
-	(*Player)(nil),                            // 18: realtime.v1.Player
-	(*FriendRequest)(nil),                     // 19: realtime.v1.FriendRequest
-	(*FriendSummary)(nil),                     // 20: realtime.v1.FriendSummary
-	(*Growth)(nil),                            // 21: realtime.v1.Growth
-	(*GrowthUpgradeOption)(nil),               // 22: realtime.v1.GrowthUpgradeOption
-	(*PlayerResponse)(nil),                    // 23: realtime.v1.PlayerResponse
-	(*PlayerAvatarUpdateRequest)(nil),         // 24: realtime.v1.PlayerAvatarUpdateRequest
-	(*GrowthResponse)(nil),                    // 25: realtime.v1.GrowthResponse
-	(*UpgradeGrowthResponse)(nil),             // 26: realtime.v1.UpgradeGrowthResponse
-	(*UpgradeGrowthRequest)(nil),              // 27: realtime.v1.UpgradeGrowthRequest
-	(*DeleteFriendRequest)(nil),               // 28: realtime.v1.DeleteFriendRequest
-	(*SendFriendRequestRequest)(nil),          // 29: realtime.v1.SendFriendRequestRequest
-	(*FriendRequestSentResponse)(nil),         // 30: realtime.v1.FriendRequestSentResponse
-	(*ListIncomingFriendRequestsRequest)(nil), // 31: realtime.v1.ListIncomingFriendRequestsRequest
-	(*ListOutgoingFriendRequestsRequest)(nil), // 32: realtime.v1.ListOutgoingFriendRequestsRequest
-	(*FriendRequestResponse)(nil),             // 33: realtime.v1.FriendRequestResponse
-	(*AcceptFriendRequestRequest)(nil),        // 34: realtime.v1.AcceptFriendRequestRequest
-	(*RejectFriendRequestRequest)(nil),        // 35: realtime.v1.RejectFriendRequestRequest
-	(*FriendRequestHandledResponse)(nil),      // 36: realtime.v1.FriendRequestHandledResponse
-	(*FriendListRequest)(nil),                 // 37: realtime.v1.FriendListRequest
-	(*FriendListResponse)(nil),                // 38: realtime.v1.FriendListResponse
-	(*FriendDeletedResponse)(nil),             // 39: realtime.v1.FriendDeletedResponse
-	(*LogoutRequest)(nil),                     // 40: realtime.v1.LogoutRequest
-	(*LogoutResponse)(nil),                    // 41: realtime.v1.LogoutResponse
-	(*PlayerGetRequest)(nil),                  // 42: realtime.v1.PlayerGetRequest
-	(*GrowthGetRequest)(nil),                  // 43: realtime.v1.GrowthGetRequest
-	(*ChatMessage)(nil),                       // 44: realtime.v1.ChatMessage
-	(*SendWorldChatRequest)(nil),              // 45: realtime.v1.SendWorldChatRequest
-	(*SendDirectChatRequest)(nil),             // 46: realtime.v1.SendDirectChatRequest
-	(*ListWorldChatRequest)(nil),              // 47: realtime.v1.ListWorldChatRequest
-	(*ListDirectChatRequest)(nil),             // 48: realtime.v1.ListDirectChatRequest
-	(*ChatSendResponse)(nil),                  // 49: realtime.v1.ChatSendResponse
-	(*ChatMessagesResponse)(nil),              // 50: realtime.v1.ChatMessagesResponse
-	(*ChatMessagePushed)(nil),                 // 51: realtime.v1.ChatMessagePushed
-	(*timestamppb.Timestamp)(nil),             // 52: google.protobuf.Timestamp
+	(LeaderboardType)(0),                      // 1: realtime.v1.LeaderboardType
+	(*ClientEnvelope)(nil),                    // 2: realtime.v1.ClientEnvelope
+	(*ServerEnvelope)(nil),                    // 3: realtime.v1.ServerEnvelope
+	(*Authenticated)(nil),                     // 4: realtime.v1.Authenticated
+	(*HeartbeatRequest)(nil),                  // 5: realtime.v1.HeartbeatRequest
+	(*HeartbeatAck)(nil),                      // 6: realtime.v1.HeartbeatAck
+	(*MatchCancelRequest)(nil),                // 7: realtime.v1.MatchCancelRequest
+	(*MatchResumeRequest)(nil),                // 8: realtime.v1.MatchResumeRequest
+	(*MatchStartRequest)(nil),                 // 9: realtime.v1.MatchStartRequest
+	(*MatchCanceled)(nil),                     // 10: realtime.v1.MatchCanceled
+	(*MatchResult)(nil),                       // 11: realtime.v1.MatchResult
+	(*AuthenticateRequest)(nil),               // 12: realtime.v1.AuthenticateRequest
+	(*ProtocolError)(nil),                     // 13: realtime.v1.ProtocolError
+	(*ConnectionReplaced)(nil),                // 14: realtime.v1.ConnectionReplaced
+	(*FriendPresenceChanged)(nil),             // 15: realtime.v1.FriendPresenceChanged
+	(*FriendRemoved)(nil),                     // 16: realtime.v1.FriendRemoved
+	(*FriendRequestReceived)(nil),             // 17: realtime.v1.FriendRequestReceived
+	(*FriendRequestHandled)(nil),              // 18: realtime.v1.FriendRequestHandled
+	(*Player)(nil),                            // 19: realtime.v1.Player
+	(*FriendRequest)(nil),                     // 20: realtime.v1.FriendRequest
+	(*FriendSummary)(nil),                     // 21: realtime.v1.FriendSummary
+	(*Growth)(nil),                            // 22: realtime.v1.Growth
+	(*GrowthUpgradeOption)(nil),               // 23: realtime.v1.GrowthUpgradeOption
+	(*PlayerResponse)(nil),                    // 24: realtime.v1.PlayerResponse
+	(*PlayerAvatarUpdateRequest)(nil),         // 25: realtime.v1.PlayerAvatarUpdateRequest
+	(*GrowthResponse)(nil),                    // 26: realtime.v1.GrowthResponse
+	(*UpgradeGrowthResponse)(nil),             // 27: realtime.v1.UpgradeGrowthResponse
+	(*UpgradeGrowthRequest)(nil),              // 28: realtime.v1.UpgradeGrowthRequest
+	(*DeleteFriendRequest)(nil),               // 29: realtime.v1.DeleteFriendRequest
+	(*SendFriendRequestRequest)(nil),          // 30: realtime.v1.SendFriendRequestRequest
+	(*FriendRequestSentResponse)(nil),         // 31: realtime.v1.FriendRequestSentResponse
+	(*ListIncomingFriendRequestsRequest)(nil), // 32: realtime.v1.ListIncomingFriendRequestsRequest
+	(*ListOutgoingFriendRequestsRequest)(nil), // 33: realtime.v1.ListOutgoingFriendRequestsRequest
+	(*FriendRequestResponse)(nil),             // 34: realtime.v1.FriendRequestResponse
+	(*AcceptFriendRequestRequest)(nil),        // 35: realtime.v1.AcceptFriendRequestRequest
+	(*RejectFriendRequestRequest)(nil),        // 36: realtime.v1.RejectFriendRequestRequest
+	(*FriendRequestHandledResponse)(nil),      // 37: realtime.v1.FriendRequestHandledResponse
+	(*FriendListRequest)(nil),                 // 38: realtime.v1.FriendListRequest
+	(*FriendListResponse)(nil),                // 39: realtime.v1.FriendListResponse
+	(*FriendDeletedResponse)(nil),             // 40: realtime.v1.FriendDeletedResponse
+	(*LogoutRequest)(nil),                     // 41: realtime.v1.LogoutRequest
+	(*LogoutResponse)(nil),                    // 42: realtime.v1.LogoutResponse
+	(*PlayerGetRequest)(nil),                  // 43: realtime.v1.PlayerGetRequest
+	(*GrowthGetRequest)(nil),                  // 44: realtime.v1.GrowthGetRequest
+	(*ChatMessage)(nil),                       // 45: realtime.v1.ChatMessage
+	(*SendWorldChatRequest)(nil),              // 46: realtime.v1.SendWorldChatRequest
+	(*SendDirectChatRequest)(nil),             // 47: realtime.v1.SendDirectChatRequest
+	(*ListWorldChatRequest)(nil),              // 48: realtime.v1.ListWorldChatRequest
+	(*ListDirectChatRequest)(nil),             // 49: realtime.v1.ListDirectChatRequest
+	(*ChatSendResponse)(nil),                  // 50: realtime.v1.ChatSendResponse
+	(*ChatMessagesResponse)(nil),              // 51: realtime.v1.ChatMessagesResponse
+	(*ChatMessagePushed)(nil),                 // 52: realtime.v1.ChatMessagePushed
+	(*ListLeaderboardRequest)(nil),            // 53: realtime.v1.ListLeaderboardRequest
+	(*LeaderboardPlayer)(nil),                 // 54: realtime.v1.LeaderboardPlayer
+	(*LeaderboardEntry)(nil),                  // 55: realtime.v1.LeaderboardEntry
+	(*LeaderboardResponse)(nil),               // 56: realtime.v1.LeaderboardResponse
+	(*timestamppb.Timestamp)(nil),             // 57: google.protobuf.Timestamp
 }
 var file_proto_realtime_v1_realtime_proto_depIdxs = []int32{
-	11, // 0: realtime.v1.ClientEnvelope.authenticate:type_name -> realtime.v1.AuthenticateRequest
-	4,  // 1: realtime.v1.ClientEnvelope.heartbeat:type_name -> realtime.v1.HeartbeatRequest
-	8,  // 2: realtime.v1.ClientEnvelope.match_start:type_name -> realtime.v1.MatchStartRequest
-	6,  // 3: realtime.v1.ClientEnvelope.match_cancel:type_name -> realtime.v1.MatchCancelRequest
-	7,  // 4: realtime.v1.ClientEnvelope.match_resume:type_name -> realtime.v1.MatchResumeRequest
-	42, // 5: realtime.v1.ClientEnvelope.player_get:type_name -> realtime.v1.PlayerGetRequest
-	43, // 6: realtime.v1.ClientEnvelope.growth_get:type_name -> realtime.v1.GrowthGetRequest
-	27, // 7: realtime.v1.ClientEnvelope.growth_upgrade:type_name -> realtime.v1.UpgradeGrowthRequest
-	29, // 8: realtime.v1.ClientEnvelope.friend_request_send:type_name -> realtime.v1.SendFriendRequestRequest
-	31, // 9: realtime.v1.ClientEnvelope.friend_request_list_incoming:type_name -> realtime.v1.ListIncomingFriendRequestsRequest
-	32, // 10: realtime.v1.ClientEnvelope.friend_request_list_outgoing:type_name -> realtime.v1.ListOutgoingFriendRequestsRequest
-	34, // 11: realtime.v1.ClientEnvelope.friend_request_accept:type_name -> realtime.v1.AcceptFriendRequestRequest
-	35, // 12: realtime.v1.ClientEnvelope.friend_request_reject:type_name -> realtime.v1.RejectFriendRequestRequest
-	37, // 13: realtime.v1.ClientEnvelope.friend_list:type_name -> realtime.v1.FriendListRequest
-	28, // 14: realtime.v1.ClientEnvelope.friend_delete:type_name -> realtime.v1.DeleteFriendRequest
-	40, // 15: realtime.v1.ClientEnvelope.logout:type_name -> realtime.v1.LogoutRequest
-	45, // 16: realtime.v1.ClientEnvelope.chat_world_send:type_name -> realtime.v1.SendWorldChatRequest
-	46, // 17: realtime.v1.ClientEnvelope.chat_direct_send:type_name -> realtime.v1.SendDirectChatRequest
-	47, // 18: realtime.v1.ClientEnvelope.chat_world_list:type_name -> realtime.v1.ListWorldChatRequest
-	48, // 19: realtime.v1.ClientEnvelope.chat_direct_list:type_name -> realtime.v1.ListDirectChatRequest
-	24, // 20: realtime.v1.ClientEnvelope.player_avatar_update:type_name -> realtime.v1.PlayerAvatarUpdateRequest
-	3,  // 21: realtime.v1.ServerEnvelope.authenticated:type_name -> realtime.v1.Authenticated
-	5,  // 22: realtime.v1.ServerEnvelope.heartbeat_ack:type_name -> realtime.v1.HeartbeatAck
-	10, // 23: realtime.v1.ServerEnvelope.match_result:type_name -> realtime.v1.MatchResult
-	9,  // 24: realtime.v1.ServerEnvelope.match_canceled:type_name -> realtime.v1.MatchCanceled
-	12, // 25: realtime.v1.ServerEnvelope.error:type_name -> realtime.v1.ProtocolError
-	13, // 26: realtime.v1.ServerEnvelope.connection_replaced:type_name -> realtime.v1.ConnectionReplaced
-	14, // 27: realtime.v1.ServerEnvelope.friend_presence_changed:type_name -> realtime.v1.FriendPresenceChanged
-	15, // 28: realtime.v1.ServerEnvelope.friend_removed:type_name -> realtime.v1.FriendRemoved
-	16, // 29: realtime.v1.ServerEnvelope.friend_request_received:type_name -> realtime.v1.FriendRequestReceived
-	17, // 30: realtime.v1.ServerEnvelope.friend_request_handled:type_name -> realtime.v1.FriendRequestHandled
-	23, // 31: realtime.v1.ServerEnvelope.player:type_name -> realtime.v1.PlayerResponse
-	25, // 32: realtime.v1.ServerEnvelope.growth:type_name -> realtime.v1.GrowthResponse
-	26, // 33: realtime.v1.ServerEnvelope.growth_upgrade_result:type_name -> realtime.v1.UpgradeGrowthResponse
-	30, // 34: realtime.v1.ServerEnvelope.friend_request_sent:type_name -> realtime.v1.FriendRequestSentResponse
-	33, // 35: realtime.v1.ServerEnvelope.friend_requests:type_name -> realtime.v1.FriendRequestResponse
-	36, // 36: realtime.v1.ServerEnvelope.friend_request_handled_ack:type_name -> realtime.v1.FriendRequestHandledResponse
-	38, // 37: realtime.v1.ServerEnvelope.friends:type_name -> realtime.v1.FriendListResponse
-	39, // 38: realtime.v1.ServerEnvelope.friend_deleted:type_name -> realtime.v1.FriendDeletedResponse
-	41, // 39: realtime.v1.ServerEnvelope.logout_ack:type_name -> realtime.v1.LogoutResponse
-	49, // 40: realtime.v1.ServerEnvelope.chat_sent:type_name -> realtime.v1.ChatSendResponse
-	50, // 41: realtime.v1.ServerEnvelope.chat_messages:type_name -> realtime.v1.ChatMessagesResponse
-	51, // 42: realtime.v1.ServerEnvelope.chat_message_pushed:type_name -> realtime.v1.ChatMessagePushed
-	0,  // 43: realtime.v1.ProtocolError.code:type_name -> realtime.v1.ErrorCode
-	52, // 44: realtime.v1.FriendRequest.created_at:type_name -> google.protobuf.Timestamp
-	52, // 45: realtime.v1.FriendSummary.updated_at:type_name -> google.protobuf.Timestamp
-	22, // 46: realtime.v1.Growth.upgrade_options:type_name -> realtime.v1.GrowthUpgradeOption
-	18, // 47: realtime.v1.PlayerResponse.player:type_name -> realtime.v1.Player
-	21, // 48: realtime.v1.GrowthResponse.growth:type_name -> realtime.v1.Growth
-	21, // 49: realtime.v1.UpgradeGrowthResponse.growth:type_name -> realtime.v1.Growth
-	19, // 50: realtime.v1.FriendRequestResponse.requests:type_name -> realtime.v1.FriendRequest
-	20, // 51: realtime.v1.FriendListResponse.friends:type_name -> realtime.v1.FriendSummary
-	52, // 52: realtime.v1.ChatMessage.created_at:type_name -> google.protobuf.Timestamp
-	52, // 53: realtime.v1.ChatMessage.expires_at:type_name -> google.protobuf.Timestamp
-	44, // 54: realtime.v1.ChatSendResponse.message:type_name -> realtime.v1.ChatMessage
-	44, // 55: realtime.v1.ChatMessagesResponse.messages:type_name -> realtime.v1.ChatMessage
-	44, // 56: realtime.v1.ChatMessagePushed.message:type_name -> realtime.v1.ChatMessage
-	57, // [57:57] is the sub-list for method output_type
-	57, // [57:57] is the sub-list for method input_type
-	57, // [57:57] is the sub-list for extension type_name
-	57, // [57:57] is the sub-list for extension extendee
-	0,  // [0:57] is the sub-list for field type_name
+	12, // 0: realtime.v1.ClientEnvelope.authenticate:type_name -> realtime.v1.AuthenticateRequest
+	5,  // 1: realtime.v1.ClientEnvelope.heartbeat:type_name -> realtime.v1.HeartbeatRequest
+	9,  // 2: realtime.v1.ClientEnvelope.match_start:type_name -> realtime.v1.MatchStartRequest
+	7,  // 3: realtime.v1.ClientEnvelope.match_cancel:type_name -> realtime.v1.MatchCancelRequest
+	8,  // 4: realtime.v1.ClientEnvelope.match_resume:type_name -> realtime.v1.MatchResumeRequest
+	43, // 5: realtime.v1.ClientEnvelope.player_get:type_name -> realtime.v1.PlayerGetRequest
+	44, // 6: realtime.v1.ClientEnvelope.growth_get:type_name -> realtime.v1.GrowthGetRequest
+	28, // 7: realtime.v1.ClientEnvelope.growth_upgrade:type_name -> realtime.v1.UpgradeGrowthRequest
+	30, // 8: realtime.v1.ClientEnvelope.friend_request_send:type_name -> realtime.v1.SendFriendRequestRequest
+	32, // 9: realtime.v1.ClientEnvelope.friend_request_list_incoming:type_name -> realtime.v1.ListIncomingFriendRequestsRequest
+	33, // 10: realtime.v1.ClientEnvelope.friend_request_list_outgoing:type_name -> realtime.v1.ListOutgoingFriendRequestsRequest
+	35, // 11: realtime.v1.ClientEnvelope.friend_request_accept:type_name -> realtime.v1.AcceptFriendRequestRequest
+	36, // 12: realtime.v1.ClientEnvelope.friend_request_reject:type_name -> realtime.v1.RejectFriendRequestRequest
+	38, // 13: realtime.v1.ClientEnvelope.friend_list:type_name -> realtime.v1.FriendListRequest
+	29, // 14: realtime.v1.ClientEnvelope.friend_delete:type_name -> realtime.v1.DeleteFriendRequest
+	41, // 15: realtime.v1.ClientEnvelope.logout:type_name -> realtime.v1.LogoutRequest
+	46, // 16: realtime.v1.ClientEnvelope.chat_world_send:type_name -> realtime.v1.SendWorldChatRequest
+	47, // 17: realtime.v1.ClientEnvelope.chat_direct_send:type_name -> realtime.v1.SendDirectChatRequest
+	48, // 18: realtime.v1.ClientEnvelope.chat_world_list:type_name -> realtime.v1.ListWorldChatRequest
+	49, // 19: realtime.v1.ClientEnvelope.chat_direct_list:type_name -> realtime.v1.ListDirectChatRequest
+	25, // 20: realtime.v1.ClientEnvelope.player_avatar_update:type_name -> realtime.v1.PlayerAvatarUpdateRequest
+	53, // 21: realtime.v1.ClientEnvelope.leaderboard_list:type_name -> realtime.v1.ListLeaderboardRequest
+	4,  // 22: realtime.v1.ServerEnvelope.authenticated:type_name -> realtime.v1.Authenticated
+	6,  // 23: realtime.v1.ServerEnvelope.heartbeat_ack:type_name -> realtime.v1.HeartbeatAck
+	11, // 24: realtime.v1.ServerEnvelope.match_result:type_name -> realtime.v1.MatchResult
+	10, // 25: realtime.v1.ServerEnvelope.match_canceled:type_name -> realtime.v1.MatchCanceled
+	13, // 26: realtime.v1.ServerEnvelope.error:type_name -> realtime.v1.ProtocolError
+	14, // 27: realtime.v1.ServerEnvelope.connection_replaced:type_name -> realtime.v1.ConnectionReplaced
+	15, // 28: realtime.v1.ServerEnvelope.friend_presence_changed:type_name -> realtime.v1.FriendPresenceChanged
+	16, // 29: realtime.v1.ServerEnvelope.friend_removed:type_name -> realtime.v1.FriendRemoved
+	17, // 30: realtime.v1.ServerEnvelope.friend_request_received:type_name -> realtime.v1.FriendRequestReceived
+	18, // 31: realtime.v1.ServerEnvelope.friend_request_handled:type_name -> realtime.v1.FriendRequestHandled
+	24, // 32: realtime.v1.ServerEnvelope.player:type_name -> realtime.v1.PlayerResponse
+	26, // 33: realtime.v1.ServerEnvelope.growth:type_name -> realtime.v1.GrowthResponse
+	27, // 34: realtime.v1.ServerEnvelope.growth_upgrade_result:type_name -> realtime.v1.UpgradeGrowthResponse
+	31, // 35: realtime.v1.ServerEnvelope.friend_request_sent:type_name -> realtime.v1.FriendRequestSentResponse
+	34, // 36: realtime.v1.ServerEnvelope.friend_requests:type_name -> realtime.v1.FriendRequestResponse
+	37, // 37: realtime.v1.ServerEnvelope.friend_request_handled_ack:type_name -> realtime.v1.FriendRequestHandledResponse
+	39, // 38: realtime.v1.ServerEnvelope.friends:type_name -> realtime.v1.FriendListResponse
+	40, // 39: realtime.v1.ServerEnvelope.friend_deleted:type_name -> realtime.v1.FriendDeletedResponse
+	42, // 40: realtime.v1.ServerEnvelope.logout_ack:type_name -> realtime.v1.LogoutResponse
+	50, // 41: realtime.v1.ServerEnvelope.chat_sent:type_name -> realtime.v1.ChatSendResponse
+	51, // 42: realtime.v1.ServerEnvelope.chat_messages:type_name -> realtime.v1.ChatMessagesResponse
+	52, // 43: realtime.v1.ServerEnvelope.chat_message_pushed:type_name -> realtime.v1.ChatMessagePushed
+	56, // 44: realtime.v1.ServerEnvelope.leaderboard:type_name -> realtime.v1.LeaderboardResponse
+	0,  // 45: realtime.v1.ProtocolError.code:type_name -> realtime.v1.ErrorCode
+	57, // 46: realtime.v1.FriendRequest.created_at:type_name -> google.protobuf.Timestamp
+	57, // 47: realtime.v1.FriendSummary.updated_at:type_name -> google.protobuf.Timestamp
+	23, // 48: realtime.v1.Growth.upgrade_options:type_name -> realtime.v1.GrowthUpgradeOption
+	19, // 49: realtime.v1.PlayerResponse.player:type_name -> realtime.v1.Player
+	22, // 50: realtime.v1.GrowthResponse.growth:type_name -> realtime.v1.Growth
+	22, // 51: realtime.v1.UpgradeGrowthResponse.growth:type_name -> realtime.v1.Growth
+	20, // 52: realtime.v1.FriendRequestResponse.requests:type_name -> realtime.v1.FriendRequest
+	21, // 53: realtime.v1.FriendListResponse.friends:type_name -> realtime.v1.FriendSummary
+	57, // 54: realtime.v1.ChatMessage.created_at:type_name -> google.protobuf.Timestamp
+	57, // 55: realtime.v1.ChatMessage.expires_at:type_name -> google.protobuf.Timestamp
+	45, // 56: realtime.v1.ChatSendResponse.message:type_name -> realtime.v1.ChatMessage
+	45, // 57: realtime.v1.ChatMessagesResponse.messages:type_name -> realtime.v1.ChatMessage
+	45, // 58: realtime.v1.ChatMessagePushed.message:type_name -> realtime.v1.ChatMessage
+	1,  // 59: realtime.v1.ListLeaderboardRequest.type:type_name -> realtime.v1.LeaderboardType
+	54, // 60: realtime.v1.LeaderboardEntry.players:type_name -> realtime.v1.LeaderboardPlayer
+	1,  // 61: realtime.v1.LeaderboardResponse.type:type_name -> realtime.v1.LeaderboardType
+	55, // 62: realtime.v1.LeaderboardResponse.entries:type_name -> realtime.v1.LeaderboardEntry
+	63, // [63:63] is the sub-list for method output_type
+	63, // [63:63] is the sub-list for method input_type
+	63, // [63:63] is the sub-list for extension type_name
+	63, // [63:63] is the sub-list for extension extendee
+	0,  // [0:63] is the sub-list for field type_name
 }
 
 func init() { file_proto_realtime_v1_realtime_proto_init() }
@@ -3696,6 +4056,7 @@ func file_proto_realtime_v1_realtime_proto_init() {
 		(*ClientEnvelope_ChatWorldList)(nil),
 		(*ClientEnvelope_ChatDirectList)(nil),
 		(*ClientEnvelope_PlayerAvatarUpdate)(nil),
+		(*ClientEnvelope_LeaderboardList)(nil),
 	}
 	file_proto_realtime_v1_realtime_proto_msgTypes[1].OneofWrappers = []any{
 		(*ServerEnvelope_Authenticated)(nil),
@@ -3720,14 +4081,15 @@ func file_proto_realtime_v1_realtime_proto_init() {
 		(*ServerEnvelope_ChatSent)(nil),
 		(*ServerEnvelope_ChatMessages)(nil),
 		(*ServerEnvelope_ChatMessagePushed)(nil),
+		(*ServerEnvelope_Leaderboard)(nil),
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_realtime_v1_realtime_proto_rawDesc), len(file_proto_realtime_v1_realtime_proto_rawDesc)),
-			NumEnums:      1,
-			NumMessages:   51,
+			NumEnums:      2,
+			NumMessages:   55,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

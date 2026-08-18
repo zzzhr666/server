@@ -65,6 +65,10 @@ type chatStore interface {
 	ListChatMessages(ctx context.Context, input state.ListChatMessagesInput) ([]*state.ChatMessage, error)
 }
 
+type leaderboardStore interface {
+	ListLeaderboard(ctx context.Context, input state.ListLeaderboardInput) (*state.ListLeaderboardResult, error)
+}
+
 // Service 协调已配置存储上的状态操作。
 type Service struct {
 	registrations registrationStore
@@ -77,7 +81,13 @@ type Service struct {
 	growth        growthStore
 	coins         coinsStore
 	chats         chatStore
+	leaderboards  leaderboardStore
 	metrics       *Metrics
+}
+
+// ListLeaderboard 读取指定类型的排行榜。
+func (s *Service) ListLeaderboard(ctx context.Context, input state.ListLeaderboardInput) (*state.ListLeaderboardResult, error) {
+	return s.leaderboards.ListLeaderboard(ctx, input)
 }
 
 // UpdatePlayerAvatar 更新玩家头像并返回最新的完整玩家档案。
@@ -105,7 +115,7 @@ func (s *Service) ListChatMessages(ctx context.Context, input state.ListChatMess
 	return messages, nil
 }
 
-// SettleMatchRewards 原子发放一场对局的多人奖励，并由存储层保证结算幂等。
+// SettleMatchRewards 原子结算一场对局的多人奖励与排行榜数据，并由存储层保证幂等。
 func (s *Service) SettleMatchRewards(ctx context.Context, input state.SettleMatchRewardsInput) (*state.SettleMatchRewardsResult, error) {
 	return s.coins.SettleMatchRewards(ctx, input)
 }
@@ -267,22 +277,24 @@ type StoreConfig struct {
 	Growth        growthStore
 	Coins         coinsStore
 	Chats         chatStore
+	Leaderboards  leaderboardStore
 	Metrics       *Metrics
 }
 
 // NewService 使用存储实现创建状态服务。
 func NewService(storeConfig StoreConfig) *Service {
 	return &Service{
+		registrations: storeConfig.Registrations,
 		accounts:      storeConfig.Accounts,
 		sessions:      storeConfig.Sessions,
 		players:       storeConfig.Players,
-		registrations: storeConfig.Registrations,
 		presences:     storeConfig.Presences,
 		friends:       storeConfig.Friends,
 		realtime:      storeConfig.Realtime,
 		growth:        storeConfig.Growth,
 		coins:         storeConfig.Coins,
 		chats:         storeConfig.Chats,
+		leaderboards:  storeConfig.Leaderboards,
 		metrics:       storeConfig.Metrics,
 	}
 }

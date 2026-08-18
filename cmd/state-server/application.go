@@ -81,17 +81,19 @@ func newApplication(ctx context.Context, cfg config.Config) (*application, error
 		Growth:        redisStore,
 		Coins:         redisStore,
 		Chats:         mongoStore,
+		Leaderboards:  redisStore,
 		Metrics:       stateMetrics,
 	})
 	grpcServer := grpc.NewServer(grpc.UnaryInterceptor(grpcserver.UnaryMetricsInterceptor(grpcMetrics)))
 	statepb.RegisterStateServiceServer(grpcServer, grpcserver.NewServer(grpcserver.ServerConfig{
-		StateClient:    stateService,
-		PresenceClient: stateService,
-		FriendClient:   stateService,
-		RealtimeClient: stateService,
-		GrowthClient:   stateService,
-		CoinClient:     stateService,
-		ChatClient:     stateService,
+		StateClient:       stateService,
+		PresenceClient:    stateService,
+		FriendClient:      stateService,
+		RealtimeClient:    stateService,
+		GrowthClient:      stateService,
+		CoinClient:        stateService,
+		ChatClient:        stateService,
+		LeaderboardClient: stateService,
 	}))
 	grpcListener, err := net.Listen("tcp", cfg.StateGRPCAddr)
 	if err != nil {

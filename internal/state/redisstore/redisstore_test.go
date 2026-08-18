@@ -5,6 +5,7 @@ import (
 	"errors"
 	"net"
 	"os/exec"
+	"reflect"
 	statecontract "server/internal/contract/state"
 	"sync"
 	"testing"
@@ -12,6 +13,308 @@ import (
 
 	"github.com/redis/go-redis/v9"
 )
+
+func TestResolveLeaderboardQuery(t *testing.T) {
+	tests := []struct {
+		name           string
+		input          statecontract.ListLeaderboardInput
+		wantKey        string
+		wantDescending bool
+		wantErr        error
+	}{
+		{
+			name: "solo clear time",
+			input: statecontract.ListLeaderboardInput{
+				Type:       statecontract.LeaderboardTypeSoloClearTime,
+				MapVersion: "wave-v1",
+				Limit:      10,
+			},
+			wantKey: clearTimeLeaderboardKey(leaderboardModeSolo, "wave-v1"),
+		},
+		{
+			name: "duo clear time",
+			input: statecontract.ListLeaderboardInput{
+				Type:       statecontract.LeaderboardTypeDuoClearTime,
+				MapVersion: "rooms-v1",
+				Limit:      maxLeaderboardLimit,
+			},
+			wantKey: clearTimeLeaderboardKey(leaderboardModeDuo, "rooms-v1"),
+		},
+		{
+			name: "total kills ignores map version",
+			input: statecontract.ListLeaderboardInput{
+				Type:       statecontract.LeaderboardTypeTotalKills,
+				MapVersion: "wave-v1",
+				Limit:      10,
+			},
+			wantKey:        totalKillsLeaderboardKey,
+			wantDescending: true,
+		},
+		{
+			name: "zero limit",
+			input: statecontract.ListLeaderboardInput{
+				Type:       statecontract.LeaderboardTypeSoloClearTime,
+				MapVersion: "wave-v1",
+			},
+			wantErr: statecontract.ErrInvalidLeaderboardQuery,
+		},
+		{
+			name: "negative limit",
+			input: statecontract.ListLeaderboardInput{
+				Type:       statecontract.LeaderboardTypeSoloClearTime,
+				MapVersion: "wave-v1",
+				Limit:      -1,
+			},
+			wantErr: statecontract.ErrInvalidLeaderboardQuery,
+		},
+		{
+			name: "limit exceeds maximum",
+			input: statecontract.ListLeaderboardInput{
+				Type:       statecontract.LeaderboardTypeSoloClearTime,
+				MapVersion: "wave-v1",
+				Limit:      maxLeaderboardLimit + 1,
+			},
+			wantErr: statecontract.ErrInvalidLeaderboardQuery,
+		},
+		{
+			name: "clear time without map version",
+			input: statecontract.ListLeaderboardInput{
+				Type:  statecontract.LeaderboardTypeSoloClearTime,
+				Limit: 10,
+			},
+			wantErr: statecontract.ErrInvalidLeaderboardQuery,
+		},
+		{
+			name: "unknown type",
+			input: statecontract.ListLeaderboardInput{
+				Type:  "unknown",
+				Limit: 10,
+			},
+			wantErr: statecontract.ErrInvalidLeaderboardQuery,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			key, descending, err := resolveLeaderboardQuery(tt.input)
+			if !errors.Is(err, tt.wantErr) {
+				t.Fatalf("resolveLeaderboardQuery error = %v, want %v", err, tt.wantErr)
+			}
+			if key != tt.wantKey || descending != tt.wantDescending {
+				t.Fatalf("resolveLeaderboardQuery = (%q, %v), want (%q, %v)", key, descending, tt.wantKey, tt.wantDescending)
+			}
+		})
+	}
+}
+
+func TestParseLeaderboardMember(t *testing.T) {
+	tests := []struct {
+		name      string
+		boardType statecontract.LeaderboardType
+		member    string
+		want      []int64
+		queryErr  bool
+		memberErr bool
+	}{
+		{name: "solo", boardType: statecontract.LeaderboardTypeSoloClearTime, member: "7", want: []int64{7}},
+		{name: "total kills", boardType: statecontract.LeaderboardTypeTotalKills, member: "8", want: []int64{8}},
+		{name: "duo", boardType: statecontract.LeaderboardTypeDuoClearTime, member: "7:8", want: []int64{7, 8}},
+		{name: "duo missing player", boardType: statecontract.LeaderboardTypeDuoClearTime, member: "7", memberErr: true},
+		{name: "duo extra player", boardType: statecontract.LeaderboardTypeDuoClearTime, member: "7:8:9", memberErr: true},
+		{name: "duo nonnumeric", boardType: statecontract.LeaderboardTypeDuoClearTime, member: "7:eight", memberErr: true},
+		{name: "duo nonpositive", boardType: statecontract.LeaderboardTypeDuoClearTime, member: "0:8", memberErr: true},
+		{name: "duo duplicate", boardType: statecontract.LeaderboardTypeDuoClearTime, member: "7:7", memberErr: true},
+		{name: "duo reversed", boardType: statecontract.LeaderboardTypeDuoClearTime, member: "8:7", memberErr: true},
+		{name: "solo nonnumeric", boardType: statecontract.LeaderboardTypeSoloClearTime, member: "seven", memberErr: true},
+		{name: "solo nonpositive", boardType: statecontract.LeaderboardTypeSoloClearTime, member: "0", memberErr: true},
+		{name: "unknown type", boardType: "unknown", member: "7", queryErr: true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := parseLeaderboardMember(tt.boardType, tt.member)
+			switch {
+			case tt.queryErr && !errors.Is(err, statecontract.ErrInvalidLeaderboardQuery):
+				t.Fatalf("parseLeaderboardMember error = %v, want %v", err, statecontract.ErrInvalidLeaderboardQuery)
+			case tt.memberErr && (err == nil || errors.Is(err, statecontract.ErrInvalidLeaderboardQuery)):
+				t.Fatalf("parseLeaderboardMember error = %v, want stored member error", err)
+			case !tt.queryErr && !tt.memberErr && err != nil:
+				t.Fatalf("parseLeaderboardMember returned error: %v", err)
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Fatalf("parseLeaderboardMember = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestListLeaderboardOrdersAndLimitsSoloClearTimes(t *testing.T) {
+	ctx := context.Background()
+	store, client := newRedisTestStore(t)
+	key := clearTimeLeaderboardKey(leaderboardModeSolo, "wave-v1")
+	if err := client.ZAdd(ctx, key,
+		redis.Z{Member: "7", Score: 90_000},
+		redis.Z{Member: "8", Score: 80_000},
+		redis.Z{Member: "9", Score: 100_000},
+	).Err(); err != nil {
+		t.Fatalf("seed solo leaderboard returned error: %v", err)
+	}
+
+	result, err := store.ListLeaderboard(ctx, statecontract.ListLeaderboardInput{
+		Type:       statecontract.LeaderboardTypeSoloClearTime,
+		MapVersion: "wave-v1",
+		Limit:      2,
+	})
+	if err != nil {
+		t.Fatalf("ListLeaderboard returned error: %v", err)
+	}
+	if result.Type != statecontract.LeaderboardTypeSoloClearTime || result.MapVersion != "wave-v1" {
+		t.Fatalf("leaderboard metadata = (%q, %q), want (%q, %q)", result.Type, result.MapVersion, statecontract.LeaderboardTypeSoloClearTime, "wave-v1")
+	}
+	assertLeaderboardEntries(t, result.Entries, []leaderboardEntryWant{
+		{rank: 1, score: 80_000, playerIDs: []int64{8}},
+		{rank: 2, score: 90_000, playerIDs: []int64{7}},
+	})
+}
+
+func TestListLeaderboardExpandsCanonicalDuoMembers(t *testing.T) {
+	ctx := context.Background()
+	store, client := newRedisTestStore(t)
+	if err := client.HSet(ctx, playerKey(7), map[string]any{
+		"nickname": "player-seven",
+		"avatar":   "avatar-seven",
+	}).Err(); err != nil {
+		t.Fatalf("seed player profile returned error: %v", err)
+	}
+	if err := client.HSet(ctx, playerKey(9), map[string]any{
+		"nickname": "player-nine",
+		"avatar":   "avatar-nine",
+	}).Err(); err != nil {
+		t.Fatalf("seed player profile returned error: %v", err)
+	}
+	key := clearTimeLeaderboardKey(leaderboardModeDuo, "wave-v1")
+	if err := client.ZAdd(ctx, key,
+		redis.Z{Member: "7:8", Score: 93_000},
+		redis.Z{Member: "7:9", Score: 82_000},
+	).Err(); err != nil {
+		t.Fatalf("seed duo leaderboard returned error: %v", err)
+	}
+
+	result, err := store.ListLeaderboard(ctx, statecontract.ListLeaderboardInput{
+		Type:       statecontract.LeaderboardTypeDuoClearTime,
+		MapVersion: "wave-v1",
+		Limit:      10,
+	})
+	if err != nil {
+		t.Fatalf("ListLeaderboard returned error: %v", err)
+	}
+	assertLeaderboardEntries(t, result.Entries, []leaderboardEntryWant{
+		{
+			rank:  1,
+			score: 82_000,
+			players: []leaderboardPlayerWant{
+				{playerID: 7, nickname: "player-seven", avatar: "avatar-seven"},
+				{playerID: 9, nickname: "player-nine", avatar: "avatar-nine"},
+			},
+		},
+		{
+			rank:  2,
+			score: 93_000,
+			players: []leaderboardPlayerWant{
+				{playerID: 7, nickname: "player-seven", avatar: "avatar-seven"},
+				{playerID: 8},
+			},
+		},
+	})
+}
+
+func TestListLeaderboardOrdersTotalKillsDescending(t *testing.T) {
+	ctx := context.Background()
+	store, client := newRedisTestStore(t)
+	if err := client.ZAdd(ctx, totalKillsLeaderboardKey,
+		redis.Z{Member: "7", Score: 50},
+		redis.Z{Member: "8", Score: 100},
+		redis.Z{Member: "9", Score: 75},
+	).Err(); err != nil {
+		t.Fatalf("seed total kills leaderboard returned error: %v", err)
+	}
+
+	result, err := store.ListLeaderboard(ctx, statecontract.ListLeaderboardInput{
+		Type:       statecontract.LeaderboardTypeTotalKills,
+		MapVersion: "ignored",
+		Limit:      10,
+	})
+	if err != nil {
+		t.Fatalf("ListLeaderboard returned error: %v", err)
+	}
+	if result.MapVersion != "" {
+		t.Fatalf("MapVersion = %q, want empty", result.MapVersion)
+	}
+	assertLeaderboardEntries(t, result.Entries, []leaderboardEntryWant{
+		{rank: 1, score: 100, playerIDs: []int64{8}},
+		{rank: 2, score: 75, playerIDs: []int64{9}},
+		{rank: 3, score: 50, playerIDs: []int64{7}},
+	})
+}
+
+func TestListLeaderboardReturnsEmptyEntriesForMissingBoard(t *testing.T) {
+	ctx := context.Background()
+	store, _ := newRedisTestStore(t)
+
+	result, err := store.ListLeaderboard(ctx, statecontract.ListLeaderboardInput{
+		Type:       statecontract.LeaderboardTypeSoloClearTime,
+		MapVersion: "missing",
+		Limit:      10,
+	})
+	if err != nil {
+		t.Fatalf("ListLeaderboard returned error: %v", err)
+	}
+	if result.Entries == nil || len(result.Entries) != 0 {
+		t.Fatalf("Entries = %#v, want non-nil empty slice", result.Entries)
+	}
+}
+
+type leaderboardEntryWant struct {
+	rank      int64
+	score     int64
+	playerIDs []int64
+	players   []leaderboardPlayerWant
+}
+
+type leaderboardPlayerWant struct {
+	playerID int64
+	nickname string
+	avatar   string
+}
+
+func assertLeaderboardEntries(t *testing.T, got []statecontract.LeaderboardEntry, want []leaderboardEntryWant) {
+	t.Helper()
+
+	if len(got) != len(want) {
+		t.Fatalf("entries count = %d, want %d: %+v", len(got), len(want), got)
+	}
+	for i := range want {
+		if got[i].Rank != want[i].rank || got[i].Score != want[i].score {
+			t.Fatalf("entry %d = %+v, want rank %d score %d", i, got[i], want[i].rank, want[i].score)
+		}
+		wantPlayers := want[i].players
+		if wantPlayers == nil {
+			wantPlayers = make([]leaderboardPlayerWant, len(want[i].playerIDs))
+			for j, playerID := range want[i].playerIDs {
+				wantPlayers[j].playerID = playerID
+			}
+		}
+		if len(got[i].Players) != len(wantPlayers) {
+			t.Fatalf("entry %d players = %+v, want %+v", i, got[i].Players, wantPlayers)
+		}
+		for j, wantPlayer := range wantPlayers {
+			gotPlayer := got[i].Players[j]
+			if gotPlayer.PlayerID != wantPlayer.playerID || gotPlayer.Nickname != wantPlayer.nickname || gotPlayer.Avatar != wantPlayer.avatar {
+				t.Fatalf("entry %d player %d = %+v, want %+v", i, j, gotPlayer, wantPlayer)
+			}
+		}
+	}
+}
 
 func TestFriendRequestLifecycleAccept(t *testing.T) {
 	ctx := context.Background()
@@ -269,12 +572,24 @@ func TestSettleMatchRewardsDoesNotPartiallyApplyWhenPlayerMissing(t *testing.T) 
 			{PlayerID: 7, Amount: 50},
 			{PlayerID: 8, Amount: 75},
 		},
+		Leaderboard: &statecontract.MatchLeaderboardRecord{
+			Mode:             leaderboardModeDuo,
+			MapVersion:       "wave-v1",
+			Cleared:          true,
+			CombatDurationMS: 83_250,
+			Players: []statecontract.PlayerLeaderboardRecord{
+				{PlayerID: 8, TotalKills: 3},
+				{PlayerID: 7, TotalKills: 5},
+			},
+		},
 	}
 
 	if _, err := store.SettleMatchRewards(ctx, input); !errors.Is(err, statecontract.ErrPlayerNotFound) {
 		t.Fatalf("SettleMatchRewards error = %v, want %v", err, statecontract.ErrPlayerNotFound)
 	}
 	assertPlayerCoins(t, ctx, client, 7, 100)
+	assertRedisKeyMissing(t, ctx, client, totalKillsLeaderboardKey)
+	assertRedisKeyMissing(t, ctx, client, clearTimeLeaderboardKey(leaderboardModeDuo, "wave-v1"))
 
 	seedPlayerWithCoins(t, ctx, client, 8, 200)
 	result, err := store.SettleMatchRewards(ctx, input)
@@ -286,11 +601,15 @@ func TestSettleMatchRewardsDoesNotPartiallyApplyWhenPlayerMissing(t *testing.T) 
 	}
 	assertPlayerCoins(t, ctx, client, 7, 150)
 	assertPlayerCoins(t, ctx, client, 8, 275)
+	assertZScore(t, ctx, client, totalKillsLeaderboardKey, "7", 5)
+	assertZScore(t, ctx, client, totalKillsLeaderboardKey, "8", 3)
+	assertZScore(t, ctx, client, clearTimeLeaderboardKey(leaderboardModeDuo, "wave-v1"), "7:8", 83_250)
 }
 
 func TestSettleMatchRewardsConcurrentDuplicateAppliesOnce(t *testing.T) {
 	ctx := context.Background()
 	store, client := newRedisTestStore(t)
+
 	seedPlayerWithCoins(t, ctx, client, 7, 100)
 	seedPlayerWithCoins(t, ctx, client, 8, 200)
 	input := statecontract.SettleMatchRewardsInput{
@@ -298,6 +617,16 @@ func TestSettleMatchRewardsConcurrentDuplicateAppliesOnce(t *testing.T) {
 		Rewards: []statecontract.PlayerCoinReward{
 			{PlayerID: 7, Amount: 50},
 			{PlayerID: 8, Amount: 75},
+		},
+		Leaderboard: &statecontract.MatchLeaderboardRecord{
+			Mode:             leaderboardModeDuo,
+			MapVersion:       "wave-v1",
+			Cleared:          true,
+			CombatDurationMS: 83_250,
+			Players: []statecontract.PlayerLeaderboardRecord{
+				{PlayerID: 8, TotalKills: 3},
+				{PlayerID: 7, TotalKills: 5},
+			},
 		},
 	}
 
@@ -340,6 +669,76 @@ func TestSettleMatchRewardsConcurrentDuplicateAppliesOnce(t *testing.T) {
 	}
 	assertPlayerCoins(t, ctx, client, 7, 150)
 	assertPlayerCoins(t, ctx, client, 8, 275)
+	assertZScore(t, ctx, client, totalKillsLeaderboardKey, "7", 5)
+	assertZScore(t, ctx, client, totalKillsLeaderboardKey, "8", 3)
+	assertZScore(t, ctx, client, clearTimeLeaderboardKey(leaderboardModeDuo, "wave-v1"), "7:8", 83_250)
+}
+
+func TestSettleMatchRewardsDefeatOnlyUpdatesTotalKills(t *testing.T) {
+	ctx := context.Background()
+	store, client := newRedisTestStore(t)
+	seedPlayerWithCoins(t, ctx, client, 7, 100)
+	input := statecontract.SettleMatchRewardsInput{
+		SettlementID: "room-defeat",
+		Rewards: []statecontract.PlayerCoinReward{
+			{PlayerID: 7, Amount: 50},
+		},
+		Leaderboard: &statecontract.MatchLeaderboardRecord{
+			Mode:             leaderboardModeSolo,
+			MapVersion:       "wave-v1",
+			CombatDurationMS: 47_000,
+			Players: []statecontract.PlayerLeaderboardRecord{
+				{PlayerID: 7, TotalKills: 4},
+			},
+		},
+	}
+
+	result, err := store.SettleMatchRewards(ctx, input)
+	if err != nil {
+		t.Fatalf("SettleMatchRewards returned error: %v", err)
+	}
+	if result == nil || !result.Applied {
+		t.Fatalf("settlement result = %+v, want applied", result)
+	}
+	assertPlayerCoins(t, ctx, client, 7, 150)
+	assertZScore(t, ctx, client, totalKillsLeaderboardKey, "7", 4)
+	assertRedisKeyMissing(t, ctx, client, clearTimeLeaderboardKey(leaderboardModeSolo, "wave-v1"))
+}
+
+func TestSettleMatchRewardsKeepsShortestSoloClearTime(t *testing.T) {
+	ctx := context.Background()
+	store, client := newRedisTestStore(t)
+	seedPlayerWithCoins(t, ctx, client, 7, 100)
+
+	settle := func(settlementID string, durationMS int64) {
+		t.Helper()
+		_, err := store.SettleMatchRewards(ctx, statecontract.SettleMatchRewardsInput{
+			SettlementID: settlementID,
+			Rewards: []statecontract.PlayerCoinReward{
+				{PlayerID: 7, Amount: 1},
+			},
+			Leaderboard: &statecontract.MatchLeaderboardRecord{
+				Mode:             leaderboardModeSolo,
+				MapVersion:       "wave-v1",
+				Cleared:          true,
+				CombatDurationMS: durationMS,
+				Players: []statecontract.PlayerLeaderboardRecord{
+					{PlayerID: 7},
+				},
+			},
+		})
+		if err != nil {
+			t.Fatalf("SettleMatchRewards duration %d returned error: %v", durationMS, err)
+		}
+	}
+
+	key := clearTimeLeaderboardKey(leaderboardModeSolo, "wave-v1")
+	settle("room-clear-first", 90_000)
+	assertZScore(t, ctx, client, key, "7", 90_000)
+	settle("room-clear-slower", 100_000)
+	assertZScore(t, ctx, client, key, "7", 90_000)
+	settle("room-clear-faster", 80_000)
+	assertZScore(t, ctx, client, key, "7", 80_000)
 }
 
 func TestSettleMatchRewardsValidatesInput(t *testing.T) {
@@ -383,6 +782,84 @@ func TestSettleMatchRewardsValidatesInput(t *testing.T) {
 				Rewards: []statecontract.PlayerCoinReward{
 					{PlayerID: 7, Amount: 50},
 					{PlayerID: 7, Amount: 75},
+				},
+			},
+			want: statecontract.ErrInvalidSettlement,
+		},
+		{
+			name: "missing leaderboard map version",
+			input: statecontract.SettleMatchRewardsInput{
+				SettlementID: "room-settlement-3",
+				Rewards:      []statecontract.PlayerCoinReward{{PlayerID: 7, Amount: 50}},
+				Leaderboard: &statecontract.MatchLeaderboardRecord{
+					Mode:    leaderboardModeSolo,
+					Players: []statecontract.PlayerLeaderboardRecord{{PlayerID: 7}},
+				},
+			},
+			want: statecontract.ErrInvalidSettlement,
+		},
+		{
+			name: "unknown leaderboard mode",
+			input: statecontract.SettleMatchRewardsInput{
+				SettlementID: "room-settlement-3",
+				Rewards:      []statecontract.PlayerCoinReward{{PlayerID: 7, Amount: 50}},
+				Leaderboard: &statecontract.MatchLeaderboardRecord{
+					Mode:       "squad",
+					MapVersion: "wave-v1",
+					Players:    []statecontract.PlayerLeaderboardRecord{{PlayerID: 7}},
+				},
+			},
+			want: statecontract.ErrInvalidSettlement,
+		},
+		{
+			name: "incorrect leaderboard player count",
+			input: statecontract.SettleMatchRewardsInput{
+				SettlementID: "room-settlement-3",
+				Rewards:      []statecontract.PlayerCoinReward{{PlayerID: 7, Amount: 50}},
+				Leaderboard: &statecontract.MatchLeaderboardRecord{
+					Mode:       leaderboardModeDuo,
+					MapVersion: "wave-v1",
+					Players:    []statecontract.PlayerLeaderboardRecord{{PlayerID: 7}},
+				},
+			},
+			want: statecontract.ErrInvalidSettlement,
+		},
+		{
+			name: "leaderboard player differs from reward player",
+			input: statecontract.SettleMatchRewardsInput{
+				SettlementID: "room-settlement-3",
+				Rewards:      []statecontract.PlayerCoinReward{{PlayerID: 7, Amount: 50}},
+				Leaderboard: &statecontract.MatchLeaderboardRecord{
+					Mode:       leaderboardModeSolo,
+					MapVersion: "wave-v1",
+					Players:    []statecontract.PlayerLeaderboardRecord{{PlayerID: 8}},
+				},
+			},
+			want: statecontract.ErrInvalidSettlement,
+		},
+		{
+			name: "negative total kills",
+			input: statecontract.SettleMatchRewardsInput{
+				SettlementID: "room-settlement-3",
+				Rewards:      []statecontract.PlayerCoinReward{{PlayerID: 7, Amount: 50}},
+				Leaderboard: &statecontract.MatchLeaderboardRecord{
+					Mode:       leaderboardModeSolo,
+					MapVersion: "wave-v1",
+					Players:    []statecontract.PlayerLeaderboardRecord{{PlayerID: 7, TotalKills: -1}},
+				},
+			},
+			want: statecontract.ErrInvalidSettlement,
+		},
+		{
+			name: "cleared without positive combat duration",
+			input: statecontract.SettleMatchRewardsInput{
+				SettlementID: "room-settlement-3",
+				Rewards:      []statecontract.PlayerCoinReward{{PlayerID: 7, Amount: 50}},
+				Leaderboard: &statecontract.MatchLeaderboardRecord{
+					Mode:       leaderboardModeSolo,
+					MapVersion: "wave-v1",
+					Cleared:    true,
+					Players:    []statecontract.PlayerLeaderboardRecord{{PlayerID: 7}},
 				},
 			},
 			want: statecontract.ErrInvalidSettlement,
@@ -861,6 +1338,30 @@ func assertPlayerCoins(t *testing.T, ctx context.Context, client *redis.Client, 
 	}
 	if got != want {
 		t.Fatalf("coins = %d, want %d", got, want)
+	}
+}
+
+func assertZScore(t *testing.T, ctx context.Context, client *redis.Client, key, member string, want float64) {
+	t.Helper()
+
+	got, err := client.ZScore(ctx, key, member).Result()
+	if err != nil {
+		t.Fatalf("ZScore %s member %s returned error: %v", key, member, err)
+	}
+	if got != want {
+		t.Fatalf("ZScore %s member %s = %v, want %v", key, member, got, want)
+	}
+}
+
+func assertRedisKeyMissing(t *testing.T, ctx context.Context, client *redis.Client, key string) {
+	t.Helper()
+
+	exists, err := client.Exists(ctx, key).Result()
+	if err != nil {
+		t.Fatalf("Exists %s returned error: %v", key, err)
+	}
+	if exists != 0 {
+		t.Fatalf("Redis key %s exists, want missing", key)
 	}
 }
 

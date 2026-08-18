@@ -59,6 +59,8 @@ func mapStateError(err error) error {
 		return status.Error(codes.InvalidArgument, err.Error())
 	case errors.Is(err, state.ErrChatMessageExists):
 		return status.Error(codes.AlreadyExists, err.Error())
+	case errors.Is(err, state.ErrInvalidLeaderboardQuery):
+		return status.Error(codes.InvalidArgument, err.Error())
 	default:
 		return status.Error(codes.Internal, err.Error())
 	}
