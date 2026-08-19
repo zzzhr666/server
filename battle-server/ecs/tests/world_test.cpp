@@ -30,6 +30,16 @@ CreateMonsterConfig default_monster_config() {
     };
 }
 
+int attack_event_count_from(World& world, Entity attacker) {
+    int count = 0;
+    for (const auto& event : world.attack_events()) {
+        if (event.attacker == attacker) {
+            ++count;
+        }
+    }
+    return count;
+}
+
 TEST(WorldTest, CreatePlayerReturnsLiveEntityWithInitialTransform) {
     World world;
 
@@ -310,26 +320,35 @@ TEST(WorldTest, CreatePlayerInitializesAttackComponentsFromConfig) {
             .damage = 30,
             .range = 2.0f,
             .cooldown_seconds = DeltaTime{0.75f},
+            .windup_seconds = DeltaTime{0.15f},
+            .active_seconds = DeltaTime{0.05f},
+            .recovery_seconds = DeltaTime{0.20f},
+            .movement_multiplier = 0.25f,
         },
     });
 
-    ASSERT_TRUE(world.registry().has<AttackIntent>(entity));
     ASSERT_TRUE(world.registry().has<AttackRequest>(entity));
     ASSERT_TRUE(world.registry().has<AttackDefinition>(entity));
     ASSERT_TRUE(world.registry().has<AttackCooldown>(entity));
+    ASSERT_TRUE(world.registry().has<AttackState>(entity));
 
-    const auto& attack_intent = world.registry().get<AttackIntent>(entity);
     const auto& attack = world.registry().get<AttackDefinition>(entity);
     const auto& cooldown = world.registry().get<AttackCooldown>(entity);
-    EXPECT_FALSE(attack_intent.active);
-    EXPECT_EQ(attack_intent.damage, 0);
-    EXPECT_FLOAT_EQ(attack_intent.range, 0.0f);
+    const auto& attack_state = world.registry().get<AttackState>(entity);
     EXPECT_FALSE(world.registry().get<AttackRequest>(entity).requested);
     EXPECT_EQ(attack.kind, AttackKind::Melee);
     EXPECT_EQ(attack.damage, 30);
     EXPECT_FLOAT_EQ(attack.range, 2.0f);
     EXPECT_FLOAT_EQ(attack.cooldown_seconds.count(), 0.75f);
+    EXPECT_FLOAT_EQ(attack.windup_seconds.count(), 0.15f);
+    EXPECT_FLOAT_EQ(attack.active_seconds.count(), 0.05f);
+    EXPECT_FLOAT_EQ(attack.recovery_seconds.count(), 0.20f);
+    EXPECT_FLOAT_EQ(attack.movement_multiplier, 0.25f);
     EXPECT_FLOAT_EQ(cooldown.remaining_seconds.count(), 0.0f);
+    EXPECT_EQ(attack_state.phase, AttackPhase::Idle);
+    EXPECT_FLOAT_EQ(attack_state.phase_remaining.count(), 0.0f);
+    EXPECT_TRUE(attack_state.hit_targets.empty());
+    EXPECT_FALSE(attack_state.projectile_spawned);
 }
 
 TEST(WorldTest, SetPlayerCommandReturnsFalseForUnknownEntity) {
@@ -357,7 +376,6 @@ TEST(WorldTest, SetPlayerCommandWritesMoveAndAttackRequests) {
     EXPECT_FLOAT_EQ(world.registry().get<MoveRequest>(entity).x, 1.0f);
     EXPECT_FLOAT_EQ(world.registry().get<MoveRequest>(entity).y, 0.0f);
     EXPECT_TRUE(world.registry().get<AttackRequest>(entity).requested);
-    EXPECT_FALSE(world.registry().get<AttackIntent>(entity).active);
 }
 
 TEST(WorldTest, SetPlayerCommandReturnsFalseForMonster) {
@@ -372,7 +390,7 @@ TEST(WorldTest, SetPlayerCommandReturnsFalseForMonster) {
                                                    }));
 }
 
-TEST(WorldTest, TickResolvesAttackRequestIntoAttackIntent) {
+TEST(WorldTest, TickStartsAttackTimelineFromAttackRequest) {
     World world;
     auto entity = world.create_player(CreatePlayerConfig{
         .position = Position{.x = 10.0f, .y = 20.0f},
@@ -393,13 +411,12 @@ TEST(WorldTest, TickResolvesAttackRequestIntoAttackIntent) {
                                                  }));
     world.tick(DeltaTime{0.0f});
 
-    const auto& intent = world.registry().get<AttackIntent>(entity);
-    EXPECT_TRUE(intent.active);
-    EXPECT_EQ(intent.damage, 30);
-    EXPECT_FLOAT_EQ(intent.range, 2.0f);
+    const auto& state = world.registry().get<AttackState>(entity);
+    EXPECT_EQ(state.phase, AttackPhase::Active);
+    EXPECT_EQ(state.context.owner, entity);
     EXPECT_FALSE(world.registry().get<AttackRequest>(entity).requested);
     EXPECT_FLOAT_EQ(world.registry().get<AttackCooldown>(entity).remaining_seconds.count(), 0.75f);
-    ASSERT_EQ(world.attack_events().size(), 1);
+    ASSERT_EQ(attack_event_count_from(world, entity), 1);
     const auto& event = world.attack_events()[0];
     EXPECT_EQ(event.attacker, entity);
     EXPECT_EQ(event.kind, AttackKind::Melee);
@@ -427,7 +444,7 @@ TEST(WorldTest, TickDoesNotResolveAttackRequestDuringCooldown) {
                                                      .dash_requested = false,
                                                  }));
     world.tick(DeltaTime{0.0f});
-    ASSERT_TRUE(world.registry().get<AttackIntent>(entity).active);
+    ASSERT_EQ(world.registry().get<AttackState>(entity).phase, AttackPhase::Active);
 
     ASSERT_TRUE(world.set_player_command(entity, PlayerCommand{
                                                      .move_x = 0.0f,
@@ -437,13 +454,10 @@ TEST(WorldTest, TickDoesNotResolveAttackRequestDuringCooldown) {
                                                  }));
     world.tick(DeltaTime{0.1f});
 
-    const auto& intent = world.registry().get<AttackIntent>(entity);
-    EXPECT_FALSE(intent.active);
-    EXPECT_EQ(intent.damage, 0);
-    EXPECT_FLOAT_EQ(intent.range, 0.0f);
+    EXPECT_EQ(world.registry().get<AttackState>(entity).phase, AttackPhase::Idle);
     EXPECT_FALSE(world.registry().get<AttackRequest>(entity).requested);
     EXPECT_FLOAT_EQ(world.registry().get<AttackCooldown>(entity).remaining_seconds.count(), 0.65f);
-    EXPECT_EQ(world.attack_events().size(), 1);
+    EXPECT_EQ(attack_event_count_from(world, entity), 1);
 }
 
 TEST(WorldTest, TickAllowsAttackAfterCooldownExpires) {
@@ -474,12 +488,209 @@ TEST(WorldTest, TickAllowsAttackAfterCooldownExpires) {
                                                  }));
     world.tick(DeltaTime{0.75f});
 
-    const auto& intent = world.registry().get<AttackIntent>(entity);
-    EXPECT_TRUE(intent.active);
-    EXPECT_EQ(intent.damage, 30);
-    EXPECT_FLOAT_EQ(intent.range, 2.0f);
+    EXPECT_EQ(world.registry().get<AttackState>(entity).phase, AttackPhase::Active);
     EXPECT_FALSE(world.registry().get<AttackRequest>(entity).requested);
     EXPECT_FLOAT_EQ(world.registry().get<AttackCooldown>(entity).remaining_seconds.count(), 0.75f);
+}
+
+TEST(WorldTest, TickDoesNotDamageDuringAttackWindup) {
+    World world;
+    const auto player = world.create_player(CreatePlayerConfig{
+        .position = Position{.x = 0.0f, .y = 0.0f},
+        .max_health = 100,
+        .move_speed = 5.0f,
+        .attack = AttackDefinition{
+            .damage = 20,
+            .range = 2.0f,
+            .cooldown_seconds = DeltaTime{0.4f},
+            .windup_seconds = DeltaTime{0.2f},
+            .active_seconds = DeltaTime{0.1f},
+            .recovery_seconds = DeltaTime{0.1f},
+        },
+    });
+    const auto monster = world.create_monster(CreateMonsterConfig{
+        .x_position = 0.0f,
+        .y_position = 1.0f,
+        .max_health = 50,
+        .move_speed = 0.0f,
+    });
+
+    ASSERT_TRUE(world.set_player_command(player, PlayerCommand{
+                                                     .move_x = 0.0f,
+                                                     .move_y = 0.0f,
+                                                     .attack_requested = true,
+                                                     .dash_requested = false,
+                                                 }));
+    world.tick(DeltaTime{0.0f});
+
+    EXPECT_EQ(world.registry().get<AttackState>(player).phase, AttackPhase::Windup);
+    EXPECT_EQ(world.registry().get<Health>(monster).current_health, 50);
+    ASSERT_EQ(attack_event_count_from(world, player), 1);
+
+    world.tick(DeltaTime{0.1f});
+
+    EXPECT_EQ(world.registry().get<AttackState>(player).phase, AttackPhase::Windup);
+    EXPECT_EQ(world.registry().get<Health>(monster).current_health, 50);
+}
+
+TEST(WorldTest, TickDamagesWhenAttackWindupEnds) {
+    World world;
+    const auto player = world.create_player(CreatePlayerConfig{
+        .position = Position{.x = 0.0f, .y = 0.0f},
+        .max_health = 100,
+        .move_speed = 5.0f,
+        .attack = AttackDefinition{
+            .damage = 20,
+            .range = 2.0f,
+            .cooldown_seconds = DeltaTime{0.4f},
+            .windup_seconds = DeltaTime{0.1f},
+            .active_seconds = DeltaTime{0.1f},
+            .recovery_seconds = DeltaTime{0.2f},
+        },
+    });
+    const auto monster = world.create_monster(CreateMonsterConfig{
+        .x_position = 0.0f,
+        .y_position = 1.0f,
+        .max_health = 50,
+        .move_speed = 0.0f,
+    });
+
+    ASSERT_TRUE(world.set_player_command(player, PlayerCommand{
+                                                     .move_x = 0.0f,
+                                                     .move_y = 0.0f,
+                                                     .attack_requested = true,
+                                                     .dash_requested = false,
+                                                 }));
+    world.tick(DeltaTime{0.0f});
+    world.tick(DeltaTime{0.1f});
+
+    EXPECT_EQ(world.registry().get<AttackState>(player).phase, AttackPhase::Active);
+    EXPECT_EQ(world.registry().get<Health>(monster).current_health, 30);
+    EXPECT_EQ(attack_event_count_from(world, player), 1);
+}
+
+TEST(WorldTest, TickDiscardsAttackRequestDuringRecovery) {
+    World world;
+    const auto player = world.create_player(CreatePlayerConfig{
+        .position = Position{.x = 0.0f, .y = 0.0f},
+        .max_health = 100,
+        .move_speed = 5.0f,
+        .attack = AttackDefinition{
+            .damage = 20,
+            .range = 2.0f,
+            .cooldown_seconds = DeltaTime{0.4f},
+            .windup_seconds = DeltaTime{0.1f},
+            .active_seconds = DeltaTime{0.1f},
+            .recovery_seconds = DeltaTime{0.2f},
+        },
+    });
+    const auto monster = world.create_monster(CreateMonsterConfig{
+        .x_position = 0.0f,
+        .y_position = 1.0f,
+        .max_health = 50,
+        .move_speed = 0.0f,
+    });
+
+    ASSERT_TRUE(world.set_player_command(player, PlayerCommand{
+                                                     .move_x = 0.0f,
+                                                     .move_y = 0.0f,
+                                                     .attack_requested = true,
+                                                     .dash_requested = false,
+                                                 }));
+    world.tick(DeltaTime{0.0f});
+    world.tick(DeltaTime{0.1f});
+
+    ASSERT_TRUE(world.set_player_command(player, PlayerCommand{
+                                                     .move_x = 0.0f,
+                                                     .move_y = 0.0f,
+                                                     .attack_requested = true,
+                                                     .dash_requested = false,
+                                                 }));
+    world.tick(DeltaTime{0.1f});
+
+    EXPECT_EQ(world.registry().get<AttackState>(player).phase, AttackPhase::Recovery);
+    EXPECT_FALSE(world.registry().get<AttackRequest>(player).requested);
+    EXPECT_EQ(world.registry().get<Health>(monster).current_health, 30);
+    EXPECT_EQ(attack_event_count_from(world, player), 1);
+}
+
+TEST(WorldTest, TickActiveWindowDamagesEachTargetOnlyOnce) {
+    World world;
+    const auto player = world.create_player(CreatePlayerConfig{
+        .position = Position{.x = 0.0f, .y = 0.0f},
+        .max_health = 100,
+        .move_speed = 0.0f,
+        .attack = AttackDefinition{
+            .damage = 20,
+            .range = 2.0f,
+            .cooldown_seconds = DeltaTime{0.5f},
+            .active_seconds = DeltaTime{0.3f},
+            .recovery_seconds = DeltaTime{0.2f},
+        },
+    });
+    const auto first_monster = world.create_monster(CreateMonsterConfig{
+        .x_position = 0.0f,
+        .y_position = 1.0f,
+        .max_health = 50,
+        .move_speed = 0.0f,
+    });
+    const auto second_monster = world.create_monster(CreateMonsterConfig{
+        .x_position = 0.0f,
+        .y_position = 4.0f,
+        .max_health = 50,
+        .move_speed = 0.0f,
+    });
+
+    ASSERT_TRUE(world.set_player_command(player, PlayerCommand{
+                                                     .move_x = 0.0f,
+                                                     .move_y = 0.0f,
+                                                     .attack_requested = true,
+                                                     .dash_requested = false,
+                                                 }));
+    world.tick(DeltaTime{0.0f});
+    EXPECT_EQ(world.registry().get<Health>(first_monster).current_health, 30);
+    EXPECT_EQ(world.registry().get<Health>(second_monster).current_health, 50);
+
+    world.registry().get<Transform>(second_monster).position.y = 1.0f;
+    world.tick(DeltaTime{0.1f});
+    EXPECT_EQ(world.registry().get<Health>(first_monster).current_health, 30);
+    EXPECT_EQ(world.registry().get<Health>(second_monster).current_health, 30);
+
+    world.tick(DeltaTime{0.1f});
+    EXPECT_EQ(world.registry().get<Health>(first_monster).current_health, 30);
+    EXPECT_EQ(world.registry().get<Health>(second_monster).current_health, 30);
+    EXPECT_EQ(world.registry().get<AttackState>(player).hit_targets.size(), 2);
+}
+
+TEST(WorldTest, TickLongProjectileActiveWindowSpawnsOneProjectile) {
+    World world;
+    const auto player = world.create_player(CreatePlayerConfig{
+        .position = Position{.x = 0.0f, .y = 0.0f},
+        .max_health = 100,
+        .move_speed = 0.0f,
+        .attack = AttackDefinition{
+            .kind = AttackKind::Projectile,
+            .damage = 20,
+            .range = 10.0f,
+            .cooldown_seconds = DeltaTime{0.5f},
+            .active_seconds = DeltaTime{0.3f},
+            .recovery_seconds = DeltaTime{0.2f},
+            .projectile_speed = 5.0f,
+        },
+    });
+
+    ASSERT_TRUE(world.set_player_command(player, PlayerCommand{
+                                                     .move_x = 0.0f,
+                                                     .move_y = 0.0f,
+                                                     .attack_requested = true,
+                                                     .dash_requested = false,
+                                                 }));
+    world.tick(DeltaTime{0.0f});
+    ASSERT_EQ(world.registry().pool<Projectile>().entities().size(), 1);
+
+    world.tick(DeltaTime{0.1f});
+    world.tick(DeltaTime{0.1f});
+    EXPECT_EQ(world.registry().pool<Projectile>().entities().size(), 1);
 }
 
 TEST(WorldTest, TickDamagesMonsterOnMeleeHalfCircleBoundary) {
@@ -1122,6 +1333,108 @@ TEST(WorldTest, TickMovesPlayerByInputDirectionAndMoveSpeed) {
     EXPECT_FLOAT_EQ(transform.direction.y, 0.0f);
 }
 
+TEST(WorldTest, TickSlowsAndLocksAttackingPlayerWithoutBlockingOtherMovement) {
+    World world;
+    const auto attacker = world.create_player(CreatePlayerConfig{
+        .position = Position{.x = 0.0f, .y = 0.0f},
+        .max_health = 100,
+        .move_speed = 5.0f,
+        .attack = AttackDefinition{
+            .damage = 20,
+            .range = 2.0f,
+            .cooldown_seconds = DeltaTime{0.4f},
+            .windup_seconds = DeltaTime{0.2f},
+            .active_seconds = DeltaTime{0.1f},
+            .recovery_seconds = DeltaTime{0.1f},
+            .movement_multiplier = 0.5f,
+        },
+    });
+    const auto other_player = world.create_player(CreatePlayerConfig{
+        .position = Position{.x = 10.0f, .y = 0.0f},
+        .max_health = 100,
+        .move_speed = 5.0f,
+    });
+
+    ASSERT_TRUE(world.set_player_command(attacker, PlayerCommand{
+                                                       .move_x = 0.0f,
+                                                       .move_y = 0.0f,
+                                                       .attack_requested = true,
+                                                       .dash_requested = false,
+                                                   }));
+    ASSERT_TRUE(world.set_player_command(other_player, PlayerCommand{
+                                                           .move_x = 0.0f,
+                                                           .move_y = 1.0f,
+                                                           .attack_requested = false,
+                                                           .dash_requested = false,
+                                                       }));
+    world.tick(DeltaTime{0.0f});
+
+    ASSERT_TRUE(world.set_player_command(attacker, PlayerCommand{
+                                                       .move_x = 1.0f,
+                                                       .move_y = 0.0f,
+                                                       .attack_requested = false,
+                                                       .dash_requested = false,
+                                                   }));
+    world.tick(DeltaTime{0.1f});
+
+    const auto& attacker_transform = world.registry().get<Transform>(attacker);
+    EXPECT_FLOAT_EQ(attacker_transform.position.x, 0.25f);
+    EXPECT_FLOAT_EQ(attacker_transform.position.y, 0.0f);
+    EXPECT_FLOAT_EQ(attacker_transform.direction.x, 0.0f);
+    EXPECT_FLOAT_EQ(attacker_transform.direction.y, 1.0f);
+
+    const auto& other_transform = world.registry().get<Transform>(other_player);
+    EXPECT_FLOAT_EQ(other_transform.position.x, 10.0f);
+    EXPECT_FLOAT_EQ(other_transform.position.y, 0.5f);
+    EXPECT_FLOAT_EQ(other_transform.direction.x, 0.0f);
+    EXPECT_FLOAT_EQ(other_transform.direction.y, 1.0f);
+}
+
+TEST(WorldTest, TickRestoresFullMovementAfterAttackEnds) {
+    World world;
+    const auto player = world.create_player(CreatePlayerConfig{
+        .position = Position{.x = 0.0f, .y = 0.0f},
+        .max_health = 100,
+        .move_speed = 5.0f,
+        .attack = AttackDefinition{
+            .damage = 20,
+            .range = 2.0f,
+            .cooldown_seconds = DeltaTime{0.3f},
+            .windup_seconds = DeltaTime{0.1f},
+            .active_seconds = DeltaTime{0.1f},
+            .recovery_seconds = DeltaTime{0.1f},
+            .movement_multiplier = 0.5f,
+        },
+    });
+
+    ASSERT_TRUE(world.set_player_command(player, PlayerCommand{
+                                                     .move_x = 0.0f,
+                                                     .move_y = 0.0f,
+                                                     .attack_requested = true,
+                                                     .dash_requested = false,
+                                                 }));
+    world.tick(DeltaTime{0.0f});
+
+    ASSERT_TRUE(world.set_player_command(player, PlayerCommand{
+                                                     .move_x = 1.0f,
+                                                     .move_y = 0.0f,
+                                                     .attack_requested = false,
+                                                     .dash_requested = false,
+                                                 }));
+    world.tick(DeltaTime{0.1f});
+    world.tick(DeltaTime{0.1f});
+    world.tick(DeltaTime{0.1f});
+
+    ASSERT_EQ(world.registry().get<AttackState>(player).phase, AttackPhase::Idle);
+    world.tick(DeltaTime{0.1f});
+
+    const auto& transform = world.registry().get<Transform>(player);
+    EXPECT_FLOAT_EQ(transform.position.x, 1.25f);
+    EXPECT_FLOAT_EQ(transform.position.y, 0.0f);
+    EXPECT_FLOAT_EQ(transform.direction.x, 1.0f);
+    EXPECT_FLOAT_EQ(transform.direction.y, 0.0f);
+}
+
 TEST(WorldTest, TickClampsPlayerPositionToWorldBounds) {
     World world(WorldBounds{
         .min_x = -1.0f,
@@ -1324,10 +1637,10 @@ TEST(WorldTest, DestroyPlayerRemovesEntityAndPlayerComponents) {
     EXPECT_FALSE(world.has_entity(entity));
     EXPECT_FALSE(world.registry().has<Transform>(entity));
     EXPECT_FALSE(world.registry().has<PlayerController>(entity));
-    EXPECT_FALSE(world.registry().has<AttackIntent>(entity));
     EXPECT_FALSE(world.registry().has<AttackRequest>(entity));
     EXPECT_FALSE(world.registry().has<AttackDefinition>(entity));
     EXPECT_FALSE(world.registry().has<AttackCooldown>(entity));
+    EXPECT_FALSE(world.registry().has<AttackState>(entity));
     EXPECT_FALSE(world.registry().has<MoveRequest>(entity));
     EXPECT_FALSE(world.registry().has<MoveIntent>(entity));
     EXPECT_FALSE(world.registry().has<DashRequest>(entity));
@@ -1413,23 +1726,35 @@ TEST(WorldTest, CreateMonsterInitializesAttackComponentsFromConfig) {
             .damage = 12,
             .range = 1.25f,
             .cooldown_seconds = DeltaTime{1.5f},
+            .windup_seconds = DeltaTime{0.35f},
+            .active_seconds = DeltaTime{0.10f},
+            .recovery_seconds = DeltaTime{0.55f},
+            .movement_multiplier = 0.0f,
             .projectile_speed = 0.0f,
         },
     });
 
-    ASSERT_TRUE(world.registry().has<AttackIntent>(entity));
     ASSERT_TRUE(world.registry().has<AttackRequest>(entity));
     ASSERT_TRUE(world.registry().has<AttackDefinition>(entity));
     ASSERT_TRUE(world.registry().has<AttackCooldown>(entity));
+    ASSERT_TRUE(world.registry().has<AttackState>(entity));
 
     const auto& attack = world.registry().get<AttackDefinition>(entity);
+    const auto& attack_state = world.registry().get<AttackState>(entity);
     EXPECT_FALSE(world.registry().get<AttackRequest>(entity).requested);
-    EXPECT_FALSE(world.registry().get<AttackIntent>(entity).active);
     EXPECT_EQ(attack.kind, AttackKind::Melee);
     EXPECT_EQ(attack.damage, 12);
     EXPECT_FLOAT_EQ(attack.range, 1.25f);
     EXPECT_FLOAT_EQ(attack.cooldown_seconds.count(), 1.5f);
+    EXPECT_FLOAT_EQ(attack.windup_seconds.count(), 0.35f);
+    EXPECT_FLOAT_EQ(attack.active_seconds.count(), 0.10f);
+    EXPECT_FLOAT_EQ(attack.recovery_seconds.count(), 0.55f);
+    EXPECT_FLOAT_EQ(attack.movement_multiplier, 0.0f);
     EXPECT_FLOAT_EQ(world.registry().get<AttackCooldown>(entity).remaining_seconds.count(), 0.0f);
+    EXPECT_EQ(attack_state.phase, AttackPhase::Idle);
+    EXPECT_FLOAT_EQ(attack_state.phase_remaining.count(), 0.0f);
+    EXPECT_TRUE(attack_state.hit_targets.empty());
+    EXPECT_FALSE(attack_state.projectile_spawned);
 }
 
 TEST(WorldTest, CreateMonsterAttachesConfiguredKitingAIOnly) {
@@ -1590,12 +1915,9 @@ TEST(WorldTest, TickMonsterDoesNotDamageOtherMonsters) {
             .projectile_speed = 0.0f,
         },
     });
-    world.registry().get<AttackIntent>(attacker) = AttackIntent{
-        .active = true,
-        .kind = AttackKind::Melee,
-        .damage = 15,
-        .range = 1.0f,
-        .projectile_speed = 0.0f,
+    world.registry().get<AttackState>(attacker) = AttackState{
+        .phase = AttackPhase::Active,
+        .locked_direction = Direction{.x = 0.0f, .y = 1.0f},
     };
 
     hit_resolve_system(world, DeltaTime{0.0f});
@@ -1771,7 +2093,6 @@ TEST(WorldTest, TickFrozenMonsterDoesNotDamagePlayerInsideAttackRange) {
 
     EXPECT_EQ(world.registry().get<Health>(player).current_health, 100);
     EXPECT_FALSE(world.registry().get<AttackRequest>(monster).requested);
-    EXPECT_FALSE(world.registry().get<AttackIntent>(monster).active);
 }
 
 TEST(WorldTest, TickMonsterMovesAfterFreezeExpires) {

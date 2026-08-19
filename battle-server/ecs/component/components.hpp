@@ -12,6 +12,8 @@
 namespace battle::ecs {
     /// @brief 未指定武器参数时使用的投射物命中半径。
     constexpr float DefaultProjectileHitRadius = 0.5f;
+    /// @brief 未显式配置攻击时间轴时使用的默认生效窗口。
+    constexpr DeltaTime DefaultAttackActiveSeconds{0.05f};
 
     /// @brief 一帧网络输入转换后的玩家动作请求。
     struct PlayerCommand {
@@ -90,21 +92,28 @@ namespace battle::ecs {
         Projectile,
     };
 
-    /// @brief 当前 tick 解析出的攻击意图及其攻击上下文。
-    struct AttackIntent {
-        bool active{};
-        AttackKind kind{};
-        int damage{};
-        float range{};
-        float projectile_speed{};
-        float projectile_hit_radius{DefaultProjectileHitRadius};
-        CombatContext context;
-    };
-
     /// @brief 当前 tick 解析出的冲刺意图。
     struct DashIntent {
         bool active;
         float dash_speed_multiplier;
+    };
+
+    /// @brief 攻击动作当前所处的权威时序阶段。
+    enum class AttackPhase {
+        Idle,
+        Windup,
+        Active,
+        Recovery,
+    };
+
+    /// @brief 跨 tick 保留的攻击动作状态。
+    struct AttackState {
+        AttackPhase phase{AttackPhase::Idle};
+        DeltaTime phase_remaining{};
+        CombatContext context{};
+        Direction locked_direction{};
+        std::vector<Entity> hit_targets;
+        bool projectile_spawned{false};
     };
 
     /// @brief 武器或怪物的基础攻击定义。
@@ -113,6 +122,10 @@ namespace battle::ecs {
         int damage;
         float range;
         DeltaTime cooldown_seconds;
+        DeltaTime windup_seconds{};
+        DeltaTime active_seconds{DefaultAttackActiveSeconds};
+        DeltaTime recovery_seconds{};
+        float movement_multiplier{1.0f};
         float projectile_speed;
         float projectile_hit_radius{DefaultProjectileHitRadius};
     };

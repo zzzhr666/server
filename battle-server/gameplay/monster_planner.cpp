@@ -12,6 +12,10 @@ battle::MonsterDefinition battle::monster_definition(MonsterKind kind) {
                 .damage = 10,
                 .range = MeleeMonsterAttackRange,
                 .cooldown_seconds = MeleeMonsterAttackCooldown,
+                .windup_seconds = MeleeMonsterAttackWindup,
+                .active_seconds = MeleeMonsterAttackActive,
+                .recovery_seconds = MeleeMonsterAttackRecovery,
+                .movement_multiplier = MeleeMonsterAttackMovementMultiplier,
                 .projectile_speed = 0.0f,
             },
         };
@@ -26,6 +30,10 @@ battle::MonsterDefinition battle::monster_definition(MonsterKind kind) {
                 .damage = 12,
                 .range = RangedMonsterAttackRange,
                 .cooldown_seconds = RangedMonsterAttackCooldown,
+                .windup_seconds = RangedMonsterAttackWindup,
+                .active_seconds = RangedMonsterAttackActive,
+                .recovery_seconds = RangedMonsterAttackRecovery,
+                .movement_multiplier = RangedMonsterAttackMovementMultiplier,
                 .projectile_speed = RangedMonsterProjectileSpeed,
             },
             .kiting_ai = ecs::KitingAI{

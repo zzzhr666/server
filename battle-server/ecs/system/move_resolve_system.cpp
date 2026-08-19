@@ -10,6 +10,7 @@ void battle::ecs::move_resolve_system(World& world, DeltaTime) {
         auto* stats = world.registry().try_get<CharacterStats>(entity);
         auto* intent = world.registry().try_get<MoveIntent>(entity);
         const auto* request = world.registry().try_get<MoveRequest>(entity);
+
         if (!velocity || !stats || !intent || !request) {
             continue;
         }
@@ -25,7 +26,15 @@ void battle::ecs::move_resolve_system(World& world, DeltaTime) {
         const float direction_y = request->y / length;
         intent->x = direction_x;
         intent->y = direction_y;
-        velocity->x = direction_x * stats->move_speed;
-        velocity->y = direction_y * stats->move_speed;
+        float movement_multiplier = 1.0f;
+        auto state = world.registry().try_get<AttackState>(entity);
+        auto* attack = world.registry().try_get<AttackDefinition>(entity);
+        if (attack && state) {
+            if (state->phase != AttackPhase::Idle) {
+                movement_multiplier = attack->movement_multiplier;
+            }
+        }
+        velocity->x = direction_x * stats->move_speed * movement_multiplier;
+        velocity->y = direction_y * stats->move_speed * movement_multiplier;
     }
 }

@@ -204,6 +204,7 @@ target_link_libraries(battle_ecs_tests PRIVATE
 )
 
 add_executable(battle_runtime_tests
+        gameplay/tests/growth_test.cpp
         gameplay/tests/spawn_planner_test.cpp
         gameplay/tests/weapon_test.cpp
         gameplay/tests/wave_planner_test.cpp

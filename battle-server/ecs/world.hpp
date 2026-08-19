@@ -117,7 +117,6 @@ namespace battle::ecs {
         PlayerController,
         MonsterController,
         CharacterStats,
-        AttackIntent,
         DashIntent,
         AttackDefinition,
         Dash,
@@ -128,7 +127,8 @@ namespace battle::ecs {
         BlessingInventory,
         StatusEffects,
         Projectile,
-        KitingAI
+        KitingAI,
+        AttackState
     >;
 
     /// @brief World 管理 ECS 实体、事件缓冲与固定顺序的战斗系统调度。

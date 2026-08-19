@@ -36,7 +36,7 @@
 | --- | --- | --- |
 | `Health` | current_health、max_health | 生命和死亡判定 |
 | `AttackDefinition` | kind、damage、range、cooldown、projectile 参数 | 武器或怪物基础攻击 |
-| `AttackRequest`、`AttackIntent` | requested、active、damage、context | 输入与本次攻击上下文 |
+| `AttackRequest`、`AttackState` | requested、阶段、攻击上下文、投射物首帧状态 | 输入、攻击时间轴与投射物生成 |
 | `AttackCooldown` | remaining_seconds | 攻击冷却 |
 | `Dash`、`DashIntent`、`DashCooldown` | 倍率、剩余时间 | 冲刺规则 |
 | `Projectile` | damage、distance、hit_radius、context | 投射物状态 |
@@ -93,7 +93,7 @@ death_system
 伤害以事件形式在系统间传递：
 
 ```text
-AttackIntent / Projectile
+AttackState / Projectile
   -> DamageEvent
   -> modified_damage
   -> DamageAppliedEvent

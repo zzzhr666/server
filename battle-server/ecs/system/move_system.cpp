@@ -24,6 +24,12 @@ void battle::ecs::move_system(World& world, DeltaTime delta_time) {
         }
         float dir_x = velocity->x / len;
         float dir_y = velocity->y / len;
+        if (auto state = world.registry().try_get<AttackState>(entity)) {
+            if (state->phase != AttackPhase::Idle) {
+                transform->direction = state->locked_direction;
+                continue;
+            }
+        }
         transform->direction.x = dir_x;
         transform->direction.y = dir_y;
     }

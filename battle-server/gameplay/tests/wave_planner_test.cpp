@@ -59,6 +59,10 @@ TEST(WavePlannerTest, PlanWaveAppliesMonsterAttackDefinition) {
     EXPECT_EQ(configs[0].attack.damage, 10);
     EXPECT_FLOAT_EQ(configs[0].attack.range, 0.7f);
     EXPECT_FLOAT_EQ(configs[0].attack.cooldown_seconds.count(), 1.6f);
+    EXPECT_FLOAT_EQ(configs[0].attack.windup_seconds.count(), 0.45f);
+    EXPECT_FLOAT_EQ(configs[0].attack.active_seconds.count(), 0.10f);
+    EXPECT_FLOAT_EQ(configs[0].attack.recovery_seconds.count(), 1.05f);
+    EXPECT_FLOAT_EQ(configs[0].attack.movement_multiplier, 0.0f);
     EXPECT_FLOAT_EQ(configs[0].attack.projectile_speed, 0.0f);
 }
 
@@ -79,6 +83,10 @@ TEST(WavePlannerTest, PlanWaveCarriesRangedMonsterKitingConfiguration) {
     EXPECT_EQ(configs[0].attack.kind, ecs::AttackKind::Projectile);
     EXPECT_FLOAT_EQ(configs[0].attack.range, 10.5f);
     EXPECT_FLOAT_EQ(configs[0].attack.cooldown_seconds.count(), 2.0f);
+    EXPECT_FLOAT_EQ(configs[0].attack.windup_seconds.count(), 0.60f);
+    EXPECT_FLOAT_EQ(configs[0].attack.active_seconds.count(), 0.05f);
+    EXPECT_FLOAT_EQ(configs[0].attack.recovery_seconds.count(), 1.35f);
+    EXPECT_FLOAT_EQ(configs[0].attack.movement_multiplier, 0.0f);
     EXPECT_FLOAT_EQ(configs[0].attack.projectile_speed, 11.0f);
     ASSERT_TRUE(configs[0].kiting_ai.has_value());
     EXPECT_FLOAT_EQ(configs[0].kiting_ai->retreat_distance, 7.0f);

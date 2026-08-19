@@ -198,6 +198,7 @@ TEST(BattleInstanceTest, ConstructorAppliesConfiguredPlayerWeapon) {
                                                  .attack_requested = true,
                                              }));
     instance.tick(ecs::DeltaTime{0.0f});
+    instance.tick(AxeAttackWindup);
 
     EXPECT_TRUE(instance.ended());
     EXPECT_EQ(instance.end_reason(), BattleEndReason::Victory);
@@ -228,6 +229,7 @@ TEST(BattleInstanceTest, ConstructorAppliesBowWeaponAndSpawnsProjectile) {
                                                  .attack_requested = true,
                                              }));
     instance.tick(ecs::DeltaTime{0.0f});
+    instance.tick(BowAttackWindup);
 
     const auto snapshot = instance.snapshot();
     int projectile_count = 0;

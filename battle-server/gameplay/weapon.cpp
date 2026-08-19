@@ -10,6 +10,10 @@ battle::WeaponDefinition battle::weapon_definition(WeaponKind kind) {
                 .damage = SwordAttackDamage,
                 .range = 3.0f,
                 .cooldown_seconds = SwordAttackCooldown,
+                .windup_seconds = SwordAttackWindup,
+                .active_seconds = SwordAttackActive,
+                .recovery_seconds = SwordAttackRecovery,
+                .movement_multiplier = SwordAttackMovementMultiplier,
                 .projectile_speed = 0.0f,
             },
         };
@@ -21,6 +25,10 @@ battle::WeaponDefinition battle::weapon_definition(WeaponKind kind) {
                 .damage = DaggerAttackDamage,
                 .range = 2.4f,
                 .cooldown_seconds = DaggerAttackCooldown,
+                .windup_seconds = DaggerAttackWindup,
+                .active_seconds = DaggerAttackActive,
+                .recovery_seconds = DaggerAttackRecovery,
+                .movement_multiplier = DaggerAttackMovementMultiplier,
                 .projectile_speed = 0.0f,
             },
         };
@@ -32,6 +40,10 @@ battle::WeaponDefinition battle::weapon_definition(WeaponKind kind) {
                 .damage = AxeAttackDamage,
                 .range = 3.5f,
                 .cooldown_seconds = AxeAttackCooldown,
+                .windup_seconds = AxeAttackWindup,
+                .active_seconds = AxeAttackActive,
+                .recovery_seconds = AxeAttackRecovery,
+                .movement_multiplier = AxeAttackMovementMultiplier,
                 .projectile_speed = 0.0f,
             },
         };
@@ -43,6 +55,10 @@ battle::WeaponDefinition battle::weapon_definition(WeaponKind kind) {
                 .damage = BowAttackDamage,
                 .range = 15.0f,
                 .cooldown_seconds = BowAttackCooldown,
+                .windup_seconds = BowAttackWindup,
+                .active_seconds = BowAttackActive,
+                .recovery_seconds = BowAttackRecovery,
+                .movement_multiplier = BowAttackMovementMultiplier,
                 .projectile_speed = 25.0f,
                 .projectile_hit_radius = BowProjectileHitRadius,
             }
