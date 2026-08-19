@@ -11,7 +11,7 @@
 #include "gameplay/growth.hpp"
 #include "gameplay/monster_kind.hpp"
 #include "gameplay/wave_planner.hpp"
-#include "gameplay/weapon.hpp"
+#include "gameplay/hero.hpp"
 
 namespace battle {
     struct ProgressionConfig {
@@ -40,7 +40,7 @@ namespace battle {
         std::string room_name;
         std::vector<std::int64_t> player_ids;
         WaveConfig wave_config = default_wave_config();
-        std::unordered_map<std::int64_t, std::pair<WeaponKind, GrowthLevels>> player_loadouts;
+        std::unordered_map<std::int64_t, std::pair<HeroKind, GrowthLevels>> player_loadouts;
         std::optional<ecs::CreatePlayerConfig> player_config_override;
         std::optional<std::uint32_t> reward_random_seed;
         ecs::WorldBounds world_bounds = ecs::WorldBounds{
@@ -94,6 +94,7 @@ namespace battle {
         ecs::Entity entity;
         ecs::EntityKind kind{};
         std::int64_t player_id{};
+        std::optional<HeroKind> hero;
         ecs::Position position{};
         ecs::Direction direction{};
         int current_health{};

@@ -437,13 +437,13 @@ func TestHandlerServeSessionStartsMatch(t *testing.T) {
 	defer clientConn.Close()
 
 	authenticateSession(t, clientConn)
-	writeClientEnvelope(t, clientConn, matchStartEnvelope(2, "axe", true))
+	writeClientEnvelope(t, clientConn, matchStartEnvelope(2, "rock", true))
 	response := readServerEnvelopeOrFail(t, clientConn)
 	if response.GetRequestId() != 2 || response.GetMatchResult().GetStatus() != string(rcenter.MatchStatusWaiting) {
 		t.Fatalf("match response = %v, want waiting result for request 2", response)
 	}
-	if matchService.startPlayerID != 7 || matchService.startWeapon != "axe" || !matchService.startSolo {
-		t.Fatalf("Start(playerID, weapon, solo) = (%d, %q, %t), want (7, %q, true)", matchService.startPlayerID, matchService.startWeapon, matchService.startSolo, "axe")
+	if matchService.startPlayerID != 7 || matchService.startHero != "rock" || !matchService.startSolo {
+		t.Fatalf("Start(playerID, hero, solo) = (%d, %q, %t), want (7, %q, true)", matchService.startPlayerID, matchService.startHero, matchService.startSolo, "rock")
 	}
 
 	if err := clientConn.Close(); err != nil {
@@ -471,7 +471,7 @@ func TestHandlerServeSessionPushesMatchedResultToLocalPlayer(t *testing.T) {
 	defer clientConn.Close()
 
 	authenticateSession(t, clientConn)
-	writeClientEnvelope(t, clientConn, matchStartEnvelope(2, "axe", false))
+	writeClientEnvelope(t, clientConn, matchStartEnvelope(2, "rock", false))
 	response := readServerEnvelopeOrFail(t, clientConn)
 	if response.GetRequestId() != 2 || response.GetMatchResult().GetRoomName() != "room-7-8" {
 		t.Fatalf("match response = %v, want current player's match result", response)
@@ -538,7 +538,7 @@ func TestHandlerServeSessionReturnsErrorWhenMatchStartFails(t *testing.T) {
 	defer clientConn.Close()
 
 	authenticateSession(t, clientConn)
-	writeClientEnvelope(t, clientConn, matchStartEnvelope(2, "axe", false))
+	writeClientEnvelope(t, clientConn, matchStartEnvelope(2, "rock", false))
 	response := readServerEnvelopeWithDeadline(t, clientConn)
 	if response.GetRequestId() != 2 || response.GetError().GetCode() != realtimepb.ErrorCode_INTERNAL {
 		t.Fatalf("match error response = %v, want internal error for request 2", response)
@@ -555,14 +555,14 @@ func TestHandlerServeSessionReturnsErrorWhenMatchStartFails(t *testing.T) {
 	waitForHandler(t, done)
 }
 
-func TestHandlerServeSessionRejectsInvalidMatchWeapon(t *testing.T) {
+func TestHandlerServeSessionRejectsInvalidMatchHero(t *testing.T) {
 	presenceService := &fakeHandlerPresence{}
 	handler := newHandlerWithMatchAndPresence(&fakeHandlerMatch{}, presenceService)
 	_, clientConn, done := startHandlerSession(t, handler)
 	defer clientConn.Close()
 
 	authenticateSession(t, clientConn)
-	writeClientEnvelope(t, clientConn, matchStartEnvelope(2, "wand", false))
+	writeClientEnvelope(t, clientConn, matchStartEnvelope(2, "sword", false))
 	response := readServerEnvelopeWithDeadline(t, clientConn)
 	if response.GetRequestId() != 2 || response.GetError().GetCode() != realtimepb.ErrorCode_INVALID_ARGUMENT {
 		t.Fatalf("match error response = %v, want invalid argument for request 2", response)
@@ -834,11 +834,11 @@ func heartbeatEnvelope(requestID uint64) *realtimepb.ClientEnvelope {
 	}
 }
 
-func matchStartEnvelope(requestID uint64, weapon string, solo bool) *realtimepb.ClientEnvelope {
+func matchStartEnvelope(requestID uint64, hero string, solo bool) *realtimepb.ClientEnvelope {
 	return &realtimepb.ClientEnvelope{
 		RequestId: requestID,
 		Payload: &realtimepb.ClientEnvelope_MatchStart{
-			MatchStart: &realtimepb.MatchStartRequest{Weapon: weapon, Solo: solo},
+			MatchStart: &realtimepb.MatchStartRequest{Hero: hero, Solo: solo},
 		},
 	}
 }
@@ -964,7 +964,7 @@ type fakeHandlerPresence struct {
 
 type fakeHandlerMatch struct {
 	startPlayerID  int64
-	startWeapon    string
+	startHero      string
 	startSolo      bool
 	startResult    *rcenter.MatchResult
 	startErr       error
@@ -1000,9 +1000,9 @@ func (f *fakeHandlerFriend) DeleteFriend(context.Context, int64, int64) error {
 	return errors.New("unexpected DeleteFriend call")
 }
 
-func (f *fakeHandlerMatch) Start(ctx context.Context, playerID int64, weapon string, solo bool) (*rcenter.MatchResult, error) {
+func (f *fakeHandlerMatch) Start(ctx context.Context, playerID int64, hero string, solo bool) (*rcenter.MatchResult, error) {
 	f.startPlayerID = playerID
-	f.startWeapon = weapon
+	f.startHero = hero
 	f.startSolo = solo
 	return f.startResult, f.startErr
 }

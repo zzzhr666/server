@@ -81,7 +81,7 @@ message MatchCancelRequest{}
 message MatchResumeRequest{}
 
 message MatchStartRequest{
-  string weapon = 1;
+  string hero = 1;
   bool solo = 2;
 }
 

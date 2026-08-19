@@ -30,7 +30,7 @@
 
 ![局外逻辑](diagrams/out-of-battle-flow.svg)
 
-局外成长初始等级均为 1，最高 10：攻击每级 `+8%`、攻速每级 `+6%`、生命每级 `+10%`、移速每级 `+3%`。rcenter 在创建房间前读取所有匹配玩家的成长等级，并连同武器一起传给 battle-server。
+局外成长初始等级均为 1，最高 10：攻击每级 `+8%`、攻速每级 `+6%`、生命每级 `+10%`、移速每级 `+3%`。rcenter 在创建房间前读取所有匹配玩家的成长等级，并连同英雄对应的战斗配置一起传给 battle-server。跨服务协议为兼容旧客户端仍使用字段名 `hero`。
 
 成长升级价格由 `internal/logic/growth` 配置，TCP `growth_get` 和 `growth_upgrade` 成功响应均返回每项的当前等级、下一级价格和上限。客户端不应自行推导价格。
 
@@ -74,7 +74,7 @@ state Redis store 在金币结算的同一个乐观事务中使用 `ZADD LT` 保
 
 `CreateRoom` 先在 battle-server 建立允许玩家列表和 token。客户端发送 `ClientHello` 后，`SessionManager` 绑定 player、UDP conversation 和 endpoint。房间第一次所有玩家都加入时启动 `BattleInstance`；已存在的玩家使用新的 UDP conversation 或 endpoint hello 时会重绑为同一 session，而不是创建第二个玩家。
 
-客户端的 `ClientInput` 包含移动、攻击和冲刺请求。客户端应每 5 秒发送 `ClientHeartbeat`。battle-server 默认 60 tick/s，并向所有已连接 session 广播 `WorldSnapshot`。
+客户端的 `ClientInput` 包含移动、攻击和冲刺请求。客户端应每 5 秒发送 `ClientHeartbeat`。battle-server 默认 60 tick/s，并向所有已连接 session 广播 `WorldSnapshot`。每个玩家的 `EntitySnapshot.hero` 都携带其英雄映射值，所有客户端据此渲染对应英雄；该值在房间创建时冻结，断线重连不会改变。
 
 ### ECS tick
 
@@ -91,18 +91,18 @@ state Redis store 在金币结算的同一个乐观事务中使用 `ZADD LT` 保
 
 快照包含实体位置和生命、波次、阶段、玩家经验、已持有祝福、待选祝福以及短期保留的攻击/死亡事件。
 
-### Loadout、武器与祝福
+### 英雄选择、战斗配置与祝福
 
-战斗服在创建玩家实体前先应用武器，再应用局外成长。当前初始武器：
+玩家对外选择初始英雄。服务端使用 `hero` 字段传输英雄对应的攻击配置；战斗服在创建玩家实体前先应用该配置，再应用局外成长。当前配置：
 
 玩家基础移速为 11.0，初始最大生命保持 1000。
 
-| 武器 | 类型 | 伤害 | 攻击间隔 | 范围 | 附加参数 |
-| --- | --- | ---: | ---: | ---: | --- |
-| 长剑 | 近战 | 23 | 0.34 秒 | 3.0 | - |
-| 匕首 | 近战 | 13 | 0.20 秒 | 2.4 | - |
-| 战斧 | 近战 | 38 | 0.62 秒 | 3.5 | - |
-| 弓箭 | 投射物 | 32 | 0.30 秒 | 15.0 | 弹速 25，命中半径 0.85 |
+| 初始英雄 | 协议值 | 类型 | 伤害 | 攻击间隔 | 范围 | 附加参数 |
+| --- | --- | --- | ---: | ---: | ---: | --- |
+| Fire | `fire` | 近战 | 23 | 0.34 秒 | 3.0 | - |
+| Ice | `ice` | 近战 | 13 | 0.20 秒 | 2.4 | - |
+| Rock | `rock` | 近战 | 38 | 0.62 秒 | 3.5 | - |
+| Nature | `nature` | 投射物 | 32 | 0.30 秒 | 15.0 | 弹速 25，命中半径 0.85 |
 
 当前祝福及每级数值：
 
@@ -146,7 +146,7 @@ in-game 标记，迟到的旧房间回调不会清理玩家的新对局。`all_p
 | 局外持久状态 | `internal/state`、`internal/logic/*/*repository.go` |
 | Room 与 UDP session | `battle-server/game`、`battle-server/session`、`battle-server/net` |
 | Room 生命周期和结束 | `battle-server/runtime` |
-| 武器、成长、波次 | `battle-server/gameplay` |
+| 英雄、成长、波次 | `battle-server/gameplay` |
 | 局内实体和规则 | `battle-server/ecs`、`battle-server/ecs/design.md` |
 
 ## 可观测性

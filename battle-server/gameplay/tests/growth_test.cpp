@@ -1,5 +1,5 @@
 #include "gameplay/growth.hpp"
-#include "gameplay/weapon.hpp"
+#include "gameplay/hero.hpp"
 
 #include <gtest/gtest.h>
 
@@ -8,7 +8,7 @@ namespace {
 
 TEST(GrowthTest, LevelOnePreservesCompleteAttackTimeline) {
     ecs::CreatePlayerConfig base{
-        .attack = weapon_definition(WeaponKind::Sword).attack,
+        .attack = hero_definition(HeroKind::Fire).attack,
     };
 
     const auto result = apply_growth(base, GrowthLevels{});
@@ -22,7 +22,7 @@ TEST(GrowthTest, LevelOnePreservesCompleteAttackTimeline) {
 
 TEST(GrowthTest, AttackSpeedLevelScalesCompleteTimelineBySameMultiplier) {
     ecs::CreatePlayerConfig base{
-        .attack = weapon_definition(WeaponKind::Sword).attack,
+        .attack = hero_definition(HeroKind::Fire).attack,
     };
     constexpr std::int32_t AttackSpeedLevel = 6;
     constexpr float ExpectedMultiplier = 1.30f;

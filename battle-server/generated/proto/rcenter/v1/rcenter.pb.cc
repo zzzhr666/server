@@ -30,7 +30,7 @@ namespace v1 {
 inline constexpr StartMatchRequest::Impl_::Impl_(
     ::_pbi::ConstantInitialized) noexcept
       : _cached_size_{0},
-        weapon_(
+        hero_(
             &::google::protobuf::internal::fixed_address_empty_string,
             ::_pbi::ConstantInitialized()),
         player_id_{::int64_t{0}},
@@ -102,7 +102,7 @@ PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT
 inline constexpr PlayerLoadout::Impl_::Impl_(
     ::_pbi::ConstantInitialized) noexcept
       : _cached_size_{0},
-        weapon_(
+        hero_(
             &::google::protobuf::internal::fixed_address_empty_string,
             ::_pbi::ConstantInitialized()),
         player_id_{::int64_t{0}} {}
@@ -526,7 +526,7 @@ const ::uint32_t
         PROTOBUF_FIELD_OFFSET(::rcenter::v1::StartMatchRequest, _impl_._has_bits_),
         6, // hasbit index offset
         PROTOBUF_FIELD_OFFSET(::rcenter::v1::StartMatchRequest, _impl_.player_id_),
-        PROTOBUF_FIELD_OFFSET(::rcenter::v1::StartMatchRequest, _impl_.weapon_),
+        PROTOBUF_FIELD_OFFSET(::rcenter::v1::StartMatchRequest, _impl_.hero_),
         PROTOBUF_FIELD_OFFSET(::rcenter::v1::StartMatchRequest, _impl_.solo_),
         1,
         0,
@@ -576,7 +576,7 @@ const ::uint32_t
         PROTOBUF_FIELD_OFFSET(::rcenter::v1::PlayerLoadout, _impl_._has_bits_),
         5, // hasbit index offset
         PROTOBUF_FIELD_OFFSET(::rcenter::v1::PlayerLoadout, _impl_.player_id_),
-        PROTOBUF_FIELD_OFFSET(::rcenter::v1::PlayerLoadout, _impl_.weapon_),
+        PROTOBUF_FIELD_OFFSET(::rcenter::v1::PlayerLoadout, _impl_.hero_),
         1,
         0,
         0x081, // bitmap
@@ -646,45 +646,44 @@ const char descriptor_table_protodef_proto_2frcenter_2fv1_2frcenter_2eproto[] AB
     "\n\032RegisterBattleNodeResponse\"\030\n\026ListBatt"
     "leNodesRequest\"@\n\027ListBattleNodesRespons"
     "e\022%\n\005nodes\030\001 \003(\0132\026.rcenter.v1.BattleNode"
-    "\"D\n\021StartMatchRequest\022\021\n\tplayer_id\030\001 \001(\003"
-    "\022\016\n\006weapon\030\002 \001(\t\022\014\n\004solo\030\003 \001(\010\"=\n\022StartM"
-    "atchResponse\022\'\n\006result\030\001 \001(\0132\027.rcenter.v"
-    "1.MatchResult\"\'\n\022CancelMatchRequest\022\021\n\tp"
-    "layer_id\030\001 \001(\003\"\025\n\023CancelMatchResponse\"\234\001"
-    "\n\022FinishMatchRequest\022\022\n\nplayer_ids\030\001 \003(\003"
-    "\022\016\n\006reason\030\002 \001(\t\0223\n\014player_stats\030\003 \003(\0132\035"
-    ".rcenter.v1.PlayerBattleStats\022\021\n\troom_na"
-    "me\030\004 \001(\t\022\032\n\022combat_duration_ms\030\005 \001(\003\"h\n\021"
-    "PlayerBattleStats\022\021\n\tplayer_id\030\001 \001(\003\022\023\n\013"
-    "total_kills\030\002 \001(\005\022+\n\005kills\030\003 \003(\0132\034.rcent"
-    "er.v1.MonsterKillCount\"7\n\020MonsterKillCou"
-    "nt\022\024\n\014monster_kind\030\001 \001(\t\022\r\n\005count\030\002 \001(\005\""
-    "\025\n\023FinishMatchResponse\"2\n\rPlayerLoadout\022"
-    "\021\n\tplayer_id\030\001 \001(\003\022\016\n\006weapon\030\002 \001(\t\"\'\n\022Re"
-    "sumeMatchRequest\022\021\n\tplayer_id\030\001 \001(\003\">\n\023R"
-    "esumeMatchResponse\022\'\n\006result\030\001 \001(\0132\027.rce"
-    "nter.v1.MatchResult2\216\004\n\016RCenterService\022c"
-    "\n\022RegisterBattleNode\022%.rcenter.v1.Regist"
-    "erBattleNodeRequest\032&.rcenter.v1.Registe"
-    "rBattleNodeResponse\022Z\n\017ListBattleNodes\022\""
-    ".rcenter.v1.ListBattleNodesRequest\032#.rce"
-    "nter.v1.ListBattleNodesResponse\022K\n\nStart"
-    "Match\022\035.rcenter.v1.StartMatchRequest\032\036.r"
-    "center.v1.StartMatchResponse\022N\n\013CancelMa"
-    "tch\022\036.rcenter.v1.CancelMatchRequest\032\037.rc"
-    "enter.v1.CancelMatchResponse\022N\n\013FinishMa"
-    "tch\022\036.rcenter.v1.FinishMatchRequest\032\037.rc"
-    "enter.v1.FinishMatchResponse\022N\n\013ResumeMa"
-    "tch\022\036.rcenter.v1.ResumeMatchRequest\032\037.rc"
-    "enter.v1.ResumeMatchResponseB.Z,server/i"
-    "nternal/contract/rcenterpb;rcenterpbb\006pr"
-    "oto3"
+    "\"B\n\021StartMatchRequest\022\021\n\tplayer_id\030\001 \001(\003"
+    "\022\014\n\004hero\030\002 \001(\t\022\014\n\004solo\030\003 \001(\010\"=\n\022StartMat"
+    "chResponse\022\'\n\006result\030\001 \001(\0132\027.rcenter.v1."
+    "MatchResult\"\'\n\022CancelMatchRequest\022\021\n\tpla"
+    "yer_id\030\001 \001(\003\"\025\n\023CancelMatchResponse\"\234\001\n\022"
+    "FinishMatchRequest\022\022\n\nplayer_ids\030\001 \003(\003\022\016"
+    "\n\006reason\030\002 \001(\t\0223\n\014player_stats\030\003 \003(\0132\035.r"
+    "center.v1.PlayerBattleStats\022\021\n\troom_name"
+    "\030\004 \001(\t\022\032\n\022combat_duration_ms\030\005 \001(\003\"h\n\021Pl"
+    "ayerBattleStats\022\021\n\tplayer_id\030\001 \001(\003\022\023\n\013to"
+    "tal_kills\030\002 \001(\005\022+\n\005kills\030\003 \003(\0132\034.rcenter"
+    ".v1.MonsterKillCount\"7\n\020MonsterKillCount"
+    "\022\024\n\014monster_kind\030\001 \001(\t\022\r\n\005count\030\002 \001(\005\"\025\n"
+    "\023FinishMatchResponse\"0\n\rPlayerLoadout\022\021\n"
+    "\tplayer_id\030\001 \001(\003\022\014\n\004hero\030\002 \001(\t\"\'\n\022Resume"
+    "MatchRequest\022\021\n\tplayer_id\030\001 \001(\003\">\n\023Resum"
+    "eMatchResponse\022\'\n\006result\030\001 \001(\0132\027.rcenter"
+    ".v1.MatchResult2\216\004\n\016RCenterService\022c\n\022Re"
+    "gisterBattleNode\022%.rcenter.v1.RegisterBa"
+    "ttleNodeRequest\032&.rcenter.v1.RegisterBat"
+    "tleNodeResponse\022Z\n\017ListBattleNodes\022\".rce"
+    "nter.v1.ListBattleNodesRequest\032#.rcenter"
+    ".v1.ListBattleNodesResponse\022K\n\nStartMatc"
+    "h\022\035.rcenter.v1.StartMatchRequest\032\036.rcent"
+    "er.v1.StartMatchResponse\022N\n\013CancelMatch\022"
+    "\036.rcenter.v1.CancelMatchRequest\032\037.rcente"
+    "r.v1.CancelMatchResponse\022N\n\013FinishMatch\022"
+    "\036.rcenter.v1.FinishMatchRequest\032\037.rcente"
+    "r.v1.FinishMatchResponse\022N\n\013ResumeMatch\022"
+    "\036.rcenter.v1.ResumeMatchRequest\032\037.rcente"
+    "r.v1.ResumeMatchResponseB.Z,server/inter"
+    "nal/contract/rcenterpb;rcenterpbb\006proto3"
 };
 static ::absl::once_flag descriptor_table_proto_2frcenter_2fv1_2frcenter_2eproto_once;
 PROTOBUF_CONSTINIT const ::_pbi::DescriptorTable descriptor_table_proto_2frcenter_2fv1_2frcenter_2eproto = {
     false,
     false,
-    1844,
+    1840,
     descriptor_table_protodef_proto_2frcenter_2fv1_2frcenter_2eproto,
     "proto/rcenter/v1/rcenter.proto",
     &descriptor_table_proto_2frcenter_2fv1_2frcenter_2eproto_once,
@@ -2414,7 +2413,7 @@ PROTOBUF_NDEBUG_INLINE StartMatchRequest::Impl_::Impl_(
     const ::rcenter::v1::StartMatchRequest& from_msg)
       : _has_bits_{from._has_bits_},
         _cached_size_{0},
-        weapon_(arena, from.weapon_) {}
+        hero_(arena, from.hero_) {}
 
 StartMatchRequest::StartMatchRequest(
     ::google::protobuf::Arena* PROTOBUF_NULLABLE arena,
@@ -2443,7 +2442,7 @@ PROTOBUF_NDEBUG_INLINE StartMatchRequest::Impl_::Impl_(
     ::google::protobuf::internal::InternalVisibility visibility,
     ::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
       : _cached_size_{0},
-        weapon_(arena) {}
+        hero_(arena) {}
 
 inline void StartMatchRequest::SharedCtor(::_pb::Arena* PROTOBUF_NULLABLE arena) {
   new (&_impl_) Impl_(internal_visibility(), arena);
@@ -2462,7 +2461,7 @@ inline void StartMatchRequest::SharedDtor(MessageLite& self) {
   StartMatchRequest& this_ = static_cast<StartMatchRequest&>(self);
   this_._internal_metadata_.Delete<::google::protobuf::UnknownFieldSet>();
   ABSL_DCHECK(this_.GetArena() == nullptr);
-  this_._impl_.weapon_.Destroy();
+  this_._impl_.hero_.Destroy();
   this_._impl_.~Impl_();
 }
 
@@ -2509,7 +2508,7 @@ StartMatchRequest::GetClassData() const {
   return StartMatchRequest_class_data_.base();
 }
 PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
-const ::_pbi::TcParseTable<2, 3, 0, 43, 2>
+const ::_pbi::TcParseTable<2, 3, 0, 41, 2>
 StartMatchRequest::_table_ = {
   {
     PROTOBUF_FIELD_OFFSET(StartMatchRequest, _impl_._has_bits_),
@@ -2532,9 +2531,9 @@ StartMatchRequest::_table_ = {
     // int64 player_id = 1;
     {::_pbi::TcParser::SingularVarintNoZag1<::uint64_t, offsetof(StartMatchRequest, _impl_.player_id_), 1>(),
      {8, 1, 0, PROTOBUF_FIELD_OFFSET(StartMatchRequest, _impl_.player_id_)}},
-    // string weapon = 2;
+    // string hero = 2;
     {::_pbi::TcParser::FastUS1,
-     {18, 0, 0, PROTOBUF_FIELD_OFFSET(StartMatchRequest, _impl_.weapon_)}},
+     {18, 0, 0, PROTOBUF_FIELD_OFFSET(StartMatchRequest, _impl_.hero_)}},
     // bool solo = 3;
     {::_pbi::TcParser::SingularVarintNoZag1<bool, offsetof(StartMatchRequest, _impl_.solo_), 2>(),
      {24, 2, 0, PROTOBUF_FIELD_OFFSET(StartMatchRequest, _impl_.solo_)}},
@@ -2544,8 +2543,8 @@ StartMatchRequest::_table_ = {
     // int64 player_id = 1;
     {PROTOBUF_FIELD_OFFSET(StartMatchRequest, _impl_.player_id_), _Internal::kHasBitsOffset + 1, 0,
     (0 | ::_fl::kFcOptional | ::_fl::kInt64)},
-    // string weapon = 2;
-    {PROTOBUF_FIELD_OFFSET(StartMatchRequest, _impl_.weapon_), _Internal::kHasBitsOffset + 0, 0,
+    // string hero = 2;
+    {PROTOBUF_FIELD_OFFSET(StartMatchRequest, _impl_.hero_), _Internal::kHasBitsOffset + 0, 0,
     (0 | ::_fl::kFcOptional | ::_fl::kUtf8String | ::_fl::kRepAString)},
     // bool solo = 3;
     {PROTOBUF_FIELD_OFFSET(StartMatchRequest, _impl_.solo_), _Internal::kHasBitsOffset + 2, 0,
@@ -2553,9 +2552,9 @@ StartMatchRequest::_table_ = {
   }},
   // no aux_entries
   {{
-    "\34\0\6\0\0\0\0\0"
+    "\34\0\4\0\0\0\0\0"
     "rcenter.v1.StartMatchRequest"
-    "weapon"
+    "hero"
   }},
 };
 PROTOBUF_NOINLINE void StartMatchRequest::Clear() {
@@ -2567,7 +2566,7 @@ PROTOBUF_NOINLINE void StartMatchRequest::Clear() {
 
   cached_has_bits = _impl_._has_bits_[0];
   if ((cached_has_bits & 0x00000001u) != 0) {
-    _impl_.weapon_.ClearNonDefaultToEmpty();
+    _impl_.hero_.ClearNonDefaultToEmpty();
   }
   if ((cached_has_bits & 0x00000006u) != 0) {
     ::memset(&_impl_.player_id_, 0, static_cast<::size_t>(
@@ -2602,12 +2601,12 @@ PROTOBUF_NOINLINE void StartMatchRequest::Clear() {
     }
   }
 
-  // string weapon = 2;
+  // string hero = 2;
   if ((this_._impl_._has_bits_[0] & 0x00000001u) != 0) {
-    if (!this_._internal_weapon().empty()) {
-      const ::std::string& _s = this_._internal_weapon();
+    if (!this_._internal_hero().empty()) {
+      const ::std::string& _s = this_._internal_hero();
       ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-          _s.data(), static_cast<int>(_s.length()), ::google::protobuf::internal::WireFormatLite::SERIALIZE, "rcenter.v1.StartMatchRequest.weapon");
+          _s.data(), static_cast<int>(_s.length()), ::google::protobuf::internal::WireFormatLite::SERIALIZE, "rcenter.v1.StartMatchRequest.hero");
       target = stream->WriteStringMaybeAliased(2, _s, target);
     }
   }
@@ -2647,11 +2646,11 @@ PROTOBUF_NOINLINE void StartMatchRequest::Clear() {
   ::_pbi::Prefetch5LinesFrom7Lines(&this_);
   cached_has_bits = this_._impl_._has_bits_[0];
   if ((cached_has_bits & 0x00000007u) != 0) {
-    // string weapon = 2;
+    // string hero = 2;
     if ((cached_has_bits & 0x00000001u) != 0) {
-      if (!this_._internal_weapon().empty()) {
+      if (!this_._internal_hero().empty()) {
         total_size += 1 + ::google::protobuf::internal::WireFormatLite::StringSize(
-                                        this_._internal_weapon());
+                                        this_._internal_hero());
       }
     }
     // int64 player_id = 1;
@@ -2683,11 +2682,11 @@ void StartMatchRequest::MergeImpl(::google::protobuf::MessageLite& to_msg, const
   cached_has_bits = from._impl_._has_bits_[0];
   if ((cached_has_bits & 0x00000007u) != 0) {
     if ((cached_has_bits & 0x00000001u) != 0) {
-      if (!from._internal_weapon().empty()) {
-        _this->_internal_set_weapon(from._internal_weapon());
+      if (!from._internal_hero().empty()) {
+        _this->_internal_set_hero(from._internal_hero());
       } else {
-        if (_this->_impl_.weapon_.IsDefault()) {
-          _this->_internal_set_weapon("");
+        if (_this->_impl_.hero_.IsDefault()) {
+          _this->_internal_set_hero("");
         }
       }
     }
@@ -2720,7 +2719,7 @@ void StartMatchRequest::InternalSwap(StartMatchRequest* PROTOBUF_RESTRICT PROTOB
   ABSL_DCHECK_EQ(arena, other->GetArena());
   _internal_metadata_.InternalSwap(&other->_internal_metadata_);
   swap(_impl_._has_bits_[0], other->_impl_._has_bits_[0]);
-  ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.weapon_, &other->_impl_.weapon_, arena);
+  ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.hero_, &other->_impl_.hero_, arena);
   ::google::protobuf::internal::memswap<
       PROTOBUF_FIELD_OFFSET(StartMatchRequest, _impl_.solo_)
       + sizeof(StartMatchRequest::_impl_.solo_)
@@ -4531,7 +4530,7 @@ PROTOBUF_NDEBUG_INLINE PlayerLoadout::Impl_::Impl_(
     const ::rcenter::v1::PlayerLoadout& from_msg)
       : _has_bits_{from._has_bits_},
         _cached_size_{0},
-        weapon_(arena, from.weapon_) {}
+        hero_(arena, from.hero_) {}
 
 PlayerLoadout::PlayerLoadout(
     ::google::protobuf::Arena* PROTOBUF_NULLABLE arena,
@@ -4554,7 +4553,7 @@ PROTOBUF_NDEBUG_INLINE PlayerLoadout::Impl_::Impl_(
     ::google::protobuf::internal::InternalVisibility visibility,
     ::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
       : _cached_size_{0},
-        weapon_(arena) {}
+        hero_(arena) {}
 
 inline void PlayerLoadout::SharedCtor(::_pb::Arena* PROTOBUF_NULLABLE arena) {
   new (&_impl_) Impl_(internal_visibility(), arena);
@@ -4568,7 +4567,7 @@ inline void PlayerLoadout::SharedDtor(MessageLite& self) {
   PlayerLoadout& this_ = static_cast<PlayerLoadout&>(self);
   this_._internal_metadata_.Delete<::google::protobuf::UnknownFieldSet>();
   ABSL_DCHECK(this_.GetArena() == nullptr);
-  this_._impl_.weapon_.Destroy();
+  this_._impl_.hero_.Destroy();
   this_._impl_.~Impl_();
 }
 
@@ -4615,7 +4614,7 @@ PlayerLoadout::GetClassData() const {
   return PlayerLoadout_class_data_.base();
 }
 PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
-const ::_pbi::TcParseTable<1, 2, 0, 39, 2>
+const ::_pbi::TcParseTable<1, 2, 0, 37, 2>
 PlayerLoadout::_table_ = {
   {
     PROTOBUF_FIELD_OFFSET(PlayerLoadout, _impl_._has_bits_),
@@ -4634,9 +4633,9 @@ PlayerLoadout::_table_ = {
     ::_pbi::TcParser::GetTable<::rcenter::v1::PlayerLoadout>(),  // to_prefetch
     #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
   }, {{
-    // string weapon = 2;
+    // string hero = 2;
     {::_pbi::TcParser::FastUS1,
-     {18, 0, 0, PROTOBUF_FIELD_OFFSET(PlayerLoadout, _impl_.weapon_)}},
+     {18, 0, 0, PROTOBUF_FIELD_OFFSET(PlayerLoadout, _impl_.hero_)}},
     // int64 player_id = 1;
     {::_pbi::TcParser::SingularVarintNoZag1<::uint64_t, offsetof(PlayerLoadout, _impl_.player_id_), 1>(),
      {8, 1, 0, PROTOBUF_FIELD_OFFSET(PlayerLoadout, _impl_.player_id_)}},
@@ -4646,15 +4645,15 @@ PlayerLoadout::_table_ = {
     // int64 player_id = 1;
     {PROTOBUF_FIELD_OFFSET(PlayerLoadout, _impl_.player_id_), _Internal::kHasBitsOffset + 1, 0,
     (0 | ::_fl::kFcOptional | ::_fl::kInt64)},
-    // string weapon = 2;
-    {PROTOBUF_FIELD_OFFSET(PlayerLoadout, _impl_.weapon_), _Internal::kHasBitsOffset + 0, 0,
+    // string hero = 2;
+    {PROTOBUF_FIELD_OFFSET(PlayerLoadout, _impl_.hero_), _Internal::kHasBitsOffset + 0, 0,
     (0 | ::_fl::kFcOptional | ::_fl::kUtf8String | ::_fl::kRepAString)},
   }},
   // no aux_entries
   {{
-    "\30\0\6\0\0\0\0\0"
+    "\30\0\4\0\0\0\0\0"
     "rcenter.v1.PlayerLoadout"
-    "weapon"
+    "hero"
   }},
 };
 PROTOBUF_NOINLINE void PlayerLoadout::Clear() {
@@ -4666,7 +4665,7 @@ PROTOBUF_NOINLINE void PlayerLoadout::Clear() {
 
   cached_has_bits = _impl_._has_bits_[0];
   if ((cached_has_bits & 0x00000001u) != 0) {
-    _impl_.weapon_.ClearNonDefaultToEmpty();
+    _impl_.hero_.ClearNonDefaultToEmpty();
   }
   _impl_.player_id_ = ::int64_t{0};
   _impl_._has_bits_.Clear();
@@ -4697,12 +4696,12 @@ PROTOBUF_NOINLINE void PlayerLoadout::Clear() {
     }
   }
 
-  // string weapon = 2;
+  // string hero = 2;
   if ((this_._impl_._has_bits_[0] & 0x00000001u) != 0) {
-    if (!this_._internal_weapon().empty()) {
-      const ::std::string& _s = this_._internal_weapon();
+    if (!this_._internal_hero().empty()) {
+      const ::std::string& _s = this_._internal_hero();
       ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-          _s.data(), static_cast<int>(_s.length()), ::google::protobuf::internal::WireFormatLite::SERIALIZE, "rcenter.v1.PlayerLoadout.weapon");
+          _s.data(), static_cast<int>(_s.length()), ::google::protobuf::internal::WireFormatLite::SERIALIZE, "rcenter.v1.PlayerLoadout.hero");
       target = stream->WriteStringMaybeAliased(2, _s, target);
     }
   }
@@ -4733,11 +4732,11 @@ PROTOBUF_NOINLINE void PlayerLoadout::Clear() {
   ::_pbi::Prefetch5LinesFrom7Lines(&this_);
   cached_has_bits = this_._impl_._has_bits_[0];
   if ((cached_has_bits & 0x00000003u) != 0) {
-    // string weapon = 2;
+    // string hero = 2;
     if ((cached_has_bits & 0x00000001u) != 0) {
-      if (!this_._internal_weapon().empty()) {
+      if (!this_._internal_hero().empty()) {
         total_size += 1 + ::google::protobuf::internal::WireFormatLite::StringSize(
-                                        this_._internal_weapon());
+                                        this_._internal_hero());
       }
     }
     // int64 player_id = 1;
@@ -4763,11 +4762,11 @@ void PlayerLoadout::MergeImpl(::google::protobuf::MessageLite& to_msg, const ::g
   cached_has_bits = from._impl_._has_bits_[0];
   if ((cached_has_bits & 0x00000003u) != 0) {
     if ((cached_has_bits & 0x00000001u) != 0) {
-      if (!from._internal_weapon().empty()) {
-        _this->_internal_set_weapon(from._internal_weapon());
+      if (!from._internal_hero().empty()) {
+        _this->_internal_set_hero(from._internal_hero());
       } else {
-        if (_this->_impl_.weapon_.IsDefault()) {
-          _this->_internal_set_weapon("");
+        if (_this->_impl_.hero_.IsDefault()) {
+          _this->_internal_set_hero("");
         }
       }
     }
@@ -4795,7 +4794,7 @@ void PlayerLoadout::InternalSwap(PlayerLoadout* PROTOBUF_RESTRICT PROTOBUF_NONNU
   ABSL_DCHECK_EQ(arena, other->GetArena());
   _internal_metadata_.InternalSwap(&other->_internal_metadata_);
   swap(_impl_._has_bits_[0], other->_impl_._has_bits_[0]);
-  ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.weapon_, &other->_impl_.weapon_, arena);
+  ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.hero_, &other->_impl_.hero_, arena);
   swap(_impl_.player_id_, other->_impl_.player_id_);
 }
 

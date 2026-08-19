@@ -136,6 +136,62 @@ TEST(BattleRuntimeTest, ReceiveInputAndTickBroadcastsMovedSnapshot) {
     }
 }
 
+TEST(BattleRuntimeTest, TickSerializesEveryPlayerHero) {
+    RuntimeTestContext context;
+    auto& room_manager = context.room_manager;
+    auto& session_manager = context.session_manager;
+    std::vector<std::pair<v1::ServerPacket, UdpEndpoint>> sent_packets;
+    BattleRuntime runtime(
+        room_manager, session_manager, context.metrics,
+        [&sent_packets](const v1::ServerPacket& packet, const UdpEndpoint& endpoint) {
+            sent_packets.emplace_back(packet, endpoint);
+        });
+
+    ASSERT_EQ(room_manager.create_room({
+                  .room_name = "room-1",
+                  .token = "token-1",
+                  .player_ids = {1001, 1002},
+                  .player_loadouts = {
+                      PlayerLoadout{.player_id = 1001, .hero = "rock"},
+                      PlayerLoadout{.player_id = 1002, .hero = "nature"},
+                  },
+              }).status,
+              CreateRoomStatus::OK);
+    ASSERT_EQ(session_manager.join({
+                  .room_name = "room-1",
+                  .token = "token-1",
+                  .player_id = 1001,
+                  .conv = 1,
+                  .endpoint = endpoint_with_port(7001),
+              }).status,
+              JoinSessionStatus::OK);
+    ASSERT_EQ(session_manager.join({
+                  .room_name = "room-1",
+                  .token = "token-1",
+                  .player_id = 1002,
+                  .conv = 2,
+                  .endpoint = endpoint_with_port(7002),
+              }).status,
+              JoinSessionStatus::OK);
+
+    runtime.start_room("room-1");
+    sent_packets.clear();
+    runtime.tick(ecs::DeltaTime{0.0f});
+
+    ASSERT_EQ(sent_packets.size(), 2);
+    const auto& entities = sent_packets[0].first.snapshot().entities();
+    const auto first_player = std::ranges::find_if(entities, [](const auto& entity) {
+        return entity.player_id() == 1001;
+    });
+    const auto second_player = std::ranges::find_if(entities, [](const auto& entity) {
+        return entity.player_id() == 1002;
+    });
+    ASSERT_NE(first_player, entities.end());
+    ASSERT_NE(second_player, entities.end());
+    EXPECT_EQ(first_player->hero(), "rock");
+    EXPECT_EQ(second_player->hero(), "nature");
+}
+
 TEST(BattleRuntimeTest, TickBroadcastsConfiguredTickRate) {
     RuntimeTestContext context;
     std::vector<v1::ServerPacket> sent_packets;
@@ -420,16 +476,16 @@ TEST(BattleRuntimeTest, ReceiveInputReturnsFalseForMissingRoom) {
                                                    }));
 }
 
-TEST(BattleRuntimeTest, StartRoomPassesConfiguredPlayerWeaponsToInstance) {
+TEST(BattleRuntimeTest, StartRoomPassesConfiguredPlayerHeroesToInstance) {
     RuntimeTestContext context;
     auto& room_manager = context.room_manager;
     auto& session_manager = context.session_manager;
-    std::unordered_map<std::int64_t, std::pair<WeaponKind,GrowthLevels>> captured_weapons;
+    std::unordered_map<std::int64_t, std::pair<HeroKind, GrowthLevels>> captured_heroes;
     BattleRuntime runtime(
         room_manager, session_manager, context.metrics,
         [](const v1::ServerPacket&, const UdpEndpoint&) {},
-        [&captured_weapons](BattleInstanceConfig config) {
-            captured_weapons = config.player_loadouts;
+        [&captured_heroes](BattleInstanceConfig config) {
+            captured_heroes = config.player_loadouts;
             return std::make_unique<BattleInstance>(std::move(config));
         });
 
@@ -440,7 +496,7 @@ TEST(BattleRuntimeTest, StartRoomPassesConfiguredPlayerWeaponsToInstance) {
                   .player_loadouts = {
                       PlayerLoadout{
                           .player_id = 1001,
-                          .weapon = "dagger",
+                          .hero = "ice",
                       },
                   },
               }).status,
@@ -456,8 +512,8 @@ TEST(BattleRuntimeTest, StartRoomPassesConfiguredPlayerWeaponsToInstance) {
 
     runtime.start_room("room-1");
 
-    ASSERT_TRUE(captured_weapons.contains(1001));
-    EXPECT_EQ(captured_weapons.at(1001).first, WeaponKind::Dagger);
+    ASSERT_TRUE(captured_heroes.contains(1001));
+    EXPECT_EQ(captured_heroes.at(1001).first, HeroKind::Ice);
 }
 
 TEST(BattleRuntimeTest, EndRoomBroadcastsGameOverAndCleansRoom) {
@@ -676,9 +732,12 @@ TEST(BattleRuntimeTest, ReconnectedPlayerClearsAllDisconnectedTimeout) {
     auto& room_manager = context.room_manager;
     auto& session_manager = context.session_manager;
     std::vector<FinishedBattle> finished_battles;
+    std::vector<std::pair<v1::ServerPacket, UdpEndpoint>> sent_packets;
     BattleRuntime runtime(
         room_manager, session_manager, context.metrics,
-        [](const v1::ServerPacket&, const UdpEndpoint&) {},
+        [&sent_packets](const v1::ServerPacket& packet, const UdpEndpoint& endpoint) {
+            sent_packets.emplace_back(packet, endpoint);
+        },
         {},
         [&finished_battles](const FinishedBattle& finished_battle) {
             finished_battles.push_back(finished_battle);
@@ -691,6 +750,9 @@ TEST(BattleRuntimeTest, ReconnectedPlayerClearsAllDisconnectedTimeout) {
                   .room_name = "room-1",
                   .token = "token-1",
                   .player_ids = {1001},
+                  .player_loadouts = {
+                      PlayerLoadout{.player_id = 1001, .hero = "ice"},
+                  },
               }).status,
               CreateRoomStatus::OK);
     ASSERT_EQ(session_manager.join({
@@ -720,7 +782,17 @@ TEST(BattleRuntimeTest, ReconnectedPlayerClearsAllDisconnectedTimeout) {
     ASSERT_EQ(rejoined.session->state(), BattleSessionState::Connected);
     EXPECT_EQ(rejoined.session->endpoint(), endpoint_with_port(7002));
 
+    sent_packets.clear();
     runtime.tick(ecs::DeltaTime{0.0f});
+    ASSERT_EQ(sent_packets.size(), 1);
+    EXPECT_EQ(sent_packets[0].second, endpoint_with_port(7002));
+    ASSERT_EQ(sent_packets[0].first.payload_case(), v1::ServerPacket::kSnapshot);
+    const auto& entities = sent_packets[0].first.snapshot().entities();
+    const auto player = std::ranges::find_if(entities, [](const auto& entity) {
+        return entity.player_id() == 1001;
+    });
+    ASSERT_NE(player, entities.end());
+    EXPECT_EQ(player->hero(), "ice");
     runtime.tick(ecs::DeltaTime{0.0f});
     EXPECT_TRUE(finished_battles.empty());
     EXPECT_EQ(room_manager.active_rooms(), 1);

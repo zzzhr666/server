@@ -1806,6 +1806,49 @@ TEST(WorldTest, CreateMonsterAttachesConfiguredKitingAIOnly) {
     EXPECT_FALSE(world.registry().has<KitingAI>(melee_monster));
 }
 
+TEST(WorldTest, TickMonsterDoesNotMoveDuringAttackTimeline) {
+    World world;
+    world.create_player(CreatePlayerConfig{
+        .position = Position{.x = 10.0f, .y = 0.0f},
+        .max_health = 100,
+        .move_speed = 5.0f,
+    });
+    const auto monster = world.create_monster(CreateMonsterConfig{
+        .x_position = 0.0f,
+        .y_position = 0.0f,
+        .max_health = 50,
+        .move_speed = 3.0f,
+        .attack = AttackDefinition{
+            .kind = AttackKind::Melee,
+            .damage = 10,
+            .range = 1.0f,
+            .cooldown_seconds = DeltaTime{2.0f},
+            .windup_seconds = DeltaTime{0.5f},
+            .active_seconds = DeltaTime{0.2f},
+            .recovery_seconds = DeltaTime{0.5f},
+            .movement_multiplier = 0.0f,
+            .projectile_speed = 0.0f,
+        },
+    });
+
+    for (const auto phase : {AttackPhase::Windup, AttackPhase::Active, AttackPhase::Recovery}) {
+        auto& transform = world.registry().get<Transform>(monster);
+        auto& velocity = world.registry().get<Velocity>(monster);
+        auto& attack_state = world.registry().get<AttackState>(monster);
+        transform.position = Position{.x = 0.0f, .y = 0.0f};
+        velocity = Velocity{.x = 3.0f, .y = 0.0f};
+        attack_state.phase = phase;
+        attack_state.phase_remaining = DeltaTime{1.0f};
+
+        world.tick(DeltaTime{0.1f});
+
+        EXPECT_FLOAT_EQ(transform.position.x, 0.0f);
+        EXPECT_FLOAT_EQ(transform.position.y, 0.0f);
+        EXPECT_FLOAT_EQ(velocity.x, 0.0f);
+        EXPECT_FLOAT_EQ(velocity.y, 0.0f);
+    }
+}
+
 TEST(WorldTest, MonsterDoesNotHavePlayerCommand) {
     World world;
     auto entity = world.create_monster(default_monster_config());

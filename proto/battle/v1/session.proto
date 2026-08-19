@@ -89,6 +89,7 @@ message EntitySnapshot{
   EntityKind kind = 8;
   int64 player_id = 9;
   string monster_kind = 10;
+  string hero = 11;
 }
 
 enum BattlePhase {

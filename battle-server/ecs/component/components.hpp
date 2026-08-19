@@ -10,7 +10,7 @@
 #include "gameplay/monster_kind.hpp"
 
 namespace battle::ecs {
-    /// @brief 未指定武器参数时使用的投射物命中半径。
+    /// @brief 未指定攻击参数时使用的投射物命中半径。
     constexpr float DefaultProjectileHitRadius = 0.5f;
     /// @brief 未显式配置攻击时间轴时使用的默认生效窗口。
     constexpr DeltaTime DefaultAttackActiveSeconds{0.05f};
@@ -116,7 +116,7 @@ namespace battle::ecs {
         bool projectile_spawned{false};
     };
 
-    /// @brief 武器或怪物的基础攻击定义。
+    /// @brief 英雄或怪物的基础攻击定义。
     struct AttackDefinition {
         AttackKind kind;
         int damage;

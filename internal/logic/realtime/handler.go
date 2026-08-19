@@ -617,19 +617,19 @@ func (h *Handler) handleHeartbeat(ctx context.Context, session *session, playerI
 }
 
 func (h *Handler) handleMatchStart(ctx context.Context, session *session, playerID int64, envelope *realtimepb.ClientEnvelope) bool {
-	weapon := envelope.GetMatchStart().GetWeapon()
-	if weapon == "" {
-		weapon = "sword"
+	hero := envelope.GetMatchStart().GetHero()
+	if hero == "" {
+		hero = "fire"
 	}
-	if !isValidWeapon(weapon) {
-		return writeError(session, envelope.GetRequestId(), realtimepb.ErrorCode_INVALID_ARGUMENT, "invalid weapon") == nil
+	if !isValidHero(hero) {
+		return writeError(session, envelope.GetRequestId(), realtimepb.ErrorCode_INVALID_ARGUMENT, "invalid hero") == nil
 	}
 	if h.match == nil {
 		_ = writeError(session, envelope.GetRequestId(), realtimepb.ErrorCode_INTERNAL, "match service unavailable")
 		return false
 	}
 
-	matchResult, err := h.match.Start(ctx, playerID, weapon, envelope.GetMatchStart().GetSolo())
+	matchResult, err := h.match.Start(ctx, playerID, hero, envelope.GetMatchStart().GetSolo())
 	if err != nil {
 		return writeError(session, envelope.GetRequestId(), matchErrorCode(err), err.Error()) == nil
 	}
@@ -1054,8 +1054,8 @@ func playerErrorCode(err error) realtimepb.ErrorCode {
 	}
 }
 
-func isValidWeapon(weapon string) bool {
-	if weapon == "bow" || weapon == "axe" || weapon == "dagger" || weapon == "sword" {
+func isValidHero(hero string) bool {
+	if hero == "nature" || hero == "rock" || hero == "ice" || hero == "fire" {
 		return true
 	}
 	return false

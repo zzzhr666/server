@@ -360,7 +360,7 @@ func (x *ListBattleNodesResponse) GetNodes() []*BattleNode {
 type StartMatchRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	PlayerId      int64                  `protobuf:"varint,1,opt,name=player_id,json=playerId,proto3" json:"player_id,omitempty"`
-	Weapon        string                 `protobuf:"bytes,2,opt,name=weapon,proto3" json:"weapon,omitempty"`
+	Hero          string                 `protobuf:"bytes,2,opt,name=hero,proto3" json:"hero,omitempty"`
 	Solo          bool                   `protobuf:"varint,3,opt,name=solo,proto3" json:"solo,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -403,9 +403,9 @@ func (x *StartMatchRequest) GetPlayerId() int64 {
 	return 0
 }
 
-func (x *StartMatchRequest) GetWeapon() string {
+func (x *StartMatchRequest) GetHero() string {
 	if x != nil {
-		return x.Weapon
+		return x.Hero
 	}
 	return ""
 }
@@ -768,7 +768,7 @@ func (*FinishMatchResponse) Descriptor() ([]byte, []int) {
 type PlayerLoadout struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	PlayerId      int64                  `protobuf:"varint,1,opt,name=player_id,json=playerId,proto3" json:"player_id,omitempty"`
-	Weapon        string                 `protobuf:"bytes,2,opt,name=weapon,proto3" json:"weapon,omitempty"`
+	Hero          string                 `protobuf:"bytes,2,opt,name=hero,proto3" json:"hero,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -810,9 +810,9 @@ func (x *PlayerLoadout) GetPlayerId() int64 {
 	return 0
 }
 
-func (x *PlayerLoadout) GetWeapon() string {
+func (x *PlayerLoadout) GetHero() string {
 	if x != nil {
-		return x.Weapon
+		return x.Hero
 	}
 	return ""
 }
@@ -934,10 +934,10 @@ const file_proto_rcenter_v1_rcenter_proto_rawDesc = "" +
 	"\x1aRegisterBattleNodeResponse\"\x18\n" +
 	"\x16ListBattleNodesRequest\"G\n" +
 	"\x17ListBattleNodesResponse\x12,\n" +
-	"\x05nodes\x18\x01 \x03(\v2\x16.rcenter.v1.BattleNodeR\x05nodes\"\\\n" +
+	"\x05nodes\x18\x01 \x03(\v2\x16.rcenter.v1.BattleNodeR\x05nodes\"X\n" +
 	"\x11StartMatchRequest\x12\x1b\n" +
-	"\tplayer_id\x18\x01 \x01(\x03R\bplayerId\x12\x16\n" +
-	"\x06weapon\x18\x02 \x01(\tR\x06weapon\x12\x12\n" +
+	"\tplayer_id\x18\x01 \x01(\x03R\bplayerId\x12\x12\n" +
+	"\x04hero\x18\x02 \x01(\tR\x04hero\x12\x12\n" +
 	"\x04solo\x18\x03 \x01(\bR\x04solo\"E\n" +
 	"\x12StartMatchResponse\x12/\n" +
 	"\x06result\x18\x01 \x01(\v2\x17.rcenter.v1.MatchResultR\x06result\"1\n" +
@@ -959,10 +959,10 @@ const file_proto_rcenter_v1_rcenter_proto_rawDesc = "" +
 	"\x10MonsterKillCount\x12!\n" +
 	"\fmonster_kind\x18\x01 \x01(\tR\vmonsterKind\x12\x14\n" +
 	"\x05count\x18\x02 \x01(\x05R\x05count\"\x15\n" +
-	"\x13FinishMatchResponse\"D\n" +
+	"\x13FinishMatchResponse\"@\n" +
 	"\rPlayerLoadout\x12\x1b\n" +
-	"\tplayer_id\x18\x01 \x01(\x03R\bplayerId\x12\x16\n" +
-	"\x06weapon\x18\x02 \x01(\tR\x06weapon\"1\n" +
+	"\tplayer_id\x18\x01 \x01(\x03R\bplayerId\x12\x12\n" +
+	"\x04hero\x18\x02 \x01(\tR\x04hero\"1\n" +
 	"\x12ResumeMatchRequest\x12\x1b\n" +
 	"\tplayer_id\x18\x01 \x01(\x03R\bplayerId\"F\n" +
 	"\x13ResumeMatchResponse\x12/\n" +

@@ -118,7 +118,7 @@ func TestStartMatchCreatesSoloRoom(t *testing.T) {
 
 	response, err := server.StartMatch(context.Background(), &rcenterpb.StartMatchRequest{
 		PlayerId: 7,
-		Weapon:   "axe",
+		Hero:     "rock",
 		Solo:     true,
 	})
 	if err != nil {
@@ -141,10 +141,10 @@ func TestResumeMatchReturnsMatchedResult(t *testing.T) {
 		ControlAddr: "127.0.0.1:9101",
 		MaxPlayers:  100,
 	})
-	if _, err := server.StartMatch(context.Background(), &rcenterpb.StartMatchRequest{PlayerId: 7, Weapon: "axe"}); err != nil {
+	if _, err := server.StartMatch(context.Background(), &rcenterpb.StartMatchRequest{PlayerId: 7, Hero: "rock"}); err != nil {
 		t.Fatalf("first StartMatch returned error: %v", err)
 	}
-	matched, err := server.StartMatch(context.Background(), &rcenterpb.StartMatchRequest{PlayerId: 8, Weapon: "dagger"})
+	matched, err := server.StartMatch(context.Background(), &rcenterpb.StartMatchRequest{PlayerId: 8, Hero: "ice"})
 	if err != nil {
 		t.Fatalf("second StartMatch returned error: %v", err)
 	}

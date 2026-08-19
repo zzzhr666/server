@@ -69,7 +69,7 @@ add_library(battle_gameplay
         gameplay/wave_planner.cpp
         gameplay/monster_planner.cpp
         gameplay/monster_kind_codec.cpp
-        gameplay/weapon.cpp
+        gameplay/hero.cpp
         gameplay/growth.cpp
 )
 add_library(battle_session
@@ -206,7 +206,7 @@ target_link_libraries(battle_ecs_tests PRIVATE
 add_executable(battle_runtime_tests
         gameplay/tests/growth_test.cpp
         gameplay/tests/spawn_planner_test.cpp
-        gameplay/tests/weapon_test.cpp
+        gameplay/tests/hero_test.cpp
         gameplay/tests/wave_planner_test.cpp
         runtime/tests/battle_instance_test.cpp
         runtime/tests/battle_runtime_test.cpp

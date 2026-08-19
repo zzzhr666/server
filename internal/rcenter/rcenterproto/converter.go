@@ -44,7 +44,7 @@ func ToProtoMatchResult(result *rcenter.MatchResult) *rcenterpb.MatchResult {
 	for _, loadout := range result.PlayerLoadouts {
 		protoResult.PlayerLoadouts = append(protoResult.PlayerLoadouts, &rcenterpb.PlayerLoadout{
 			PlayerId: loadout.PlayerID,
-			Weapon:   loadout.Weapon,
+			Hero:     loadout.Hero,
 		})
 	}
 	return protoResult
@@ -64,7 +64,7 @@ func FromProtoMatchResult(result *rcenterpb.MatchResult) *rcenter.MatchResult {
 	for _, loadout := range result.GetPlayerLoadouts() {
 		matchResult.PlayerLoadouts = append(matchResult.PlayerLoadouts, rcenter.PlayerLoadout{
 			PlayerID: loadout.GetPlayerId(),
-			Weapon:   loadout.GetWeapon(),
+			Hero:     loadout.GetHero(),
 		})
 	}
 	return matchResult

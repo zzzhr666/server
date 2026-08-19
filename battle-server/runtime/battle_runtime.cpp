@@ -10,7 +10,7 @@
 #include "game/game_manager.hpp"
 #include "gameplay/growth.hpp"
 #include "gameplay/monster_kind_codec.hpp"
-#include "gameplay/weapon.hpp"
+#include "gameplay/hero.hpp"
 #include "net/packet_codec.hpp"
 #include "platform/metrics.hpp"
 #include "session/battle_session.hpp"
@@ -145,6 +145,9 @@ namespace {
             entity_snapshot->set_current_health(entity.current_health);
             entity_snapshot->set_max_health(entity.max_health);
 
+            if (entity.hero.has_value()) {
+                entity_snapshot->set_hero(battle::hero_kind_to_string(entity.hero.value()));
+            }
             if (entity.monster_kind.has_value()) {
                 entity_snapshot->set_monster_kind(battle::monster_kind_to_string(entity.monster_kind.value()));
             }
@@ -272,13 +275,13 @@ void battle::BattleRuntime::start_room(const std::string& room_name) {
     for (const auto& session : sessions) {
         player_ids.push_back(session->player_id());
     }
-    std::unordered_map<std::int64_t, std::pair<WeaponKind, GrowthLevels>> player_loadouts;
+    std::unordered_map<std::int64_t, std::pair<HeroKind, GrowthLevels>> player_loadouts;
     player_loadouts.reserve(configured_loadouts.size());
-    // 武器文本无效时保留 BattleInstance 的默认剑配置，避免一个脏 loadout 阻止整个
+    // 英雄文本无效时保留 BattleInstance 的默认 Fire 配置，避免一个脏 loadout 阻止整个
     // 已匹配房间开始；局外成长在此冻结，战斗中不再读取 Redis 或 rcenter。
     for (const auto& loadout : configured_loadouts) {
-        auto weapon_kind = weapon_kind_from_string(loadout.weapon);
-        if (!weapon_kind.has_value()) {
+        auto hero_kind = hero_kind_from_string(loadout.hero);
+        if (!hero_kind.has_value()) {
             continue;
         }
         auto growth_level = GrowthLevels{
@@ -287,7 +290,7 @@ void battle::BattleRuntime::start_room(const std::string& room_name) {
             .health_level = loadout.health_level,
             .move_speed_level = loadout.move_speed_level,
         };
-        player_loadouts.emplace(loadout.player_id, std::make_pair(weapon_kind.value(), growth_level));
+        player_loadouts.emplace(loadout.player_id, std::make_pair(hero_kind.value(), growth_level));
     }
 
     auto instance = instance_factory_(BattleInstanceConfig{

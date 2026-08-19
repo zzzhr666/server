@@ -17,7 +17,7 @@
 ```json
 {
   "username":"alice",
-  "password":"password123",
+  "pasfire":"pasfire123",
   "nickname":"Alice",
   "avatar":"adventurer",
   "email":"alice@example.com",
@@ -52,7 +52,7 @@ ServerEnvelope { request_id: 1, authenticated: { player_id: 7 } }
 | 客户端 payload | 成功响应 | 行为 |
 | --- | --- | --- |
 | `heartbeat` | `heartbeat_ack` | 刷新在线状态 |
-| `match_start { weapon, solo }` | `match_result` | 开始对局；`solo=true` 立即创建单人房间，缺省或 `false` 进入双人匹配；合法武器为 `sword`、`dagger`、`axe`、`bow`，空值默认 `sword` |
+| `match_start { hero, solo }` | `match_result` | 开始对局；`solo=true` 立即创建单人房间，缺省或 `false` 进入双人匹配；`hero` 表示初始英雄：Fire=`fire`、Ice=`ice`、Rock=`rock`、Nature=`nature`，空值默认 Fire |
 | `match_cancel` | `match_canceled` | 取消等待中的匹配 |
 | `match_resume` | `match_result` | 请求当前玩家的活跃对局 |
 | `player_get` | `player` | 返回当前玩家档案与金币 |
@@ -142,5 +142,7 @@ UDP payload 使用 `proto/battle/v1/session.proto` 的 `ClientPacket` 与 `Serve
 2. 收到 `ServerHello` 后保存服务器分配的 conversation，开始接收快照。
 3. 每 5 秒发送 `ClientHeartbeat`，并按输入状态发送 `ClientInput`。
 4. 在 `BATTLE_PHASE_REWARD_SELECTION` 时，使用 snapshot 中的 `current_options` 发送 `ChooseBlessing`。
+
+`WorldSnapshot.entities` 中的每个玩家实体都通过 `EntitySnapshot.hero` 携带初始英雄值。客户端在协议边界解析该字段，并在展示层使用 Fire、Ice、Rock、Nature；同一房间内所有客户端收到相同值，断线重连后也保持不变。怪物和投射物的该字段为空。
 
 默认超时：有效 UDP 输入或心跳缺失 15 秒时 session 断开；房间内所有 session 都断开 90 秒后，服务器以 `all_players_disconnected` 结束房间。完整字段和枚举以 [session.proto](../proto/battle/v1/session.proto) 为准。

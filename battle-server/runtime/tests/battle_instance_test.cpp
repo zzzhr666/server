@@ -75,6 +75,25 @@ TEST(BattleInstanceTest, SnapshotUsesConfiguredTickRate) {
     EXPECT_EQ(instance.snapshot().tick_rate, 30);
 }
 
+TEST(BattleInstanceTest, SnapshotIncludesEveryPlayerHero) {
+    BattleInstance instance({
+        .room_name = "room-1",
+        .player_ids = {1001, 1002},
+        .player_loadouts = {
+            {1001, std::make_pair(HeroKind::Rock, GrowthLevels{})},
+            {1002, std::make_pair(HeroKind::Nature, GrowthLevels{})},
+        },
+    });
+
+    const auto snapshot = instance.snapshot();
+
+    ASSERT_EQ(snapshot.entities.size(), 2);
+    ASSERT_TRUE(snapshot.entities[0].hero.has_value());
+    ASSERT_TRUE(snapshot.entities[1].hero.has_value());
+    EXPECT_EQ(snapshot.entities[0].hero.value(), HeroKind::Rock);
+    EXPECT_EQ(snapshot.entities[1].hero.value(), HeroKind::Nature);
+}
+
 TEST(BattleInstanceTest, SnapshotFallsBackToDefaultTickRateForZeroConfig) {
     BattleInstance instance({
         .room_name = "room-1",
@@ -252,7 +271,7 @@ TEST(BattleInstanceTest, TickClampsPlayerToConfiguredWorldBounds) {
     EXPECT_FLOAT_EQ(snapshot.entities[0].position.y, 0.0f);
 }
 
-TEST(BattleInstanceTest, ConstructorAppliesConfiguredPlayerWeapon) {
+TEST(BattleInstanceTest, ConstructorAppliesConfiguredPlayerHero) {
     BattleInstance instance({
         .room_name = "room-1",
         .player_ids = {1001},
@@ -271,7 +290,12 @@ TEST(BattleInstanceTest, ConstructorAppliesConfiguredPlayerWeapon) {
             },
         },
         .player_loadouts = {
-            {1001, std::make_pair(WeaponKind::Axe,GrowthLevels{.attack_level = 1,.attack_speed_level = 1,.health_level = 1,.move_speed_level = 1})},
+            {1001, std::make_pair(HeroKind::Rock, GrowthLevels{
+                                                     .attack_level = 1,
+                                                     .attack_speed_level = 1,
+                                                     .health_level = 1,
+                                                     .move_speed_level = 1,
+                                                 })},
         },
     });
 
@@ -281,13 +305,13 @@ TEST(BattleInstanceTest, ConstructorAppliesConfiguredPlayerWeapon) {
                                                  .attack_requested = true,
                                              }));
     instance.tick(ecs::DeltaTime{0.0f});
-    instance.tick(AxeAttackWindup);
+    instance.tick(RockAttackWindup);
 
     EXPECT_TRUE(instance.ended());
     EXPECT_EQ(instance.end_reason(), BattleEndReason::Victory);
 }
 
-TEST(BattleInstanceTest, ConstructorAppliesBowWeaponAndSpawnsProjectile) {
+TEST(BattleInstanceTest, ConstructorAppliesNatureHeroAndSpawnsProjectile) {
     BattleInstance instance({
         .room_name = "room-1",
         .player_ids = {1001},
@@ -304,7 +328,7 @@ TEST(BattleInstanceTest, ConstructorAppliesBowWeaponAndSpawnsProjectile) {
             },
         },
         .player_loadouts = {
-            {1001, std::make_pair(WeaponKind::Bow, GrowthLevels{})},
+            {1001, std::make_pair(HeroKind::Nature, GrowthLevels{})},
         },
     });
 
@@ -312,7 +336,7 @@ TEST(BattleInstanceTest, ConstructorAppliesBowWeaponAndSpawnsProjectile) {
                                                  .attack_requested = true,
                                              }));
     instance.tick(ecs::DeltaTime{0.0f});
-    instance.tick(BowAttackWindup);
+    instance.tick(NatureAttackWindup);
 
     const auto snapshot = instance.snapshot();
     int projectile_count = 0;

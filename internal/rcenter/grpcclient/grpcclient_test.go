@@ -25,23 +25,23 @@ func TestClientStartMatch(t *testing.T) {
 				BattleUdpAddr:  "127.0.0.1:7001",
 				PlayerIds:      []int64{7, 8},
 				PlayerLoadouts: []*rcenterpb.PlayerLoadout{
-					{PlayerId: 7, Weapon: "axe"},
-					{PlayerId: 8, Weapon: "dagger"},
+					{PlayerId: 7, Hero: "rock"},
+					{PlayerId: 8, Hero: "ice"},
 				},
 			},
 		},
 	}
 	client := NewClient(grpcCenter)
 
-	result, err := client.StartMatch(context.Background(), 7, "axe", true)
+	result, err := client.StartMatch(context.Background(), 7, "rock", true)
 	if err != nil {
 		t.Fatalf("StartMatch returned error: %v", err)
 	}
 	if grpcCenter.startMatchRequest.GetPlayerId() != 7 {
 		t.Fatalf("player id = %d, want 7", grpcCenter.startMatchRequest.GetPlayerId())
 	}
-	if grpcCenter.startMatchRequest.GetWeapon() != "axe" {
-		t.Fatalf("weapon = %q, want axe", grpcCenter.startMatchRequest.GetWeapon())
+	if grpcCenter.startMatchRequest.GetHero() != "rock" {
+		t.Fatalf("hero = %q, want rock", grpcCenter.startMatchRequest.GetHero())
 	}
 	if !grpcCenter.startMatchRequest.GetSolo() {
 		t.Fatal("solo = false, want true")
@@ -65,8 +65,8 @@ func TestClientStartMatch(t *testing.T) {
 		t.Fatalf("player ids = %v, want [7 8]", result.PlayerIDs)
 	}
 	wantLoadouts := []rcenter.PlayerLoadout{
-		{PlayerID: 7, Weapon: "axe"},
-		{PlayerID: 8, Weapon: "dagger"},
+		{PlayerID: 7, Hero: "rock"},
+		{PlayerID: 8, Hero: "ice"},
 	}
 	if !reflect.DeepEqual(result.PlayerLoadouts, wantLoadouts) {
 		t.Fatalf("player loadouts = %+v, want %+v", result.PlayerLoadouts, wantLoadouts)

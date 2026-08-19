@@ -35,7 +35,7 @@
 | 组件 | 主要字段 | 用途 |
 | --- | --- | --- |
 | `Health` | current_health、max_health | 生命和死亡判定 |
-| `AttackDefinition` | kind、damage、range、cooldown、projectile 参数 | 武器或怪物基础攻击 |
+| `AttackDefinition` | kind、damage、range、cooldown、projectile 参数 | 英雄或怪物基础攻击 |
 | `AttackRequest`、`AttackState` | requested、阶段、攻击上下文、投射物首帧状态 | 输入、攻击时间轴与投射物生成 |
 | `AttackCooldown` | remaining_seconds | 攻击冷却 |
 | `Dash`、`DashIntent`、`DashCooldown` | 倍率、剩余时间 | 冲刺规则 |
@@ -52,7 +52,7 @@
 | `BlessingInventory` | 已持有祝福和等级 |
 | `StatusEffects` | 燃烧、冰冻等由祝福触发的持续状态 |
 
-局外成长不是 ECS 组件。`BattleInstance` 在创建玩家前对武器基础属性调用 `apply_growth`，然后将结果写入角色的 `Health`、`CharacterStats` 和 `AttackDefinition`。
+局外成长不是 ECS 组件。`BattleInstance` 在创建玩家前对英雄基础属性调用 `apply_growth`，然后将结果写入角色的 `Health`、`CharacterStats` 和 `AttackDefinition`。
 
 ## 固定系统顺序
 

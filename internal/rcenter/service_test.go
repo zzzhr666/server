@@ -177,7 +177,7 @@ func TestServiceStartMatchCreatesRoomForSecondPlayer(t *testing.T) {
 		ActivePlayers: 1,
 	})
 
-	first, err := svc.StartMatch(context.Background(), 7, "axe", false)
+	first, err := svc.StartMatch(context.Background(), 7, "rock", false)
 	if err != nil {
 		t.Fatalf("first StartMatch returned error: %v", err)
 	}
@@ -185,7 +185,7 @@ func TestServiceStartMatchCreatesRoomForSecondPlayer(t *testing.T) {
 		t.Fatalf("first status = %q, want %q", first.Status, MatchStatusWaiting)
 	}
 
-	second, err := svc.StartMatch(context.Background(), 8, "dagger", false)
+	second, err := svc.StartMatch(context.Background(), 8, "ice", false)
 	if err != nil {
 		t.Fatalf("second StartMatch returned error: %v", err)
 	}
@@ -208,8 +208,8 @@ func TestServiceStartMatchCreatesRoomForSecondPlayer(t *testing.T) {
 		t.Fatalf("player ids = %v, want [7 8]", second.PlayerIDs)
 	}
 	wantLoadouts := []PlayerLoadout{
-		{PlayerID: 7, Weapon: "axe", AttackLevel: 2, AttackSpeedLevel: 3, HealthLevel: 4, MoveSpeedLevel: 5},
-		{PlayerID: 8, Weapon: "dagger", AttackLevel: 6, AttackSpeedLevel: 7, HealthLevel: 8, MoveSpeedLevel: 9},
+		{PlayerID: 7, Hero: "rock", AttackLevel: 2, AttackSpeedLevel: 3, HealthLevel: 4, MoveSpeedLevel: 5},
+		{PlayerID: 8, Hero: "ice", AttackLevel: 6, AttackSpeedLevel: 7, HealthLevel: 8, MoveSpeedLevel: 9},
 	}
 	if !reflect.DeepEqual(second.PlayerLoadouts, wantLoadouts) {
 		t.Fatalf("player loadouts = %+v, want %+v", second.PlayerLoadouts, wantLoadouts)
@@ -253,7 +253,7 @@ func TestServiceStartSoloMatchCreatesRoomImmediately(t *testing.T) {
 		MaxPlayers:  100,
 	})
 
-	result, err := svc.StartMatch(context.Background(), 7, "axe", true)
+	result, err := svc.StartMatch(context.Background(), 7, "rock", true)
 	if err != nil {
 		t.Fatalf("StartMatch returned error: %v", err)
 	}
@@ -267,7 +267,7 @@ func TestServiceStartSoloMatchCreatesRoomImmediately(t *testing.T) {
 		t.Fatalf("player ids = %v, want [7]", result.PlayerIDs)
 	}
 	wantLoadouts := []PlayerLoadout{
-		{PlayerID: 7, Weapon: "axe", AttackLevel: 2, AttackSpeedLevel: 3, HealthLevel: 4, MoveSpeedLevel: 5},
+		{PlayerID: 7, Hero: "rock", AttackLevel: 2, AttackSpeedLevel: 3, HealthLevel: 4, MoveSpeedLevel: 5},
 	}
 	if !reflect.DeepEqual(result.PlayerLoadouts, wantLoadouts) {
 		t.Fatalf("player loadouts = %+v, want %+v", result.PlayerLoadouts, wantLoadouts)
@@ -299,7 +299,7 @@ func TestServiceStartMatchRespectsRequiredNodeCapacity(t *testing.T) {
 		return svc
 	}
 
-	solo, err := newServiceWithOneSlot().StartMatch(context.Background(), 7, "axe", true)
+	solo, err := newServiceWithOneSlot().StartMatch(context.Background(), 7, "rock", true)
 	if err != nil {
 		t.Fatalf("solo StartMatch returned error: %v", err)
 	}
@@ -307,7 +307,7 @@ func TestServiceStartMatchRespectsRequiredNodeCapacity(t *testing.T) {
 		t.Fatalf("solo status = %q, want %q", solo.Status, MatchStatusMatched)
 	}
 
-	_, err = newServiceWithOneSlot().StartMatch(context.Background(), 8, "axe", false)
+	_, err = newServiceWithOneSlot().StartMatch(context.Background(), 8, "rock", false)
 	if !errors.Is(err, ErrNoAvailableBattleNode) {
 		t.Fatalf("duo StartMatch error = %v, want %v", err, ErrNoAvailableBattleNode)
 	}
@@ -328,7 +328,7 @@ func TestServiceStartSoloMatchCreateRoomFailureAllowsRetry(t *testing.T) {
 		MaxPlayers:  100,
 	})
 
-	if _, err := svc.StartMatch(context.Background(), 7, "axe", true); !errors.Is(err, wantErr) {
+	if _, err := svc.StartMatch(context.Background(), 7, "rock", true); !errors.Is(err, wantErr) {
 		t.Fatalf("first StartMatch error = %v, want %v", err, wantErr)
 	}
 	if _, exists := svc.inGamePlayers[7]; exists {
@@ -336,7 +336,7 @@ func TestServiceStartSoloMatchCreateRoomFailureAllowsRetry(t *testing.T) {
 	}
 
 	battleRooms.createRoomErr = nil
-	result, err := svc.StartMatch(context.Background(), 7, "axe", true)
+	result, err := svc.StartMatch(context.Background(), 7, "rock", true)
 	if err != nil {
 		t.Fatalf("retry StartMatch returned error: %v", err)
 	}
@@ -354,10 +354,10 @@ func TestServiceStartMatchStoresActiveMatchForAllPlayers(t *testing.T) {
 		MaxPlayers:  100,
 	})
 
-	if _, err := svc.StartMatch(context.Background(), 7, "axe", false); err != nil {
+	if _, err := svc.StartMatch(context.Background(), 7, "rock", false); err != nil {
 		t.Fatalf("first StartMatch returned error: %v", err)
 	}
-	matched, err := svc.StartMatch(context.Background(), 8, "dagger", false)
+	matched, err := svc.StartMatch(context.Background(), 8, "ice", false)
 	if err != nil {
 		t.Fatalf("second StartMatch returned error: %v", err)
 	}
@@ -383,9 +383,9 @@ func TestServiceStartMatchStoresActiveMatchForAllPlayers(t *testing.T) {
 	}
 
 	matched.PlayerIDs[0] = 99
-	matched.PlayerLoadouts[0].Weapon = "changed"
+	matched.PlayerLoadouts[0].Hero = "changed"
 	activeMatch := svc.activeMatches[7]
-	if activeMatch.PlayerIDs[0] != 7 || activeMatch.PlayerLoadouts[0].Weapon != "axe" {
+	if activeMatch.PlayerIDs[0] != 7 || activeMatch.PlayerLoadouts[0].Hero != "rock" {
 		t.Fatalf("active match shares slices with returned result: %+v", activeMatch)
 	}
 }
@@ -398,10 +398,10 @@ func TestServiceResumeMatchReturnsActiveMatch(t *testing.T) {
 		ControlAddr: "127.0.0.1:9101",
 		MaxPlayers:  100,
 	})
-	if _, err := svc.StartMatch(context.Background(), 7, "axe", false); err != nil {
+	if _, err := svc.StartMatch(context.Background(), 7, "rock", false); err != nil {
 		t.Fatalf("first StartMatch returned error: %v", err)
 	}
-	matched, err := svc.StartMatch(context.Background(), 8, "dagger", false)
+	matched, err := svc.StartMatch(context.Background(), 8, "ice", false)
 	if err != nil {
 		t.Fatalf("second StartMatch returned error: %v", err)
 	}
@@ -415,9 +415,9 @@ func TestServiceResumeMatchReturnsActiveMatch(t *testing.T) {
 	}
 
 	resumed.PlayerIDs[0] = 99
-	resumed.PlayerLoadouts[0].Weapon = "changed"
+	resumed.PlayerLoadouts[0].Hero = "changed"
 	activeMatch := svc.activeMatches[7]
-	if activeMatch.PlayerIDs[0] != 7 || activeMatch.PlayerLoadouts[0].Weapon != "axe" {
+	if activeMatch.PlayerIDs[0] != 7 || activeMatch.PlayerLoadouts[0].Hero != "rock" {
 		t.Fatalf("active match shares slices with resumed result: %+v", activeMatch)
 	}
 }

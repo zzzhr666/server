@@ -20,15 +20,15 @@ func TestServiceStart(t *testing.T) {
 	}
 	service := NewService(repo)
 
-	result, err := service.Start(context.Background(), 7, "axe", true)
+	result, err := service.Start(context.Background(), 7, "rock", true)
 	if err != nil {
 		t.Fatalf("Start returned error: %v", err)
 	}
 	if repo.playerID != 7 {
 		t.Fatalf("repo player id = %d, want 7", repo.playerID)
 	}
-	if repo.weapon != "axe" {
-		t.Fatalf("repo weapon = %q, want axe", repo.weapon)
+	if repo.hero != "rock" {
+		t.Fatalf("repo hero = %q, want rock", repo.hero)
 	}
 	if !repo.solo {
 		t.Fatal("repo solo = false, want true")
@@ -38,7 +38,7 @@ func TestServiceStart(t *testing.T) {
 	}
 }
 
-func TestServiceStartDefaultsEmptyWeaponToSword(t *testing.T) {
+func TestServiceStartDefaultsEmptyHeroToFire(t *testing.T) {
 	repo := &fakeRepository{
 		result: &rcenter.MatchResult{
 			Status: rcenter.MatchStatusWaiting,
@@ -50,8 +50,8 @@ func TestServiceStartDefaultsEmptyWeaponToSword(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Start returned error: %v", err)
 	}
-	if repo.weapon != "sword" {
-		t.Fatalf("repo weapon = %q, want sword", repo.weapon)
+	if repo.hero != "fire" {
+		t.Fatalf("repo hero = %q, want fire", repo.hero)
 	}
 }
 
@@ -133,7 +133,7 @@ func TestServiceResumeInvalidPlayer(t *testing.T) {
 
 type fakeRepository struct {
 	playerID         int64
-	weapon           string
+	hero             string
 	solo             bool
 	canceledPlayerID int64
 	resumedPlayerID  int64
@@ -141,9 +141,9 @@ type fakeRepository struct {
 	err              error
 }
 
-func (f *fakeRepository) StartMatch(ctx context.Context, playerID int64, weapon string, solo bool) (*rcenter.MatchResult, error) {
+func (f *fakeRepository) StartMatch(ctx context.Context, playerID int64, hero string, solo bool) (*rcenter.MatchResult, error) {
 	f.playerID = playerID
-	f.weapon = weapon
+	f.hero = hero
 	f.solo = solo
 	if f.err != nil {
 		return nil, f.err

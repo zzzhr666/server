@@ -41,14 +41,15 @@ battle::BattleInstance::BattleInstance(BattleInstanceConfig config)
         }
         auto spawn_config = spawn_planner_.player_spawn(i);
 
-        auto weapon_kind = WeaponKind::Sword;
+        auto hero_kind = HeroKind::Fire;
         GrowthLevels growth_lvl;
         if (auto it = config.player_loadouts.find(config.player_ids[i]); it != config.player_loadouts.end()) {
-            weapon_kind = it->second.first;
+            hero_kind = it->second.first;
             growth_lvl = it->second.second;
         }
-        auto weapon = weapon_definition(weapon_kind);
-        spawn_config.attack = weapon.attack;
+        player_heroes_.emplace(config.player_ids[i], hero_kind);
+        auto hero = hero_definition(hero_kind);
+        spawn_config.attack = hero.attack;
         if (config.player_config_override.has_value()) {
             auto override_config = config.player_config_override.value();
             override_config.position = spawn_config.position;
@@ -105,13 +106,17 @@ battle::BattleWorldSnapshot battle::BattleInstance::snapshot() const {
     battle_world_snapshot.server_tick = server_tick_;
     for (auto& snapshot : world_snapshot.entities) {
         std::int64_t player_id = 0;
+        std::optional<HeroKind> hero;
         if (snapshot.kind == ecs::EntityKind::Player) {
             if (auto it = entity_players_.find(snapshot.entity); it != entity_players_.end()) {
                 player_id = it->second;
+                if (auto hero_it = player_heroes_.find(player_id); hero_it != player_heroes_.end()) {
+                    hero = hero_it->second;
+                }
             }
         }
-        battle_world_snapshot.entities.emplace_back(snapshot.entity, snapshot.kind, player_id, snapshot.position,
-                                                    snapshot.direction,
+        battle_world_snapshot.entities.emplace_back(snapshot.entity, snapshot.kind, player_id, hero,
+                                                    snapshot.position, snapshot.direction,
                                                     snapshot.current_health, snapshot.max_health,
                                                     snapshot.monster_kind);
     }

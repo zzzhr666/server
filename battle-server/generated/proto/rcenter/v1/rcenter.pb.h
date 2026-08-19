@@ -281,23 +281,23 @@ class StartMatchRequest final : public ::google::protobuf::Message
 
   // accessors -------------------------------------------------------
   enum : int {
-    kWeaponFieldNumber = 2,
+    kHeroFieldNumber = 2,
     kPlayerIdFieldNumber = 1,
     kSoloFieldNumber = 3,
   };
-  // string weapon = 2;
-  void clear_weapon() ;
-  const ::std::string& weapon() const;
+  // string hero = 2;
+  void clear_hero() ;
+  const ::std::string& hero() const;
   template <typename Arg_ = const ::std::string&, typename... Args_>
-  void set_weapon(Arg_&& arg, Args_... args);
-  ::std::string* PROTOBUF_NONNULL mutable_weapon();
-  [[nodiscard]] ::std::string* PROTOBUF_NULLABLE release_weapon();
-  void set_allocated_weapon(::std::string* PROTOBUF_NULLABLE value);
+  void set_hero(Arg_&& arg, Args_... args);
+  ::std::string* PROTOBUF_NONNULL mutable_hero();
+  [[nodiscard]] ::std::string* PROTOBUF_NULLABLE release_hero();
+  void set_allocated_hero(::std::string* PROTOBUF_NULLABLE value);
 
   private:
-  const ::std::string& _internal_weapon() const;
-  PROTOBUF_ALWAYS_INLINE void _internal_set_weapon(const ::std::string& value);
-  ::std::string* PROTOBUF_NONNULL _internal_mutable_weapon();
+  const ::std::string& _internal_hero() const;
+  PROTOBUF_ALWAYS_INLINE void _internal_set_hero(const ::std::string& value);
+  ::std::string* PROTOBUF_NONNULL _internal_mutable_hero();
 
   public:
   // int64 player_id = 1;
@@ -325,7 +325,7 @@ class StartMatchRequest final : public ::google::protobuf::Message
   class _Internal;
   friend class ::google::protobuf::internal::TcParser;
   static const ::google::protobuf::internal::TcParseTable<2, 3,
-                                   0, 43,
+                                   0, 41,
                                    2>
       _table_;
 
@@ -346,7 +346,7 @@ class StartMatchRequest final : public ::google::protobuf::Message
         const StartMatchRequest& from_msg);
     ::google::protobuf::internal::HasBits<1> _has_bits_;
     ::google::protobuf::internal::CachedSize _cached_size_;
-    ::google::protobuf::internal::ArenaStringPtr weapon_;
+    ::google::protobuf::internal::ArenaStringPtr hero_;
     ::int64_t player_id_;
     bool solo_;
     PROTOBUF_TSAN_DECLARE_MEMBER
@@ -838,22 +838,22 @@ class PlayerLoadout final : public ::google::protobuf::Message
 
   // accessors -------------------------------------------------------
   enum : int {
-    kWeaponFieldNumber = 2,
+    kHeroFieldNumber = 2,
     kPlayerIdFieldNumber = 1,
   };
-  // string weapon = 2;
-  void clear_weapon() ;
-  const ::std::string& weapon() const;
+  // string hero = 2;
+  void clear_hero() ;
+  const ::std::string& hero() const;
   template <typename Arg_ = const ::std::string&, typename... Args_>
-  void set_weapon(Arg_&& arg, Args_... args);
-  ::std::string* PROTOBUF_NONNULL mutable_weapon();
-  [[nodiscard]] ::std::string* PROTOBUF_NULLABLE release_weapon();
-  void set_allocated_weapon(::std::string* PROTOBUF_NULLABLE value);
+  void set_hero(Arg_&& arg, Args_... args);
+  ::std::string* PROTOBUF_NONNULL mutable_hero();
+  [[nodiscard]] ::std::string* PROTOBUF_NULLABLE release_hero();
+  void set_allocated_hero(::std::string* PROTOBUF_NULLABLE value);
 
   private:
-  const ::std::string& _internal_weapon() const;
-  PROTOBUF_ALWAYS_INLINE void _internal_set_weapon(const ::std::string& value);
-  ::std::string* PROTOBUF_NONNULL _internal_mutable_weapon();
+  const ::std::string& _internal_hero() const;
+  PROTOBUF_ALWAYS_INLINE void _internal_set_hero(const ::std::string& value);
+  ::std::string* PROTOBUF_NONNULL _internal_mutable_hero();
 
   public:
   // int64 player_id = 1;
@@ -871,7 +871,7 @@ class PlayerLoadout final : public ::google::protobuf::Message
   class _Internal;
   friend class ::google::protobuf::internal::TcParser;
   static const ::google::protobuf::internal::TcParseTable<1, 2,
-                                   0, 39,
+                                   0, 37,
                                    2>
       _table_;
 
@@ -892,7 +892,7 @@ class PlayerLoadout final : public ::google::protobuf::Message
         const PlayerLoadout& from_msg);
     ::google::protobuf::internal::HasBits<1> _has_bits_;
     ::google::protobuf::internal::CachedSize _cached_size_;
-    ::google::protobuf::internal::ArenaStringPtr weapon_;
+    ::google::protobuf::internal::ArenaStringPtr hero_;
     ::int64_t player_id_;
     PROTOBUF_TSAN_DECLARE_MEMBER
   };
@@ -4481,69 +4481,69 @@ inline void StartMatchRequest::_internal_set_player_id(::int64_t value) {
   _impl_.player_id_ = value;
 }
 
-// string weapon = 2;
-inline void StartMatchRequest::clear_weapon() {
+// string hero = 2;
+inline void StartMatchRequest::clear_hero() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_.weapon_.ClearToEmpty();
+  _impl_.hero_.ClearToEmpty();
   _impl_._has_bits_[0] &= ~0x00000001u;
 }
-inline const ::std::string& StartMatchRequest::weapon() const
+inline const ::std::string& StartMatchRequest::hero() const
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  // @@protoc_insertion_point(field_get:rcenter.v1.StartMatchRequest.weapon)
-  return _internal_weapon();
+  // @@protoc_insertion_point(field_get:rcenter.v1.StartMatchRequest.hero)
+  return _internal_hero();
 }
 template <typename Arg_, typename... Args_>
-PROTOBUF_ALWAYS_INLINE void StartMatchRequest::set_weapon(Arg_&& arg, Args_... args) {
+PROTOBUF_ALWAYS_INLINE void StartMatchRequest::set_hero(Arg_&& arg, Args_... args) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_._has_bits_[0] |= 0x00000001u;
-  _impl_.weapon_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
-  // @@protoc_insertion_point(field_set:rcenter.v1.StartMatchRequest.weapon)
+  _impl_.hero_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
+  // @@protoc_insertion_point(field_set:rcenter.v1.StartMatchRequest.hero)
 }
-inline ::std::string* PROTOBUF_NONNULL StartMatchRequest::mutable_weapon()
+inline ::std::string* PROTOBUF_NONNULL StartMatchRequest::mutable_hero()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  ::std::string* _s = _internal_mutable_weapon();
-  // @@protoc_insertion_point(field_mutable:rcenter.v1.StartMatchRequest.weapon)
+  ::std::string* _s = _internal_mutable_hero();
+  // @@protoc_insertion_point(field_mutable:rcenter.v1.StartMatchRequest.hero)
   return _s;
 }
-inline const ::std::string& StartMatchRequest::_internal_weapon() const {
+inline const ::std::string& StartMatchRequest::_internal_hero() const {
   ::google::protobuf::internal::TSanRead(&_impl_);
-  return _impl_.weapon_.Get();
+  return _impl_.hero_.Get();
 }
-inline void StartMatchRequest::_internal_set_weapon(const ::std::string& value) {
+inline void StartMatchRequest::_internal_set_hero(const ::std::string& value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_._has_bits_[0] |= 0x00000001u;
-  _impl_.weapon_.Set(value, GetArena());
+  _impl_.hero_.Set(value, GetArena());
 }
-inline ::std::string* PROTOBUF_NONNULL StartMatchRequest::_internal_mutable_weapon() {
+inline ::std::string* PROTOBUF_NONNULL StartMatchRequest::_internal_mutable_hero() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_._has_bits_[0] |= 0x00000001u;
-  return _impl_.weapon_.Mutable( GetArena());
+  return _impl_.hero_.Mutable( GetArena());
 }
-inline ::std::string* PROTOBUF_NULLABLE StartMatchRequest::release_weapon() {
+inline ::std::string* PROTOBUF_NULLABLE StartMatchRequest::release_hero() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  // @@protoc_insertion_point(field_release:rcenter.v1.StartMatchRequest.weapon)
+  // @@protoc_insertion_point(field_release:rcenter.v1.StartMatchRequest.hero)
   if ((_impl_._has_bits_[0] & 0x00000001u) == 0) {
     return nullptr;
   }
   _impl_._has_bits_[0] &= ~0x00000001u;
-  auto* released = _impl_.weapon_.Release();
+  auto* released = _impl_.hero_.Release();
   if (::google::protobuf::internal::DebugHardenForceCopyDefaultString()) {
-    _impl_.weapon_.Set("", GetArena());
+    _impl_.hero_.Set("", GetArena());
   }
   return released;
 }
-inline void StartMatchRequest::set_allocated_weapon(::std::string* PROTOBUF_NULLABLE value) {
+inline void StartMatchRequest::set_allocated_hero(::std::string* PROTOBUF_NULLABLE value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (value != nullptr) {
     _impl_._has_bits_[0] |= 0x00000001u;
   } else {
     _impl_._has_bits_[0] &= ~0x00000001u;
   }
-  _impl_.weapon_.SetAllocated(value, GetArena());
-  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.weapon_.IsDefault()) {
-    _impl_.weapon_.Set("", GetArena());
+  _impl_.hero_.SetAllocated(value, GetArena());
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.hero_.IsDefault()) {
+    _impl_.hero_.Set("", GetArena());
   }
-  // @@protoc_insertion_point(field_set_allocated:rcenter.v1.StartMatchRequest.weapon)
+  // @@protoc_insertion_point(field_set_allocated:rcenter.v1.StartMatchRequest.hero)
 }
 
 // bool solo = 3;
@@ -5185,69 +5185,69 @@ inline void PlayerLoadout::_internal_set_player_id(::int64_t value) {
   _impl_.player_id_ = value;
 }
 
-// string weapon = 2;
-inline void PlayerLoadout::clear_weapon() {
+// string hero = 2;
+inline void PlayerLoadout::clear_hero() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_.weapon_.ClearToEmpty();
+  _impl_.hero_.ClearToEmpty();
   _impl_._has_bits_[0] &= ~0x00000001u;
 }
-inline const ::std::string& PlayerLoadout::weapon() const
+inline const ::std::string& PlayerLoadout::hero() const
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  // @@protoc_insertion_point(field_get:rcenter.v1.PlayerLoadout.weapon)
-  return _internal_weapon();
+  // @@protoc_insertion_point(field_get:rcenter.v1.PlayerLoadout.hero)
+  return _internal_hero();
 }
 template <typename Arg_, typename... Args_>
-PROTOBUF_ALWAYS_INLINE void PlayerLoadout::set_weapon(Arg_&& arg, Args_... args) {
+PROTOBUF_ALWAYS_INLINE void PlayerLoadout::set_hero(Arg_&& arg, Args_... args) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_._has_bits_[0] |= 0x00000001u;
-  _impl_.weapon_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
-  // @@protoc_insertion_point(field_set:rcenter.v1.PlayerLoadout.weapon)
+  _impl_.hero_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
+  // @@protoc_insertion_point(field_set:rcenter.v1.PlayerLoadout.hero)
 }
-inline ::std::string* PROTOBUF_NONNULL PlayerLoadout::mutable_weapon()
+inline ::std::string* PROTOBUF_NONNULL PlayerLoadout::mutable_hero()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  ::std::string* _s = _internal_mutable_weapon();
-  // @@protoc_insertion_point(field_mutable:rcenter.v1.PlayerLoadout.weapon)
+  ::std::string* _s = _internal_mutable_hero();
+  // @@protoc_insertion_point(field_mutable:rcenter.v1.PlayerLoadout.hero)
   return _s;
 }
-inline const ::std::string& PlayerLoadout::_internal_weapon() const {
+inline const ::std::string& PlayerLoadout::_internal_hero() const {
   ::google::protobuf::internal::TSanRead(&_impl_);
-  return _impl_.weapon_.Get();
+  return _impl_.hero_.Get();
 }
-inline void PlayerLoadout::_internal_set_weapon(const ::std::string& value) {
+inline void PlayerLoadout::_internal_set_hero(const ::std::string& value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_._has_bits_[0] |= 0x00000001u;
-  _impl_.weapon_.Set(value, GetArena());
+  _impl_.hero_.Set(value, GetArena());
 }
-inline ::std::string* PROTOBUF_NONNULL PlayerLoadout::_internal_mutable_weapon() {
+inline ::std::string* PROTOBUF_NONNULL PlayerLoadout::_internal_mutable_hero() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_._has_bits_[0] |= 0x00000001u;
-  return _impl_.weapon_.Mutable( GetArena());
+  return _impl_.hero_.Mutable( GetArena());
 }
-inline ::std::string* PROTOBUF_NULLABLE PlayerLoadout::release_weapon() {
+inline ::std::string* PROTOBUF_NULLABLE PlayerLoadout::release_hero() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  // @@protoc_insertion_point(field_release:rcenter.v1.PlayerLoadout.weapon)
+  // @@protoc_insertion_point(field_release:rcenter.v1.PlayerLoadout.hero)
   if ((_impl_._has_bits_[0] & 0x00000001u) == 0) {
     return nullptr;
   }
   _impl_._has_bits_[0] &= ~0x00000001u;
-  auto* released = _impl_.weapon_.Release();
+  auto* released = _impl_.hero_.Release();
   if (::google::protobuf::internal::DebugHardenForceCopyDefaultString()) {
-    _impl_.weapon_.Set("", GetArena());
+    _impl_.hero_.Set("", GetArena());
   }
   return released;
 }
-inline void PlayerLoadout::set_allocated_weapon(::std::string* PROTOBUF_NULLABLE value) {
+inline void PlayerLoadout::set_allocated_hero(::std::string* PROTOBUF_NULLABLE value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (value != nullptr) {
     _impl_._has_bits_[0] |= 0x00000001u;
   } else {
     _impl_._has_bits_[0] &= ~0x00000001u;
   }
-  _impl_.weapon_.SetAllocated(value, GetArena());
-  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.weapon_.IsDefault()) {
-    _impl_.weapon_.Set("", GetArena());
+  _impl_.hero_.SetAllocated(value, GetArena());
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.hero_.IsDefault()) {
+    _impl_.hero_.Set("", GetArena());
   }
-  // @@protoc_insertion_point(field_set_allocated:rcenter.v1.PlayerLoadout.weapon)
+  // @@protoc_insertion_point(field_set_allocated:rcenter.v1.PlayerLoadout.hero)
 }
 
 // -------------------------------------------------------------------

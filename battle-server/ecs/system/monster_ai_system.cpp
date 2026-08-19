@@ -24,6 +24,12 @@ void battle::ecs::monster_ai_system(World& world, DeltaTime) {
             velocity->y = 0.0f;
             continue;
         }
+        const auto* attack_state = world.registry().try_get<AttackState>(entity);
+        if (attack_state && attack_state->phase != AttackPhase::Idle) {
+            velocity->x = 0.0f;
+            velocity->y = 0.0f;
+            continue;
+        }
 
         const auto x = transform->position.x;
         const auto y = transform->position.y;

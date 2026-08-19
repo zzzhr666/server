@@ -47,7 +47,7 @@ message ListBattleNodesResponse {
 
 message StartMatchRequest {
   int64 player_id = 1;
-  string weapon = 2;
+  string hero = 2;
   bool solo = 3;
 }
 
@@ -84,7 +84,7 @@ message FinishMatchResponse {}
 
 message PlayerLoadout {
   int64 player_id = 1;
-  string weapon = 2;
+  string hero = 2;
 }
 
 message ResumeMatchRequest {

@@ -965,6 +965,7 @@ type EntitySnapshot struct {
 	Kind          EntityKind             `protobuf:"varint,8,opt,name=kind,proto3,enum=battle.v1.EntityKind" json:"kind,omitempty"`
 	PlayerId      int64                  `protobuf:"varint,9,opt,name=player_id,json=playerId,proto3" json:"player_id,omitempty"`
 	MonsterKind   string                 `protobuf:"bytes,10,opt,name=monster_kind,json=monsterKind,proto3" json:"monster_kind,omitempty"`
+	Hero          string                 `protobuf:"bytes,11,opt,name=hero,proto3" json:"hero,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1065,6 +1066,13 @@ func (x *EntitySnapshot) GetPlayerId() int64 {
 func (x *EntitySnapshot) GetMonsterKind() string {
 	if x != nil {
 		return x.MonsterKind
+	}
+	return ""
+}
+
+func (x *EntitySnapshot) GetHero() string {
+	if x != nil {
+		return x.Hero
 	}
 	return ""
 }
@@ -1310,17 +1318,16 @@ func (x *PlayerBlessingStateSnapshot) GetCurrentOptions() []*BlessingOptionSnaps
 }
 
 type AttackEvent struct {
-	state          protoimpl.MessageState `protogen:"open.v1"`
-	AttackerEntity uint64                 `protobuf:"varint,1,opt,name=attacker_entity,json=attackerEntity,proto3" json:"attacker_entity,omitempty"`
-	ActionId       uint64                 `protobuf:"varint,2,opt,name=action_id,json=actionId,proto3" json:"action_id,omitempty"`
-	AttackKind     AttackKind             `protobuf:"varint,3,opt,name=attack_kind,json=attackKind,proto3,enum=battle.v1.AttackKind" json:"attack_kind,omitempty"`
-	XDirection     float32                `protobuf:"fixed32,4,opt,name=x_direction,json=xDirection,proto3" json:"x_direction,omitempty"`
-	YDirection     float32                `protobuf:"fixed32,5,opt,name=y_direction,json=yDirection,proto3" json:"y_direction,omitempty"`
-	// Absolute server ticks for the authoritative attack timeline.
-	StartTick       uint64 `protobuf:"varint,6,opt,name=start_tick,json=startTick,proto3" json:"start_tick,omitempty"`
-	ActiveStartTick uint64 `protobuf:"varint,7,opt,name=active_start_tick,json=activeStartTick,proto3" json:"active_start_tick,omitempty"`
-	ActiveEndTick   uint64 `protobuf:"varint,8,opt,name=active_end_tick,json=activeEndTick,proto3" json:"active_end_tick,omitempty"`
-	RecoveryEndTick uint64 `protobuf:"varint,9,opt,name=recovery_end_tick,json=recoveryEndTick,proto3" json:"recovery_end_tick,omitempty"`
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	AttackerEntity  uint64                 `protobuf:"varint,1,opt,name=attacker_entity,json=attackerEntity,proto3" json:"attacker_entity,omitempty"`
+	ActionId        uint64                 `protobuf:"varint,2,opt,name=action_id,json=actionId,proto3" json:"action_id,omitempty"`
+	AttackKind      AttackKind             `protobuf:"varint,3,opt,name=attack_kind,json=attackKind,proto3,enum=battle.v1.AttackKind" json:"attack_kind,omitempty"`
+	XDirection      float32                `protobuf:"fixed32,4,opt,name=x_direction,json=xDirection,proto3" json:"x_direction,omitempty"`
+	YDirection      float32                `protobuf:"fixed32,5,opt,name=y_direction,json=yDirection,proto3" json:"y_direction,omitempty"`
+	StartTick       uint64                 `protobuf:"varint,6,opt,name=start_tick,json=startTick,proto3" json:"start_tick,omitempty"`
+	ActiveStartTick uint64                 `protobuf:"varint,7,opt,name=active_start_tick,json=activeStartTick,proto3" json:"active_start_tick,omitempty"`
+	ActiveEndTick   uint64                 `protobuf:"varint,8,opt,name=active_end_tick,json=activeEndTick,proto3" json:"active_end_tick,omitempty"`
+	RecoveryEndTick uint64                 `protobuf:"varint,9,opt,name=recovery_end_tick,json=recoveryEndTick,proto3" json:"recovery_end_tick,omitempty"`
 	unknownFields   protoimpl.UnknownFields
 	sizeCache       protoimpl.SizeCache
 }
@@ -1619,10 +1626,9 @@ type WorldSnapshot struct {
 	PlayerBlessings                 []*PlayerBlessingStateSnapshot `protobuf:"bytes,7,rep,name=player_blessings,json=playerBlessings,proto3" json:"player_blessings,omitempty"`
 	ServerTick                      uint64                         `protobuf:"varint,8,opt,name=server_tick,json=serverTick,proto3" json:"server_tick,omitempty"`
 	Events                          []*BattleEvent                 `protobuf:"bytes,9,rep,name=events,proto3" json:"events,omitempty"`
-	// Number of authoritative simulation ticks per second.
-	TickRate      uint32 `protobuf:"varint,10,opt,name=tick_rate,json=tickRate,proto3" json:"tick_rate,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	TickRate                        uint32                         `protobuf:"varint,10,opt,name=tick_rate,json=tickRate,proto3" json:"tick_rate,omitempty"`
+	unknownFields                   protoimpl.UnknownFields
+	sizeCache                       protoimpl.SizeCache
 }
 
 func (x *WorldSnapshot) Reset() {
@@ -1890,7 +1896,7 @@ const file_proto_battle_v1_session_proto_rawDesc = "" +
 	"\x01x\x18\x03 \x01(\x02R\x01x\x12\f\n" +
 	"\x01y\x18\x04 \x01(\x02R\x01y\x12)\n" +
 	"\x10attack_requested\x18\x05 \x01(\bR\x0fattackRequested\x12%\n" +
-	"\x0edash_requested\x18\x06 \x01(\bR\rdashRequested\"\xd9\x02\n" +
+	"\x0edash_requested\x18\x06 \x01(\bR\rdashRequested\"\xed\x02\n" +
 	"\x0eEntitySnapshot\x12\x16\n" +
 	"\x06entity\x18\x01 \x01(\x04R\x06entity\x12\x1d\n" +
 	"\n" +
@@ -1907,7 +1913,8 @@ const file_proto_battle_v1_session_proto_rawDesc = "" +
 	"\x04kind\x18\b \x01(\x0e2\x15.battle.v1.EntityKindR\x04kind\x12\x1b\n" +
 	"\tplayer_id\x18\t \x01(\x03R\bplayerId\x12!\n" +
 	"\fmonster_kind\x18\n" +
-	" \x01(\tR\vmonsterKind\"\xdc\x01\n" +
+	" \x01(\tR\vmonsterKind\x12\x12\n" +
+	"\x04hero\x18\v \x01(\tR\x04hero\"\xdc\x01\n" +
 	"\x16PlayerProgressSnapshot\x12\x1b\n" +
 	"\tplayer_id\x18\x01 \x01(\x03R\bplayerId\x12\x14\n" +
 	"\x05level\x18\x02 \x01(\x05R\x05level\x12\x1e\n" +

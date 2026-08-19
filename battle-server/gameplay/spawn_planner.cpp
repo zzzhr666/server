@@ -3,15 +3,15 @@
 #include <cmath>
 #include <numbers>
 
-#include "weapon.hpp"
+#include "hero.hpp"
 
 battle::ecs::CreatePlayerConfig battle::SpawnPlanner::player_spawn(std::size_t index) const { //NOLINT
     index %= 4;
-    auto weapon = weapon_definition(WeaponKind::Sword);
+    auto hero = hero_definition(HeroKind::Fire);
     ecs::CreatePlayerConfig config{
         .max_health = ecs::DefaultPlayerMaxHealth,
         .move_speed = ecs::DefaultPlayerMoveSpeed,
-        .attack = weapon.attack,
+        .attack = hero.attack,
     };
 
     switch (index) {

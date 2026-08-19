@@ -7,12 +7,12 @@
 #include <vector>
 
 namespace battle {
-    /// @brief 描述玩家进入战斗时使用的武器及局外成长等级。
+    /// @brief 描述玩家进入战斗时使用的英雄及局外成长等级。
     struct PlayerLoadout {
         /// @brief 配置所属的玩家 ID。
         std::int64_t player_id;
-        /// @brief 初始武器名称。
-        std::string weapon;
+        /// @brief 初始英雄名称。
+        std::string hero;
         /// @brief 攻击、攻速、生命和移速的局外等级。
         std::int32_t attack_level;
         std::int32_t attack_speed_level;

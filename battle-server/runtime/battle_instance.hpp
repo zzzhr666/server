@@ -127,6 +127,8 @@ namespace battle {
         /// @brief 玩家 ID 到 ECS 实体的映射，用于输入和经验归属。
         std::unordered_map<std::int64_t, ecs::Entity> player_entities_;
         std::unordered_map<ecs::Entity, std::int64_t> entity_players_;
+        /// @brief 每位玩家开局时冻结的英雄，用于向所有客户端同步角色外观。
+        std::unordered_map<std::int64_t, HeroKind> player_heroes_;
         std::unordered_map<std::int64_t, PlayerBattleStats> player_battle_stats_;
         /// @brief 单局生命周期状态和最终结束原因。
         BattleState state_;

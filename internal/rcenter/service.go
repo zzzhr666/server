@@ -25,7 +25,7 @@ type BattleNodeController interface {
 
 type waitingPlayer struct {
 	playerID int64
-	weapon   string
+	hero     string
 }
 
 // GameCenterService 持有已注册战斗节点、内存匹配队列和活跃战斗分配。
@@ -140,7 +140,7 @@ func (g *GameCenterService) ListBattleNodes() []BattleNode {
 }
 
 // StartMatch 为单人模式立即创建房间，或将双人模式玩家加入 FIFO 匹配。
-func (g *GameCenterService) StartMatch(ctx context.Context, playerID int64, weapon string, solo bool) (*MatchResult, error) {
+func (g *GameCenterService) StartMatch(ctx context.Context, playerID int64, hero string, solo bool) (*MatchResult, error) {
 	if err := ctx.Err(); err != nil {
 		g.observeMatchOperation("start", "error")
 		return nil, err
@@ -178,7 +178,7 @@ func (g *GameCenterService) StartMatch(ctx context.Context, playerID int64, weap
 	}
 	currentPlayer := waitingPlayer{
 		playerID: playerID,
-		weapon:   weapon,
+		hero:     hero,
 	}
 	players := []waitingPlayer{currentPlayer}
 	if !solo {
@@ -186,7 +186,7 @@ func (g *GameCenterService) StartMatch(ctx context.Context, playerID int64, weap
 			// 首位玩家仅入 FIFO 队列，不创建房间也不占用 battle 节点容量。
 			g.waitingPlayers = append(g.waitingPlayers, waitingPlayer{
 				playerID: playerID,
-				weapon:   weapon,
+				hero:     hero,
 			})
 			if g.metrics != nil {
 				g.metrics.MatchQueue.Set(float64(len(g.waitingPlayers)))
@@ -236,7 +236,7 @@ func (g *GameCenterService) StartMatch(ctx context.Context, playerID int64, weap
 
 		playerLoadouts = append(playerLoadouts, PlayerLoadout{
 			PlayerID:         player.playerID,
-			Weapon:           player.weapon,
+			Hero:             player.hero,
 			AttackLevel:      growth.AttackLevel,
 			AttackSpeedLevel: growth.AttackSpeedLevel,
 			HealthLevel:      growth.HealthLevel,
