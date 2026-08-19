@@ -156,10 +156,20 @@ services:
       logic-2:
         condition: service_healthy
 
+  battle-deps:
+    image: game-demo-battle-deps:latest
+    build:
+      context: ./deploy/docker
+      dockerfile: Dockerfile.battle-deps
+    deploy:
+      replicas: 0
+
   battle-1:
     build:
       context: .
       dockerfile: deploy/docker/Dockerfile.battle
+      additional_contexts:
+        battle_deps: service:battle-deps
     restart: unless-stopped
     command:
       - "--node-name"
@@ -192,6 +202,8 @@ services:
     build:
       context: .
       dockerfile: deploy/docker/Dockerfile.battle
+      additional_contexts:
+        battle_deps: service:battle-deps
     restart: unless-stopped
     command:
       - "--node-name"

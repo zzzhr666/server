@@ -1,49 +1,17 @@
-FROM ubuntu:24.04 AS build
+# syntax=docker/dockerfile:1.7
 
-ARG GRPC_VERSION=v1.80.0
-ENV DEBIAN_FRONTEND=noninteractive
-
-RUN apt-get update \
-      && apt-get install -y --no-install-recommends \
-          ca-certificates \
-          cmake \
-          g++ \
-          git \
-          libgtest-dev \
-          libspdlog-dev \
-          ninja-build \
-          pkg-config \
-      && rm -rf /var/lib/apt/lists/*
-
-RUN git clone --recurse-submodules \
-          --branch ${GRPC_VERSION} \
-          --depth 1 \
-          --shallow-submodules \
-          https://github.com/grpc/grpc \
-          /opt/grpc
-
-RUN cmake -S /opt/grpc -B /opt/grpc/build -G Ninja \
-          -DCMAKE_BUILD_TYPE=Release \
-          -DgRPC_BUILD_TESTS=OFF \
-          -DgRPC_INSTALL=ON \
-          -DgRPC_ABSL_PROVIDER=module \
-          -DgRPC_CARES_PROVIDER=module \
-          -DgRPC_PROTOBUF_PROVIDER=module \
-          -DgRPC_RE2_PROVIDER=module \
-          -DgRPC_SSL_PROVIDER=module \
-      && cmake --build /opt/grpc/build --target install --parallel 2
-
-RUN apt-get update \
-      && apt-get install -y --no-install-recommends \
-          prometheus-cpp-dev \
-      && rm -rf /var/lib/apt/lists/*
+# The dependency image is built separately. This Dockerfile never clones or
+# compiles gRPC/Protobuf; only the application source below is copied here.
+FROM battle_deps AS build
 
 WORKDIR /src
 
 COPY battle-server/ battle-server/
 
-RUN cmake -S battle-server -B /build -G Ninja \
+RUN --mount=type=cache,target=/root/.cache/ccache,sharing=locked \
+    cmake -S battle-server -B /build -G Ninja \
           -DCMAKE_BUILD_TYPE=Release \
+          -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
           -DCMAKE_PREFIX_PATH=/usr/local \
           -DProtobuf_ROOT=/usr/local \
       && cmake --build /build --target battle_server --parallel 2
@@ -69,8 +37,8 @@ COPY --from=build /usr/local/lib/ /usr/local/lib/
 COPY --from=build /build/battle_server /app/battle_server
 
 RUN mkdir -p /app/logs \
-      && chown -R app:app /app
-RUN ldconfig
+      && chown -R app:app /app \
+      && ldconfig
 
 USER app
 WORKDIR /app

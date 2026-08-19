@@ -36,12 +36,14 @@
 
 默认使用 Docker Compose 启动完整服务，不要求本地安装 Go 或 C++ 运行时。
 
-首次启动前创建本机局域网配置，再构建并启动全部服务：
+首次启动前创建本机局域网配置，再构建并启动全部服务。Compose 会先构建独立的战斗服依赖镜像：
 
 ```bash
 cp .env.example .env
 docker compose up -d --build
 ```
+
+之后修改 `battle-server/` 下的业务代码时，仍然执行同一条 Compose 命令。`battle-deps` 服务没有运行实例，其构建输入不包含业务源码；依赖版本不变时不会重新克隆或编译 gRPC/Protobuf。
 
 将 `.env` 中的 `SERVER_LAN_IP` 设置为运行服务器主机的局域网 IPv4 地址。Compose 后续会自动读取该配置，这个地址会随匹配结果下发给客户端：
 

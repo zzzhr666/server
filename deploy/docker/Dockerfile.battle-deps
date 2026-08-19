@@ -1,0 +1,50 @@
+# syntax=docker/dockerfile:1.7
+
+FROM ubuntu:24.04
+
+ARG GRPC_VERSION=v1.80.0
+ENV DEBIAN_FRONTEND=noninteractive
+
+# This image is the explicit, independently rebuildable C++ dependency layer.
+# Keep application sources out of this build context so changing battle-server
+# cannot invalidate the gRPC/Protobuf build.
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    apt-get update \
+      && apt-get install -y --no-install-recommends \
+          ca-certificates \
+          ccache \
+          cmake \
+          g++ \
+          git \
+          libgtest-dev \
+          libspdlog-dev \
+          ninja-build \
+          pkg-config \
+      && rm -rf /var/lib/apt/lists/*
+
+RUN git clone --recurse-submodules \
+          --branch ${GRPC_VERSION} \
+          --depth 1 \
+          --shallow-submodules \
+          https://github.com/grpc/grpc \
+          /opt/grpc
+
+RUN --mount=type=cache,target=/root/.cache/ccache,sharing=locked \
+    cmake -S /opt/grpc -B /opt/grpc/build -G Ninja \
+          -DCMAKE_BUILD_TYPE=Release \
+          -DCMAKE_C_COMPILER_LAUNCHER=ccache \
+          -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
+          -DgRPC_BUILD_TESTS=OFF \
+          -DgRPC_INSTALL=ON \
+          -DgRPC_ABSL_PROVIDER=module \
+          -DgRPC_CARES_PROVIDER=module \
+          -DgRPC_PROTOBUF_PROVIDER=module \
+          -DgRPC_RE2_PROVIDER=module \
+          -DgRPC_SSL_PROVIDER=module \
+      && cmake --build /opt/grpc/build --target install --parallel 2
+
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    apt-get update \
+      && apt-get install -y --no-install-recommends \
+          prometheus-cpp-dev \
+      && rm -rf /var/lib/apt/lists/*
