@@ -1,7 +1,9 @@
 #include "runtime/battle_runtime.hpp"
 
 #include <algorithm>
+#include <atomic>
 #include <chrono>
+#include <future>
 #include <unordered_map>
 #include <utility>
 #include <vector>
@@ -119,6 +121,7 @@ TEST(BattleRuntimeTest, ReceiveInputAndTickBroadcastsMovedSnapshot) {
     for (const auto& [packet, endpoint] : sent_packets) {
         ASSERT_EQ(packet.payload_case(), v1::ServerPacket::kSnapshot);
         EXPECT_EQ(packet.snapshot().room_name(), "room-1");
+        EXPECT_EQ(packet.snapshot().tick_rate(), DefaultBattleTickRate);
         ASSERT_GE(packet.snapshot().entities_size(), 2);
         EXPECT_EQ(packet.snapshot().entities(0).kind(), v1::ENTITY_KIND_PLAYER);
         EXPECT_EQ(packet.snapshot().entities(0).player_id(), 1001);
@@ -131,6 +134,125 @@ TEST(BattleRuntimeTest, ReceiveInputAndTickBroadcastsMovedSnapshot) {
         EXPECT_FLOAT_EQ(packet.snapshot().entities(1).x_direction(), 1.0f);
         EXPECT_FLOAT_EQ(packet.snapshot().entities(1).y_direction(), 0.0f);
     }
+}
+
+TEST(BattleRuntimeTest, TickBroadcastsConfiguredTickRate) {
+    RuntimeTestContext context;
+    std::vector<v1::ServerPacket> sent_packets;
+    BattleRuntime runtime(
+        context.room_manager, context.session_manager, context.metrics,
+        [&sent_packets](const v1::ServerPacket& packet, const UdpEndpoint&) {
+            sent_packets.push_back(packet);
+        },
+        {}, {}, 30);
+
+    ASSERT_EQ(context.room_manager.create_room({
+                  .room_name = "room-1",
+                  .token = "token-1",
+                  .player_ids = {1001},
+              }).status,
+              CreateRoomStatus::OK);
+    ASSERT_EQ(context.session_manager.join({
+                  .room_name = "room-1",
+                  .token = "token-1",
+                  .player_id = 1001,
+                  .conv = 1,
+                  .endpoint = endpoint_with_port(7001),
+              }).status,
+              JoinSessionStatus::OK);
+    runtime.start_room("room-1");
+    sent_packets.clear();
+
+    runtime.tick(ecs::DeltaTime{0.0f});
+
+    ASSERT_EQ(sent_packets.size(), 1);
+    ASSERT_EQ(sent_packets.front().payload_case(), v1::ServerPacket::kSnapshot);
+    EXPECT_EQ(sent_packets.front().snapshot().tick_rate(), 30);
+}
+
+TEST(BattleRuntimeTest, StartRoomFallsBackToDefaultTickRateForNegativeConfig) {
+    RuntimeTestContext context;
+    std::uint32_t captured_tick_rate = 0;
+    BattleRuntime runtime(
+        context.room_manager, context.session_manager, context.metrics,
+        [](const v1::ServerPacket&, const UdpEndpoint&) {},
+        [&captured_tick_rate](BattleInstanceConfig config) {
+            captured_tick_rate = config.tick_rate;
+            return std::make_unique<BattleInstance>(std::move(config));
+        },
+        {}, -1);
+
+    ASSERT_EQ(context.room_manager.create_room({
+                  .room_name = "room-1",
+                  .token = "token-1",
+                  .player_ids = {1001},
+              }).status,
+              CreateRoomStatus::OK);
+    ASSERT_EQ(context.session_manager.join({
+                  .room_name = "room-1",
+                  .token = "token-1",
+                  .player_id = 1001,
+                  .conv = 1,
+                  .endpoint = endpoint_with_port(7001),
+              }).status,
+              JoinSessionStatus::OK);
+
+    runtime.start_room("room-1");
+
+    EXPECT_EQ(captured_tick_rate, DefaultBattleTickRate);
+}
+
+TEST(BattleRuntimeTest, StartAdvancesWorldWithFixedDeltaTime) {
+    RuntimeTestContext context;
+    std::promise<v1::WorldSnapshot> first_snapshot_promise;
+    auto first_snapshot_future = first_snapshot_promise.get_future();
+    std::atomic<bool> snapshot_captured{false};
+    constexpr int TickRate = 20;
+    BattleRuntime runtime(
+        context.room_manager, context.session_manager, context.metrics,
+        [&first_snapshot_promise, &snapshot_captured](const v1::ServerPacket& packet, const UdpEndpoint&) {
+            bool expected = false;
+            if (packet.payload_case() == v1::ServerPacket::kSnapshot &&
+                snapshot_captured.compare_exchange_strong(expected, true)) {
+                first_snapshot_promise.set_value(packet.snapshot());
+            }
+        },
+        [](BattleInstanceConfig config) {
+            config.wave_config = WaveConfig{};
+            return std::make_unique<BattleInstance>(std::move(config));
+        },
+        {}, TickRate);
+
+    ASSERT_EQ(context.room_manager.create_room({
+                  .room_name = "room-1",
+                  .token = "token-1",
+                  .player_ids = {1001},
+              }).status,
+              CreateRoomStatus::OK);
+    ASSERT_EQ(context.session_manager.join({
+                  .room_name = "room-1",
+                  .token = "token-1",
+                  .player_id = 1001,
+                  .conv = 1,
+                  .endpoint = endpoint_with_port(7001),
+              }).status,
+              JoinSessionStatus::OK);
+    runtime.start_room("room-1");
+    ASSERT_TRUE(runtime.receive_input("room-1", 1001, PlayerInput{
+                                                   .move_x = 1.0f,
+                                                   .move_y = 0.0f,
+                                               }));
+
+    runtime.start();
+    const auto snapshot_status = first_snapshot_future.wait_for(std::chrono::seconds{1});
+    runtime.stop();
+
+    ASSERT_EQ(snapshot_status, std::future_status::ready);
+    const auto snapshot = first_snapshot_future.get();
+    ASSERT_EQ(snapshot.entities_size(), 1);
+    EXPECT_FLOAT_EQ(snapshot.entities(0).x_position(),
+                    -2.0f + ecs::DefaultPlayerMoveSpeed / static_cast<float>(TickRate));
+    EXPECT_EQ(snapshot.server_tick(), 1);
 }
 
 TEST(BattleRuntimeTest, ReceiveInputAndTickBroadcastsProjectileSnapshot) {
@@ -205,6 +327,10 @@ TEST(BattleRuntimeTest, ReceiveInputAndTickBroadcastsProjectileSnapshot) {
     EXPECT_NE(event.attack().action_id(), 0);
     EXPECT_FLOAT_EQ(event.attack().x_direction(), 0.0f);
     EXPECT_FLOAT_EQ(event.attack().y_direction(), 1.0f);
+    EXPECT_EQ(event.attack().start_tick(), 1);
+    EXPECT_EQ(event.attack().active_start_tick(), 1);
+    EXPECT_EQ(event.attack().active_end_tick(), 4);
+    EXPECT_EQ(event.attack().recovery_end_tick(), 4);
 
     const auto& entities = snapshot.entities();
     const auto projectile_it = std::ranges::find_if(entities, [](const auto& entity) {
@@ -213,6 +339,19 @@ TEST(BattleRuntimeTest, ReceiveInputAndTickBroadcastsProjectileSnapshot) {
     ASSERT_NE(projectile_it, entities.end());
     EXPECT_EQ(projectile_it->current_health(), 0);
     EXPECT_EQ(projectile_it->max_health(), 0);
+
+    runtime.tick(ecs::DeltaTime{0.0f});
+
+    ASSERT_EQ(sent_packets.size(), 2);
+    const auto& repeated_snapshot = sent_packets.back().first.snapshot();
+    EXPECT_EQ(repeated_snapshot.server_tick(), 2);
+    ASSERT_EQ(repeated_snapshot.events_size(), 1);
+    const auto& repeated_attack = repeated_snapshot.events(0).attack();
+    EXPECT_EQ(repeated_snapshot.events(0).event_id(), 1);
+    EXPECT_EQ(repeated_attack.start_tick(), 1);
+    EXPECT_EQ(repeated_attack.active_start_tick(), 1);
+    EXPECT_EQ(repeated_attack.active_end_tick(), 4);
+    EXPECT_EQ(repeated_attack.recovery_end_tick(), 4);
 }
 
 TEST(BattleRuntimeTest, TickBroadcastsRangedMonsterKind) {

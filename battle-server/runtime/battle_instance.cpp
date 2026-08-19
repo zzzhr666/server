@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <array>
 #include <chrono>
+#include <cmath>
 #include <random>
 #include <ranges>
 #include <utility>
@@ -17,7 +18,6 @@ namespace {
         battle::BlessingID::CriticalStrike,
         battle::BlessingID::ChainLightning,
     };
-
 }
 
 battle::BattleInstance::BattleInstance(BattleInstanceConfig config)
@@ -31,7 +31,8 @@ battle::BattleInstance::BattleInstance(BattleInstanceConfig config)
       phase_(BattlePhase::Fighting),
       reward_selection_(SelectionTime),
       progression_config_(config.progression_config),
-      reward_random_engine_(config.reward_random_seed.value_or(std::random_device{}())) {
+      reward_random_engine_(config.reward_random_seed.value_or(std::random_device{}())),
+      tick_rate_(config.tick_rate == 0 ? DefaultBattleTickRate : config.tick_rate) {
     // 创建玩家时将局外 loadout 固化为 ECS 基础属性。之后每个 tick 只使用内存世界，
     // 避免局外数据在同一场战斗中变化而破坏对局一致性。
     for (std::size_t i = 0; i < config.player_ids.size(); ++i) {
@@ -129,7 +130,6 @@ battle::BattleWorldSnapshot battle::BattleInstance::snapshot() const {
                                                             player_blessing.current_options);
     }
     for (auto& event : pending_battle_events_) {
-
         battle_world_snapshot.events.emplace_back(event.event);
     }
     std::ranges::sort(battle_world_snapshot.player_progress,
@@ -141,7 +141,7 @@ battle::BattleWorldSnapshot battle::BattleInstance::snapshot() const {
                       [](const PlayerBlessingState& lhs, const PlayerBlessingState& rhs) {
                           return lhs.player_id < rhs.player_id;
                       });
-
+    battle_world_snapshot.tick_rate = tick_rate_;
     return battle_world_snapshot;
 }
 
@@ -233,6 +233,14 @@ bool battle::BattleInstance::choose_blessing(std::int64_t player_id, int option_
 
 void battle::BattleInstance::collect_combat_events_() {
     for (auto& event : world_.attack_events()) {
+        const auto start_tick = server_tick_;
+        const auto windup_ticks = duration_to_ticks_(event.windup_seconds);
+        const auto active_ticks = duration_to_ticks_(event.active_seconds);
+        const auto recovery_ticks = duration_to_ticks_(event.recovery_seconds);
+
+        const auto active_start_tick = start_tick + windup_ticks;
+        const auto active_end_tick = active_start_tick + active_ticks;
+        const auto recovery_end_tick = active_end_tick + recovery_ticks;
         pending_battle_events_.emplace_back(PendingBattleEvent{
             .event = {
                 .event_id = next_event_id_++,
@@ -241,6 +249,10 @@ void battle::BattleInstance::collect_combat_events_() {
                     .kind = event.kind,
                     .direction = event.direction,
                     .action_id = event.action_id,
+                    .start_tick = start_tick,
+                    .active_start_tick = active_start_tick,
+                    .active_end_tick = active_end_tick,
+                    .recovery_end_tick = recovery_end_tick,
                 }
             },
             .expire_tick = server_tick_ + EventHistoryTicks
@@ -488,4 +500,17 @@ bool battle::BattleInstance::all_reward_choices_completed_() const {
         const auto* progress = world_.registry().try_get<ecs::PlayerProgress>(p.second);
         return progress && progress->pending_upgrade_choices > 0;
     });
+}
+
+std::uint64_t battle::BattleInstance::duration_to_ticks_(ecs::DeltaTime duration) const {
+    if (duration <= ecs::DeltaTime{0}) {
+        return 0;
+    }
+    constexpr float TickRoundingTolerance = 0.00001f;
+    const auto scaled_ticks = duration.count() * static_cast<float>(tick_rate_);
+    const auto nearest_tick = std::round(scaled_ticks);
+    if (std::abs(scaled_ticks - nearest_tick) < TickRoundingTolerance) {
+        return static_cast<std::uint64_t>(nearest_tick);
+    }
+    return static_cast<std::uint64_t>(std::ceil(scaled_ticks));
 }

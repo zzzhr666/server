@@ -66,6 +66,24 @@ TEST(BattleInstanceTest, ConstructorCreatesPlayersAtPlannedSpawns) {
     EXPECT_FLOAT_EQ(snapshot.entities[1].position.y, 0.0f);
 }
 
+TEST(BattleInstanceTest, SnapshotUsesConfiguredTickRate) {
+    BattleInstance instance({
+        .room_name = "room-1",
+        .tick_rate = 30,
+    });
+
+    EXPECT_EQ(instance.snapshot().tick_rate, 30);
+}
+
+TEST(BattleInstanceTest, SnapshotFallsBackToDefaultTickRateForZeroConfig) {
+    BattleInstance instance({
+        .room_name = "room-1",
+        .tick_rate = 0,
+    });
+
+    EXPECT_EQ(instance.snapshot().tick_rate, DefaultBattleTickRate);
+}
+
 TEST(BattleInstanceTest, ReceiveInputReturnsFalseForUnknownPlayer) {
     BattleInstance instance({
         .room_name = "room-1",
@@ -117,6 +135,71 @@ TEST(BattleInstanceTest, SnapshotRetainsAttackEventForConfiguredHistoryWindow) {
     EXPECT_EQ(instance.snapshot().events.size(), 1);
     instance.tick(ecs::DeltaTime{0.0f});
     EXPECT_TRUE(instance.snapshot().events.empty());
+}
+
+TEST(BattleInstanceTest, SnapshotConvertsAttackTimelineToAbsoluteTicks) {
+    BattleInstance instance({
+        .room_name = "room-1",
+        .player_ids = {1001},
+        .player_config_override = ecs::CreatePlayerConfig{
+            .attack = ecs::AttackDefinition{
+                .kind = ecs::AttackKind::Melee,
+                .damage = 10,
+                .range = 1.0f,
+                .cooldown_seconds = ecs::DeltaTime{1.0f},
+                .windup_seconds = ecs::DeltaTime{0.15f},
+                .active_seconds = ecs::DeltaTime{0.2f},
+                .recovery_seconds = ecs::DeltaTime{0.01f},
+                .projectile_speed = 0.0f,
+            },
+        },
+        .tick_rate = 10,
+    });
+
+    ASSERT_TRUE(instance.receive_input(1001, PlayerInput{.attack_requested = true}));
+    instance.tick(ecs::DeltaTime{0.0f});
+
+    const auto snapshot = instance.snapshot();
+    ASSERT_EQ(snapshot.server_tick, 1);
+    ASSERT_EQ(snapshot.events.size(), 1);
+    const auto* attack_event = std::get_if<BattleAttackEvent>(&snapshot.events.front().payload);
+    ASSERT_NE(attack_event, nullptr);
+    EXPECT_EQ(attack_event->start_tick, 1);
+    EXPECT_EQ(attack_event->active_start_tick, 3);
+    EXPECT_EQ(attack_event->active_end_tick, 5);
+    EXPECT_EQ(attack_event->recovery_end_tick, 6);
+}
+
+TEST(BattleInstanceTest, SnapshotCollapsesZeroLengthAttackPhasesAtStartTick) {
+    BattleInstance instance({
+        .room_name = "room-1",
+        .player_ids = {1001},
+        .player_config_override = ecs::CreatePlayerConfig{
+            .attack = ecs::AttackDefinition{
+                .kind = ecs::AttackKind::Melee,
+                .damage = 10,
+                .range = 1.0f,
+                .cooldown_seconds = ecs::DeltaTime{1.0f},
+                .windup_seconds = ecs::DeltaTime{0.0f},
+                .active_seconds = ecs::DeltaTime{0.0f},
+                .recovery_seconds = ecs::DeltaTime{0.0f},
+                .projectile_speed = 0.0f,
+            },
+        },
+        .tick_rate = 10,
+    });
+
+    ASSERT_TRUE(instance.receive_input(1001, PlayerInput{.attack_requested = true}));
+    instance.tick(ecs::DeltaTime{0.0f});
+
+    const auto snapshot = instance.snapshot();
+    ASSERT_EQ(snapshot.events.size(), 1);
+    const auto* attack_event = std::get_if<BattleAttackEvent>(&snapshot.events.front().payload);
+    ASSERT_NE(attack_event, nullptr);
+    EXPECT_EQ(attack_event->start_tick, 1);
+    EXPECT_EQ(attack_event->active_start_tick, 1);
+    EXPECT_EQ(attack_event->active_end_tick, 1);
+    EXPECT_EQ(attack_event->recovery_end_tick, 1);
 }
 
 TEST(BattleInstanceTest, ReceiveInputAndTickMovesOnlyTargetPlayer) {

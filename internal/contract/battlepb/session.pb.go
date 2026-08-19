@@ -1316,8 +1316,13 @@ type AttackEvent struct {
 	AttackKind     AttackKind             `protobuf:"varint,3,opt,name=attack_kind,json=attackKind,proto3,enum=battle.v1.AttackKind" json:"attack_kind,omitempty"`
 	XDirection     float32                `protobuf:"fixed32,4,opt,name=x_direction,json=xDirection,proto3" json:"x_direction,omitempty"`
 	YDirection     float32                `protobuf:"fixed32,5,opt,name=y_direction,json=yDirection,proto3" json:"y_direction,omitempty"`
-	unknownFields  protoimpl.UnknownFields
-	sizeCache      protoimpl.SizeCache
+	// Absolute server ticks for the authoritative attack timeline.
+	StartTick       uint64 `protobuf:"varint,6,opt,name=start_tick,json=startTick,proto3" json:"start_tick,omitempty"`
+	ActiveStartTick uint64 `protobuf:"varint,7,opt,name=active_start_tick,json=activeStartTick,proto3" json:"active_start_tick,omitempty"`
+	ActiveEndTick   uint64 `protobuf:"varint,8,opt,name=active_end_tick,json=activeEndTick,proto3" json:"active_end_tick,omitempty"`
+	RecoveryEndTick uint64 `protobuf:"varint,9,opt,name=recovery_end_tick,json=recoveryEndTick,proto3" json:"recovery_end_tick,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
 }
 
 func (x *AttackEvent) Reset() {
@@ -1381,6 +1386,34 @@ func (x *AttackEvent) GetXDirection() float32 {
 func (x *AttackEvent) GetYDirection() float32 {
 	if x != nil {
 		return x.YDirection
+	}
+	return 0
+}
+
+func (x *AttackEvent) GetStartTick() uint64 {
+	if x != nil {
+		return x.StartTick
+	}
+	return 0
+}
+
+func (x *AttackEvent) GetActiveStartTick() uint64 {
+	if x != nil {
+		return x.ActiveStartTick
+	}
+	return 0
+}
+
+func (x *AttackEvent) GetActiveEndTick() uint64 {
+	if x != nil {
+		return x.ActiveEndTick
+	}
+	return 0
+}
+
+func (x *AttackEvent) GetRecoveryEndTick() uint64 {
+	if x != nil {
+		return x.RecoveryEndTick
 	}
 	return 0
 }
@@ -1586,8 +1619,10 @@ type WorldSnapshot struct {
 	PlayerBlessings                 []*PlayerBlessingStateSnapshot `protobuf:"bytes,7,rep,name=player_blessings,json=playerBlessings,proto3" json:"player_blessings,omitempty"`
 	ServerTick                      uint64                         `protobuf:"varint,8,opt,name=server_tick,json=serverTick,proto3" json:"server_tick,omitempty"`
 	Events                          []*BattleEvent                 `protobuf:"bytes,9,rep,name=events,proto3" json:"events,omitempty"`
-	unknownFields                   protoimpl.UnknownFields
-	sizeCache                       protoimpl.SizeCache
+	// Number of authoritative simulation ticks per second.
+	TickRate      uint32 `protobuf:"varint,10,opt,name=tick_rate,json=tickRate,proto3" json:"tick_rate,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *WorldSnapshot) Reset() {
@@ -1681,6 +1716,13 @@ func (x *WorldSnapshot) GetEvents() []*BattleEvent {
 		return x.Events
 	}
 	return nil
+}
+
+func (x *WorldSnapshot) GetTickRate() uint32 {
+	if x != nil {
+		return x.TickRate
+	}
+	return 0
 }
 
 type ChooseBlessing struct {
@@ -1885,7 +1927,7 @@ const file_proto_battle_v1_session_proto_rawDesc = "" +
 	"\x1bPlayerBlessingStateSnapshot\x12\x1b\n" +
 	"\tplayer_id\x18\x01 \x01(\x03R\bplayerId\x12?\n" +
 	"\tblessings\x18\x02 \x03(\v2!.battle.v1.PlayerBlessingSnapshotR\tblessings\x12J\n" +
-	"\x0fcurrent_options\x18\x03 \x03(\v2!.battle.v1.BlessingOptionSnapshotR\x0ecurrentOptions\"\xcd\x01\n" +
+	"\x0fcurrent_options\x18\x03 \x03(\v2!.battle.v1.BlessingOptionSnapshotR\x0ecurrentOptions\"\xec\x02\n" +
 	"\vAttackEvent\x12'\n" +
 	"\x0fattacker_entity\x18\x01 \x01(\x04R\x0eattackerEntity\x12\x1b\n" +
 	"\taction_id\x18\x02 \x01(\x04R\bactionId\x126\n" +
@@ -1894,7 +1936,12 @@ const file_proto_battle_v1_session_proto_rawDesc = "" +
 	"\vx_direction\x18\x04 \x01(\x02R\n" +
 	"xDirection\x12\x1f\n" +
 	"\vy_direction\x18\x05 \x01(\x02R\n" +
-	"yDirection\"\xb1\x02\n" +
+	"yDirection\x12\x1d\n" +
+	"\n" +
+	"start_tick\x18\x06 \x01(\x04R\tstartTick\x12*\n" +
+	"\x11active_start_tick\x18\a \x01(\x04R\x0factiveStartTick\x12&\n" +
+	"\x0factive_end_tick\x18\b \x01(\x04R\ractiveEndTick\x12*\n" +
+	"\x11recovery_end_tick\x18\t \x01(\x04R\x0frecoveryEndTick\"\xb1\x02\n" +
 	"\n" +
 	"DeathEvent\x12#\n" +
 	"\rvictim_entity\x18\x01 \x01(\x04R\fvictimEntity\x126\n" +
@@ -1914,7 +1961,7 @@ const file_proto_battle_v1_session_proto_rawDesc = "" +
 	"\bevent_id\x18\x01 \x01(\x04R\aeventId\x120\n" +
 	"\x06attack\x18\x02 \x01(\v2\x16.battle.v1.AttackEventH\x00R\x06attack\x12-\n" +
 	"\x05death\x18\x03 \x01(\v2\x15.battle.v1.DeathEventH\x00R\x05deathB\t\n" +
-	"\apayload\"\xf1\x03\n" +
+	"\apayload\"\x8e\x04\n" +
 	"\rWorldSnapshot\x12\x1b\n" +
 	"\troom_name\x18\x01 \x01(\tR\broomName\x125\n" +
 	"\bentities\x18\x02 \x03(\v2\x19.battle.v1.EntitySnapshotR\bentities\x12!\n" +
@@ -1925,7 +1972,9 @@ const file_proto_battle_v1_session_proto_rawDesc = "" +
 	"\x10player_blessings\x18\a \x03(\v2&.battle.v1.PlayerBlessingStateSnapshotR\x0fplayerBlessings\x12\x1f\n" +
 	"\vserver_tick\x18\b \x01(\x04R\n" +
 	"serverTick\x12.\n" +
-	"\x06events\x18\t \x03(\v2\x16.battle.v1.BattleEventR\x06events\"g\n" +
+	"\x06events\x18\t \x03(\v2\x16.battle.v1.BattleEventR\x06events\x12\x1b\n" +
+	"\ttick_rate\x18\n" +
+	" \x01(\rR\btickRate\"g\n" +
 	"\x0eChooseBlessing\x12\x1b\n" +
 	"\troom_name\x18\x01 \x01(\tR\broomName\x12\x1b\n" +
 	"\tplayer_id\x18\x02 \x01(\x03R\bplayerId\x12\x1b\n" +

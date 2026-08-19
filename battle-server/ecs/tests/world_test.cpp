@@ -425,6 +425,34 @@ TEST(WorldTest, TickStartsAttackTimelineFromAttackRequest) {
     EXPECT_NE(event.action_id, InvalidActionID);
 }
 
+TEST(WorldTest, TickAttackEventCapturesConfiguredTimeline) {
+    World world;
+    auto entity = world.create_player(CreatePlayerConfig{
+        .attack = AttackDefinition{
+            .damage = 30,
+            .range = 2.0f,
+            .cooldown_seconds = DeltaTime{0.75f},
+            .windup_seconds = DeltaTime{0.17f},
+            .active_seconds = DeltaTime{0.06f},
+            .recovery_seconds = DeltaTime{0.23f},
+        },
+    });
+    ASSERT_TRUE(world.set_player_command(entity, PlayerCommand{
+                                                     .move_x = 0.0f,
+                                                     .move_y = 0.0f,
+                                                     .attack_requested = true,
+                                                     .dash_requested = false,
+                                                 }));
+
+    world.tick(DeltaTime{0.0f});
+
+    ASSERT_EQ(world.attack_events().size(), 1);
+    const auto& event = world.attack_events().front();
+    EXPECT_FLOAT_EQ(event.windup_seconds.count(), 0.17f);
+    EXPECT_FLOAT_EQ(event.active_seconds.count(), 0.06f);
+    EXPECT_FLOAT_EQ(event.recovery_seconds.count(), 0.23f);
+}
+
 TEST(WorldTest, TickDoesNotResolveAttackRequestDuringCooldown) {
     World world;
     auto entity = world.create_player(CreatePlayerConfig{

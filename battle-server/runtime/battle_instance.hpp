@@ -117,6 +117,9 @@ namespace battle {
 
         [[nodiscard]] bool all_reward_choices_completed_() const;
 
+        /// @brief 将阶段时长向上换算为权威模拟 tick 数，零或负时长不占用 tick。
+        [[nodiscard]] std::uint64_t duration_to_ticks_(ecs::DeltaTime duration) const;
+
     private:
         std::string room_name_;
         ecs::World world_;
@@ -139,6 +142,8 @@ namespace battle {
         std::unordered_map<std::int64_t, PlayerBlessingState> player_blessings_;
         std::mt19937 reward_random_engine_;
 
+        /// @brief 快照时间轴使用的每秒权威模拟 tick 数。
+        std::uint32_t tick_rate_{DefaultBattleTickRate};
         std::uint64_t server_tick_{};
         std::uint64_t next_event_id_{1};
         std::vector<PendingBattleEvent>pending_battle_events_;

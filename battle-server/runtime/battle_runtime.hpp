@@ -88,6 +88,10 @@ namespace battle {
         std::atomic<bool> running_;
         std::thread tick_thread_;
         BattleInstanceFactory instance_factory_;
+        /// @brief 规范化后的权威模拟频率，同时用于实例配置和网络快照。
+        std::uint32_t tick_rate_;
+        /// @brief 每次后台 tick 推进的固定模拟时间，与线程实际唤醒延迟解耦。
+        ecs::DeltaTime fixed_delta_time_;
         std::chrono::steady_clock::duration tick_interval_;
         /// @brief 单个 UDP 会话未收到有效数据时的断线阈值。
         std::chrono::seconds session_idle_timeout_;

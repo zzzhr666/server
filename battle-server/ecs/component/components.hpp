@@ -175,12 +175,15 @@ namespace battle::ecs {
         MonsterKind monster_kind{};
     };
 
-    /// @brief 用于客户端表现的攻击事件。
+    /// @brief 用于客户端表现的攻击事件，固化动作开始时的方向和完整时间轴配置。
     struct AttackEvent {
         Entity attacker;
         AttackKind kind{};
         Direction direction{};
         CombatActionID action_id{};
+        DeltaTime windup_seconds{};
+        DeltaTime active_seconds{};
+        DeltaTime recovery_seconds{};
     };
 
     enum class DeathEntityKind {

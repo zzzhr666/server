@@ -132,6 +132,7 @@ namespace {
         send_pkg->set_phase(to_proto_battle_phase(snapshot.phase));
         send_pkg->set_reward_selection_remaining_seconds(snapshot.reward_selection_remaining.count());
         send_pkg->set_server_tick(snapshot.server_tick);
+        send_pkg->set_tick_rate(snapshot.tick_rate);
         for (const auto& entity : snapshot.entities) {
             auto entity_snapshot = send_pkg->add_entities();
             entity_snapshot->set_entity(entity.entity.packed());
@@ -185,6 +186,10 @@ namespace {
                     proto_attack->set_attack_kind(to_proto_attack_kind(payload.kind));
                     proto_attack->set_x_direction(payload.direction.x);
                     proto_attack->set_y_direction(payload.direction.y);
+                    proto_attack->set_start_tick(payload.start_tick);
+                    proto_attack->set_active_start_tick(payload.active_start_tick);
+                    proto_attack->set_active_end_tick(payload.active_end_tick);
+                    proto_attack->set_recovery_end_tick(payload.recovery_end_tick);
                 } else if constexpr (std::is_same_v<Payload, battle::BattleDeathEvent>) {
                     auto proto_death = event->mutable_death();
                     proto_death->set_victim_entity(payload.victim.packed());
@@ -203,11 +208,22 @@ namespace {
         return packet;
     }
 
-    std::chrono::steady_clock::duration tick_interval_from_rate(int tick_rate) {
-        constexpr int DefaultTickRate = 60;
-        const auto effective_tick_rate = tick_rate > 0 ? tick_rate : DefaultTickRate;
+    std::chrono::steady_clock::duration tick_interval_from_rate(std::uint32_t tick_rate) {
+        const auto effective_tick_rate = tick_rate > 0 ? tick_rate : battle::DefaultBattleTickRate;
         return std::chrono::duration_cast<std::chrono::steady_clock::duration>(
             std::chrono::duration<double>(1.0 / static_cast<double>(effective_tick_rate)));
+    }
+
+    battle::ecs::DeltaTime fixed_delta_time_from_rate(std::uint32_t tick_rate) {
+        const auto effective_tick_rate = tick_rate > 0 ? tick_rate : battle::DefaultBattleTickRate;
+        return battle::ecs::DeltaTime{1.0f / static_cast<float>(effective_tick_rate)};
+    }
+
+    std::uint32_t normalize_tick_rate(int tick_rate) {
+        if (tick_rate <= 0) {
+            return battle::DefaultBattleTickRate;
+        }
+        return static_cast<std::uint32_t>(tick_rate);
     }
 }
 
@@ -219,8 +235,10 @@ battle::BattleRuntime::BattleRuntime(RoomManager& room_manager, SessionManager& 
                                      std::chrono::seconds all_players_disconnected_timeout_seconds)
     : room_manager_(room_manager), session_manager_(session_manager), metrics_(metrics),
       send_packet_(std::move(send_packet_callback)), finish_match_callback_(std::move(finish_match_callback)),
-      running_(false), instance_factory_(std::move(factory)), tick_interval_(tick_interval_from_rate(tick_rate)),
-      session_idle_timeout_(session_idle_timeout_seconds),all_players_disconnected_timeout_(all_players_disconnected_timeout_seconds) {
+      running_(false), instance_factory_(std::move(factory)), tick_rate_(normalize_tick_rate(tick_rate)),
+      fixed_delta_time_(fixed_delta_time_from_rate(tick_rate_)), tick_interval_(tick_interval_from_rate(tick_rate_)),
+      session_idle_timeout_(session_idle_timeout_seconds),
+      all_players_disconnected_timeout_(all_players_disconnected_timeout_seconds) {
     if (!instance_factory_) {
         instance_factory_ = [](BattleInstanceConfig config) {
             return std::make_unique<BattleInstance>(std::move(config));
@@ -276,6 +294,7 @@ void battle::BattleRuntime::start_room(const std::string& room_name) {
         .room_name = room_name,
         .player_ids = player_ids,
         .player_loadouts = std::move(player_loadouts),
+        .tick_rate = tick_rate_,
     });
 
     SPDLOG_INFO("battle instance started room={} players={}", room_name, player_ids.size());
@@ -381,16 +400,12 @@ void battle::BattleRuntime::start() {
     SPDLOG_INFO("battle runtime started");
     tick_thread_ = std::thread([this]() {
         using clock = std::chrono::steady_clock;
-        auto last_tick = clock::now();
-        auto next_tick = last_tick;
+        auto next_tick = clock::now();
         while (running_) {
-            auto now = clock::now();
-            const ecs::DeltaTime delta = now - last_tick;
-            last_tick = now;
-            tick(delta);
+            tick(fixed_delta_time_);
 
-            // 使用绝对下一帧时间减少累积漂移；若单帧明显落后，则重置基准以防持续
-            // 追赶历史 tick 导致 CPU 空转。
+            // 墙上时间只负责调度，不参与模拟。使用绝对下一帧时间减少累积漂移；
+            // 若单帧明显落后，则重置调度基准，避免持续追赶历史 tick 导致 CPU 空转。
             next_tick += tick_interval_;
             std::this_thread::sleep_until(next_tick);
             if (clock::now() > next_tick + tick_interval_) {
@@ -433,7 +448,7 @@ battle::EndRoomResult battle::BattleRuntime::end_room(const std::string& room_na
         for (const auto& session : sessions) {
             player_ids.push_back(session->player_id());
         }
-        for (const auto&session : connected_sessions) {
+        for (const auto& session : connected_sessions) {
             endpoints.emplace_back(session->endpoint());
         }
         packet = make_game_over(room_name, player_ids, reason, to_packet_player_stats(settlement));

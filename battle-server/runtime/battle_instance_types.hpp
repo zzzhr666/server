@@ -34,6 +34,8 @@ namespace battle {
         std::vector<BlessingOption> current_options;
     };
 
+    constexpr std::uint32_t DefaultBattleTickRate = 60;
+
     struct BattleInstanceConfig {
         std::string room_name;
         std::vector<std::int64_t> player_ids;
@@ -48,6 +50,7 @@ namespace battle {
             .max_y = 20.0f,
         };
         ProgressionConfig progression_config;
+        std::uint32_t tick_rate = DefaultBattleTickRate;
     };
 
     enum class BattleState : std::uint8_t {
@@ -66,6 +69,11 @@ namespace battle {
         ecs::AttackKind kind{};
         ecs::Direction direction{};
         ecs::CombatActionID action_id{};
+        // 四个边界组成半开区间，依次表示 Windup、Active 和 Recovery。
+        std::uint64_t start_tick{};
+        std::uint64_t active_start_tick{};
+        std::uint64_t active_end_tick{};
+        std::uint64_t recovery_end_tick{};
     };
 
     struct BattleDeathEvent {
@@ -143,5 +151,6 @@ namespace battle {
         std::vector<PlayerBlessingState> player_blessings;
         std::uint64_t server_tick{};
         std::vector<BattleEvent> events;
+        std::uint32_t tick_rate = DefaultBattleTickRate;
     };
 }

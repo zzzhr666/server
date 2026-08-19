@@ -420,6 +420,10 @@ inline constexpr AttackEvent::Impl_::Impl_(
         action_id_{::uint64_t{0u}},
         attack_kind_{static_cast< ::battle::v1::AttackKind >(0)},
         x_direction_{0},
+        start_tick_{::uint64_t{0u}},
+        active_start_tick_{::uint64_t{0u}},
+        active_end_tick_{::uint64_t{0u}},
+        recovery_end_tick_{::uint64_t{0u}},
         y_direction_{0} {}
 
 template <typename>
@@ -561,8 +565,9 @@ inline constexpr WorldSnapshot::Impl_::Impl_(
             ::_pbi::ConstantInitialized()),
         current_wave_{0},
         phase_{static_cast< ::battle::v1::BattlePhase >(0)},
-        server_tick_{::uint64_t{0u}},
-        reward_selection_remaining_seconds_{0} {}
+        reward_selection_remaining_seconds_{0},
+        tick_rate_{0u},
+        server_tick_{::uint64_t{0u}} {}
 
 template <typename>
 PROTOBUF_CONSTEXPR WorldSnapshot::WorldSnapshot(::_pbi::ConstantInitialized)
@@ -799,17 +804,25 @@ const ::uint32_t
         ~0u,
         0x081, // bitmap
         PROTOBUF_FIELD_OFFSET(::battle::v1::AttackEvent, _impl_._has_bits_),
-        8, // hasbit index offset
+        12, // hasbit index offset
         PROTOBUF_FIELD_OFFSET(::battle::v1::AttackEvent, _impl_.attacker_entity_),
         PROTOBUF_FIELD_OFFSET(::battle::v1::AttackEvent, _impl_.action_id_),
         PROTOBUF_FIELD_OFFSET(::battle::v1::AttackEvent, _impl_.attack_kind_),
         PROTOBUF_FIELD_OFFSET(::battle::v1::AttackEvent, _impl_.x_direction_),
         PROTOBUF_FIELD_OFFSET(::battle::v1::AttackEvent, _impl_.y_direction_),
+        PROTOBUF_FIELD_OFFSET(::battle::v1::AttackEvent, _impl_.start_tick_),
+        PROTOBUF_FIELD_OFFSET(::battle::v1::AttackEvent, _impl_.active_start_tick_),
+        PROTOBUF_FIELD_OFFSET(::battle::v1::AttackEvent, _impl_.active_end_tick_),
+        PROTOBUF_FIELD_OFFSET(::battle::v1::AttackEvent, _impl_.recovery_end_tick_),
         0,
         1,
         2,
         3,
+        8,
         4,
+        5,
+        6,
+        7,
         0x081, // bitmap
         PROTOBUF_FIELD_OFFSET(::battle::v1::DeathEvent, _impl_._has_bits_),
         11, // hasbit index offset
@@ -842,7 +855,7 @@ const ::uint32_t
         ~0u,
         0x081, // bitmap
         PROTOBUF_FIELD_OFFSET(::battle::v1::WorldSnapshot, _impl_._has_bits_),
-        12, // hasbit index offset
+        13, // hasbit index offset
         PROTOBUF_FIELD_OFFSET(::battle::v1::WorldSnapshot, _impl_.room_name_),
         PROTOBUF_FIELD_OFFSET(::battle::v1::WorldSnapshot, _impl_.entities_),
         PROTOBUF_FIELD_OFFSET(::battle::v1::WorldSnapshot, _impl_.current_wave_),
@@ -852,15 +865,17 @@ const ::uint32_t
         PROTOBUF_FIELD_OFFSET(::battle::v1::WorldSnapshot, _impl_.player_blessings_),
         PROTOBUF_FIELD_OFFSET(::battle::v1::WorldSnapshot, _impl_.server_tick_),
         PROTOBUF_FIELD_OFFSET(::battle::v1::WorldSnapshot, _impl_.events_),
+        PROTOBUF_FIELD_OFFSET(::battle::v1::WorldSnapshot, _impl_.tick_rate_),
         0,
         ~0u,
         1,
         2,
-        4,
-        ~0u,
-        ~0u,
         3,
         ~0u,
+        ~0u,
+        5,
+        ~0u,
+        4,
         0x081, // bitmap
         PROTOBUF_FIELD_OFFSET(::battle::v1::ChooseBlessing, _impl_._has_bits_),
         6, // hasbit index offset
@@ -897,11 +912,11 @@ static const ::_pbi::MigrationSchema
         {130, sizeof(::battle::v1::PlayerBlessingSnapshot)},
         {137, sizeof(::battle::v1::PlayerBlessingStateSnapshot)},
         {146, sizeof(::battle::v1::AttackEvent)},
-        {159, sizeof(::battle::v1::DeathEvent)},
-        {178, sizeof(::battle::v1::BattleEvent)},
-        {189, sizeof(::battle::v1::WorldSnapshot)},
-        {210, sizeof(::battle::v1::ChooseBlessing)},
-        {219, sizeof(::battle::v1::ClientHeartbeat)},
+        {167, sizeof(::battle::v1::DeathEvent)},
+        {186, sizeof(::battle::v1::BattleEvent)},
+        {197, sizeof(::battle::v1::WorldSnapshot)},
+        {220, sizeof(::battle::v1::ChooseBlessing)},
+        {229, sizeof(::battle::v1::ClientHeartbeat)},
 };
 static const ::_pb::Message* PROTOBUF_NONNULL const file_default_instances[] = {
     &::battle::v1::_ClientHello_default_instance_._instance,
@@ -973,52 +988,55 @@ const char descriptor_table_protodef_proto_2fbattle_2fv1_2fsession_2eproto[] ABS
     "ingStateSnapshot\022\021\n\tplayer_id\030\001 \001(\003\0224\n\tb"
     "lessings\030\002 \003(\0132!.battle.v1.PlayerBlessin"
     "gSnapshot\022:\n\017current_options\030\003 \003(\0132!.bat"
-    "tle.v1.BlessingOptionSnapshot\"\217\001\n\013Attack"
+    "tle.v1.BlessingOptionSnapshot\"\362\001\n\013Attack"
     "Event\022\027\n\017attacker_entity\030\001 \001(\004\022\021\n\taction"
     "_id\030\002 \001(\004\022*\n\013attack_kind\030\003 \001(\0162\025.battle."
     "v1.AttackKind\022\023\n\013x_direction\030\004 \001(\002\022\023\n\013y_"
-    "direction\030\005 \001(\002\"\316\001\n\nDeathEvent\022\025\n\rvictim"
-    "_entity\030\001 \001(\004\022*\n\013victim_kind\030\002 \001(\0162\025.bat"
-    "tle.v1.EntityKind\022\024\n\014monster_kind\030\003 \001(\t\022"
-    "\022\n\nx_position\030\004 \001(\002\022\022\n\ny_position\030\005 \001(\002\022"
-    "\023\n\013x_direction\030\006 \001(\002\022\023\n\013y_direction\030\007 \001("
-    "\002\022\025\n\rkiller_entity\030\010 \001(\004\"|\n\013BattleEvent\022"
-    "\020\n\010event_id\030\001 \001(\004\022(\n\006attack\030\002 \001(\0132\026.batt"
-    "le.v1.AttackEventH\000\022&\n\005death\030\003 \001(\0132\025.bat"
-    "tle.v1.DeathEventH\000B\t\n\007payload\"\363\002\n\rWorld"
-    "Snapshot\022\021\n\troom_name\030\001 \001(\t\022+\n\010entities\030"
-    "\002 \003(\0132\031.battle.v1.EntitySnapshot\022\024\n\014curr"
-    "ent_wave\030\003 \001(\005\022%\n\005phase\030\004 \001(\0162\026.battle.v"
-    "1.BattlePhase\022*\n\"reward_selection_remain"
-    "ing_seconds\030\005 \001(\002\022:\n\017player_progress\030\006 \003"
-    "(\0132!.battle.v1.PlayerProgressSnapshot\022@\n"
-    "\020player_blessings\030\007 \003(\0132&.battle.v1.Play"
-    "erBlessingStateSnapshot\022\023\n\013server_tick\030\010"
-    " \001(\004\022&\n\006events\030\t \003(\0132\026.battle.v1.BattleE"
-    "vent\"I\n\016ChooseBlessing\022\021\n\troom_name\030\001 \001("
-    "\t\022\021\n\tplayer_id\030\002 \001(\003\022\021\n\toption_id\030\003 \001(\005\""
-    "7\n\017ClientHeartbeat\022\021\n\troom_name\030\001 \001(\t\022\021\n"
-    "\tplayer_id\030\002 \001(\003*v\n\nEntityKind\022\033\n\027ENTITY"
-    "_KIND_UNSPECIFIED\020\000\022\026\n\022ENTITY_KIND_PLAYE"
-    "R\020\001\022\027\n\023ENTITY_KIND_MONSTER\020\002\022\032\n\026ENTITY_K"
-    "IND_PROJECTILE\020\003*i\n\013BattlePhase\022\034\n\030BATTL"
-    "E_PHASE_UNSPECIFIED\020\000\022\031\n\025BATTLE_PHASE_FI"
-    "GHTING\020\001\022!\n\035BATTLE_PHASE_REWARD_SELECTIO"
-    "N\020\002*\303\001\n\nBlessingId\022\033\n\027BLESSING_ID_UNSPEC"
-    "IFIED\020\000\022\033\n\027BLESSING_ID_BURN_ON_HIT\020\001\022\032\n\026"
-    "BLESSING_ID_LIFE_STEAL\020\002\022\035\n\031BLESSING_ID_"
-    "FREEZE_ON_HIT\020\003\022\037\n\033BLESSING_ID_CRITICAL_"
-    "STRIKE\020\004\022\037\n\033BLESSING_ID_CHAIN_LIGHTNING\020"
-    "\005*\\\n\nAttackKind\022\033\n\027ATTACK_KIND_UNSPECIFI"
-    "ED\020\000\022\025\n\021ATTACK_KIND_MELEE\020\001\022\032\n\026ATTACK_KI"
-    "ND_PROJECTILE\020\002B,Z*server/internal/contr"
-    "act/battlepb;battlepbb\006proto3"
+    "direction\030\005 \001(\002\022\022\n\nstart_tick\030\006 \001(\004\022\031\n\021a"
+    "ctive_start_tick\030\007 \001(\004\022\027\n\017active_end_tic"
+    "k\030\010 \001(\004\022\031\n\021recovery_end_tick\030\t \001(\004\"\316\001\n\nD"
+    "eathEvent\022\025\n\rvictim_entity\030\001 \001(\004\022*\n\013vict"
+    "im_kind\030\002 \001(\0162\025.battle.v1.EntityKind\022\024\n\014"
+    "monster_kind\030\003 \001(\t\022\022\n\nx_position\030\004 \001(\002\022\022"
+    "\n\ny_position\030\005 \001(\002\022\023\n\013x_direction\030\006 \001(\002\022"
+    "\023\n\013y_direction\030\007 \001(\002\022\025\n\rkiller_entity\030\010 "
+    "\001(\004\"|\n\013BattleEvent\022\020\n\010event_id\030\001 \001(\004\022(\n\006"
+    "attack\030\002 \001(\0132\026.battle.v1.AttackEventH\000\022&"
+    "\n\005death\030\003 \001(\0132\025.battle.v1.DeathEventH\000B\t"
+    "\n\007payload\"\206\003\n\rWorldSnapshot\022\021\n\troom_name"
+    "\030\001 \001(\t\022+\n\010entities\030\002 \003(\0132\031.battle.v1.Ent"
+    "itySnapshot\022\024\n\014current_wave\030\003 \001(\005\022%\n\005pha"
+    "se\030\004 \001(\0162\026.battle.v1.BattlePhase\022*\n\"rewa"
+    "rd_selection_remaining_seconds\030\005 \001(\002\022:\n\017"
+    "player_progress\030\006 \003(\0132!.battle.v1.Player"
+    "ProgressSnapshot\022@\n\020player_blessings\030\007 \003"
+    "(\0132&.battle.v1.PlayerBlessingStateSnapsh"
+    "ot\022\023\n\013server_tick\030\010 \001(\004\022&\n\006events\030\t \003(\0132"
+    "\026.battle.v1.BattleEvent\022\021\n\ttick_rate\030\n \001"
+    "(\r\"I\n\016ChooseBlessing\022\021\n\troom_name\030\001 \001(\t\022"
+    "\021\n\tplayer_id\030\002 \001(\003\022\021\n\toption_id\030\003 \001(\005\"7\n"
+    "\017ClientHeartbeat\022\021\n\troom_name\030\001 \001(\t\022\021\n\tp"
+    "layer_id\030\002 \001(\003*v\n\nEntityKind\022\033\n\027ENTITY_K"
+    "IND_UNSPECIFIED\020\000\022\026\n\022ENTITY_KIND_PLAYER\020"
+    "\001\022\027\n\023ENTITY_KIND_MONSTER\020\002\022\032\n\026ENTITY_KIN"
+    "D_PROJECTILE\020\003*i\n\013BattlePhase\022\034\n\030BATTLE_"
+    "PHASE_UNSPECIFIED\020\000\022\031\n\025BATTLE_PHASE_FIGH"
+    "TING\020\001\022!\n\035BATTLE_PHASE_REWARD_SELECTION\020"
+    "\002*\303\001\n\nBlessingId\022\033\n\027BLESSING_ID_UNSPECIF"
+    "IED\020\000\022\033\n\027BLESSING_ID_BURN_ON_HIT\020\001\022\032\n\026BL"
+    "ESSING_ID_LIFE_STEAL\020\002\022\035\n\031BLESSING_ID_FR"
+    "EEZE_ON_HIT\020\003\022\037\n\033BLESSING_ID_CRITICAL_ST"
+    "RIKE\020\004\022\037\n\033BLESSING_ID_CHAIN_LIGHTNING\020\005*"
+    "\\\n\nAttackKind\022\033\n\027ATTACK_KIND_UNSPECIFIED"
+    "\020\000\022\025\n\021ATTACK_KIND_MELEE\020\001\022\032\n\026ATTACK_KIND"
+    "_PROJECTILE\020\002B,Z*server/internal/contrac"
+    "t/battlepb;battlepbb\006proto3"
 };
 static ::absl::once_flag descriptor_table_proto_2fbattle_2fv1_2fsession_2eproto_once;
 PROTOBUF_CONSTINIT const ::_pbi::DescriptorTable descriptor_table_proto_2fbattle_2fv1_2fsession_2eproto = {
     false,
     false,
-    3389,
+    3507,
     descriptor_table_protodef_proto_2fbattle_2fv1_2fsession_2eproto,
     "proto/battle/v1/session.proto",
     &descriptor_table_proto_2fbattle_2fv1_2fsession_2eproto_once,
@@ -6603,16 +6621,16 @@ AttackEvent::GetClassData() const {
   return AttackEvent_class_data_.base();
 }
 PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
-const ::_pbi::TcParseTable<3, 5, 0, 0, 2>
+const ::_pbi::TcParseTable<4, 9, 0, 0, 2>
 AttackEvent::_table_ = {
   {
     PROTOBUF_FIELD_OFFSET(AttackEvent, _impl_._has_bits_),
     0, // no _extensions_
-    5, 56,  // max_field_number, fast_idx_mask
+    9, 120,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
-    4294967264,  // skipmap
+    4294966784,  // skipmap
     offsetof(decltype(_table_), field_entries),
-    5,  // num_field_entries
+    9,  // num_field_entries
     0,  // num_aux_entries
     offsetof(decltype(_table_), field_names),  // no aux_entries
     AttackEvent_class_data_.base(),
@@ -6637,7 +6655,23 @@ AttackEvent::_table_ = {
      {37, 3, 0, PROTOBUF_FIELD_OFFSET(AttackEvent, _impl_.x_direction_)}},
     // float y_direction = 5;
     {::_pbi::TcParser::FastF32S1,
-     {45, 4, 0, PROTOBUF_FIELD_OFFSET(AttackEvent, _impl_.y_direction_)}},
+     {45, 8, 0, PROTOBUF_FIELD_OFFSET(AttackEvent, _impl_.y_direction_)}},
+    // uint64 start_tick = 6;
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint64_t, offsetof(AttackEvent, _impl_.start_tick_), 4>(),
+     {48, 4, 0, PROTOBUF_FIELD_OFFSET(AttackEvent, _impl_.start_tick_)}},
+    // uint64 active_start_tick = 7;
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint64_t, offsetof(AttackEvent, _impl_.active_start_tick_), 5>(),
+     {56, 5, 0, PROTOBUF_FIELD_OFFSET(AttackEvent, _impl_.active_start_tick_)}},
+    // uint64 active_end_tick = 8;
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint64_t, offsetof(AttackEvent, _impl_.active_end_tick_), 6>(),
+     {64, 6, 0, PROTOBUF_FIELD_OFFSET(AttackEvent, _impl_.active_end_tick_)}},
+    // uint64 recovery_end_tick = 9;
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint64_t, offsetof(AttackEvent, _impl_.recovery_end_tick_), 7>(),
+     {72, 7, 0, PROTOBUF_FIELD_OFFSET(AttackEvent, _impl_.recovery_end_tick_)}},
+    {::_pbi::TcParser::MiniParse, {}},
+    {::_pbi::TcParser::MiniParse, {}},
+    {::_pbi::TcParser::MiniParse, {}},
+    {::_pbi::TcParser::MiniParse, {}},
     {::_pbi::TcParser::MiniParse, {}},
     {::_pbi::TcParser::MiniParse, {}},
   }}, {{
@@ -6656,8 +6690,20 @@ AttackEvent::_table_ = {
     {PROTOBUF_FIELD_OFFSET(AttackEvent, _impl_.x_direction_), _Internal::kHasBitsOffset + 3, 0,
     (0 | ::_fl::kFcOptional | ::_fl::kFloat)},
     // float y_direction = 5;
-    {PROTOBUF_FIELD_OFFSET(AttackEvent, _impl_.y_direction_), _Internal::kHasBitsOffset + 4, 0,
+    {PROTOBUF_FIELD_OFFSET(AttackEvent, _impl_.y_direction_), _Internal::kHasBitsOffset + 8, 0,
     (0 | ::_fl::kFcOptional | ::_fl::kFloat)},
+    // uint64 start_tick = 6;
+    {PROTOBUF_FIELD_OFFSET(AttackEvent, _impl_.start_tick_), _Internal::kHasBitsOffset + 4, 0,
+    (0 | ::_fl::kFcOptional | ::_fl::kUInt64)},
+    // uint64 active_start_tick = 7;
+    {PROTOBUF_FIELD_OFFSET(AttackEvent, _impl_.active_start_tick_), _Internal::kHasBitsOffset + 5, 0,
+    (0 | ::_fl::kFcOptional | ::_fl::kUInt64)},
+    // uint64 active_end_tick = 8;
+    {PROTOBUF_FIELD_OFFSET(AttackEvent, _impl_.active_end_tick_), _Internal::kHasBitsOffset + 6, 0,
+    (0 | ::_fl::kFcOptional | ::_fl::kUInt64)},
+    // uint64 recovery_end_tick = 9;
+    {PROTOBUF_FIELD_OFFSET(AttackEvent, _impl_.recovery_end_tick_), _Internal::kHasBitsOffset + 7, 0,
+    (0 | ::_fl::kFcOptional | ::_fl::kUInt64)},
   }},
   // no aux_entries
   {{
@@ -6671,11 +6717,12 @@ PROTOBUF_NOINLINE void AttackEvent::Clear() {
   (void) cached_has_bits;
 
   cached_has_bits = _impl_._has_bits_[0];
-  if ((cached_has_bits & 0x0000001fu) != 0) {
+  if ((cached_has_bits & 0x000000ffu) != 0) {
     ::memset(&_impl_.attacker_entity_, 0, static_cast<::size_t>(
-        reinterpret_cast<char*>(&_impl_.y_direction_) -
-        reinterpret_cast<char*>(&_impl_.attacker_entity_)) + sizeof(_impl_.y_direction_));
+        reinterpret_cast<char*>(&_impl_.recovery_end_tick_) -
+        reinterpret_cast<char*>(&_impl_.attacker_entity_)) + sizeof(_impl_.recovery_end_tick_));
   }
+  _impl_.y_direction_ = 0;
   _impl_._has_bits_.Clear();
   _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
 }
@@ -6732,11 +6779,47 @@ PROTOBUF_NOINLINE void AttackEvent::Clear() {
   }
 
   // float y_direction = 5;
-  if ((this_._impl_._has_bits_[0] & 0x00000010u) != 0) {
+  if ((this_._impl_._has_bits_[0] & 0x00000100u) != 0) {
     if (::absl::bit_cast<::uint32_t>(this_._internal_y_direction()) != 0) {
       target = stream->EnsureSpace(target);
       target = ::_pbi::WireFormatLite::WriteFloatToArray(
           5, this_._internal_y_direction(), target);
+    }
+  }
+
+  // uint64 start_tick = 6;
+  if ((this_._impl_._has_bits_[0] & 0x00000010u) != 0) {
+    if (this_._internal_start_tick() != 0) {
+      target = stream->EnsureSpace(target);
+      target = ::_pbi::WireFormatLite::WriteUInt64ToArray(
+          6, this_._internal_start_tick(), target);
+    }
+  }
+
+  // uint64 active_start_tick = 7;
+  if ((this_._impl_._has_bits_[0] & 0x00000020u) != 0) {
+    if (this_._internal_active_start_tick() != 0) {
+      target = stream->EnsureSpace(target);
+      target = ::_pbi::WireFormatLite::WriteUInt64ToArray(
+          7, this_._internal_active_start_tick(), target);
+    }
+  }
+
+  // uint64 active_end_tick = 8;
+  if ((this_._impl_._has_bits_[0] & 0x00000040u) != 0) {
+    if (this_._internal_active_end_tick() != 0) {
+      target = stream->EnsureSpace(target);
+      target = ::_pbi::WireFormatLite::WriteUInt64ToArray(
+          8, this_._internal_active_end_tick(), target);
+    }
+  }
+
+  // uint64 recovery_end_tick = 9;
+  if ((this_._impl_._has_bits_[0] & 0x00000080u) != 0) {
+    if (this_._internal_recovery_end_tick() != 0) {
+      target = stream->EnsureSpace(target);
+      target = ::_pbi::WireFormatLite::WriteUInt64ToArray(
+          9, this_._internal_recovery_end_tick(), target);
     }
   }
 
@@ -6765,7 +6848,7 @@ PROTOBUF_NOINLINE void AttackEvent::Clear() {
 
   ::_pbi::Prefetch5LinesFrom7Lines(&this_);
   cached_has_bits = this_._impl_._has_bits_[0];
-  if ((cached_has_bits & 0x0000001fu) != 0) {
+  if ((cached_has_bits & 0x000000ffu) != 0) {
     // uint64 attacker_entity = 1;
     if ((cached_has_bits & 0x00000001u) != 0) {
       if (this_._internal_attacker_entity() != 0) {
@@ -6793,8 +6876,38 @@ PROTOBUF_NOINLINE void AttackEvent::Clear() {
         total_size += 5;
       }
     }
-    // float y_direction = 5;
+    // uint64 start_tick = 6;
     if ((cached_has_bits & 0x00000010u) != 0) {
+      if (this_._internal_start_tick() != 0) {
+        total_size += ::_pbi::WireFormatLite::UInt64SizePlusOne(
+            this_._internal_start_tick());
+      }
+    }
+    // uint64 active_start_tick = 7;
+    if ((cached_has_bits & 0x00000020u) != 0) {
+      if (this_._internal_active_start_tick() != 0) {
+        total_size += ::_pbi::WireFormatLite::UInt64SizePlusOne(
+            this_._internal_active_start_tick());
+      }
+    }
+    // uint64 active_end_tick = 8;
+    if ((cached_has_bits & 0x00000040u) != 0) {
+      if (this_._internal_active_end_tick() != 0) {
+        total_size += ::_pbi::WireFormatLite::UInt64SizePlusOne(
+            this_._internal_active_end_tick());
+      }
+    }
+    // uint64 recovery_end_tick = 9;
+    if ((cached_has_bits & 0x00000080u) != 0) {
+      if (this_._internal_recovery_end_tick() != 0) {
+        total_size += ::_pbi::WireFormatLite::UInt64SizePlusOne(
+            this_._internal_recovery_end_tick());
+      }
+    }
+  }
+   {
+    // float y_direction = 5;
+    if ((cached_has_bits & 0x00000100u) != 0) {
       if (::absl::bit_cast<::uint32_t>(this_._internal_y_direction()) != 0) {
         total_size += 5;
       }
@@ -6813,7 +6926,7 @@ void AttackEvent::MergeImpl(::google::protobuf::MessageLite& to_msg, const ::goo
   (void) cached_has_bits;
 
   cached_has_bits = from._impl_._has_bits_[0];
-  if ((cached_has_bits & 0x0000001fu) != 0) {
+  if ((cached_has_bits & 0x000000ffu) != 0) {
     if ((cached_has_bits & 0x00000001u) != 0) {
       if (from._internal_attacker_entity() != 0) {
         _this->_impl_.attacker_entity_ = from._impl_.attacker_entity_;
@@ -6835,9 +6948,29 @@ void AttackEvent::MergeImpl(::google::protobuf::MessageLite& to_msg, const ::goo
       }
     }
     if ((cached_has_bits & 0x00000010u) != 0) {
-      if (::absl::bit_cast<::uint32_t>(from._internal_y_direction()) != 0) {
-        _this->_impl_.y_direction_ = from._impl_.y_direction_;
+      if (from._internal_start_tick() != 0) {
+        _this->_impl_.start_tick_ = from._impl_.start_tick_;
       }
+    }
+    if ((cached_has_bits & 0x00000020u) != 0) {
+      if (from._internal_active_start_tick() != 0) {
+        _this->_impl_.active_start_tick_ = from._impl_.active_start_tick_;
+      }
+    }
+    if ((cached_has_bits & 0x00000040u) != 0) {
+      if (from._internal_active_end_tick() != 0) {
+        _this->_impl_.active_end_tick_ = from._impl_.active_end_tick_;
+      }
+    }
+    if ((cached_has_bits & 0x00000080u) != 0) {
+      if (from._internal_recovery_end_tick() != 0) {
+        _this->_impl_.recovery_end_tick_ = from._impl_.recovery_end_tick_;
+      }
+    }
+  }
+  if ((cached_has_bits & 0x00000100u) != 0) {
+    if (::absl::bit_cast<::uint32_t>(from._internal_y_direction()) != 0) {
+      _this->_impl_.y_direction_ = from._impl_.y_direction_;
     }
   }
   _this->_impl_._has_bits_[0] |= cached_has_bits;
@@ -7787,9 +7920,9 @@ WorldSnapshot::WorldSnapshot(
                offsetof(Impl_, current_wave_),
            reinterpret_cast<const char *>(&from._impl_) +
                offsetof(Impl_, current_wave_),
-           offsetof(Impl_, reward_selection_remaining_seconds_) -
+           offsetof(Impl_, server_tick_) -
                offsetof(Impl_, current_wave_) +
-               sizeof(Impl_::reward_selection_remaining_seconds_));
+               sizeof(Impl_::server_tick_));
 
   // @@protoc_insertion_point(copy_constructor:battle.v1.WorldSnapshot)
 }
@@ -7808,9 +7941,9 @@ inline void WorldSnapshot::SharedCtor(::_pb::Arena* PROTOBUF_NULLABLE arena) {
   ::memset(reinterpret_cast<char *>(&_impl_) +
                offsetof(Impl_, current_wave_),
            0,
-           offsetof(Impl_, reward_selection_remaining_seconds_) -
+           offsetof(Impl_, server_tick_) -
                offsetof(Impl_, current_wave_) +
-               sizeof(Impl_::reward_selection_remaining_seconds_));
+               sizeof(Impl_::server_tick_));
 }
 WorldSnapshot::~WorldSnapshot() {
   // @@protoc_insertion_point(destructor:battle.v1.WorldSnapshot)
@@ -7891,16 +8024,16 @@ WorldSnapshot::GetClassData() const {
   return WorldSnapshot_class_data_.base();
 }
 PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
-const ::_pbi::TcParseTable<4, 9, 4, 49, 2>
+const ::_pbi::TcParseTable<4, 10, 4, 49, 2>
 WorldSnapshot::_table_ = {
   {
     PROTOBUF_FIELD_OFFSET(WorldSnapshot, _impl_._has_bits_),
     0, // no _extensions_
-    9, 120,  // max_field_number, fast_idx_mask
+    10, 120,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
-    4294966784,  // skipmap
+    4294966272,  // skipmap
     offsetof(decltype(_table_), field_entries),
-    9,  // num_field_entries
+    10,  // num_field_entries
     4,  // num_aux_entries
     offsetof(decltype(_table_), aux_entries),
     WorldSnapshot_class_data_.base(),
@@ -7925,7 +8058,7 @@ WorldSnapshot::_table_ = {
      {32, 2, 0, PROTOBUF_FIELD_OFFSET(WorldSnapshot, _impl_.phase_)}},
     // float reward_selection_remaining_seconds = 5;
     {::_pbi::TcParser::FastF32S1,
-     {45, 4, 0, PROTOBUF_FIELD_OFFSET(WorldSnapshot, _impl_.reward_selection_remaining_seconds_)}},
+     {45, 3, 0, PROTOBUF_FIELD_OFFSET(WorldSnapshot, _impl_.reward_selection_remaining_seconds_)}},
     // repeated .battle.v1.PlayerProgressSnapshot player_progress = 6;
     {::_pbi::TcParser::FastMtR1,
      {50, 63, 1, PROTOBUF_FIELD_OFFSET(WorldSnapshot, _impl_.player_progress_)}},
@@ -7933,12 +8066,14 @@ WorldSnapshot::_table_ = {
     {::_pbi::TcParser::FastMtR1,
      {58, 63, 2, PROTOBUF_FIELD_OFFSET(WorldSnapshot, _impl_.player_blessings_)}},
     // uint64 server_tick = 8;
-    {::_pbi::TcParser::SingularVarintNoZag1<::uint64_t, offsetof(WorldSnapshot, _impl_.server_tick_), 3>(),
-     {64, 3, 0, PROTOBUF_FIELD_OFFSET(WorldSnapshot, _impl_.server_tick_)}},
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint64_t, offsetof(WorldSnapshot, _impl_.server_tick_), 5>(),
+     {64, 5, 0, PROTOBUF_FIELD_OFFSET(WorldSnapshot, _impl_.server_tick_)}},
     // repeated .battle.v1.BattleEvent events = 9;
     {::_pbi::TcParser::FastMtR1,
      {74, 63, 3, PROTOBUF_FIELD_OFFSET(WorldSnapshot, _impl_.events_)}},
-    {::_pbi::TcParser::MiniParse, {}},
+    // uint32 tick_rate = 10;
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(WorldSnapshot, _impl_.tick_rate_), 4>(),
+     {80, 4, 0, PROTOBUF_FIELD_OFFSET(WorldSnapshot, _impl_.tick_rate_)}},
     {::_pbi::TcParser::MiniParse, {}},
     {::_pbi::TcParser::MiniParse, {}},
     {::_pbi::TcParser::MiniParse, {}},
@@ -7960,7 +8095,7 @@ WorldSnapshot::_table_ = {
     {PROTOBUF_FIELD_OFFSET(WorldSnapshot, _impl_.phase_), _Internal::kHasBitsOffset + 2, 0,
     (0 | ::_fl::kFcOptional | ::_fl::kOpenEnum)},
     // float reward_selection_remaining_seconds = 5;
-    {PROTOBUF_FIELD_OFFSET(WorldSnapshot, _impl_.reward_selection_remaining_seconds_), _Internal::kHasBitsOffset + 4, 0,
+    {PROTOBUF_FIELD_OFFSET(WorldSnapshot, _impl_.reward_selection_remaining_seconds_), _Internal::kHasBitsOffset + 3, 0,
     (0 | ::_fl::kFcOptional | ::_fl::kFloat)},
     // repeated .battle.v1.PlayerProgressSnapshot player_progress = 6;
     {PROTOBUF_FIELD_OFFSET(WorldSnapshot, _impl_.player_progress_), -1, 1,
@@ -7969,11 +8104,14 @@ WorldSnapshot::_table_ = {
     {PROTOBUF_FIELD_OFFSET(WorldSnapshot, _impl_.player_blessings_), -1, 2,
     (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
     // uint64 server_tick = 8;
-    {PROTOBUF_FIELD_OFFSET(WorldSnapshot, _impl_.server_tick_), _Internal::kHasBitsOffset + 3, 0,
+    {PROTOBUF_FIELD_OFFSET(WorldSnapshot, _impl_.server_tick_), _Internal::kHasBitsOffset + 5, 0,
     (0 | ::_fl::kFcOptional | ::_fl::kUInt64)},
     // repeated .battle.v1.BattleEvent events = 9;
     {PROTOBUF_FIELD_OFFSET(WorldSnapshot, _impl_.events_), -1, 3,
     (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
+    // uint32 tick_rate = 10;
+    {PROTOBUF_FIELD_OFFSET(WorldSnapshot, _impl_.tick_rate_), _Internal::kHasBitsOffset + 4, 0,
+    (0 | ::_fl::kFcOptional | ::_fl::kUInt32)},
   }},
   {{
       {::_pbi::TcParser::GetTable<::battle::v1::EntitySnapshot>()},
@@ -8002,10 +8140,10 @@ PROTOBUF_NOINLINE void WorldSnapshot::Clear() {
   if ((cached_has_bits & 0x00000001u) != 0) {
     _impl_.room_name_.ClearNonDefaultToEmpty();
   }
-  if ((cached_has_bits & 0x0000001eu) != 0) {
+  if ((cached_has_bits & 0x0000003eu) != 0) {
     ::memset(&_impl_.current_wave_, 0, static_cast<::size_t>(
-        reinterpret_cast<char*>(&_impl_.reward_selection_remaining_seconds_) -
-        reinterpret_cast<char*>(&_impl_.current_wave_)) + sizeof(_impl_.reward_selection_remaining_seconds_));
+        reinterpret_cast<char*>(&_impl_.server_tick_) -
+        reinterpret_cast<char*>(&_impl_.current_wave_)) + sizeof(_impl_.server_tick_));
   }
   _impl_._has_bits_.Clear();
   _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
@@ -8066,7 +8204,7 @@ PROTOBUF_NOINLINE void WorldSnapshot::Clear() {
   }
 
   // float reward_selection_remaining_seconds = 5;
-  if ((this_._impl_._has_bits_[0] & 0x00000010u) != 0) {
+  if ((this_._impl_._has_bits_[0] & 0x00000008u) != 0) {
     if (::absl::bit_cast<::uint32_t>(this_._internal_reward_selection_remaining_seconds()) != 0) {
       target = stream->EnsureSpace(target);
       target = ::_pbi::WireFormatLite::WriteFloatToArray(
@@ -8097,7 +8235,7 @@ PROTOBUF_NOINLINE void WorldSnapshot::Clear() {
   }
 
   // uint64 server_tick = 8;
-  if ((this_._impl_._has_bits_[0] & 0x00000008u) != 0) {
+  if ((this_._impl_._has_bits_[0] & 0x00000020u) != 0) {
     if (this_._internal_server_tick() != 0) {
       target = stream->EnsureSpace(target);
       target = ::_pbi::WireFormatLite::WriteUInt64ToArray(
@@ -8114,6 +8252,15 @@ PROTOBUF_NOINLINE void WorldSnapshot::Clear() {
         ::google::protobuf::internal::WireFormatLite::InternalWriteMessage(
             9, repfield, repfield.GetCachedSize(),
             target, stream);
+  }
+
+  // uint32 tick_rate = 10;
+  if ((this_._impl_._has_bits_[0] & 0x00000010u) != 0) {
+    if (this_._internal_tick_rate() != 0) {
+      target = stream->EnsureSpace(target);
+      target = ::_pbi::WireFormatLite::WriteUInt32ToArray(
+          10, this_._internal_tick_rate(), target);
+    }
   }
 
   if (ABSL_PREDICT_FALSE(this_._internal_metadata_.have_unknown_fields())) {
@@ -8171,7 +8318,7 @@ PROTOBUF_NOINLINE void WorldSnapshot::Clear() {
     }
   }
   cached_has_bits = this_._impl_._has_bits_[0];
-  if ((cached_has_bits & 0x0000001fu) != 0) {
+  if ((cached_has_bits & 0x0000003fu) != 0) {
     // string room_name = 1;
     if ((cached_has_bits & 0x00000001u) != 0) {
       if (!this_._internal_room_name().empty()) {
@@ -8193,17 +8340,24 @@ PROTOBUF_NOINLINE void WorldSnapshot::Clear() {
                       ::_pbi::WireFormatLite::EnumSize(this_._internal_phase());
       }
     }
-    // uint64 server_tick = 8;
+    // float reward_selection_remaining_seconds = 5;
     if ((cached_has_bits & 0x00000008u) != 0) {
+      if (::absl::bit_cast<::uint32_t>(this_._internal_reward_selection_remaining_seconds()) != 0) {
+        total_size += 5;
+      }
+    }
+    // uint32 tick_rate = 10;
+    if ((cached_has_bits & 0x00000010u) != 0) {
+      if (this_._internal_tick_rate() != 0) {
+        total_size += ::_pbi::WireFormatLite::UInt32SizePlusOne(
+            this_._internal_tick_rate());
+      }
+    }
+    // uint64 server_tick = 8;
+    if ((cached_has_bits & 0x00000020u) != 0) {
       if (this_._internal_server_tick() != 0) {
         total_size += ::_pbi::WireFormatLite::UInt64SizePlusOne(
             this_._internal_server_tick());
-      }
-    }
-    // float reward_selection_remaining_seconds = 5;
-    if ((cached_has_bits & 0x00000010u) != 0) {
-      if (::absl::bit_cast<::uint32_t>(this_._internal_reward_selection_remaining_seconds()) != 0) {
-        total_size += 5;
       }
     }
   }
@@ -8228,7 +8382,7 @@ void WorldSnapshot::MergeImpl(::google::protobuf::MessageLite& to_msg, const ::g
   _this->_internal_mutable_events()->MergeFrom(
       from._internal_events());
   cached_has_bits = from._impl_._has_bits_[0];
-  if ((cached_has_bits & 0x0000001fu) != 0) {
+  if ((cached_has_bits & 0x0000003fu) != 0) {
     if ((cached_has_bits & 0x00000001u) != 0) {
       if (!from._internal_room_name().empty()) {
         _this->_internal_set_room_name(from._internal_room_name());
@@ -8249,13 +8403,18 @@ void WorldSnapshot::MergeImpl(::google::protobuf::MessageLite& to_msg, const ::g
       }
     }
     if ((cached_has_bits & 0x00000008u) != 0) {
-      if (from._internal_server_tick() != 0) {
-        _this->_impl_.server_tick_ = from._impl_.server_tick_;
+      if (::absl::bit_cast<::uint32_t>(from._internal_reward_selection_remaining_seconds()) != 0) {
+        _this->_impl_.reward_selection_remaining_seconds_ = from._impl_.reward_selection_remaining_seconds_;
       }
     }
     if ((cached_has_bits & 0x00000010u) != 0) {
-      if (::absl::bit_cast<::uint32_t>(from._internal_reward_selection_remaining_seconds()) != 0) {
-        _this->_impl_.reward_selection_remaining_seconds_ = from._impl_.reward_selection_remaining_seconds_;
+      if (from._internal_tick_rate() != 0) {
+        _this->_impl_.tick_rate_ = from._impl_.tick_rate_;
+      }
+    }
+    if ((cached_has_bits & 0x00000020u) != 0) {
+      if (from._internal_server_tick() != 0) {
+        _this->_impl_.server_tick_ = from._impl_.server_tick_;
       }
     }
   }
@@ -8283,8 +8442,8 @@ void WorldSnapshot::InternalSwap(WorldSnapshot* PROTOBUF_RESTRICT PROTOBUF_NONNU
   _impl_.events_.InternalSwap(&other->_impl_.events_);
   ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.room_name_, &other->_impl_.room_name_, arena);
   ::google::protobuf::internal::memswap<
-      PROTOBUF_FIELD_OFFSET(WorldSnapshot, _impl_.reward_selection_remaining_seconds_)
-      + sizeof(WorldSnapshot::_impl_.reward_selection_remaining_seconds_)
+      PROTOBUF_FIELD_OFFSET(WorldSnapshot, _impl_.server_tick_)
+      + sizeof(WorldSnapshot::_impl_.server_tick_)
       - PROTOBUF_FIELD_OFFSET(WorldSnapshot, _impl_.current_wave_)>(
           reinterpret_cast<char*>(&_impl_.current_wave_),
           reinterpret_cast<char*>(&other->_impl_.current_wave_));

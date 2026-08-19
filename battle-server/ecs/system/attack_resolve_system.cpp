@@ -58,6 +58,9 @@ namespace {
             .kind = attack.kind,
             .direction = transform.direction,
             .action_id = context.action_state->action_id,
+            .windup_seconds = attack.windup_seconds,
+            .active_seconds = attack.active_seconds,
+            .recovery_seconds = attack.recovery_seconds,
         });
         if (attack.windup_seconds > battle::ecs::DeltaTime{0}) {
             state.phase = battle::ecs::AttackPhase::Windup;

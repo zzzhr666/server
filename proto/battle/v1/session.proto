@@ -142,6 +142,10 @@ message AttackEvent {
   AttackKind attack_kind = 3;
   float x_direction = 4;
   float y_direction = 5;
+  uint64 start_tick = 6;
+  uint64 active_start_tick = 7;
+  uint64 active_end_tick = 8;
+  uint64 recovery_end_tick = 9;
 }
 
 message DeathEvent {
@@ -173,6 +177,7 @@ message WorldSnapshot {
   repeated PlayerBlessingStateSnapshot player_blessings = 7;
   uint64 server_tick = 8;
   repeated BattleEvent events = 9;
+  uint32 tick_rate = 10;
 }
 
 message ChooseBlessing {

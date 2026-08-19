@@ -3457,6 +3457,10 @@ class AttackEvent final : public ::google::protobuf::Message
     kActionIdFieldNumber = 2,
     kAttackKindFieldNumber = 3,
     kXDirectionFieldNumber = 4,
+    kStartTickFieldNumber = 6,
+    kActiveStartTickFieldNumber = 7,
+    kActiveEndTickFieldNumber = 8,
+    kRecoveryEndTickFieldNumber = 9,
     kYDirectionFieldNumber = 5,
   };
   // uint64 attacker_entity = 1;
@@ -3499,6 +3503,46 @@ class AttackEvent final : public ::google::protobuf::Message
   void _internal_set_x_direction(float value);
 
   public:
+  // uint64 start_tick = 6;
+  void clear_start_tick() ;
+  ::uint64_t start_tick() const;
+  void set_start_tick(::uint64_t value);
+
+  private:
+  ::uint64_t _internal_start_tick() const;
+  void _internal_set_start_tick(::uint64_t value);
+
+  public:
+  // uint64 active_start_tick = 7;
+  void clear_active_start_tick() ;
+  ::uint64_t active_start_tick() const;
+  void set_active_start_tick(::uint64_t value);
+
+  private:
+  ::uint64_t _internal_active_start_tick() const;
+  void _internal_set_active_start_tick(::uint64_t value);
+
+  public:
+  // uint64 active_end_tick = 8;
+  void clear_active_end_tick() ;
+  ::uint64_t active_end_tick() const;
+  void set_active_end_tick(::uint64_t value);
+
+  private:
+  ::uint64_t _internal_active_end_tick() const;
+  void _internal_set_active_end_tick(::uint64_t value);
+
+  public:
+  // uint64 recovery_end_tick = 9;
+  void clear_recovery_end_tick() ;
+  ::uint64_t recovery_end_tick() const;
+  void set_recovery_end_tick(::uint64_t value);
+
+  private:
+  ::uint64_t _internal_recovery_end_tick() const;
+  void _internal_set_recovery_end_tick(::uint64_t value);
+
+  public:
   // float y_direction = 5;
   void clear_y_direction() ;
   float y_direction() const;
@@ -3513,7 +3557,7 @@ class AttackEvent final : public ::google::protobuf::Message
  private:
   class _Internal;
   friend class ::google::protobuf::internal::TcParser;
-  static const ::google::protobuf::internal::TcParseTable<3, 5,
+  static const ::google::protobuf::internal::TcParseTable<4, 9,
                                    0, 0,
                                    2>
       _table_;
@@ -3539,6 +3583,10 @@ class AttackEvent final : public ::google::protobuf::Message
     ::uint64_t action_id_;
     int attack_kind_;
     float x_direction_;
+    ::uint64_t start_tick_;
+    ::uint64_t active_start_tick_;
+    ::uint64_t active_end_tick_;
+    ::uint64_t recovery_end_tick_;
     float y_direction_;
     PROTOBUF_TSAN_DECLARE_MEMBER
   };
@@ -4681,8 +4729,9 @@ class WorldSnapshot final : public ::google::protobuf::Message
     kRoomNameFieldNumber = 1,
     kCurrentWaveFieldNumber = 3,
     kPhaseFieldNumber = 4,
-    kServerTickFieldNumber = 8,
     kRewardSelectionRemainingSecondsFieldNumber = 5,
+    kTickRateFieldNumber = 10,
+    kServerTickFieldNumber = 8,
   };
   // repeated .battle.v1.EntitySnapshot entities = 2;
   int entities_size() const;
@@ -4787,16 +4836,6 @@ class WorldSnapshot final : public ::google::protobuf::Message
   void _internal_set_phase(::battle::v1::BattlePhase value);
 
   public:
-  // uint64 server_tick = 8;
-  void clear_server_tick() ;
-  ::uint64_t server_tick() const;
-  void set_server_tick(::uint64_t value);
-
-  private:
-  ::uint64_t _internal_server_tick() const;
-  void _internal_set_server_tick(::uint64_t value);
-
-  public:
   // float reward_selection_remaining_seconds = 5;
   void clear_reward_selection_remaining_seconds() ;
   float reward_selection_remaining_seconds() const;
@@ -4807,11 +4846,31 @@ class WorldSnapshot final : public ::google::protobuf::Message
   void _internal_set_reward_selection_remaining_seconds(float value);
 
   public:
+  // uint32 tick_rate = 10;
+  void clear_tick_rate() ;
+  ::uint32_t tick_rate() const;
+  void set_tick_rate(::uint32_t value);
+
+  private:
+  ::uint32_t _internal_tick_rate() const;
+  void _internal_set_tick_rate(::uint32_t value);
+
+  public:
+  // uint64 server_tick = 8;
+  void clear_server_tick() ;
+  ::uint64_t server_tick() const;
+  void set_server_tick(::uint64_t value);
+
+  private:
+  ::uint64_t _internal_server_tick() const;
+  void _internal_set_server_tick(::uint64_t value);
+
+  public:
   // @@protoc_insertion_point(class_scope:battle.v1.WorldSnapshot)
  private:
   class _Internal;
   friend class ::google::protobuf::internal::TcParser;
-  static const ::google::protobuf::internal::TcParseTable<4, 9,
+  static const ::google::protobuf::internal::TcParseTable<4, 10,
                                    4, 49,
                                    2>
       _table_;
@@ -4840,8 +4899,9 @@ class WorldSnapshot final : public ::google::protobuf::Message
     ::google::protobuf::internal::ArenaStringPtr room_name_;
     ::int32_t current_wave_;
     int phase_;
-    ::uint64_t server_tick_;
     float reward_selection_remaining_seconds_;
+    ::uint32_t tick_rate_;
+    ::uint64_t server_tick_;
     PROTOBUF_TSAN_DECLARE_MEMBER
   };
   union { Impl_ _impl_; };
@@ -8034,7 +8094,7 @@ inline void AttackEvent::_internal_set_x_direction(float value) {
 inline void AttackEvent::clear_y_direction() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.y_direction_ = 0;
-  _impl_._has_bits_[0] &= ~0x00000010u;
+  _impl_._has_bits_[0] &= ~0x00000100u;
 }
 inline float AttackEvent::y_direction() const {
   // @@protoc_insertion_point(field_get:battle.v1.AttackEvent.y_direction)
@@ -8042,7 +8102,7 @@ inline float AttackEvent::y_direction() const {
 }
 inline void AttackEvent::set_y_direction(float value) {
   _internal_set_y_direction(value);
-  _impl_._has_bits_[0] |= 0x00000010u;
+  _impl_._has_bits_[0] |= 0x00000100u;
   // @@protoc_insertion_point(field_set:battle.v1.AttackEvent.y_direction)
 }
 inline float AttackEvent::_internal_y_direction() const {
@@ -8052,6 +8112,102 @@ inline float AttackEvent::_internal_y_direction() const {
 inline void AttackEvent::_internal_set_y_direction(float value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.y_direction_ = value;
+}
+
+// uint64 start_tick = 6;
+inline void AttackEvent::clear_start_tick() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.start_tick_ = ::uint64_t{0u};
+  _impl_._has_bits_[0] &= ~0x00000010u;
+}
+inline ::uint64_t AttackEvent::start_tick() const {
+  // @@protoc_insertion_point(field_get:battle.v1.AttackEvent.start_tick)
+  return _internal_start_tick();
+}
+inline void AttackEvent::set_start_tick(::uint64_t value) {
+  _internal_set_start_tick(value);
+  _impl_._has_bits_[0] |= 0x00000010u;
+  // @@protoc_insertion_point(field_set:battle.v1.AttackEvent.start_tick)
+}
+inline ::uint64_t AttackEvent::_internal_start_tick() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.start_tick_;
+}
+inline void AttackEvent::_internal_set_start_tick(::uint64_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.start_tick_ = value;
+}
+
+// uint64 active_start_tick = 7;
+inline void AttackEvent::clear_active_start_tick() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.active_start_tick_ = ::uint64_t{0u};
+  _impl_._has_bits_[0] &= ~0x00000020u;
+}
+inline ::uint64_t AttackEvent::active_start_tick() const {
+  // @@protoc_insertion_point(field_get:battle.v1.AttackEvent.active_start_tick)
+  return _internal_active_start_tick();
+}
+inline void AttackEvent::set_active_start_tick(::uint64_t value) {
+  _internal_set_active_start_tick(value);
+  _impl_._has_bits_[0] |= 0x00000020u;
+  // @@protoc_insertion_point(field_set:battle.v1.AttackEvent.active_start_tick)
+}
+inline ::uint64_t AttackEvent::_internal_active_start_tick() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.active_start_tick_;
+}
+inline void AttackEvent::_internal_set_active_start_tick(::uint64_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.active_start_tick_ = value;
+}
+
+// uint64 active_end_tick = 8;
+inline void AttackEvent::clear_active_end_tick() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.active_end_tick_ = ::uint64_t{0u};
+  _impl_._has_bits_[0] &= ~0x00000040u;
+}
+inline ::uint64_t AttackEvent::active_end_tick() const {
+  // @@protoc_insertion_point(field_get:battle.v1.AttackEvent.active_end_tick)
+  return _internal_active_end_tick();
+}
+inline void AttackEvent::set_active_end_tick(::uint64_t value) {
+  _internal_set_active_end_tick(value);
+  _impl_._has_bits_[0] |= 0x00000040u;
+  // @@protoc_insertion_point(field_set:battle.v1.AttackEvent.active_end_tick)
+}
+inline ::uint64_t AttackEvent::_internal_active_end_tick() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.active_end_tick_;
+}
+inline void AttackEvent::_internal_set_active_end_tick(::uint64_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.active_end_tick_ = value;
+}
+
+// uint64 recovery_end_tick = 9;
+inline void AttackEvent::clear_recovery_end_tick() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.recovery_end_tick_ = ::uint64_t{0u};
+  _impl_._has_bits_[0] &= ~0x00000080u;
+}
+inline ::uint64_t AttackEvent::recovery_end_tick() const {
+  // @@protoc_insertion_point(field_get:battle.v1.AttackEvent.recovery_end_tick)
+  return _internal_recovery_end_tick();
+}
+inline void AttackEvent::set_recovery_end_tick(::uint64_t value) {
+  _internal_set_recovery_end_tick(value);
+  _impl_._has_bits_[0] |= 0x00000080u;
+  // @@protoc_insertion_point(field_set:battle.v1.AttackEvent.recovery_end_tick)
+}
+inline ::uint64_t AttackEvent::_internal_recovery_end_tick() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.recovery_end_tick_;
+}
+inline void AttackEvent::_internal_set_recovery_end_tick(::uint64_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.recovery_end_tick_ = value;
 }
 
 // -------------------------------------------------------------------
@@ -8661,7 +8817,7 @@ inline void WorldSnapshot::_internal_set_phase(::battle::v1::BattlePhase value) 
 inline void WorldSnapshot::clear_reward_selection_remaining_seconds() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.reward_selection_remaining_seconds_ = 0;
-  _impl_._has_bits_[0] &= ~0x00000010u;
+  _impl_._has_bits_[0] &= ~0x00000008u;
 }
 inline float WorldSnapshot::reward_selection_remaining_seconds() const {
   // @@protoc_insertion_point(field_get:battle.v1.WorldSnapshot.reward_selection_remaining_seconds)
@@ -8669,7 +8825,7 @@ inline float WorldSnapshot::reward_selection_remaining_seconds() const {
 }
 inline void WorldSnapshot::set_reward_selection_remaining_seconds(float value) {
   _internal_set_reward_selection_remaining_seconds(value);
-  _impl_._has_bits_[0] |= 0x00000010u;
+  _impl_._has_bits_[0] |= 0x00000008u;
   // @@protoc_insertion_point(field_set:battle.v1.WorldSnapshot.reward_selection_remaining_seconds)
 }
 inline float WorldSnapshot::_internal_reward_selection_remaining_seconds() const {
@@ -8785,7 +8941,7 @@ WorldSnapshot::_internal_mutable_player_blessings() {
 inline void WorldSnapshot::clear_server_tick() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.server_tick_ = ::uint64_t{0u};
-  _impl_._has_bits_[0] &= ~0x00000008u;
+  _impl_._has_bits_[0] &= ~0x00000020u;
 }
 inline ::uint64_t WorldSnapshot::server_tick() const {
   // @@protoc_insertion_point(field_get:battle.v1.WorldSnapshot.server_tick)
@@ -8793,7 +8949,7 @@ inline ::uint64_t WorldSnapshot::server_tick() const {
 }
 inline void WorldSnapshot::set_server_tick(::uint64_t value) {
   _internal_set_server_tick(value);
-  _impl_._has_bits_[0] |= 0x00000008u;
+  _impl_._has_bits_[0] |= 0x00000020u;
   // @@protoc_insertion_point(field_set:battle.v1.WorldSnapshot.server_tick)
 }
 inline ::uint64_t WorldSnapshot::_internal_server_tick() const {
@@ -8853,6 +9009,30 @@ inline ::google::protobuf::RepeatedPtrField<::battle::v1::BattleEvent>* PROTOBUF
 WorldSnapshot::_internal_mutable_events() {
   ::google::protobuf::internal::TSanRead(&_impl_);
   return &_impl_.events_;
+}
+
+// uint32 tick_rate = 10;
+inline void WorldSnapshot::clear_tick_rate() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.tick_rate_ = 0u;
+  _impl_._has_bits_[0] &= ~0x00000010u;
+}
+inline ::uint32_t WorldSnapshot::tick_rate() const {
+  // @@protoc_insertion_point(field_get:battle.v1.WorldSnapshot.tick_rate)
+  return _internal_tick_rate();
+}
+inline void WorldSnapshot::set_tick_rate(::uint32_t value) {
+  _internal_set_tick_rate(value);
+  _impl_._has_bits_[0] |= 0x00000010u;
+  // @@protoc_insertion_point(field_set:battle.v1.WorldSnapshot.tick_rate)
+}
+inline ::uint32_t WorldSnapshot::_internal_tick_rate() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.tick_rate_;
+}
+inline void WorldSnapshot::_internal_set_tick_rate(::uint32_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.tick_rate_ = value;
 }
 
 // -------------------------------------------------------------------
