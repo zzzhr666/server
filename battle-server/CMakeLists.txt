@@ -71,6 +71,8 @@ add_library(battle_gameplay
         gameplay/monster_kind_codec.cpp
         gameplay/hero.cpp
         gameplay/growth.cpp
+        gameplay/room_graph.cpp
+        gameplay/room_graph_validator.cpp
 )
 add_library(battle_session
         session/battle_session.cpp
@@ -205,6 +207,7 @@ target_link_libraries(battle_ecs_tests PRIVATE
 
 add_executable(battle_runtime_tests
         gameplay/tests/growth_test.cpp
+        gameplay/tests/room_graph_test.cpp
         gameplay/tests/spawn_planner_test.cpp
         gameplay/tests/hero_test.cpp
         gameplay/tests/wave_planner_test.cpp
