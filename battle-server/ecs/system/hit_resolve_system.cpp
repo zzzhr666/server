@@ -2,7 +2,7 @@
 
 #include <algorithm>
 
-#include "combat_tageting.hpp"
+#include "combat_targeting.hpp"
 #include "ecs/world.hpp"
 
 

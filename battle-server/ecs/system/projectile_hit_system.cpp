@@ -2,7 +2,7 @@
 
 #include <vector>
 
-#include "combat_tageting.hpp"
+#include "combat_targeting.hpp"
 #include "ecs/world.hpp"
 #include "ecs/entity/entity.hpp"
 

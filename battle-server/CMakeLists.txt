@@ -55,7 +55,7 @@ add_library(battle_ecs
         ecs/system/blessing_trigger_system.cpp
         ecs/system/status_effect_system.cpp
         ecs/system/pre_damage_blessing_system.cpp
-        ecs/system/combat_tageting.cpp
+        ecs/system/combat_targeting.cpp
         ecs/system/projectile_spawn_system.cpp
         ecs/system/projectile_range_system.cpp
         ecs/system/projectile_hit_system.cpp
@@ -73,6 +73,9 @@ add_library(battle_gameplay
         gameplay/growth.cpp
         gameplay/room_graph.cpp
         gameplay/room_graph_validator.cpp
+        gameplay/room_layout_validator.cpp
+        gameplay/room_layout_catalog.cpp
+        gameplay/room_layout_catalog_validator.cpp
 )
 add_library(battle_session
         session/battle_session.cpp

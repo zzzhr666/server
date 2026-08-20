@@ -4,6 +4,8 @@
 #include <unordered_map>
 #include <unordered_set>
 
+#include "room_layout_catalog.hpp"
+
 namespace {
     struct ValidationState {
         bool duplicate_room_id_exists{};
@@ -106,7 +108,7 @@ namespace {
             visit_states.emplace(room.room_id, VisitState::Unvisited);
         }
         auto visit = [&issues, &graph, &visit_states](auto&& self,
-                                                     const battle::DungeonRoomID room_id) -> void {
+                                                      const battle::DungeonRoomID room_id) -> void {
             visit_states.at(room_id) = VisitState::Visiting;
             const auto* room = graph.find_room(room_id);
             std::unordered_set<battle::DungeonRoomID> visited_exit_ids;
@@ -177,5 +179,17 @@ std::vector<battle::DungeonRoomGraphIssue> battle::validate_room_graph(const Dun
         !state.exit_room_not_found_exists) {
         validate_reachability(issues, graph);
     }
+    return issues;
+}
+
+std::vector<battle::DungeonRoomGraphIssue> battle::validate_room_layout_references(
+    const DungeonRoomGraph& graph, const RoomLayoutCatalog& catalog) {
+    std::vector<battle::DungeonRoomGraphIssue> issues;
+    for (const auto& room : graph.rooms) {
+        if (catalog.find_layout(room.layout_id) == nullptr) {
+            issues.emplace_back(DungeonRoomGraphIssueKind::LayoutNotFound, std::make_optional(room.room_id));
+        }
+    }
+
     return issues;
 }

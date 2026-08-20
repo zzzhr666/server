@@ -5,7 +5,7 @@
 
 #include "blessing_config.hpp"
 #include "blessing_helpers.hpp"
-#include "combat_tageting.hpp"
+#include "combat_targeting.hpp"
 #include "ecs/world.hpp"
 
 namespace {
