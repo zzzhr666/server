@@ -76,6 +76,7 @@ add_library(battle_gameplay
         gameplay/room_layout_validator.cpp
         gameplay/room_layout_catalog.cpp
         gameplay/room_layout_catalog_validator.cpp
+        gameplay/room_graph_presets.cpp
 )
 add_library(battle_session
         session/battle_session.cpp

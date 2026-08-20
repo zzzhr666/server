@@ -1,0 +1,33 @@
+#include "room_graph_presets.hpp"
+
+battle::DungeonRoomGraph battle::default_dungeon_room_graph() {
+    return DungeonRoomGraph{
+        .start_room_id = 1,
+        .rooms = {
+            DungeonRoomNode{
+                .room_id = 1,
+                .kind = DungeonRoomKind::Start,
+                .layout_id = "start",
+                .next_room_ids = {2},
+            },
+            DungeonRoomNode{
+                .room_id = 2,
+                .kind = DungeonRoomKind::Combat,
+                .layout_id = "combat_small",
+                .next_room_ids = {3},
+            },
+            DungeonRoomNode{
+                .room_id = 3,
+                .kind = DungeonRoomKind::Reward,
+                .layout_id = "reward_small",
+                .next_room_ids = {4},
+            },
+            DungeonRoomNode{
+                .room_id = 4,
+                .kind = DungeonRoomKind::Boss,
+                .layout_id = "boss_small",
+                .next_room_ids = {},
+            },
+        }
+    };
+}

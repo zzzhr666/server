@@ -1,4 +1,5 @@
 #include "gameplay/room_graph.hpp"
+#include "gameplay/room_graph_presets.hpp"
 #include "gameplay/room_graph_validator.hpp"
 #include "gameplay/room_layout.hpp"
 #include "gameplay/room_layout_catalog.hpp"
@@ -62,6 +63,18 @@ TEST(DungeonRoomGraphTest, FindRoomReturnsNullForUnknownID) {
     EXPECT_EQ(graph.find_room(99), nullptr);
 }
 
+TEST(DungeonRoomGraphPresetTest, CreatesValidLinearGraph) {
+    const auto graph = default_dungeon_room_graph();
+
+    ASSERT_EQ(graph.start_room_id, 1);
+    ASSERT_EQ(graph.rooms.size(), 4);
+    EXPECT_EQ(graph.rooms[0].next_room_ids, std::vector<DungeonRoomID>{2});
+    EXPECT_EQ(graph.rooms[1].next_room_ids, std::vector<DungeonRoomID>{3});
+    EXPECT_EQ(graph.rooms[2].next_room_ids, std::vector<DungeonRoomID>{4});
+    EXPECT_TRUE(graph.rooms[3].next_room_ids.empty());
+    EXPECT_TRUE(validate_room_graph(graph).empty());
+}
+
 TEST(RoomLayoutTest, StoresBoundsSpawnPointsAndDoors) {
     const RoomLayout layout{
         .layout_id = "combat_small",
@@ -115,6 +128,18 @@ TEST(RoomLayoutCatalogTest, FindLayoutReturnsNullForUnknownID) {
     };
 
     EXPECT_EQ(catalog.find_layout("missing"), nullptr);
+}
+
+TEST(RoomLayoutCatalogTest, DefaultCatalogMatchesDefaultGraph) {
+    const auto graph = default_dungeon_room_graph();
+    const auto catalog = default_room_layout_catalog();
+
+    ASSERT_EQ(catalog.layouts.size(), 4);
+    EXPECT_TRUE(validate_room_layout_references(graph, catalog).empty());
+    EXPECT_TRUE(validate_room_layout_catalog(catalog).empty());
+    for (const auto& layout : catalog.layouts) {
+        EXPECT_TRUE(validate_room_layout(layout).empty()) << layout.layout_id;
+    }
 }
 
 TEST(RoomLayoutCatalogValidatorTest, AcceptsUniqueLayoutIDs) {
@@ -614,7 +639,7 @@ TEST(DungeonRoomGraphValidatorTest, ReportsLongerRoomCycle) {
             },
             DungeonRoomNode{
                 .room_id = 3,
-                .kind = DungeonRoomKind::Elite,
+                .kind = DungeonRoomKind::Combat,
                 .next_room_ids = {1},
             },
         },

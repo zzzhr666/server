@@ -12,7 +12,6 @@ namespace battle {
     enum class DungeonRoomKind : std::uint8_t {
         Start,
         Combat,
-        Elite,
         Reward,
         Boss,
     };
