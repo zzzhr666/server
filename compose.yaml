@@ -157,7 +157,8 @@ services:
         condition: service_healthy
 
   battle-deps:
-    image: game-demo-battle-deps:latest
+    profiles: [ "build-deps" ]
+    image: ${BATTLE_DEPS_IMAGE:-game-demo-battle-deps:grpc-v1.80.0-ubuntu24.04-v1}
     build:
       context: ./deploy/docker
       dockerfile: Dockerfile.battle-deps
@@ -169,7 +170,7 @@ services:
       context: .
       dockerfile: deploy/docker/Dockerfile.battle
       additional_contexts:
-        battle_deps: service:battle-deps
+        battle_deps: docker-image://${BATTLE_DEPS_IMAGE:-game-demo-battle-deps:grpc-v1.80.0-ubuntu24.04-v1}
     restart: unless-stopped
     command:
       - "--node-name"
@@ -203,7 +204,7 @@ services:
       context: .
       dockerfile: deploy/docker/Dockerfile.battle
       additional_contexts:
-        battle_deps: service:battle-deps
+        battle_deps: docker-image://${BATTLE_DEPS_IMAGE:-game-demo-battle-deps:grpc-v1.80.0-ubuntu24.04-v1}
     restart: unless-stopped
     command:
       - "--node-name"
