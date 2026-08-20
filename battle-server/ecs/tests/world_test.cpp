@@ -23,8 +23,7 @@ CreatePlayerConfig default_player_config() {
 
 CreateMonsterConfig default_monster_config() {
     return {
-        .x_position = 30.0f,
-        .y_position = 40.0f,
+        .position = Position{.x = 30.0f, .y = 40.0f},
         .max_health = 50,
         .move_speed = 3.0f,
     };
@@ -71,7 +70,7 @@ TEST(WorldTest, CreatePlayerAllowsMultiplePlayerControlledEntities) {
 TEST(WorldTest, CreateProjectileInitializesMovementAndCombatContext) {
     World world;
     auto owner = world.create_player(default_player_config());
-    auto action_state = world.crete_combat_action();
+    auto action_state = world.create_combat_action();
 
     auto projectile = world.create_projectile(CreateProjectileConfig{
         .position = Position{.x = 10.0f, .y = 20.0f},
@@ -195,8 +194,7 @@ TEST(WorldTest, TickProjectileDamagesEnemyAndIsDestroyedOnHit) {
         .move_speed = 5.0f,
     });
     auto monster = world.create_monster(CreateMonsterConfig{
-        .x_position = 1.0f,
-        .y_position = 0.0f,
+        .position = Position{.x = 1.0f, .y = 0.0f},
         .max_health = 50,
         .move_speed = 0.0f,
     });
@@ -223,8 +221,7 @@ TEST(WorldTest, TickProjectileUsesConfiguredHitRadius) {
         .move_speed = 5.0f,
     });
     auto monster = world.create_monster(CreateMonsterConfig{
-        .x_position = 0.75f,
-        .y_position = 0.0f,
+        .position = Position{.x = 0.75f, .y = 0.0f},
         .max_health = 50,
         .move_speed = 0.0f,
     });
@@ -537,8 +534,7 @@ TEST(WorldTest, TickDoesNotDamageDuringAttackWindup) {
         },
     });
     const auto monster = world.create_monster(CreateMonsterConfig{
-        .x_position = 0.0f,
-        .y_position = 1.0f,
+        .position = Position{.x = 0.0f, .y = 1.0f},
         .max_health = 50,
         .move_speed = 0.0f,
     });
@@ -577,8 +573,7 @@ TEST(WorldTest, TickDamagesWhenAttackWindupEnds) {
         },
     });
     const auto monster = world.create_monster(CreateMonsterConfig{
-        .x_position = 0.0f,
-        .y_position = 1.0f,
+        .position = Position{.x = 0.0f, .y = 1.0f},
         .max_health = 50,
         .move_speed = 0.0f,
     });
@@ -613,8 +608,7 @@ TEST(WorldTest, TickDiscardsAttackRequestDuringRecovery) {
         },
     });
     const auto monster = world.create_monster(CreateMonsterConfig{
-        .x_position = 0.0f,
-        .y_position = 1.0f,
+        .position = Position{.x = 0.0f, .y = 1.0f},
         .max_health = 50,
         .move_speed = 0.0f,
     });
@@ -657,14 +651,12 @@ TEST(WorldTest, TickActiveWindowDamagesEachTargetOnlyOnce) {
         },
     });
     const auto first_monster = world.create_monster(CreateMonsterConfig{
-        .x_position = 0.0f,
-        .y_position = 1.0f,
+        .position = Position{.x = 0.0f, .y = 1.0f},
         .max_health = 50,
         .move_speed = 0.0f,
     });
     const auto second_monster = world.create_monster(CreateMonsterConfig{
-        .x_position = 0.0f,
-        .y_position = 4.0f,
+        .position = Position{.x = 0.0f, .y = 4.0f},
         .max_health = 50,
         .move_speed = 0.0f,
     });
@@ -734,8 +726,7 @@ TEST(WorldTest, TickDamagesMonsterOnMeleeHalfCircleBoundary) {
         },
     });
     auto monster = world.create_monster(CreateMonsterConfig{
-        .x_position = 1.0f,
-        .y_position = 0.0f,
+        .position = Position{.x = 1.0f, .y = 0.0f},
         .max_health = 50,
         .move_speed = 3.0f,
     });
@@ -766,8 +757,7 @@ TEST(WorldTest, TickDamagesMonsterInFrontOfMeleeAttack) {
         },
     });
     auto monster = world.create_monster(CreateMonsterConfig{
-        .x_position = 0.0f,
-        .y_position = 1.0f,
+        .position = Position{.x = 0.0f, .y = 1.0f},
         .max_health = 50,
         .move_speed = 3.0f,
     });
@@ -796,8 +786,7 @@ TEST(WorldTest, TickDoesNotDamageMonsterBehindMeleeAttack) {
         },
     });
     auto monster = world.create_monster(CreateMonsterConfig{
-        .x_position = 0.0f,
-        .y_position = -1.0f,
+        .position = Position{.x = 0.0f, .y = -1.0f},
         .max_health = 50,
         .move_speed = 3.0f,
     });
@@ -826,8 +815,7 @@ TEST(WorldTest, TickDoesNotDamageMonsterOutsideAttackRange) {
         },
     });
     auto monster = world.create_monster(CreateMonsterConfig{
-        .x_position = 3.0f,
-        .y_position = 0.0f,
+        .position = Position{.x = 3.0f, .y = 0.0f},
         .max_health = 50,
         .move_speed = 3.0f,
     });
@@ -891,8 +879,7 @@ TEST(WorldTest, TickDestroysMonsterWhenHealthReachesZero) {
         },
     });
     auto monster = world.create_monster(CreateMonsterConfig{
-        .x_position = 1.0f,
-        .y_position = 0.0f,
+        .position = Position{.x = 1.0f, .y = 0.0f},
         .max_health = 50,
         .move_speed = 3.0f,
     });
@@ -951,8 +938,7 @@ TEST(WorldTest, DamageSystemAddsDamageAppliedEventWithActualAmount) {
     World world({damage_system});
     auto player = world.create_player(default_player_config());
     auto monster = world.create_monster(CreateMonsterConfig{
-        .x_position = 30.0f,
-        .y_position = 40.0f,
+        .position = Position{.x = 30.0f, .y = 40.0f},
         .max_health = 10,
         .move_speed = 3.0f,
     });
@@ -1745,8 +1731,7 @@ TEST(WorldTest, CreateMonsterInitializesAttackComponentsFromConfig) {
     World world;
 
     auto entity = world.create_monster(CreateMonsterConfig{
-        .x_position = 30.0f,
-        .y_position = 40.0f,
+        .position = Position{.x = 30.0f, .y = 40.0f},
         .max_health = 50,
         .move_speed = 3.0f,
         .attack = AttackDefinition{
@@ -1814,8 +1799,7 @@ TEST(WorldTest, TickMonsterDoesNotMoveDuringAttackTimeline) {
         .move_speed = 5.0f,
     });
     const auto monster = world.create_monster(CreateMonsterConfig{
-        .x_position = 0.0f,
-        .y_position = 0.0f,
+        .position = Position{.x = 0.0f, .y = 0.0f},
         .max_health = 50,
         .move_speed = 3.0f,
         .attack = AttackDefinition{
@@ -1874,8 +1858,7 @@ TEST(WorldTest, TickMonsterDamagesPlayerInsideAttackRange) {
         .move_speed = 5.0f,
     });
     world.create_monster(CreateMonsterConfig{
-        .x_position = 0.0f,
-        .y_position = 0.0f,
+        .position = Position{.x = 0.0f, .y = 0.0f},
         .max_health = 50,
         .move_speed = 3.0f,
         .attack = AttackDefinition{
@@ -1902,8 +1885,7 @@ TEST(WorldTest, TickMonsterDoesNotDamagePlayerOutsideAttackRange) {
         .move_speed = 5.0f,
     });
     auto monster = world.create_monster(CreateMonsterConfig{
-        .x_position = 0.0f,
-        .y_position = 0.0f,
+        .position = Position{.x = 0.0f, .y = 0.0f},
         .max_health = 50,
         .move_speed = 1.0f,
         .attack = AttackDefinition{
@@ -1930,8 +1912,7 @@ TEST(WorldTest, TickMonsterAttackUsesCooldown) {
         .move_speed = 5.0f,
     });
     auto monster = world.create_monster(CreateMonsterConfig{
-        .x_position = 0.0f,
-        .y_position = 0.0f,
+        .position = Position{.x = 0.0f, .y = 0.0f},
         .max_health = 50,
         .move_speed = 3.0f,
         .attack = AttackDefinition{
@@ -1961,8 +1942,7 @@ TEST(WorldTest, TickMonsterDoesNotDamageOtherMonsters) {
         .move_speed = 5.0f,
     });
     auto attacker = world.create_monster(CreateMonsterConfig{
-        .x_position = 0.0f,
-        .y_position = 0.0f,
+        .position = Position{.x = 0.0f, .y = 0.0f},
         .max_health = 50,
         .move_speed = 3.0f,
         .attack = AttackDefinition{
@@ -1974,8 +1954,7 @@ TEST(WorldTest, TickMonsterDoesNotDamageOtherMonsters) {
         },
     });
     auto other_monster = world.create_monster(CreateMonsterConfig{
-        .x_position = 0.5f,
-        .y_position = 0.0f,
+        .position = Position{.x = 0.5f, .y = 0.0f},
         .max_health = 50,
         .move_speed = 3.0f,
         .attack = AttackDefinition{
@@ -2005,8 +1984,7 @@ TEST(WorldTest, TickMovesMonsterTowardPlayerUsingMonsterMoveSpeed) {
         .move_speed = 5.0f,
     });
     auto monster = world.create_monster(CreateMonsterConfig{
-        .x_position = 0.0f,
-        .y_position = 0.0f,
+        .position = Position{.x = 0.0f, .y = 0.0f},
         .max_health = 50,
         .move_speed = 3.0f,
     });
@@ -2029,8 +2007,7 @@ TEST(WorldTest, TickRangedMonsterRetreatsWhenPlayerIsTooClose) {
     });
     const auto monster = world.create_monster(CreateMonsterConfig{
         .kind = MonsterKind::Ranged,
-        .x_position = 4.0f,
-        .y_position = 0.0f,
+        .position = Position{.x = 4.0f, .y = 0.0f},
         .max_health = 35,
         .move_speed = 3.5f,
         .attack = AttackDefinition{
@@ -2060,8 +2037,7 @@ TEST(WorldTest, TickRangedMonsterFacesPlayerAndFiresWithinSafeRange) {
     });
     const auto monster = world.create_monster(CreateMonsterConfig{
         .kind = MonsterKind::Ranged,
-        .x_position = 6.0f,
-        .y_position = 0.0f,
+        .position = Position{.x = 6.0f, .y = 0.0f},
         .max_health = 35,
         .move_speed = 3.5f,
         .attack = AttackDefinition{
@@ -2096,8 +2072,7 @@ TEST(WorldTest, TickMeleeMonsterDoesNotRetreatWithoutKitingAI) {
     });
     const auto monster = world.create_monster(CreateMonsterConfig{
         .kind = MonsterKind::Melee,
-        .x_position = 4.0f,
-        .y_position = 0.0f,
+        .position = Position{.x = 4.0f, .y = 0.0f},
         .max_health = 50,
         .move_speed = 3.0f,
     });
@@ -2116,8 +2091,7 @@ TEST(WorldTest, TickFrozenMonsterDoesNotMoveTowardPlayer) {
         .move_speed = 5.0f,
     });
     auto monster = world.create_monster(CreateMonsterConfig{
-        .x_position = 0.0f,
-        .y_position = 0.0f,
+        .position = Position{.x = 0.0f, .y = 0.0f},
         .max_health = 50,
         .move_speed = 3.0f,
     });
@@ -2144,8 +2118,7 @@ TEST(WorldTest, TickFrozenMonsterDoesNotDamagePlayerInsideAttackRange) {
         .move_speed = 5.0f,
     });
     auto monster = world.create_monster(CreateMonsterConfig{
-        .x_position = 0.0f,
-        .y_position = 0.0f,
+        .position = Position{.x = 0.0f, .y = 0.0f},
         .max_health = 50,
         .move_speed = 3.0f,
         .attack = AttackDefinition{
@@ -2174,8 +2147,7 @@ TEST(WorldTest, TickMonsterMovesAfterFreezeExpires) {
         .move_speed = 5.0f,
     });
     auto monster = world.create_monster(CreateMonsterConfig{
-        .x_position = 0.0f,
-        .y_position = 0.0f,
+        .position = Position{.x = 0.0f, .y = 0.0f},
         .max_health = 50,
         .move_speed = 3.0f,
     });
@@ -2203,8 +2175,7 @@ TEST(WorldTest, TickClampsMonsterPositionToWorldBounds) {
         .move_speed = 5.0f,
     });
     auto monster = world.create_monster(CreateMonsterConfig{
-        .x_position = 0.0f,
-        .y_position = 0.0f,
+        .position = Position{.x = 0.0f, .y = 0.0f},
         .max_health = 50,
         .move_speed = 5.0f,
     });
@@ -2231,8 +2202,7 @@ TEST(WorldTest, TickMovesMonsterTowardNearestPlayer) {
         .move_speed = 5.0f,
     });
     auto monster = world.create_monster(CreateMonsterConfig{
-        .x_position = 0.0f,
-        .y_position = 0.0f,
+        .position = Position{.x = 0.0f, .y = 0.0f},
         .max_health = 50,
         .move_speed = 2.0f,
     });
@@ -2265,8 +2235,7 @@ TEST(WorldTest, TickStopsMonsterWhenPlayerTargetIsDestroyed) {
         .move_speed = 5.0f,
     });
     auto monster = world.create_monster(CreateMonsterConfig{
-        .x_position = 0.0f,
-        .y_position = 0.0f,
+        .position = Position{.x = 0.0f, .y = 0.0f},
         .max_health = 50,
         .move_speed = 3.0f,
     });
@@ -2288,8 +2257,7 @@ TEST(WorldTest, TickDoesNotProduceNanWhenMonsterOverlapsPlayer) {
         .move_speed = 5.0f,
     });
     auto monster = world.create_monster(CreateMonsterConfig{
-        .x_position = 10.0f,
-        .y_position = 20.0f,
+        .position = Position{.x = 10.0f, .y = 20.0f},
         .max_health = 50,
         .move_speed = 3.0f,
     });
@@ -2320,12 +2288,23 @@ TEST(WorldTest, HasLivingMonstersReflectsMonsterControllerEntities) {
     World world;
 
     EXPECT_FALSE(world.has_living_monsters());
+    EXPECT_EQ(world.living_monster_count(), 0);
 
-    auto monster = world.create_monster(default_monster_config());
+    auto first_monster = world.create_monster(default_monster_config());
     EXPECT_TRUE(world.has_living_monsters());
+    EXPECT_EQ(world.living_monster_count(), 1);
 
-    ASSERT_TRUE(world.destroy_entity(monster));
+    auto second_monster = world.create_monster(default_monster_config());
+    EXPECT_TRUE(world.has_living_monsters());
+    EXPECT_EQ(world.living_monster_count(), 2);
+
+    ASSERT_TRUE(world.destroy_entity(first_monster));
+    EXPECT_TRUE(world.has_living_monsters());
+    EXPECT_EQ(world.living_monster_count(), 1);
+
+    ASSERT_TRUE(world.destroy_entity(second_monster));
     EXPECT_FALSE(world.has_living_monsters());
+    EXPECT_EQ(world.living_monster_count(), 0);
 }
 
 TEST(WorldTest, SnapshotReturnsEmptyEntitiesForEmptyWorld) {
@@ -2410,8 +2389,7 @@ TEST(WorldTest, SnapshotIncludesRangedMonsterKind) {
     World world;
     const auto monster = world.create_monster(CreateMonsterConfig{
         .kind = MonsterKind::Ranged,
-        .x_position = 3.0f,
-        .y_position = 4.0f,
+        .position = Position{.x = 3.0f, .y = 4.0f},
         .max_health = 35,
         .move_speed = 3.5f,
     });

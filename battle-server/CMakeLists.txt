@@ -66,7 +66,6 @@ add_library(battle_game
 )
 add_library(battle_gameplay
         gameplay/spawn_planner.cpp
-        gameplay/wave_planner.cpp
         gameplay/monster_planner.cpp
         gameplay/monster_kind_codec.cpp
         gameplay/hero.cpp
@@ -77,6 +76,10 @@ add_library(battle_gameplay
         gameplay/room_layout_catalog.cpp
         gameplay/room_layout_catalog_validator.cpp
         gameplay/room_graph_presets.cpp
+        gameplay/room_flow.cpp
+        gameplay/room_encounter_validator.cpp
+        gameplay/room_encounter_planner.cpp
+        gameplay/room_runtime.cpp
 )
 add_library(battle_session
         session/battle_session.cpp
@@ -214,7 +217,6 @@ add_executable(battle_runtime_tests
         gameplay/tests/room_graph_test.cpp
         gameplay/tests/spawn_planner_test.cpp
         gameplay/tests/hero_test.cpp
-        gameplay/tests/wave_planner_test.cpp
         runtime/tests/battle_instance_test.cpp
         runtime/tests/battle_runtime_test.cpp
 )

@@ -30,7 +30,8 @@ message ClientPacket {
     ClientHello hello = 1;
     ClientInput input = 2;
     ChooseBlessing choose_blessing = 3;
-    ClientHeartbeat heartbeat= 4;
+    ClientHeartbeat heartbeat = 4;
+    SelectRoomExit select_room_exit = 5;
   }
 }
 
@@ -65,10 +66,20 @@ message MonsterKillCount {
 message ClientInput {
   string room_name = 1;
   int64 player_id = 2;
-  float x = 3;
-  float y = 4;
+  Direction movement = 3;
+  reserved 4;
   bool attack_requested = 5;
   bool dash_requested = 6;
+}
+
+message Position {
+  float x = 1;
+  float y = 2;
+}
+
+message Direction {
+  float x = 1;
+  float y = 2;
 }
 
 enum EntityKind {
@@ -80,10 +91,9 @@ enum EntityKind {
 
 message EntitySnapshot{
   uint64 entity = 1;
-  float x_position = 2;
-  float y_position = 3;
-  float  x_direction = 4;
-  float  y_direction = 5;
+  Position position = 2;
+  Direction direction = 3;
+  reserved 4, 5;
   int32 current_health = 6;
   int32 max_health = 7;
   EntityKind kind = 8;
@@ -92,10 +102,14 @@ message EntitySnapshot{
   string hero = 11;
 }
 
-enum BattlePhase {
-  BATTLE_PHASE_UNSPECIFIED = 0;
-  BATTLE_PHASE_FIGHTING = 1;
-  BATTLE_PHASE_REWARD_SELECTION = 2;
+enum RoomFlowState {
+  ROOM_FLOW_STATE_UNSPECIFIED = 0;
+  ROOM_FLOW_STATE_ENTERING_ROOM = 1;
+  ROOM_FLOW_STATE_FIGHTING = 2;
+  ROOM_FLOW_STATE_ROOM_CLEARED = 3;
+  ROOM_FLOW_STATE_CHOOSING_BLESSING = 4;
+  ROOM_FLOW_STATE_CHOOSING_EXIT = 5;
+  ROOM_FLOW_STATE_TRANSITIONING = 6;
 }
 
 enum BlessingId {
@@ -141,8 +155,8 @@ message AttackEvent {
   uint64 attacker_entity = 1;
   uint64 action_id = 2;
   AttackKind attack_kind = 3;
-  float x_direction = 4;
-  float y_direction = 5;
+  Direction direction = 4;
+  reserved 5;
   uint64 start_tick = 6;
   uint64 active_start_tick = 7;
   uint64 active_end_tick = 8;
@@ -153,10 +167,9 @@ message DeathEvent {
   uint64 victim_entity = 1;
   EntityKind victim_kind = 2;
   string monster_kind = 3;
-  float x_position = 4;
-  float y_position = 5;
-  float x_direction = 6;
-  float y_direction = 7;
+  Position position = 4;
+  Direction direction = 5;
+  reserved 6, 7;
   uint64 killer_entity = 8;
 }
 
@@ -165,20 +178,31 @@ message BattleEvent {
   oneof payload {
     AttackEvent attack = 2;
     DeathEvent death = 3;
+    RoomClearedEvent room_cleared = 4;
+    RoomEnteredEvent room_entered = 5;
   }
+}
+
+message PlayerRoomExitChoiceSnapshot {
+  int64 player_id = 1;
+  uint32 room_exit_id = 2;
 }
 
 message WorldSnapshot {
   string room_name = 1;
   repeated EntitySnapshot entities = 2;
-  int32 current_wave = 3;
-  BattlePhase phase = 4;
+  reserved 3, 4;
   float reward_selection_remaining_seconds = 5;
   repeated PlayerProgressSnapshot player_progress = 6;
   repeated PlayerBlessingStateSnapshot player_blessings = 7;
   uint64 server_tick = 8;
   repeated BattleEvent events = 9;
   uint32 tick_rate = 10;
+  uint32 current_room_id = 11;
+  RoomFlowState room_state = 12;
+  repeated uint32 available_room_exit_ids = 13;
+  repeated PlayerRoomExitChoiceSnapshot player_room_exit_choices = 14;
+  string current_room_layout_id = 15;
 }
 
 message ChooseBlessing {
@@ -191,4 +215,19 @@ message ChooseBlessing {
 message ClientHeartbeat {
   string room_name = 1;
   int64 player_id = 2;
+}
+
+message SelectRoomExit {
+  string room_name = 1;
+  int64 player_id = 2;
+  uint32 next_room_id = 3;
+}
+
+message RoomClearedEvent {
+  uint32 room_id = 1;
+}
+
+message RoomEnteredEvent {
+  uint32 room_id = 1;
+  string layout_id = 2;
 }

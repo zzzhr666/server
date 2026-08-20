@@ -65,6 +65,8 @@ namespace battle {
         /// @brief 将奖励选择操作转交到其房间的战斗实例。
         bool choose_blessing(const std::string& room_name, std::int64_t player_id, int option_id);
 
+        bool select_room_exit(const std::string& room_name, std::int64_t player_id, DungeonRoomID next_room_id);
+
         /// @brief 启动固定频率的后台 tick 线程。
         void start();
 
@@ -97,6 +99,6 @@ namespace battle {
         std::chrono::seconds session_idle_timeout_;
         std::chrono::seconds all_players_disconnected_timeout_;
         /// @brief 每个全员断线房间首次无人连接的时间，用于超时清理。
-        std::unordered_map<std::string,std::chrono::steady_clock::time_point>all_disconnected_since_;
+        std::unordered_map<std::string, std::chrono::steady_clock::time_point> all_disconnected_since_;
     };
 }

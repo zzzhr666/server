@@ -1,10 +1,13 @@
 #include "gameplay/room_graph.hpp"
 #include "gameplay/room_graph_presets.hpp"
 #include "gameplay/room_graph_validator.hpp"
+#include "gameplay/room_flow.hpp"
+#include "gameplay/room_encounter_validator.hpp"
 #include "gameplay/room_layout.hpp"
 #include "gameplay/room_layout_catalog.hpp"
 #include "gameplay/room_layout_catalog_validator.hpp"
 #include "gameplay/room_layout_validator.hpp"
+#include "gameplay/room_runtime.hpp"
 
 #include <gtest/gtest.h>
 
@@ -72,7 +75,299 @@ TEST(DungeonRoomGraphPresetTest, CreatesValidLinearGraph) {
     EXPECT_EQ(graph.rooms[1].next_room_ids, std::vector<DungeonRoomID>{3});
     EXPECT_EQ(graph.rooms[2].next_room_ids, std::vector<DungeonRoomID>{4});
     EXPECT_TRUE(graph.rooms[3].next_room_ids.empty());
+    ASSERT_TRUE(graph.rooms[1].encounter.has_value());
+    ASSERT_EQ(graph.rooms[1].encounter->monster_groups.size(), 2);
+    ASSERT_TRUE(graph.rooms[3].encounter.has_value());
+    ASSERT_EQ(graph.rooms[3].encounter->monster_groups.size(), 1);
     EXPECT_TRUE(validate_room_graph(graph).empty());
+}
+
+TEST(RoomEncounterValidatorTest, AcceptsDefaultRoomEncounters) {
+    EXPECT_TRUE(validate_room_encounters(default_dungeon_room_graph()).empty());
+}
+
+TEST(RoomEncounterValidatorTest, ReportsMissingCombatAndBossEncounters) {
+    const DungeonRoomGraph graph{
+        .rooms = {
+            DungeonRoomNode{.room_id = 2, .kind = DungeonRoomKind::Combat},
+            DungeonRoomNode{.room_id = 4, .kind = DungeonRoomKind::Boss},
+        },
+    };
+
+    const auto issues = validate_room_encounters(graph);
+
+    ASSERT_EQ(issues.size(), 2);
+    EXPECT_EQ(issues[0].kind, RoomEncounterIssueKind::EncounterMissingForCombatRoom);
+    EXPECT_EQ(issues[1].kind, RoomEncounterIssueKind::EncounterMissingForBossRoom);
+}
+
+TEST(RoomEncounterValidatorTest, ReportsUnexpectedStartAndRewardEncounters) {
+    const RoomEncounter encounter{
+        .monster_groups = {
+            RoomMonsterGroup{.kind = MonsterKind::Melee, .count = 1},
+        },
+    };
+    const DungeonRoomGraph graph{
+        .rooms = {
+            DungeonRoomNode{.room_id = 1, .kind = DungeonRoomKind::Start, .encounter = encounter},
+            DungeonRoomNode{.room_id = 3, .kind = DungeonRoomKind::Reward, .encounter = encounter},
+        },
+    };
+
+    const auto issues = validate_room_encounters(graph);
+
+    ASSERT_EQ(issues.size(), 2);
+    EXPECT_EQ(issues[0].kind, RoomEncounterIssueKind::EncounterUnexpectedForStartRoom);
+    EXPECT_EQ(issues[1].kind, RoomEncounterIssueKind::EncounterUnexpectedForRewardRoom);
+}
+
+TEST(RoomEncounterValidatorTest, ReportsEmptyAndDuplicateMonsterGroups) {
+    const DungeonRoomGraph graph{
+        .rooms = {
+            DungeonRoomNode{
+                .room_id = 2,
+                .kind = DungeonRoomKind::Combat,
+                .encounter = RoomEncounter{
+                    .monster_groups = {
+                        RoomMonsterGroup{.kind = MonsterKind::Melee, .count = 0},
+                        RoomMonsterGroup{.kind = MonsterKind::Melee, .count = 2},
+                    },
+                },
+            },
+        },
+    };
+
+    const auto issues = validate_room_encounters(graph);
+
+    ASSERT_EQ(issues.size(), 2);
+    EXPECT_EQ(issues[0].kind, RoomEncounterIssueKind::EmptyMonsterGroup);
+    ASSERT_TRUE(issues[0].group_index.has_value());
+    EXPECT_EQ(issues[0].group_index.value(), 0);
+    EXPECT_EQ(issues[1].kind, RoomEncounterIssueKind::DuplicateMonsterKindGroup);
+    ASSERT_TRUE(issues[1].group_index.has_value());
+    EXPECT_EQ(issues[1].group_index.value(), 1);
+}
+
+TEST(RoomFlowTest, FollowsTheRoomLifecycle) {
+    const auto graph = default_dungeon_room_graph();
+    RoomFlow flow{3};
+
+    EXPECT_EQ(flow.current_room_id(), 3);
+    EXPECT_EQ(flow.state(), RoomFlowState::EnteringRoom);
+    EXPECT_TRUE(flow.transition_to(RoomFlowState::Fighting));
+    EXPECT_TRUE(flow.transition_to(RoomFlowState::RoomCleared));
+    EXPECT_TRUE(flow.transition_to(RoomFlowState::ChoosingExit));
+    EXPECT_TRUE(flow.select_exit(4, graph));
+    EXPECT_TRUE(flow.complete_transition());
+    EXPECT_EQ(flow.current_room_id(), 4);
+    EXPECT_EQ(flow.state(), RoomFlowState::EnteringRoom);
+}
+
+TEST(RoomFlowTest, RejectsIllegalTransitionWithoutChangingState) {
+    RoomFlow flow{1};
+
+    EXPECT_FALSE(flow.transition_to(RoomFlowState::RoomCleared));
+    EXPECT_EQ(flow.state(), RoomFlowState::EnteringRoom);
+    EXPECT_FALSE(flow.transition_to(RoomFlowState::EnteringRoom));
+    EXPECT_EQ(flow.state(), RoomFlowState::EnteringRoom);
+    EXPECT_FALSE(flow.transition_to(RoomFlowState::Transitioning));
+    EXPECT_EQ(flow.state(), RoomFlowState::EnteringRoom);
+}
+
+TEST(RoomFlowTest, SelectsValidExitWithoutChangingCurrentRoom) {
+    const auto graph = default_dungeon_room_graph();
+    RoomFlow flow{3, RoomFlowState::ChoosingExit};
+
+    EXPECT_TRUE(flow.select_exit(4, graph));
+    EXPECT_EQ(flow.state(), RoomFlowState::Transitioning);
+    EXPECT_EQ(flow.current_room_id(), 3);
+    ASSERT_TRUE(flow.selected_room_id().has_value());
+    EXPECT_EQ(flow.selected_room_id().value(), 4);
+}
+
+TEST(RoomFlowTest, RejectsExitThatIsNotInCurrentRoom) {
+    const auto graph = default_dungeon_room_graph();
+    RoomFlow flow{3, RoomFlowState::ChoosingExit};
+
+    EXPECT_FALSE(flow.select_exit(1, graph));
+    EXPECT_EQ(flow.state(), RoomFlowState::ChoosingExit);
+    EXPECT_FALSE(flow.selected_room_id().has_value());
+}
+
+TEST(RoomFlowTest, RejectsExitSelectionOutsideChoosingExit) {
+    const auto graph = default_dungeon_room_graph();
+    RoomFlow flow{3};
+
+    EXPECT_FALSE(flow.select_exit(4, graph));
+    EXPECT_EQ(flow.state(), RoomFlowState::EnteringRoom);
+    EXPECT_FALSE(flow.selected_room_id().has_value());
+}
+
+TEST(RoomFlowTest, CompletesTransitionAndClearsSelectedRoom) {
+    const auto graph = default_dungeon_room_graph();
+    RoomFlow flow{3, RoomFlowState::ChoosingExit};
+
+    ASSERT_TRUE(flow.select_exit(4, graph));
+    ASSERT_TRUE(flow.selected_room_id().has_value());
+    ASSERT_TRUE(flow.complete_transition());
+
+    EXPECT_EQ(flow.current_room_id(), 4);
+    EXPECT_EQ(flow.state(), RoomFlowState::EnteringRoom);
+    EXPECT_FALSE(flow.selected_room_id().has_value());
+}
+
+TEST(RoomFlowTest, RejectsCompletingTransitionWithoutTargetOrInWrongState) {
+    RoomFlow flow{3};
+
+    EXPECT_FALSE(flow.complete_transition());
+    EXPECT_EQ(flow.current_room_id(), 3);
+    EXPECT_EQ(flow.state(), RoomFlowState::EnteringRoom);
+
+    RoomFlow transitioning_flow{3, RoomFlowState::Transitioning};
+    EXPECT_FALSE(transitioning_flow.complete_transition());
+    EXPECT_EQ(transitioning_flow.current_room_id(), 3);
+    EXPECT_EQ(transitioning_flow.state(), RoomFlowState::Transitioning);
+}
+
+TEST(RoomRuntimeTest, EntersStartRoomWithoutEncounter) {
+    const auto graph = default_dungeon_room_graph();
+    const auto catalog = default_room_layout_catalog();
+    RoomRuntime runtime{graph, catalog};
+
+    EXPECT_EQ(runtime.state(), RoomFlowState::EnteringRoom);
+    EXPECT_TRUE(runtime.enter_current_room());
+    EXPECT_EQ(runtime.state(), RoomFlowState::Fighting);
+    EXPECT_TRUE(runtime.monster_configs().empty());
+    EXPECT_FALSE(runtime.enter_current_room());
+}
+
+TEST(RoomRuntimeTest, PlansCombatEncounterOnceOnEntry) {
+    const DungeonRoomGraph graph{
+        .start_room_id = 2,
+        .rooms = {
+            DungeonRoomNode{
+                .room_id = 2,
+                .kind = DungeonRoomKind::Combat,
+                .layout_id = "combat_small",
+                .encounter = RoomEncounter{
+                    .monster_groups = {
+                        RoomMonsterGroup{.kind = MonsterKind::Melee, .count = 2},
+                    },
+                },
+            },
+        },
+    };
+    const auto catalog = default_room_layout_catalog();
+    RoomRuntime runtime{graph, catalog};
+
+    ASSERT_TRUE(runtime.enter_current_room());
+    ASSERT_EQ(runtime.monster_configs().size(), 2);
+    EXPECT_EQ(runtime.monster_configs()[0].kind, MonsterKind::Melee);
+    EXPECT_EQ(runtime.monster_configs()[1].kind, MonsterKind::Melee);
+    EXPECT_FALSE(runtime.enter_current_room());
+    EXPECT_EQ(runtime.monster_configs().size(), 2);
+}
+
+TEST(RoomRuntimeTest, KeepsStateWhenCurrentLayoutIsMissing) {
+    const DungeonRoomGraph graph{
+        .start_room_id = 1,
+        .rooms = {
+            DungeonRoomNode{
+                .room_id = 1,
+                .kind = DungeonRoomKind::Start,
+                .layout_id = "missing",
+            },
+        },
+    };
+    const auto catalog = default_room_layout_catalog();
+    RoomRuntime runtime{graph, catalog};
+
+    EXPECT_FALSE(runtime.enter_current_room());
+    EXPECT_EQ(runtime.state(), RoomFlowState::EnteringRoom);
+    EXPECT_TRUE(runtime.monster_configs().empty());
+}
+
+TEST(RoomRuntimeTest, ClearsRoomWhenLastLivingMonsterIsGone) {
+    const auto graph = default_dungeon_room_graph();
+    const auto catalog = default_room_layout_catalog();
+    RoomRuntime runtime{graph, catalog};
+
+    ASSERT_TRUE(runtime.enter_current_room());
+    EXPECT_FALSE(runtime.update_living_monster_count(1));
+    EXPECT_EQ(runtime.state(), RoomFlowState::Fighting);
+
+    EXPECT_TRUE(runtime.update_living_monster_count(0));
+    EXPECT_EQ(runtime.state(), RoomFlowState::RoomCleared);
+    EXPECT_FALSE(runtime.update_living_monster_count(0));
+    EXPECT_EQ(runtime.state(), RoomFlowState::RoomCleared);
+
+    EXPECT_TRUE(runtime.begin_exit_selection());
+    EXPECT_EQ(runtime.state(), RoomFlowState::ChoosingExit);
+    EXPECT_FALSE(runtime.begin_exit_selection());
+    EXPECT_EQ(runtime.state(), RoomFlowState::ChoosingExit);
+
+    EXPECT_TRUE(runtime.select_exit(2));
+    EXPECT_EQ(runtime.state(), RoomFlowState::Transitioning);
+    EXPECT_EQ(runtime.current_room_id(), 1);
+}
+
+TEST(RoomRuntimeTest, RejectsInvalidExitWithoutChangingRoom) {
+    const auto graph = default_dungeon_room_graph();
+    const auto catalog = default_room_layout_catalog();
+    RoomRuntime runtime{graph, catalog};
+
+    EXPECT_FALSE(runtime.select_exit(2));
+    EXPECT_EQ(runtime.state(), RoomFlowState::EnteringRoom);
+
+    ASSERT_TRUE(runtime.enter_current_room());
+    ASSERT_TRUE(runtime.update_living_monster_count(0));
+    ASSERT_TRUE(runtime.begin_exit_selection());
+    EXPECT_FALSE(runtime.select_exit(4));
+    EXPECT_EQ(runtime.state(), RoomFlowState::ChoosingExit);
+    EXPECT_EQ(runtime.current_room_id(), 1);
+}
+
+TEST(RoomRuntimeTest, CompletesTransitionAndEntersNextRoom) {
+    const DungeonRoomGraph graph{
+        .start_room_id = 2,
+        .rooms = {
+            DungeonRoomNode{
+                .room_id = 2,
+                .kind = DungeonRoomKind::Combat,
+                .layout_id = "combat_small",
+                .next_room_ids = {3},
+                .encounter = RoomEncounter{
+                    .monster_groups = {
+                        RoomMonsterGroup{.kind = MonsterKind::Melee, .count = 2},
+                    },
+                },
+            },
+            DungeonRoomNode{
+                .room_id = 3,
+                .kind = DungeonRoomKind::Reward,
+                .layout_id = "reward_small",
+            },
+        },
+    };
+    const auto catalog = default_room_layout_catalog();
+    RoomRuntime runtime{graph, catalog};
+
+    ASSERT_TRUE(runtime.enter_current_room());
+    ASSERT_EQ(runtime.monster_configs().size(), 2);
+    EXPECT_FALSE(runtime.complete_transition());
+    EXPECT_EQ(runtime.monster_configs().size(), 2);
+
+    ASSERT_TRUE(runtime.update_living_monster_count(0));
+    ASSERT_TRUE(runtime.begin_exit_selection());
+    ASSERT_TRUE(runtime.select_exit(3));
+    EXPECT_TRUE(runtime.complete_transition());
+    EXPECT_EQ(runtime.current_room_id(), 3);
+    EXPECT_EQ(runtime.state(), RoomFlowState::EnteringRoom);
+    EXPECT_TRUE(runtime.monster_configs().empty());
+
+    EXPECT_TRUE(runtime.enter_current_room());
+    EXPECT_EQ(runtime.state(), RoomFlowState::Fighting);
+    EXPECT_TRUE(runtime.monster_configs().empty());
 }
 
 TEST(RoomLayoutTest, StoresBoundsSpawnPointsAndDoors) {

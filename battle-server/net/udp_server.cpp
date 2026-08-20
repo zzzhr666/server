@@ -112,6 +112,11 @@ void battle::UdpServer::run_loop_() {
             handle_heartbeat_(packet.value(),remote_addr,len);
             break;
         }
+        case v1::ClientPacket::kSelectRoomExit: {
+            metrics_.observe_udp_packet("received", true);
+            handle_select_room_exit_(packet.value(), remote_addr, len);
+            break;
+        }
 
         default: {
             metrics_.observe_udp_packet("received", false);
@@ -224,8 +229,8 @@ void battle::UdpServer::handle_move_input_(const v1::ClientPacket& packet,
         return;
     }
     if (!battle_runtime_->receive_input(input.room_name(), input.player_id(), PlayerInput{
-                                            .move_x = input.x(),
-                                            .move_y = input.y(),
+                                            .move_x = input.movement().x(),
+                                            .move_y = input.movement().y(),
                                             .attack_requested = input.attack_requested(),
                                             .dash_requested = input.dash_requested(),
 
@@ -257,8 +262,30 @@ void battle::UdpServer::handle_choose_blessing_(const v1::ClientPacket& packet, 
     }
 }
 
+void battle::UdpServer::handle_select_room_exit_(const v1::ClientPacket& packet, const sockaddr_in& remote_addr,
+                                                  socklen_t remote_addr_len) const {
+    const auto& select_exit = packet.select_room_exit();
+    if (select_exit.room_name().empty() || select_exit.player_id() <= 0) {
+        send_packet_(make_error("invalid_request", "invalid room exit selection"), remote_addr, remote_addr_len);
+        return;
+    }
+    if (!session_manager_.touch(select_exit.room_name(), select_exit.player_id(), {remote_addr})) {
+        send_packet_(make_error("invalid_session", "session is not active"), remote_addr, remote_addr_len);
+        return;
+    }
+    if (!battle_runtime_) {
+        send_packet_(make_error("runtime_unavailable", "battle runtime is not attached"), remote_addr,
+                     remote_addr_len);
+        return;
+    }
+    if (!battle_runtime_->select_room_exit(select_exit.room_name(), select_exit.player_id(),
+                                           select_exit.next_room_id())) {
+        send_packet_(make_error("internal_error", "unable to select room exit"), remote_addr, remote_addr_len);
+    }
+}
+
 void battle::UdpServer::handle_heartbeat_(const v1::ClientPacket& packet, const sockaddr_in& remote_addr,
-    socklen_t remote_addr_len) const {
+                                          socklen_t remote_addr_len) const {
     const auto& heartbeat = packet.heartbeat();
     if (heartbeat.room_name().empty() || heartbeat.player_id() <= 0) {
         send_packet_(make_error("invalid_request", "invalid heartbeat"), remote_addr, remote_addr_len);

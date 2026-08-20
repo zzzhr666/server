@@ -66,16 +66,28 @@ namespace {
         return result;
     }
 
-    battle::v1::BattlePhase to_proto_battle_phase(battle::BattlePhase phase) {
-        switch (phase) {
-        case battle::BattlePhase::Fighting: {
-            return battle::v1::BattlePhase::BATTLE_PHASE_FIGHTING;
+    battle::v1::RoomFlowState to_proto_room_flow_state(battle::RoomFlowState state) {
+        switch (state) {
+        case battle::RoomFlowState::EnteringRoom: {
+            return battle::v1::ROOM_FLOW_STATE_ENTERING_ROOM;
         }
-        case battle::BattlePhase::RewardSelection: {
-            return battle::v1::BattlePhase::BATTLE_PHASE_REWARD_SELECTION;
+        case battle::RoomFlowState::Fighting: {
+            return battle::v1::ROOM_FLOW_STATE_FIGHTING;
+        }
+        case battle::RoomFlowState::RoomCleared: {
+            return battle::v1::ROOM_FLOW_STATE_ROOM_CLEARED;
+        }
+        case battle::RoomFlowState::ChoosingBlessing: {
+            return battle::v1::ROOM_FLOW_STATE_CHOOSING_BLESSING;
+        }
+        case battle::RoomFlowState::ChoosingExit: {
+            return battle::v1::ROOM_FLOW_STATE_CHOOSING_EXIT;
+        }
+        case battle::RoomFlowState::Transitioning: {
+            return battle::v1::ROOM_FLOW_STATE_TRANSITIONING;
         }
         default: {
-            return battle::v1::BattlePhase::BATTLE_PHASE_UNSPECIFIED;
+            return battle::v1::ROOM_FLOW_STATE_UNSPECIFIED;
         }
         }
     }
@@ -128,20 +140,24 @@ namespace {
         battle::v1::ServerPacket packet;
         auto send_pkg = packet.mutable_snapshot();
         send_pkg->set_room_name(room_name);
-        send_pkg->set_current_wave(static_cast<std::int32_t>(snapshot.current_wave));
-        send_pkg->set_phase(to_proto_battle_phase(snapshot.phase));
         send_pkg->set_reward_selection_remaining_seconds(snapshot.reward_selection_remaining.count());
         send_pkg->set_server_tick(snapshot.server_tick);
         send_pkg->set_tick_rate(snapshot.tick_rate);
+        send_pkg->set_current_room_id(snapshot.current_room_id);
+        send_pkg->set_room_state(to_proto_room_flow_state(snapshot.room_state));
+        send_pkg->set_current_room_layout_id(snapshot.current_room_layout_id);
+        for (const auto exit_id : snapshot.available_room_exit_ids) {
+            send_pkg->add_available_room_exit_ids(exit_id);
+        }
         for (const auto& entity : snapshot.entities) {
             auto entity_snapshot = send_pkg->add_entities();
             entity_snapshot->set_entity(entity.entity.packed());
             entity_snapshot->set_kind(to_proto_entity_kind(entity.kind));
             entity_snapshot->set_player_id(entity.player_id);
-            entity_snapshot->set_x_position(entity.position.x);
-            entity_snapshot->set_y_position(entity.position.y);
-            entity_snapshot->set_x_direction(entity.direction.x);
-            entity_snapshot->set_y_direction(entity.direction.y);
+            entity_snapshot->mutable_position()->set_x(entity.position.x);
+            entity_snapshot->mutable_position()->set_y(entity.position.y);
+            entity_snapshot->mutable_direction()->set_x(entity.direction.x);
+            entity_snapshot->mutable_direction()->set_y(entity.direction.y);
             entity_snapshot->set_current_health(entity.current_health);
             entity_snapshot->set_max_health(entity.max_health);
 
@@ -187,8 +203,8 @@ namespace {
                     proto_attack->set_attacker_entity(payload.attacker.packed());
                     proto_attack->set_action_id(payload.action_id);
                     proto_attack->set_attack_kind(to_proto_attack_kind(payload.kind));
-                    proto_attack->set_x_direction(payload.direction.x);
-                    proto_attack->set_y_direction(payload.direction.y);
+                    proto_attack->mutable_direction()->set_x(payload.direction.x);
+                    proto_attack->mutable_direction()->set_y(payload.direction.y);
                     proto_attack->set_start_tick(payload.start_tick);
                     proto_attack->set_active_start_tick(payload.active_start_tick);
                     proto_attack->set_active_end_tick(payload.active_end_tick);
@@ -198,15 +214,27 @@ namespace {
                     proto_death->set_victim_entity(payload.victim.packed());
                     proto_death->set_killer_entity(payload.killer.packed());
                     proto_death->set_victim_kind(to_proto_death_entity_kind(payload.kind));
-                    proto_death->set_x_direction(payload.direction.x);
-                    proto_death->set_y_direction(payload.direction.y);
-                    proto_death->set_x_position(payload.position.x);
-                    proto_death->set_y_position(payload.position.y);
+                    proto_death->mutable_direction()->set_x(payload.direction.x);
+                    proto_death->mutable_direction()->set_y(payload.direction.y);
+                    proto_death->mutable_position()->set_x(payload.position.x);
+                    proto_death->mutable_position()->set_y(payload.position.y);
                     if (payload.monster_kind.has_value()) {
                         proto_death->set_monster_kind(battle::monster_kind_to_string(payload.monster_kind.value()));
                     }
+                } else if constexpr (std::is_same_v<Payload, battle::BattleRoomClearedEvent>) {
+                    auto proto_cleared = event->mutable_room_cleared();
+                    proto_cleared->set_room_id(payload.room_id);
+                } else if constexpr (std::is_same_v<Payload, battle::BattleRoomEnteredEvent>) {
+                    auto proto_entered = event->mutable_room_entered();
+                    proto_entered->set_room_id(payload.room_id);
+                    proto_entered->set_layout_id(payload.layout_id);
                 }
             }, battle_event.payload);
+        }
+        for (const auto& choice : snapshot.player_room_exit_choices) {
+            auto* proto_choice = send_pkg->add_player_room_exit_choices();
+            proto_choice->set_player_id(choice.player_id);
+            proto_choice->set_room_exit_id(choice.room_exit_id);
         }
         return packet;
     }
@@ -244,7 +272,7 @@ battle::BattleRuntime::BattleRuntime(RoomManager& room_manager, SessionManager& 
       all_players_disconnected_timeout_(all_players_disconnected_timeout_seconds) {
     if (!instance_factory_) {
         instance_factory_ = [](BattleInstanceConfig config) {
-            return std::make_unique<BattleInstance>(std::move(config));
+            return BattleInstance::create(std::move(config));
         };
     }
 }
@@ -299,6 +327,13 @@ void battle::BattleRuntime::start_room(const std::string& room_name) {
         .player_loadouts = std::move(player_loadouts),
         .tick_rate = tick_rate_,
     });
+
+    if (!instance) {
+        std::lock_guard<std::mutex> lock(mutex_);
+        starting_rooms_.erase(room_name);
+        SPDLOG_ERROR("battle instance creation failed room={}", room_name);
+        return;
+    }
 
     SPDLOG_INFO("battle instance started room={} players={}", room_name, player_ids.size());
 
@@ -392,6 +427,13 @@ bool battle::BattleRuntime::choose_blessing(const std::string& room_name, std::i
     std::lock_guard<std::mutex> lock(mutex_);
     auto it = instances_.find(room_name);
     return it == instances_.end() ? false : it->second->choose_blessing(player_id, option_id);
+}
+
+bool battle::BattleRuntime::select_room_exit(const std::string& room_name, std::int64_t player_id,
+                                             DungeonRoomID next_room_id) {
+    std::lock_guard<std::mutex> lock(mutex_);
+    auto it = instances_.find(room_name);
+    return it == instances_.end() ? false : it->second->select_room_exit(player_id, next_room_id);
 }
 
 void battle::BattleRuntime::start() {

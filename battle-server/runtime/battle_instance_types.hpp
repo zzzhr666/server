@@ -10,8 +10,11 @@
 #include "gameplay/blessing.hpp"
 #include "gameplay/growth.hpp"
 #include "gameplay/monster_kind.hpp"
-#include "gameplay/wave_planner.hpp"
 #include "gameplay/hero.hpp"
+#include "gameplay/room_flow.hpp"
+#include "gameplay/room_graph.hpp"
+#include "gameplay/room_graph_presets.hpp"
+#include "gameplay/room_layout_catalog.hpp"
 
 namespace battle {
     struct ProgressionConfig {
@@ -21,12 +24,10 @@ namespace battle {
         int ranged_experience = 45;
     };
 
-
     struct BlessingOption {
         int option_id = 0;
         BlessingID blessing_id = BlessingID::BurnOnHit;
     };
-
 
     struct PlayerBlessingState {
         std::int64_t player_id = 0;
@@ -39,7 +40,6 @@ namespace battle {
     struct BattleInstanceConfig {
         std::string room_name;
         std::vector<std::int64_t> player_ids;
-        WaveConfig wave_config = default_wave_config();
         std::unordered_map<std::int64_t, std::pair<HeroKind, GrowthLevels>> player_loadouts;
         std::optional<ecs::CreatePlayerConfig> player_config_override;
         std::optional<std::uint32_t> reward_random_seed;
@@ -51,6 +51,8 @@ namespace battle {
         };
         ProgressionConfig progression_config;
         std::uint32_t tick_rate = DefaultBattleTickRate;
+        DungeonRoomGraph dungeon_room_graph = default_dungeon_room_graph();
+        RoomLayoutCatalog room_layout_catalog = default_room_layout_catalog();
     };
 
     enum class BattleState : std::uint8_t {
@@ -85,9 +87,18 @@ namespace battle {
         std::optional<MonsterKind> monster_kind{};
     };
 
+    struct BattleRoomClearedEvent {
+        DungeonRoomID room_id = 0;
+    };
+
+    struct BattleRoomEnteredEvent {
+        DungeonRoomID room_id = 0;
+        std::string layout_id;
+    };
+
     struct BattleEvent {
         std::uint64_t event_id{};
-        std::variant<BattleAttackEvent, BattleDeathEvent> payload;
+        std::variant<BattleAttackEvent, BattleDeathEvent, BattleRoomClearedEvent, BattleRoomEnteredEvent> payload;
     };
 
     struct BattleEntitySnapshot {
@@ -124,11 +135,6 @@ namespace battle {
         std::int64_t combat_duration_ms = 0;
     };
 
-    enum class BattlePhase : std::uint8_t {
-        Fighting,
-        RewardSelection,
-    };
-
     struct RewardSelectionState {
         ecs::DeltaTime remaining_seconds{0.0f};
     };
@@ -143,15 +149,23 @@ namespace battle {
         int pending_upgrade_choices = 0;
     };
 
+    struct PlayerRoomExitChoiceSnapshot {
+        std::int64_t player_id = 0;
+        DungeonRoomID room_exit_id = 0;
+    };
+
     struct BattleWorldSnapshot {
         std::vector<BattleEntitySnapshot> entities;
-        std::size_t current_wave = 0;
-        BattlePhase phase = BattlePhase::Fighting;
         ecs::DeltaTime reward_selection_remaining{0.0f};
         std::vector<PlayerProgressSnapshot> player_progress;
         std::vector<PlayerBlessingState> player_blessings;
         std::uint64_t server_tick{};
         std::vector<BattleEvent> events;
         std::uint32_t tick_rate = DefaultBattleTickRate;
+        DungeonRoomID current_room_id = 0;
+        RoomFlowState room_state = RoomFlowState::EnteringRoom;
+        std::vector<DungeonRoomID> available_room_exit_ids;
+        std::vector<PlayerRoomExitChoiceSnapshot> player_room_exit_choices;
+        std::string current_room_layout_id;
     };
 }

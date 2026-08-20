@@ -15,6 +15,12 @@ battle::DungeonRoomGraph battle::default_dungeon_room_graph() {
                 .kind = DungeonRoomKind::Combat,
                 .layout_id = "combat_small",
                 .next_room_ids = {3},
+                .encounter = RoomEncounter{
+                    .monster_groups = {
+                        RoomMonsterGroup{.kind = MonsterKind::Melee, .count = 5},
+                        RoomMonsterGroup{.kind = MonsterKind::Ranged, .count = 2},
+                    },
+                },
             },
             DungeonRoomNode{
                 .room_id = 3,
@@ -27,6 +33,11 @@ battle::DungeonRoomGraph battle::default_dungeon_room_graph() {
                 .kind = DungeonRoomKind::Boss,
                 .layout_id = "boss_small",
                 .next_room_ids = {},
+                .encounter = RoomEncounter{
+                    .monster_groups = {
+                        RoomMonsterGroup{.kind = MonsterKind::Melee, .count = 1},
+                    },
+                },
             },
         }
     };

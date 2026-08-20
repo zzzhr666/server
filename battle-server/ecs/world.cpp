@@ -73,7 +73,7 @@ battle::ecs::Entity battle::ecs::World::create_player(CreatePlayerConfig config)
 
 battle::ecs::Entity battle::ecs::World::create_monster(CreateMonsterConfig config) {
     Entity entity = registry_.create();
-    registry_.emplace<Transform>(entity, Position{.x = config.x_position, .y = config.y_position},
+    registry_.emplace<Transform>(entity, config.position,
                                  Direction{.x = 0.0f, .y = 1.0f});
     registry_.emplace<Velocity>(entity, 0.0f, 0.0f);
     registry_.emplace<Health>(entity, config.max_health, config.max_health);
@@ -117,7 +117,7 @@ bool battle::ecs::World::set_player_command(Entity entity, PlayerCommand command
     return move_set && attack_set && dash_set;
 }
 
-std::shared_ptr<battle::ecs::CombatActionState> battle::ecs::World::crete_combat_action() {
+std::shared_ptr<battle::ecs::CombatActionState> battle::ecs::World::create_combat_action() {
     auto state = std::make_shared<CombatActionState>();
     state->action_id = next_combat_action_id_++;
     return state;

@@ -8,6 +8,11 @@
 #include <ranges>
 #include <utility>
 
+#include "gameplay/room_encounter_validator.hpp"
+#include "gameplay/room_graph_validator.hpp"
+#include "gameplay/room_layout_catalog_validator.hpp"
+#include "gameplay/room_layout_validator.hpp"
+
 namespace {
     constexpr std::size_t RewardOptionCount = 3;
 
@@ -18,6 +23,17 @@ namespace {
         battle::BlessingID::CriticalStrike,
         battle::BlessingID::ChainLightning,
     };
+
+    bool valid_room_configuration(const battle::BattleInstanceConfig& config) {
+        bool valid = battle::validate_room_graph(config.dungeon_room_graph).empty() &&
+            battle::validate_room_encounters(config.dungeon_room_graph).empty() &&
+            battle::validate_room_layout_catalog(config.room_layout_catalog).empty() &&
+            battle::validate_room_layout_references(config.dungeon_room_graph, config.room_layout_catalog).empty();
+        for (const auto& layout : config.room_layout_catalog.layouts) {
+            valid &= battle::validate_room_layout(layout).empty();
+        }
+        return valid;
+    }
 }
 
 battle::BattleInstance::BattleInstance(BattleInstanceConfig config)
@@ -25,14 +41,13 @@ battle::BattleInstance::BattleInstance(BattleInstanceConfig config)
       world_(config.world_bounds),
       state_(BattleState::Running),
       end_reason_(BattleEndReason::None),
-      current_wave_(0),
-      wave_config_(std::move(config.wave_config)),
-      wave_planner_(),
-      phase_(BattlePhase::Fighting),
       reward_selection_(SelectionTime),
       progression_config_(config.progression_config),
       reward_random_engine_(config.reward_random_seed.value_or(std::random_device{}())),
-      tick_rate_(config.tick_rate == 0 ? DefaultBattleTickRate : config.tick_rate) {
+      tick_rate_(config.tick_rate == 0 ? DefaultBattleTickRate : config.tick_rate),
+      dungeon_room_graph_(std::move(config.dungeon_room_graph)),
+      room_layout_catalog_(std::move(config.room_layout_catalog)),
+      room_runtime_(dungeon_room_graph_, room_layout_catalog_) {
     // 创建玩家时将局外 loadout 固化为 ECS 基础属性。之后每个 tick 只使用内存世界，
     // 避免局外数据在同一场战斗中变化而破坏对局一致性。
     for (std::size_t i = 0; i < config.player_ids.size(); ++i) {
@@ -73,10 +88,12 @@ void battle::BattleInstance::tick(ecs::DeltaTime delta_time) {
     }
     ++server_tick_;
     discard_expired_combat_events_();
-    // 奖励选择阶段暂停 World tick，怪物、投射物和状态效果都不会继续推进；
-    // 只有所有选择完成或超时后，才恢复到下一波。
-    if (phase_ == BattlePhase::RewardSelection) {
-        tick_reward_selection_(delta_time);
+
+    if (room_state() == RoomFlowState::ChoosingBlessing) {
+        tick_blessing_selection_(delta_time);
+        return;
+    }
+    if (room_state() != RoomFlowState::Fighting) {
         return;
     }
     tick_fighting_(delta_time);
@@ -100,10 +117,28 @@ battle::BattleWorldSnapshot battle::BattleInstance::snapshot() const {
     auto world_snapshot = world_.snapshot();
 
     BattleWorldSnapshot battle_world_snapshot;
-    battle_world_snapshot.current_wave = current_wave_;
-    battle_world_snapshot.phase = phase_;
     battle_world_snapshot.reward_selection_remaining = reward_selection_.remaining_seconds;
     battle_world_snapshot.server_tick = server_tick_;
+    battle_world_snapshot.current_room_id = current_room_id();
+    battle_world_snapshot.room_state = room_state();
+    if (const auto* current_room = dungeon_room_graph_.find_room(current_room_id())) {
+        battle_world_snapshot.current_room_layout_id = current_room->layout_id;
+        for (const auto next_room_id : current_room->next_room_ids) {
+            battle_world_snapshot.available_room_exit_ids.emplace_back(next_room_id);
+        }
+    }
+    if (room_state() == RoomFlowState::ChoosingExit) {
+        for (const auto& [player_id, chosen_room_id] : room_exit_choices_) {
+            const auto entity_it = player_entities_.find(player_id);
+            if (entity_it == player_entities_.end()) {
+                continue;
+            }
+            if (world_.is_living_player(entity_it->second)) {
+                battle_world_snapshot.player_room_exit_choices.emplace_back(player_id, chosen_room_id);
+            }
+        }
+    }
+
     for (auto& snapshot : world_snapshot.entities) {
         std::int64_t player_id = 0;
         std::optional<HeroKind> hero;
@@ -197,7 +232,7 @@ std::optional<battle::PlayerBlessingState> battle::BattleInstance::player_blessi
 }
 
 bool battle::BattleInstance::choose_blessing(std::int64_t player_id, int option_id) {
-    if (phase_ != BattlePhase::RewardSelection) {
+    if (room_state() != RoomFlowState::ChoosingBlessing) {
         return false;
     }
     auto blessing_it = player_blessings_.find(player_id);
@@ -234,6 +269,52 @@ bool battle::BattleInstance::choose_blessing(std::int64_t player_id, int option_
     }
 
     return true;
+}
+
+bool battle::BattleInstance::select_room_exit(std::int64_t player_id, DungeonRoomID next_room_id) {
+    if (ended() || room_state() != RoomFlowState::ChoosingExit) {
+        return false;
+    }
+    const auto player_it = player_entities_.find(player_id);
+    if (player_it == player_entities_.end() || !world_.is_living_player(player_it->second)) {
+        return false;
+    }
+
+    const auto* current_room = dungeon_room_graph_.find_room(current_room_id());
+    if (current_room == nullptr || std::ranges::find(current_room->next_room_ids, next_room_id) ==
+        current_room->next_room_ids.end()) {
+        return false;
+    }
+
+    room_exit_choices_[player_id] = next_room_id;
+    for (const auto& [living_player_id, entity] : player_entities_) {
+        if (!world_.is_living_player(entity)) {
+            continue;
+        }
+        const auto choice_it = room_exit_choices_.find(living_player_id);
+        if (choice_it == room_exit_choices_.end() || choice_it->second != next_room_id) {
+            return true;
+        }
+    }
+    if (!room_runtime_.select_exit(next_room_id)) {
+        return false;
+    }
+    if (!room_runtime_.complete_transition()) {
+        return false;
+    }
+
+    return enter_current_room_();
+}
+
+std::unique_ptr<battle::BattleInstance> battle::BattleInstance::create(BattleInstanceConfig config) {
+    if (!valid_room_configuration(config)) {
+        return nullptr;
+    }
+    auto instance = std::unique_ptr<BattleInstance>(new BattleInstance(std::move(config)));
+    if (!instance->enter_current_room_()) {
+        return nullptr;
+    }
+    return instance;
 }
 
 void battle::BattleInstance::collect_combat_events_() {
@@ -291,17 +372,6 @@ void battle::BattleInstance::discard_expired_combat_events_() {
     });
 }
 
-void battle::BattleInstance::spawn_next_wave_() {
-    if (current_wave_ >= wave_config_.waves.size()) {
-        return;
-    }
-    auto monster_configs = wave_planner_.plan_wave(wave_config_.waves[current_wave_]);
-    for (const auto& monster_config : monster_configs) {
-        world_.create_monster(monster_config);
-    }
-    ++current_wave_;
-}
-
 void battle::BattleInstance::end_battle_(BattleEndReason reason) {
     state_ = BattleState::Ended;
     end_reason_ = reason;
@@ -324,10 +394,19 @@ void battle::BattleInstance::consume_kill_events_() {
     world_.clear_kill_events();
 }
 
-void battle::BattleInstance::tick_fighting_(ecs::DeltaTime delta_time) {
-    if (current_wave_ == 0) {
-        spawn_next_wave_();
+void battle::BattleInstance::tick_blessing_selection_(ecs::DeltaTime delta_time) {
+    if (all_reward_choices_completed_()) {
+        room_runtime_.begin_exit_selection();
+        return;
     }
+    reward_selection_.remaining_seconds -= delta_time;
+    if (reward_selection_.remaining_seconds <= ecs::DeltaTime{0}) {
+        apply_default_upgrade_choices_();
+        room_runtime_.begin_exit_selection();
+    }
+}
+
+void battle::BattleInstance::tick_fighting_(ecs::DeltaTime delta_time) {
     world_.tick(delta_time);
     collect_combat_events_();
     consume_kill_events_();
@@ -336,34 +415,12 @@ void battle::BattleInstance::tick_fighting_(ecs::DeltaTime delta_time) {
         end_battle_(BattleEndReason::Defeat);
         return;
     }
-    if (!world_.has_living_monsters()) {
-        if (current_wave_ >= wave_config_.waves.size()) {
-            end_battle_(BattleEndReason::Victory);
-            return;
-        }
-        start_reward_selection_();
-    }
+    update_room_completion_();
 }
 
-void battle::BattleInstance::tick_reward_selection_(ecs::DeltaTime delta_time) {
-    if (all_reward_choices_completed_()) {
-        start_next_wave_or_end_();
-        return;
-    }
-    reward_selection_.remaining_seconds -= delta_time;
-    if (reward_selection_.remaining_seconds.count() > 0.0f) {
-        return;
-    }
-    // 超时使用各玩家当前候选的首项，保证阶段最终可结束；该路径与手动选择使用
-    // 同一 choose_blessing 校验和应用逻辑。
-    apply_default_upgrade_choices_();
-    start_next_wave_or_end_();
-}
 
 void battle::BattleInstance::start_reward_selection_() {
-    phase_ = BattlePhase::RewardSelection;
     reward_selection_.remaining_seconds = SelectionTime;
-
     // 只有拥有待选次数的玩家获得候选。其余玩家显式清空旧选项，避免客户端快照
     // 在进入新一轮选择时继续显示过期按钮。
     for (auto& [player_id, blessing_state] : player_blessings_) {
@@ -400,14 +457,6 @@ void battle::BattleInstance::apply_default_upgrade_choices_() {
     }
 }
 
-void battle::BattleInstance::start_next_wave_or_end_() {
-    if (current_wave_ >= wave_config_.waves.size()) {
-        end_battle_(BattleEndReason::Victory);
-        return;
-    }
-    phase_ = BattlePhase::Fighting;
-    spawn_next_wave_();
-}
 
 void battle::BattleInstance::grant_experience_(std::int64_t player_id, int experience) {
     if (experience <= 0) {
@@ -518,4 +567,66 @@ std::uint64_t battle::BattleInstance::duration_to_ticks_(ecs::DeltaTime duration
         return static_cast<std::uint64_t>(nearest_tick);
     }
     return static_cast<std::uint64_t>(std::ceil(scaled_ticks));
+}
+
+bool battle::BattleInstance::enter_current_room_() {
+    const auto* current_room = dungeon_room_graph_.find_room(current_room_id());
+    if (current_room == nullptr || !room_runtime_.enter_current_room()) {
+        return false;
+    }
+    room_exit_choices_.clear();
+    for (const auto& config : room_runtime_.monster_configs()) {
+        world_.create_monster(config);
+    }
+    pending_battle_events_.emplace_back(PendingBattleEvent{
+        .event = BattleEvent{
+            .event_id = next_event_id_++,
+            .payload = BattleRoomEnteredEvent{
+                .room_id = current_room_id(),
+                .layout_id = current_room->layout_id,
+            },
+        },
+        .expire_tick = server_tick_ + EventHistoryTicks,
+    });
+    return true;
+}
+
+bool battle::BattleInstance::update_room_completion_() {
+    if (!room_runtime_.update_living_monster_count(world_.living_monster_count())) {
+        return false;
+    }
+
+    auto* current_room = dungeon_room_graph_.find_room(current_room_id());
+    if (!current_room) {
+        return false;
+    }
+    pending_battle_events_.emplace_back(PendingBattleEvent{
+        .event = BattleEvent{
+            .event_id = next_event_id_++,
+            .payload = BattleRoomClearedEvent{
+                .room_id = current_room_id(),
+            },
+        },
+        .expire_tick = server_tick_ + EventHistoryTicks,
+    });
+    if (current_room->next_room_ids.empty()) {
+        end_battle_(BattleEndReason::Victory);
+        return true;
+    }
+    bool has_pending_choice = false;
+    for (const auto player_id : player_entities_ | std::views::keys) {
+        auto progress = player_progress(player_id);
+        if (progress.has_value() && progress.value().pending_upgrade_choices > 0) {
+            has_pending_choice = true;
+            break;
+        }
+    }
+    if (!has_pending_choice) {
+        return room_runtime_.begin_exit_selection();
+    }
+    if (!room_runtime_.begin_blessing_selection()) {
+        return false;
+    }
+    start_reward_selection_();
+    return true;
 }

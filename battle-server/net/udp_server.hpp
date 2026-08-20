@@ -37,7 +37,8 @@ namespace battle {
             return next_conv_.fetch_add(1);
         }
 
-        void send_packet_(const v1::ServerPacket& packet, const sockaddr_in& remote_addr, socklen_t remote_addr_len) const;
+        void send_packet_(const v1::ServerPacket& packet, const sockaddr_in& remote_addr,
+                          socklen_t remote_addr_len) const;
 
         bool parse_listen_addr_(sockaddr_in& out) const;
 
@@ -51,6 +52,9 @@ namespace battle {
         /// @brief 验证端点归属后向 BattleRuntime 转交祝福选择。
         void handle_choose_blessing_(const v1::ClientPacket& packet, const sockaddr_in& remote_addr,
                                      socklen_t remote_addr_len) const;
+
+        void handle_select_room_exit_(const v1::ClientPacket& packet, const sockaddr_in& remote_addr,
+                                      socklen_t remote_addr_len) const;
 
         /// @brief 刷新匹配会话的活跃时间，避免被断线清理。
         void handle_heartbeat_(const v1::ClientPacket& packet, const sockaddr_in& remote_addr,

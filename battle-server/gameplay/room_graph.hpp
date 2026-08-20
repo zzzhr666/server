@@ -3,6 +3,9 @@
 #include <cstdint>
 #include <string>
 #include <vector>
+#include <optional>
+
+#include "room_encounter.hpp"
 
 namespace battle {
     /// @brief 局内房间图中稳定的房间节点标识。
@@ -22,6 +25,7 @@ namespace battle {
         DungeonRoomKind kind{DungeonRoomKind::Start};
         std::string layout_id;
         std::vector<DungeonRoomID> next_room_ids;
+        std::optional<RoomEncounter> encounter;
     };
 
     /// @brief 保存一局地下城的起始节点和全部有向房间节点。

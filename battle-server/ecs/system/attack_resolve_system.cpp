@@ -45,7 +45,7 @@ namespace {
         const battle::ecs::CombatContext context{
             .owner = entity,
             .emitter = entity,
-            .action_state = world.crete_combat_action(),
+            .action_state = world.create_combat_action(),
             .effect_id = world.create_combat_effect(),
         };
         state.context = context;

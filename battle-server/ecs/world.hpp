@@ -39,8 +39,7 @@ namespace battle::ecs {
     /// @brief 创建怪物实体时写入的种类、属性和攻击配置。
     struct CreateMonsterConfig {
         MonsterKind kind = MonsterKind::Melee;
-        float x_position{};
-        float y_position{};
+        Position position{};
         int max_health{};
         float move_speed{};
         AttackDefinition attack{
@@ -238,12 +237,21 @@ namespace battle::ecs {
             return !registry_.pool<PlayerController>().empty();
         }
 
+        [[nodiscard]] bool is_living_player(Entity entity) const {
+            return registry_.pool<PlayerController>().try_get(entity);
+        }
+
         [[nodiscard]] bool has_living_monsters() const {
-            return !registry_.pool<MonsterController>().empty();
+            return living_monster_count() != 0;
+        }
+
+        /// @brief 返回当前仍持有怪物控制组件的实体数量。
+        [[nodiscard]] std::size_t living_monster_count() const {
+            return registry_.pool<MonsterController>().size();
         }
 
         /// @brief 分配一个攻击动作状态，确保同一动作的 proc 不重复触发。
-        std::shared_ptr<CombatActionState> crete_combat_action();
+        std::shared_ptr<CombatActionState> create_combat_action();
 
         /// @brief 分配一个独立的战斗效果标识。
         CombatEffectID create_combat_effect();

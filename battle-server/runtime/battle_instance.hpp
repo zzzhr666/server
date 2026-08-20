@@ -1,5 +1,6 @@
 #pragma once
 
+#include <memory>
 #include <string>
 #include <random>
 #include <unordered_map>
@@ -9,14 +10,20 @@
 #include "player_input.hpp"
 #include "ecs/world.hpp"
 #include "gameplay/spawn_planner.hpp"
-#include "gameplay/wave_planner.hpp"
 #include "gameplay/monster_kind.hpp"
+#include "gameplay/room_runtime.hpp"
 
 namespace battle {
-    /// @brief BattleInstance 持有单局 World、波次、经验、祝福选择和战斗结算状态。
+    /// @brief BattleInstance 持有单局 World、房间流程、经验、祝福选择和战斗结算状态。
     class BattleInstance {
     public:
-        explicit BattleInstance(BattleInstanceConfig config);
+        /// @brief 创建并进入初始房间；配置无法进入初始房间时返回 nullptr。
+        [[nodiscard]] static std::unique_ptr<BattleInstance> create(BattleInstanceConfig config);
+
+        BattleInstance(const BattleInstance&) = delete;
+        BattleInstance& operator=(const BattleInstance&) = delete;
+        BattleInstance(BattleInstance&&) = delete;
+        BattleInstance& operator=(BattleInstance&&) = delete;
 
         /// @brief 根据当前阶段推进战斗或奖励选择，并维护结束状态。
         void tick(ecs::DeltaTime delta_time);
@@ -24,12 +31,8 @@ namespace battle {
         /// @brief 校验玩家归属后将输入写入其 ECS 实体。
         bool receive_input(std::int64_t player_id, PlayerInput input);
 
-        /// @brief 组合 World、波次、进度和短期战斗事件为网络快照。
+        /// @brief 组合 World、房间、进度和短期战斗事件为网络快照。
         [[nodiscard]] BattleWorldSnapshot snapshot() const;
-
-        [[nodiscard]] std::size_t current_wave() const {
-            return current_wave_;
-        }
 
         [[nodiscard]] BattleState state() const {
             return state_;
@@ -50,8 +53,14 @@ namespace battle {
         /// @brief 返回当前累积的玩家击杀统计和结束原因。
         [[nodiscard]] BattleSettlement settlement() const;
 
-        [[nodiscard]] BattlePhase phase() const {
-            return phase_;
+        /// @brief 返回当前房间生命周期阶段。
+        [[nodiscard]] RoomFlowState room_state() const {
+            return room_runtime_.state();
+        }
+
+        /// @brief 返回当前房间图节点 ID。
+        [[nodiscard]] DungeonRoomID current_room_id() const {
+            return room_runtime_.current_room_id();
         }
 
         [[nodiscard]] ecs::DeltaTime reward_selection_remaining() const {
@@ -65,7 +74,9 @@ namespace battle {
         /// @brief 在奖励选择阶段为玩家应用指定候选祝福。
         bool choose_blessing(std::int64_t player_id, int option_id);
 
+        bool select_room_exit(std::int64_t player_id, DungeonRoomID next_room_id);
     private:
+        explicit BattleInstance(BattleInstanceConfig config);
 
         /// @brief 保留至指定 server tick 的表现事件，降低 UDP 丢包的影响。
         struct PendingBattleEvent {
@@ -80,29 +91,22 @@ namespace battle {
         void collect_combat_events_();
 
         void discard_expired_combat_events_();
-
-
-        /// @brief 根据波次规划生成下一批怪物。
-        void spawn_next_wave_();
-
         /// @brief 将战斗转为终止状态并记录权威结束原因。
         void end_battle_(BattleEndReason reason);
 
         /// @brief 消费击杀事件，归属统计并授予玩家经验。
         void consume_kill_events_();
 
+        void tick_blessing_selection_(ecs::DeltaTime delta_time);
+
         void tick_fighting_(ecs::DeltaTime delta_time);
 
-        /// @brief 推进暂停战斗的祝福选择计时，超时自动选择默认候选。
-        void tick_reward_selection_(ecs::DeltaTime delta_time);
 
         /// @brief 为有待选次数的玩家生成候选，并进入奖励选择阶段。
         void start_reward_selection_();
 
         void apply_default_upgrade_choices_();
 
-        /// @brief 在当前波结束后决定生成下一波还是以胜利结束战斗。
-        void start_next_wave_or_end_();
 
         void grant_experience_(std::int64_t player_id, int experience);
 
@@ -120,6 +124,12 @@ namespace battle {
         /// @brief 将阶段时长向上换算为权威模拟 tick 数，零或负时长不占用 tick。
         [[nodiscard]] std::uint64_t duration_to_ticks_(ecs::DeltaTime duration) const;
 
+        /// @brief 进入当前房间，并将规划出的怪物配置实例化到 World。
+        bool enter_current_room_();
+
+        /// @brief 根据 World 的存活怪物数将已清空房间推进到出口选择阶段。
+        bool update_room_completion_();
+
     private:
         std::string room_name_;
         ecs::World world_;
@@ -133,11 +143,7 @@ namespace battle {
         /// @brief 单局生命周期状态和最终结束原因。
         BattleState state_;
         BattleEndReason end_reason_;
-        std::size_t current_wave_;
-        WaveConfig wave_config_;
-        WavePlanner wave_planner_;
         /// @brief Fighting 与 RewardSelection 两阶段的当前状态。
-        BattlePhase phase_;
         RewardSelectionState reward_selection_;
         ProgressionConfig progression_config_;
         /// @brief 每位玩家已持有祝福和当前可选候选。
@@ -148,8 +154,14 @@ namespace battle {
         std::uint32_t tick_rate_{DefaultBattleTickRate};
         std::uint64_t server_tick_{};
         std::uint64_t next_event_id_{1};
-        std::vector<PendingBattleEvent>pending_battle_events_;
+        std::vector<PendingBattleEvent> pending_battle_events_;
 
         ecs::DeltaTime combat_elapsed_time_{0.0f};
+
+        /// @brief 单局冻结的房间配置，其生命周期覆盖引用它们的 room_runtime_。
+        DungeonRoomGraph dungeon_room_graph_;
+        RoomLayoutCatalog room_layout_catalog_;
+        RoomRuntime room_runtime_;
+        std::unordered_map<std::int64_t, DungeonRoomID> room_exit_choices_;
     };
 }

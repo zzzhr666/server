@@ -47,7 +47,6 @@ battle::ecs::CreateMonsterConfig battle::SpawnPlanner::monster_spawn(std::size_t
     auto x = static_cast<float>(std::cos(angle) * radius);
     auto y = static_cast<float>(std::sin(angle) * radius);
     return {
-        .x_position = x,
-        .y_position = y,
+        .position = {.x = x, .y = y},
     };
 }
