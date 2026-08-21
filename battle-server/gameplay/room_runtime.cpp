@@ -7,7 +7,7 @@
 battle::RoomRuntime::RoomRuntime(const DungeonRoomGraph& dungeon_room_graph, const RoomLayoutCatalog& layout_catalog)
     : graph_(dungeon_room_graph), catalog_(layout_catalog), flow_(dungeon_room_graph.start_room_id) {}
 
-bool battle::RoomRuntime::enter_current_room() {
+bool battle::RoomRuntime::prepare_current_room() {
     if (state() != RoomFlowState::EnteringRoom) {
         return false;
     }
@@ -25,6 +25,10 @@ bool battle::RoomRuntime::enter_current_room() {
         monster_configs_ = RoomEncounterPlanner::plan_encounter(
             current_room->encounter.value(), *current_layout);
     }
+    return true;
+}
+
+bool battle::RoomRuntime::start_current_room() {
     return flow_.transition_to(RoomFlowState::Fighting);
 }
 

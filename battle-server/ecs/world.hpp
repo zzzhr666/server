@@ -6,6 +6,7 @@
 #include "entity/entity.hpp"
 #include "component/components.hpp"
 #include "registry.hpp"
+#include "spatial_index.hpp"
 #include "system/system_scheduler.hpp"
 #include "time.hpp"
 
@@ -154,10 +155,11 @@ namespace battle::ecs {
     /// 系统顺序定义玩法因果关系；调整顺序必须同步更新 ECS 回归测试。
     class World {
     public:
-        explicit World(WorldBounds bounds = DefaultWorldBounds, std::uint32_t random_seed = std::random_device{}());
+        explicit World(WorldBounds bounds = DefaultWorldBounds,
+                       std::uint32_t random_seed = std::random_device{}(), float cell_size = DefaultCellSize);
 
         World(std::initializer_list<sysFunc> functions, WorldBounds bounds = DefaultWorldBounds,
-              std::uint32_t random_seed = std::random_device{}());
+              std::uint32_t random_seed = std::random_device{}(), float cell_size = DefaultCellSize);
 
         /// @brief 按配置创建玩家实体及其必需组件。
         Entity create_player(CreatePlayerConfig config);
@@ -275,6 +277,14 @@ namespace battle::ecs {
         /// @brief 分配一个独立的战斗效果标识。
         CombatEffectID create_combat_effect();
 
+        [[nodiscard]] SpatialIndex& spatial_index() noexcept {
+            return spatial_index_;
+        }
+
+        [[nodiscard]] const SpatialIndex& spatial_index() const noexcept {
+            return spatial_index_;
+        }
+
     private:
         bool set_move_request_(Entity entity, float x, float y);
 
@@ -282,6 +292,10 @@ namespace battle::ecs {
 
         bool set_dash_request_(Entity entity, bool requested);
 
+        [[nodiscard]] bool can_place_character_(Position position, const Collider& collider) const;
+
+        [[nodiscard]] std::optional<Position> resolve_character_spawn_(Position position,
+                                                                       const Collider& collider) const;
 
         WorldRegistry registry_;
 
@@ -295,6 +309,8 @@ namespace battle::ecs {
         /// @brief 按固定顺序执行玩法系统的调度器。
         SystemScheduler system_scheduler_;
         WorldBounds bounds_;
+        SpatialIndex spatial_index_;
+
         std::mt19937 random_engine_;
         std::uniform_int_distribution<int> percent_distribution_;
 

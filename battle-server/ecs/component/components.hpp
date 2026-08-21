@@ -1,6 +1,5 @@
 #pragma once
 
-#include <cstdint>
 #include <optional>
 #include <vector>
 
@@ -306,4 +305,9 @@ namespace battle::ecs {
         CollisionCategory category;
         CollisionMask collision_mask;
     };
+
+    constexpr bool are_opposing_characters(const Collider& lhs, const Collider& rhs) {
+        return (lhs.category == CollisionCategory::Player && rhs.category == CollisionCategory::Monster) ||
+            (lhs.category == CollisionCategory::Monster && rhs.category == CollisionCategory::Player);
+    }
 }

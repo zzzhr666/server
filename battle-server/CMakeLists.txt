@@ -55,10 +55,10 @@ add_library(battle_ecs
         ecs/system/blessing_trigger_system.cpp
         ecs/system/status_effect_system.cpp
         ecs/system/pre_damage_blessing_system.cpp
-        ecs/system/combat_targeting.cpp
         ecs/system/projectile_spawn_system.cpp
         ecs/system/projectile_range_system.cpp
         ecs/system/projectile_hit_system.cpp
+        ecs/spatial_index.cpp
 )
 add_library(battle_game
         game/room.cpp

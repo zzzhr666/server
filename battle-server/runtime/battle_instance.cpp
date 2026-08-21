@@ -62,7 +62,7 @@ battle::BattleInstance::BattleInstance(BattleInstanceConfig config)
             hero_kind = it->second.first;
             growth_lvl = it->second.second;
         }
-        player_heroes_.emplace(config.player_ids[i], hero_kind);
+
         auto hero = hero_definition(hero_kind);
         spawn_config.attack = hero.attack;
         if (config.player_config_override.has_value()) {
@@ -72,6 +72,11 @@ battle::BattleInstance::BattleInstance(BattleInstanceConfig config)
         }
         spawn_config = apply_growth(spawn_config, growth_lvl);
         auto entity = world_.create_player(spawn_config);
+        if (entity == ecs::NullEntity) {
+            initialization_failed_ = true;
+            break;
+        }
+        player_heroes_.emplace(config.player_ids[i], hero_kind);
         if (auto* progress = world_.registry().try_get<ecs::PlayerProgress>(entity)) {
             progress->experience_to_next_level = experience_to_next_level_(progress->level);
         }
@@ -297,13 +302,18 @@ bool battle::BattleInstance::select_room_exit(std::int64_t player_id, DungeonRoo
         }
     }
     if (!room_runtime_.select_exit(next_room_id)) {
+        end_battle_(BattleEndReason::InternalError);
         return false;
     }
     if (!room_runtime_.complete_transition()) {
+        end_battle_(BattleEndReason::InternalError);
         return false;
     }
-
-    return enter_current_room_();
+    if (!enter_current_room_()) {
+        end_battle_(BattleEndReason::InternalError);
+        return false;
+    }
+    return true;
 }
 
 std::unique_ptr<battle::BattleInstance> battle::BattleInstance::create(BattleInstanceConfig config) {
@@ -311,6 +321,9 @@ std::unique_ptr<battle::BattleInstance> battle::BattleInstance::create(BattleIns
         return nullptr;
     }
     auto instance = std::unique_ptr<BattleInstance>(new BattleInstance(std::move(config)));
+    if (instance->initialization_failed_) {
+        return nullptr;
+    }
     if (!instance->enter_current_room_()) {
         return nullptr;
     }
@@ -571,13 +584,29 @@ std::uint64_t battle::BattleInstance::duration_to_ticks_(ecs::DeltaTime duration
 
 bool battle::BattleInstance::enter_current_room_() {
     const auto* current_room = dungeon_room_graph_.find_room(current_room_id());
-    if (current_room == nullptr || !room_runtime_.enter_current_room()) {
+    if (current_room == nullptr || !room_runtime_.prepare_current_room()) {
+        return false;
+    }
+
+    std::vector<ecs::Entity> spawned_entities;
+    auto revert = [this, &spawned_entities]() {
+        for (const auto entity : spawned_entities) {
+            world_.destroy_entity(entity);
+        }
+    };
+    for (const auto& config : room_runtime_.monster_configs()) {
+        if (auto entity = world_.create_monster(config); entity == ecs::NullEntity) {
+            revert();
+            return false;
+        } else {
+            spawned_entities.emplace_back(entity);
+        }
+    }
+    if (!room_runtime_.start_current_room()) {
+        revert();
         return false;
     }
     room_exit_choices_.clear();
-    for (const auto& config : room_runtime_.monster_configs()) {
-        world_.create_monster(config);
-    }
     pending_battle_events_.emplace_back(PendingBattleEvent{
         .event = BattleEvent{
             .event_id = next_event_id_++,

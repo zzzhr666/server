@@ -2,7 +2,6 @@
 
 #include <algorithm>
 
-#include "combat_targeting.hpp"
 #include "ecs/world.hpp"
 
 
@@ -18,20 +17,22 @@ void battle::ecs::hit_resolve_system(World& world, DeltaTime) {
         if (state->phase != AttackPhase::Active || attack->kind != AttackKind::Melee) {
             continue;
         }
-        for (auto target_entity : world.registry().pool<Health>().entities()) {
-            if (attacker_entity == target_entity) {
+        const auto attacker_collider = world.registry().try_get<Collider>(attacker_entity);
+        if (!attacker_collider) {
+            continue;
+        }
+        for (auto target_entity : world.spatial_index().query_circle(transform->position, attack->range)) {
+            if (!world.registry().valid(target_entity) || attacker_entity == target_entity) {
                 continue;
             }
-            if (!is_enemy(world, attacker_entity, target_entity)) {
-                continue;
-            }
-            if (std::find(state->hit_targets.begin(), state->hit_targets.end(), target_entity) !=
-                state->hit_targets.end()) {
+            if (std::ranges::find(state->hit_targets, target_entity) != state->hit_targets.end()) {
                 continue;
             }
             auto target_transform = world.registry().try_get<Transform>(target_entity);
             auto target_health = world.registry().try_get<Health>(target_entity);
-            if (!target_transform || !target_health) {
+            auto target_collider = world.registry().try_get<Collider>(target_entity);
+            if (!target_transform || !target_health || !target_collider ||
+                !are_opposing_characters(*attacker_collider, *target_collider)) {
                 continue;
             }
             float delta_x = transform->position.x - target_transform->position.x;

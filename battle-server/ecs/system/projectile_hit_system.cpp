@@ -14,7 +14,7 @@ void battle::ecs::projectile_hit_system(World& world, DeltaTime) {
         if (!transform || !projectile || !collider) {
             continue;
         }
-        for (Entity target : world.registry().pool<Health>().entities()) {
+        for (Entity target : world.spatial_index().query_circle(transform->position, collider->radius)) {
             auto target_transform = world.registry().try_get<Transform>(target);
             auto target_collider = world.registry().try_get<Collider>(target);
             if (!target_transform || !target_collider) {

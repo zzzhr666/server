@@ -64,6 +64,7 @@ namespace battle {
         None,
         Victory,
         Defeat,
+        InternalError,
     };
 
     struct BattleAttackEvent {

@@ -40,6 +40,9 @@ namespace {
         case battle::BattleEndReason::Victory: {
             return "victory";
         }
+        case battle::BattleEndReason::InternalError: {
+            return "internal_error";
+        }
         default: {
             return "unknown";
         }

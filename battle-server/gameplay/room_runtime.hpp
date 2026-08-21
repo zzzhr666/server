@@ -24,7 +24,9 @@ namespace battle {
             return monster_configs_;
         }
 
-        bool enter_current_room();
+        bool prepare_current_room();
+
+        bool start_current_room();
 
         /// @brief 在战斗阶段根据存活怪物数判断房间是否已清空。
         bool update_living_monster_count(std::size_t living_monster_count);

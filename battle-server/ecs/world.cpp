@@ -1,5 +1,7 @@
 #include "world.hpp"
 
+#include <algorithm>
+#include <cmath>
 #include <utility>
 
 #include "system/attack_resolve_system.hpp"
@@ -19,8 +21,35 @@
 #include "system/projectile_spawn_system.hpp"
 #include "system/status_effect_system.hpp"
 
-battle::ecs::World::World(WorldBounds bounds, std::uint32_t random_seed)
-    : bounds_(bounds), random_engine_(random_seed), percent_distribution_(1, 100), next_combat_action_id_(1),
+namespace {
+    bool is_character(const battle::ecs::Collider& collider) {
+        return collider.category == battle::ecs::CollisionCategory::Monster ||
+            collider.category == battle::ecs::CollisionCategory::Player;
+    }
+
+    bool is_interactable(const battle::ecs::Collider& lhs, const battle::ecs::Collider& rhs) {
+        return is_character(lhs) && is_character(rhs) && (lhs.category & rhs.collision_mask) != 0 &&
+            (lhs.collision_mask & rhs.category) != 0;
+    }
+
+    bool is_overlap(const battle::ecs::Position& center_a, const battle::ecs::Position& center_b, float radius_a,
+                    float radius_b) {
+        const float dx = center_b.x - center_a.x;
+        const float dy = center_b.y - center_a.y;
+        const float radius_sum = radius_a + radius_b;
+        return dx * dx + dy * dy < radius_sum * radius_sum;
+    }
+
+    void normalize_in_boundary(battle::ecs::Position& position, const battle::ecs::WorldBounds& bounds,
+                               const battle::ecs::Collider& collider) {
+        position.x = std::clamp(position.x, bounds.min_x + collider.radius, bounds.max_x - collider.radius);
+        position.y = std::clamp(position.y, bounds.min_y + collider.radius, bounds.max_y - collider.radius);
+    }
+}
+
+battle::ecs::World::World(WorldBounds bounds, std::uint32_t random_seed, float cell_size)
+    : bounds_(bounds), spatial_index_(cell_size), random_engine_(random_seed), percent_distribution_(1, 100),
+      next_combat_action_id_(1),
       next_combat_effect_id_(1) {
     damage_events_.reserve(InitialDamageEventCount);
     system_scheduler_.add_system(move_resolve_system);
@@ -41,15 +70,24 @@ battle::ecs::World::World(WorldBounds bounds, std::uint32_t random_seed)
     system_scheduler_.add_system(death_system);
 }
 
-battle::ecs::World::World(std::initializer_list<sysFunc> functions, WorldBounds bounds, std::uint32_t random_seed)
-    : system_scheduler_(functions), bounds_(bounds), random_engine_(random_seed), percent_distribution_(1, 100),
+battle::ecs::World::World(std::initializer_list<sysFunc> functions, WorldBounds bounds,
+                          std::uint32_t random_seed, float cell_size)
+    : system_scheduler_(functions), bounds_(bounds), spatial_index_(cell_size), random_engine_(random_seed),
+      percent_distribution_(1, 100),
       next_combat_action_id_(1), next_combat_effect_id_(1) {}
 
 battle::ecs::Entity battle::ecs::World::create_player(CreatePlayerConfig config) {
+    auto position = resolve_character_spawn_(config.position, {
+                                                 .shape = CollisionShape::Circle, .radius = config.collision_radius,
+                                                 .category = CollisionCategory::Player,
+                                                 .collision_mask = PlayerCollisionMask
+                                             });
+    if (!position.has_value()) {
+        return NullEntity;
+    }
     Entity entity = registry_.create();
 
-    registry_.emplace<Transform>(entity, Position{.x = config.position.x, .y = config.position.y},
-                                 Direction{.x = 0.0f, .y = 1.0f});
+    registry_.emplace<Transform>(entity, position.value(), Direction{.x = 0.0f, .y = 1.0f});
     registry_.emplace<Velocity>(entity, 0.0f, 0.0f);
     registry_.emplace<MoveRequest>(entity, 0.0f, 0.0f);
 
@@ -70,13 +108,24 @@ battle::ecs::Entity battle::ecs::World::create_player(CreatePlayerConfig config)
     registry_.emplace<AttackState>(entity);
     registry_.emplace<Collider>(entity, CollisionShape::Circle, config.collision_radius,
                                 CollisionCategory::Player, PlayerCollisionMask);
+    const auto* transform = registry_.try_get<Transform>(entity);
+    if (const auto* collider = registry_.try_get<Collider>(entity); transform && collider) {
+        spatial_index_.insert(entity, transform->position, collider->radius);
+    }
     return entity;
 }
 
 battle::ecs::Entity battle::ecs::World::create_monster(CreateMonsterConfig config) {
+    auto position = resolve_character_spawn_(config.position, {
+                                                 .shape = CollisionShape::Circle, .radius = config.collision_radius,
+                                                 .category = CollisionCategory::Monster,
+                                                 .collision_mask = MonsterCollisionMask
+                                             });
+    if (!position.has_value()) {
+        return NullEntity;
+    }
     Entity entity = registry_.create();
-    registry_.emplace<Transform>(entity, config.position,
-                                 Direction{.x = 0.0f, .y = 1.0f});
+    registry_.emplace<Transform>(entity, position.value(), Direction{.x = 0.0f, .y = 1.0f});
     registry_.emplace<Velocity>(entity, 0.0f, 0.0f);
     registry_.emplace<Health>(entity, config.max_health, config.max_health);
     registry_.emplace<CharacterStats>(entity, config.move_speed);
@@ -91,6 +140,10 @@ battle::ecs::Entity battle::ecs::World::create_monster(CreateMonsterConfig confi
                                 CollisionCategory::Monster, MonsterCollisionMask);
     if (config.kiting_ai.has_value()) {
         registry_.emplace<KitingAI>(entity, config.kiting_ai.value());
+    }
+    const auto* transform = registry_.try_get<Transform>(entity);
+    if (const auto* collider = registry_.try_get<Collider>(entity); transform && collider) {
+        spatial_index_.insert(entity, transform->position, collider->radius);
     }
     return entity;
 }
@@ -108,6 +161,10 @@ battle::ecs::Entity battle::ecs::World::create_projectile(CreateProjectileConfig
     } else if (registry_.has<MonsterController>(config.context.owner)) {
         registry_.emplace<Collider>(entity, CollisionShape::Circle, config.hit_radius,
                                     CollisionCategory::MonsterProjectile, MonsterProjectileCollisionMask);
+    }
+    const auto* transform = registry_.try_get<Transform>(entity);
+    if (const auto* collider = registry_.try_get<Collider>(entity); transform && collider) {
+        spatial_index_.insert(entity, transform->position, collider->radius);
     }
     return entity;
 }
@@ -165,6 +222,82 @@ bool battle::ecs::World::set_dash_request_(Entity entity, bool requested) {
     return true;
 }
 
+bool battle::ecs::World::can_place_character_(Position position, const Collider& collider) const {
+    if (collider.radius <= 0.0f || bounds_.min_x + collider.radius > bounds_.max_x - collider.radius ||
+        bounds_.min_y + collider.radius > bounds_.max_y - collider.radius) {
+        return false;
+    }
+    if (!is_character(collider)) {
+        return false;
+    }
+    if (position.x - collider.radius < bounds_.min_x || position.x + collider.radius > bounds_.max_x ||
+        position.y - collider.radius < bounds_.min_y || position.y + collider.radius > bounds_.max_y) {
+        return false;
+    }
+    auto candidates = spatial_index_.query_circle(position, collider.radius);
+    return std::ranges::all_of(candidates, [this, &collider, position](const Entity candidate) {
+        const auto* transform = registry_.try_get<Transform>(candidate);
+        const auto* candidate_collider = registry_.try_get<Collider>(candidate);
+        if (!transform || !candidate_collider || !is_interactable(*candidate_collider, collider)) {
+            return true;
+        }
+        return !is_overlap(position, transform->position, collider.radius, candidate_collider->radius);
+    });
+}
+
+std::optional<battle::ecs::Position> battle::ecs::World::resolve_character_spawn_(Position position,
+                                                                                  const Collider& collider) const {
+    if (collider.radius <= 0.0f || bounds_.min_x + collider.radius > bounds_.max_x - collider.radius ||
+        bounds_.min_y + collider.radius > bounds_.max_y - collider.radius) {
+        return std::nullopt;
+    }
+    normalize_in_boundary(position, bounds_, collider);
+    if (can_place_character_(position, collider)) {
+        return position;
+    }
+
+    const float step = 2.0f * collider.radius;
+    const float max_span = std::max(bounds_.max_x - bounds_.min_x, bounds_.max_y - bounds_.min_y);
+    const int max_ring = static_cast<int>(std::ceil(max_span / step));
+    for (int ring = 1; ring <= max_ring; ring++) {
+        for (int i = 0; i < 4; ++i) {
+            for (int j = 0; j < 2 * ring; ++j) {
+                int dx{}, dy{};
+                switch (i) { //NOLINT
+                case 0: {
+                    dx = -ring + j;
+                    dy = ring;
+                    break;
+                }
+                case 1: {
+                    dx = ring;
+                    dy = ring - j;
+                    break;
+                }
+                case 2: {
+                    dx = ring - j;
+                    dy = -ring;
+                    break;
+                }
+                case 3: {
+                    dx = -ring;
+                    dy = -ring + j;
+                    break;
+                }
+                }
+                Position possible_position{
+                    .x = position.x + static_cast<float>(dx) * step,
+                    .y = position.y + static_cast<float>(dy) * step,
+                };
+                normalize_in_boundary(possible_position, bounds_, collider);
+                if (can_place_character_(possible_position, collider)) {
+                    return possible_position;
+                }
+            }
+        }
+    }
+    return std::nullopt;
+}
 
 void battle::ecs::World::tick(DeltaTime delta_time) {
     system_scheduler_.tick(*this, delta_time);
@@ -228,5 +361,6 @@ battle::ecs::WorldSnapshot battle::ecs::World::snapshot() const {
 }
 
 bool battle::ecs::World::destroy_entity(Entity entity) {
+    spatial_index_.remove(entity);
     return registry_.destroy(entity);
 }

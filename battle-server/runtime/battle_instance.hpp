@@ -163,5 +163,7 @@ namespace battle {
         RoomLayoutCatalog room_layout_catalog_;
         RoomRuntime room_runtime_;
         std::unordered_map<std::int64_t, DungeonRoomID> room_exit_choices_;
+
+        bool initialization_failed_{false};
     };
 }
