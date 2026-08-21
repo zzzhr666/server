@@ -14,8 +14,6 @@
 #include "gameplay/room_layout_validator.hpp"
 
 namespace {
-    constexpr std::size_t RewardOptionCount = 3;
-
     constexpr std::array<battle::BlessingID, 5> AllBlessingIDs{
         battle::BlessingID::BurnOnHit,
         battle::BlessingID::LifeSteal,
@@ -41,7 +39,7 @@ battle::BattleInstance::BattleInstance(BattleInstanceConfig config)
       world_(config.world_bounds),
       state_(BattleState::Running),
       end_reason_(BattleEndReason::None),
-      reward_selection_(SelectionTime),
+      reward_selection_(gameplay_config::progression::RewardSelectionTime),
       progression_config_(config.progression_config),
       reward_random_engine_(config.reward_random_seed.value_or(std::random_device{}())),
       tick_rate_(config.tick_rate == 0 ? DefaultBattleTickRate : config.tick_rate),
@@ -158,7 +156,8 @@ battle::BattleWorldSnapshot battle::BattleInstance::snapshot() const {
         battle_world_snapshot.entities.emplace_back(snapshot.entity, snapshot.kind, player_id, hero,
                                                     snapshot.position, snapshot.direction,
                                                     snapshot.current_health, snapshot.max_health,
-                                                    snapshot.monster_kind);
+                                                    snapshot.monster_kind, snapshot.collision_radius,
+                                                    std::move(snapshot.scene_object_kind));
     }
     for (auto [player_id, player_entity] : player_entities_) {
         auto progress = world_.registry().try_get<ecs::PlayerProgress>(player_entity);
@@ -433,7 +432,7 @@ void battle::BattleInstance::tick_fighting_(ecs::DeltaTime delta_time) {
 
 
 void battle::BattleInstance::start_reward_selection_() {
-    reward_selection_.remaining_seconds = SelectionTime;
+    reward_selection_.remaining_seconds = gameplay_config::progression::RewardSelectionTime;
     // 只有拥有待选次数的玩家获得候选。其余玩家显式清空旧选项，避免客户端快照
     // 在进入新一轮选择时继续显示过期按钮。
     for (auto& [player_id, blessing_state] : player_blessings_) {
@@ -515,8 +514,8 @@ std::vector<battle::BlessingOption> battle::BattleInstance::generate_blessing_op
     std::ranges::shuffle(candidates, reward_random_engine_);
 
     std::vector<BlessingOption> options;
-    options.reserve(RewardOptionCount);
-    for (std::size_t i = 0; i < RewardOptionCount; ++i) {
+    options.reserve(gameplay_config::progression::RewardOptionCount);
+    for (std::size_t i = 0; i < gameplay_config::progression::RewardOptionCount; ++i) {
         options.emplace_back(BlessingOption{
             .option_id = static_cast<int>(i),
             .blessing_id = candidates[i],
@@ -587,13 +586,48 @@ bool battle::BattleInstance::enter_current_room_() {
     if (current_room == nullptr || !room_runtime_.prepare_current_room()) {
         return false;
     }
-
+    for (const auto old_obstacle : active_obstacles_) {
+        world_.destroy_entity(old_obstacle);
+    }
+    active_obstacles_.clear();
+    for (const auto old_trap : active_traps_) {
+        world_.destroy_entity(old_trap);
+    }
+    active_traps_.clear();
     std::vector<ecs::Entity> spawned_entities;
-    auto revert = [this, &spawned_entities]() {
+    std::vector<std::pair<ecs::Entity, ecs::Position>> relocated_players;
+    auto revert = [this, &spawned_entities, &relocated_players]() {
         for (const auto entity : spawned_entities) {
             world_.destroy_entity(entity);
         }
+        for (auto & [entity, position] : std::views::reverse(relocated_players)) {
+            world_.relocate_character(entity, position);
+        }
+        active_obstacles_.clear();
+        active_traps_.clear();
     };
+    for (const auto& config : room_runtime_.obstacle_configs()) {
+        if (auto entity = world_.create_obstacle(config); entity == ecs::NullEntity) {
+            revert();
+            return false;
+        } else {
+            spawned_entities.emplace_back(entity);
+            active_obstacles_.emplace_back(entity);
+        }
+    }
+    for (const auto& config : room_runtime_.trap_configs()) {
+        if (auto entity = world_.create_trap(config); entity == ecs::NullEntity) {
+            revert();
+            return false;
+        } else {
+            spawned_entities.emplace_back(entity);
+            active_traps_.emplace_back(entity);
+        }
+    }
+    if (!relocate_players_for_current_room_(relocated_players)) {
+        revert();
+        return false;
+    }
     for (const auto& config : room_runtime_.monster_configs()) {
         if (auto entity = world_.create_monster(config); entity == ecs::NullEntity) {
             revert();
@@ -657,5 +691,44 @@ bool battle::BattleInstance::update_room_completion_() {
         return false;
     }
     start_reward_selection_();
+    return true;
+}
+
+bool battle::BattleInstance::relocate_players_for_current_room_(
+    std::vector<std::pair<ecs::Entity, ecs::Position>>& relocated_players) {
+    relocated_players.clear();
+    const auto* room = dungeon_room_graph_.find_room(current_room_id());
+    if (room == nullptr) {
+        return false;
+    }
+    const auto* layout = room_layout_catalog_.find_layout(room->layout_id);
+    if (layout == nullptr) {
+        return false;
+    }
+    if (layout->player_spawn_points.empty()) {
+        return false;
+    }
+
+    const auto& spawn_points = layout->player_spawn_points;
+    std::vector<std::pair<std::int64_t, ecs::Entity>> players;
+    for (const auto& [player_id, entity] : player_entities_) {
+        if (world_.is_living_player(entity)) {
+            players.emplace_back(player_id, entity);
+        }
+    }
+    std::ranges::sort(players, {}, &std::pair<std::int64_t, ecs::Entity>::first);
+
+    for (std::size_t index = 0; index < players.size(); ++index) {
+        const auto entity = players[index].second;
+        const auto* transform = world_.registry().try_get<ecs::Transform>(entity);
+        if (transform == nullptr) {
+            return false;
+        }
+        const auto old_position = transform->position;
+        if (!world_.relocate_character(entity, spawn_points[index % spawn_points.size()])) {
+            return false;
+        }
+        relocated_players.emplace_back(entity, old_position);
+    }
     return true;
 }

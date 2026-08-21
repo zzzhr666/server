@@ -25,6 +25,14 @@ bool battle::RoomRuntime::prepare_current_room() {
         monster_configs_ = RoomEncounterPlanner::plan_encounter(
             current_room->encounter.value(), *current_layout);
     }
+    obstacle_configs_.clear();
+    for (const auto& obstacle : current_layout->obstacles) {
+        obstacle_configs_.emplace_back(obstacle.center, obstacle.radius);
+    }
+    trap_configs_.clear();
+    for (const auto& trap : current_layout->traps) {
+        trap_configs_.emplace_back(trap.center, trap.radius, trap.kind);
+    }
     return true;
 }
 
@@ -55,6 +63,8 @@ bool battle::RoomRuntime::complete_transition() {
         return false;
     }
     monster_configs_.clear();
+    obstacle_configs_.clear();
+    trap_configs_.clear();
     return true;
 }
 

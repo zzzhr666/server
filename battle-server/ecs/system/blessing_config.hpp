@@ -1,87 +1,60 @@
 #pragma once
 
 #include "ecs/time.hpp"
+#include "gameplay/gameplay_config.hpp"
 
 namespace battle::ecs {
     constexpr int normalized_blessing_level(int level) {
         return level < 1 ? 1 : level;
     }
 
-    struct CriticalStrikeConfig {
-        static constexpr int BasePercent = 15;
-        static constexpr int PercentPerLevel = 4;
-        static constexpr int BaseDamagePercent = 175;
-        static constexpr int DamagePercentPerLevel = 15;
-    };
-
     constexpr int critical_strike_percent(int level) {
-        return CriticalStrikeConfig::BasePercent + (normalized_blessing_level(level) - 1) *
-            CriticalStrikeConfig::PercentPerLevel;
+        return gameplay_config::blessing::critical_strike::BasePercent + (normalized_blessing_level(level) - 1) *
+            gameplay_config::blessing::critical_strike::PercentPerLevel;
     }
 
     constexpr int critical_strike_damage_percent(int level) {
-        return CriticalStrikeConfig::BaseDamagePercent + (normalized_blessing_level(level) - 1) *
-            CriticalStrikeConfig::DamagePercentPerLevel;
+        return gameplay_config::blessing::critical_strike::BaseDamagePercent +
+            (normalized_blessing_level(level) - 1) *
+            gameplay_config::blessing::critical_strike::DamagePercentPerLevel;
     }
-
-    struct LifeStealConfig {
-        static constexpr int BasePercent = 8;
-        static constexpr int PercentPerLevel = 2;
-    };
 
     constexpr int life_steal_percent(int level) {
-        return LifeStealConfig::BasePercent + (normalized_blessing_level(level) - 1) * LifeStealConfig::PercentPerLevel;
+        return gameplay_config::blessing::life_steal::BasePercent + (normalized_blessing_level(level) - 1) *
+            gameplay_config::blessing::life_steal::PercentPerLevel;
     }
 
-    struct BurnOnHitConfig {
-        static constexpr int BaseDamagePerTick = 6;
-        static constexpr int DamagePerTickPerLevel = 2;
-        static constexpr DeltaTime BaseDurationSeconds = DeltaTime{2.5f};
-        static constexpr DeltaTime DurationSecondsPerLevel = DeltaTime{0.5f};
-        static constexpr DeltaTime TickIntervalSeconds = DeltaTime{1.0f};
-    };
-
-    struct ChainLightningConfig {
-        static constexpr int BaseDamagePercent = 50;
-        static constexpr int DamagePercentPerLevel = 10;
-        static constexpr int BaseSecondaryTargets = 1;
-        static constexpr int LevelsPerExtraTarget = 1;
-        static constexpr float JumpRadius = 9.0f;
-    };
-
     constexpr int burn_damage_per_tick(int level) {
-        return BurnOnHitConfig::BaseDamagePerTick +
-            (normalized_blessing_level(level) - 1) * BurnOnHitConfig::DamagePerTickPerLevel;
+        return gameplay_config::blessing::burn_on_hit::BaseDamagePerTick +
+            (normalized_blessing_level(level) - 1) *
+            gameplay_config::blessing::burn_on_hit::DamagePerTickPerLevel;
     }
 
     constexpr DeltaTime burn_duration_seconds(int level) {
-        return BurnOnHitConfig::BaseDurationSeconds +
-            BurnOnHitConfig::DurationSecondsPerLevel * static_cast<float>(normalized_blessing_level(level) - 1);
+        return gameplay_config::blessing::burn_on_hit::BaseDuration +
+            gameplay_config::blessing::burn_on_hit::DurationPerLevel *
+            static_cast<float>(normalized_blessing_level(level) - 1);
     }
 
-    struct FreezeOnHitConfig {
-        static constexpr int BasePercent = 15;
-        static constexpr int PercentPerLevel = 4;
-        static constexpr DeltaTime BaseDurationSeconds = DeltaTime{1.0f};
-        static constexpr DeltaTime DurationSecondsPerLevel = DeltaTime{0.15f};
-    };
-
     constexpr int freeze_percent(int level) {
-        return FreezeOnHitConfig::BasePercent +
-            (normalized_blessing_level(level) - 1) * FreezeOnHitConfig::PercentPerLevel;
+        return gameplay_config::blessing::freeze_on_hit::BasePercent +
+            (normalized_blessing_level(level) - 1) * gameplay_config::blessing::freeze_on_hit::PercentPerLevel;
     }
 
     constexpr DeltaTime freeze_duration_seconds(int level) {
-        return FreezeOnHitConfig::BaseDurationSeconds +
-            FreezeOnHitConfig::DurationSecondsPerLevel * static_cast<float>(normalized_blessing_level(level) - 1);
+        return gameplay_config::blessing::freeze_on_hit::BaseDuration +
+            gameplay_config::blessing::freeze_on_hit::DurationPerLevel *
+            static_cast<float>(normalized_blessing_level(level) - 1);
     }
 
     constexpr int chain_lightning_damage_percent(int level) {
-        return ChainLightningConfig::BaseDamagePercent + ChainLightningConfig::DamagePercentPerLevel * (
-            normalized_blessing_level(level) - 1);
+        return gameplay_config::blessing::chain_lightning::BaseDamagePercent +
+            gameplay_config::blessing::chain_lightning::DamagePercentPerLevel *
+            (normalized_blessing_level(level) - 1);
     }
 
     constexpr int chain_lightning_target_count(int level) {
-        return ChainLightningConfig::BaseSecondaryTargets + (level - 1) / ChainLightningConfig::LevelsPerExtraTarget;
+        return gameplay_config::blessing::chain_lightning::BaseSecondaryTargets +
+            (level - 1) / gameplay_config::blessing::chain_lightning::LevelsPerExtraTarget;
     }
 }

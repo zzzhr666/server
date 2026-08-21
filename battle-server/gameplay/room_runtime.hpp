@@ -24,8 +24,18 @@ namespace battle {
             return monster_configs_;
         }
 
+        [[nodiscard]] const std::vector<ecs::CreateObstacleConfig>& obstacle_configs() const noexcept {
+            return obstacle_configs_;
+        }
+
+        [[nodiscard]] const std::vector<ecs::CreateTrapConfig>& trap_configs() const noexcept {
+            return trap_configs_;
+        }
+
+        /// @brief 根据当前布局生成怪物、障碍物和陷阱创建配置，不改变房间阶段。
         bool prepare_current_room();
 
+        /// @brief 在房间实体成功创建后进入战斗阶段。
         bool start_current_room();
 
         /// @brief 在战斗阶段根据存活怪物数判断房间是否已清空。
@@ -37,7 +47,7 @@ namespace battle {
         /// @brief 选择当前房间的合法出口并进入房间切换阶段。
         bool select_exit(DungeonRoomID next_room_id);
 
-        /// @brief 提交已选择的房间切换，并丢弃旧房间的怪物生成配置。
+        /// @brief 提交已选择的房间切换，并丢弃旧房间的全部实体创建配置。
         bool complete_transition();
 
         bool begin_blessing_selection();
@@ -47,5 +57,7 @@ namespace battle {
         const RoomLayoutCatalog& catalog_;
         RoomFlow flow_;
         std::vector<ecs::CreateMonsterConfig> monster_configs_;
+        std::vector<ecs::CreateObstacleConfig> obstacle_configs_;
+        std::vector<ecs::CreateTrapConfig> trap_configs_;
     };
 }

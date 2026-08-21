@@ -87,6 +87,8 @@ enum EntityKind {
   ENTITY_KIND_PLAYER = 1;
   ENTITY_KIND_MONSTER = 2;
   ENTITY_KIND_PROJECTILE = 3;
+  ENTITY_KIND_OBSTACLE = 4;
+  ENTITY_KIND_TRAP = 5;
 }
 
 message EntitySnapshot{
@@ -100,6 +102,8 @@ message EntitySnapshot{
   int64 player_id = 9;
   string monster_kind = 10;
   string hero = 11;
+  float collision_radius = 12;
+  string scene_object_kind = 13;
 }
 
 enum RoomFlowState {

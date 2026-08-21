@@ -534,13 +534,17 @@ inline constexpr EntitySnapshot::Impl_::Impl_(
         hero_(
             &::google::protobuf::internal::fixed_address_empty_string,
             ::_pbi::ConstantInitialized()),
+        scene_object_kind_(
+            &::google::protobuf::internal::fixed_address_empty_string,
+            ::_pbi::ConstantInitialized()),
         position_{nullptr},
         direction_{nullptr},
         entity_{::uint64_t{0u}},
         current_health_{0},
         max_health_{0},
         player_id_{::int64_t{0}},
-        kind_{static_cast< ::battle::v1::EntityKind >(0)} {}
+        kind_{static_cast< ::battle::v1::EntityKind >(0)},
+        collision_radius_{0} {}
 
 template <typename>
 PROTOBUF_CONSTEXPR EntitySnapshot::EntitySnapshot(::_pbi::ConstantInitialized)
@@ -921,7 +925,7 @@ const ::uint32_t
         1,
         0x081, // bitmap
         PROTOBUF_FIELD_OFFSET(::battle::v1::EntitySnapshot, _impl_._has_bits_),
-        12, // hasbit index offset
+        14, // hasbit index offset
         PROTOBUF_FIELD_OFFSET(::battle::v1::EntitySnapshot, _impl_.entity_),
         PROTOBUF_FIELD_OFFSET(::battle::v1::EntitySnapshot, _impl_.position_),
         PROTOBUF_FIELD_OFFSET(::battle::v1::EntitySnapshot, _impl_.direction_),
@@ -931,15 +935,19 @@ const ::uint32_t
         PROTOBUF_FIELD_OFFSET(::battle::v1::EntitySnapshot, _impl_.player_id_),
         PROTOBUF_FIELD_OFFSET(::battle::v1::EntitySnapshot, _impl_.monster_kind_),
         PROTOBUF_FIELD_OFFSET(::battle::v1::EntitySnapshot, _impl_.hero_),
-        4,
-        2,
-        3,
+        PROTOBUF_FIELD_OFFSET(::battle::v1::EntitySnapshot, _impl_.collision_radius_),
+        PROTOBUF_FIELD_OFFSET(::battle::v1::EntitySnapshot, _impl_.scene_object_kind_),
         5,
+        3,
+        4,
         6,
-        8,
         7,
+        9,
+        8,
         0,
         1,
+        10,
+        2,
         0x081, // bitmap
         PROTOBUF_FIELD_OFFSET(::battle::v1::PlayerProgressSnapshot, _impl_._has_bits_),
         8, // hasbit index offset
@@ -1115,20 +1123,20 @@ static const ::_pbi::MigrationSchema
         {86, sizeof(::battle::v1::Position)},
         {93, sizeof(::battle::v1::Direction)},
         {100, sizeof(::battle::v1::EntitySnapshot)},
-        {121, sizeof(::battle::v1::PlayerProgressSnapshot)},
-        {134, sizeof(::battle::v1::BlessingOptionSnapshot)},
-        {141, sizeof(::battle::v1::PlayerBlessingSnapshot)},
-        {148, sizeof(::battle::v1::PlayerBlessingStateSnapshot)},
-        {157, sizeof(::battle::v1::AttackEvent)},
-        {176, sizeof(::battle::v1::DeathEvent)},
-        {191, sizeof(::battle::v1::BattleEvent)},
-        {206, sizeof(::battle::v1::PlayerRoomExitChoiceSnapshot)},
-        {213, sizeof(::battle::v1::WorldSnapshot)},
-        {242, sizeof(::battle::v1::ChooseBlessing)},
-        {251, sizeof(::battle::v1::ClientHeartbeat)},
-        {258, sizeof(::battle::v1::SelectRoomExit)},
-        {267, sizeof(::battle::v1::RoomClearedEvent)},
-        {272, sizeof(::battle::v1::RoomEnteredEvent)},
+        {125, sizeof(::battle::v1::PlayerProgressSnapshot)},
+        {138, sizeof(::battle::v1::BlessingOptionSnapshot)},
+        {145, sizeof(::battle::v1::PlayerBlessingSnapshot)},
+        {152, sizeof(::battle::v1::PlayerBlessingStateSnapshot)},
+        {161, sizeof(::battle::v1::AttackEvent)},
+        {180, sizeof(::battle::v1::DeathEvent)},
+        {195, sizeof(::battle::v1::BattleEvent)},
+        {210, sizeof(::battle::v1::PlayerRoomExitChoiceSnapshot)},
+        {217, sizeof(::battle::v1::WorldSnapshot)},
+        {246, sizeof(::battle::v1::ChooseBlessing)},
+        {255, sizeof(::battle::v1::ClientHeartbeat)},
+        {262, sizeof(::battle::v1::SelectRoomExit)},
+        {271, sizeof(::battle::v1::RoomClearedEvent)},
+        {276, sizeof(::battle::v1::RoomEnteredEvent)},
 };
 static const ::_pb::Message* PROTOBUF_NONNULL const file_default_instances[] = {
     &::battle::v1::_ClientHello_default_instance_._instance,
@@ -1192,90 +1200,93 @@ const char descriptor_table_protodef_proto_2fbattle_2fv1_2fsession_2eproto[] ABS
     "rection\022\030\n\020attack_requested\030\005 \001(\010\022\026\n\016das"
     "h_requested\030\006 \001(\010J\004\010\004\020\005\" \n\010Position\022\t\n\001x"
     "\030\001 \001(\002\022\t\n\001y\030\002 \001(\002\"!\n\tDirection\022\t\n\001x\030\001 \001("
-    "\002\022\t\n\001y\030\002 \001(\002\"\204\002\n\016EntitySnapshot\022\016\n\006entit"
+    "\002\022\t\n\001y\030\002 \001(\002\"\271\002\n\016EntitySnapshot\022\016\n\006entit"
     "y\030\001 \001(\004\022%\n\010position\030\002 \001(\0132\023.battle.v1.Po"
     "sition\022\'\n\tdirection\030\003 \001(\0132\024.battle.v1.Di"
     "rection\022\026\n\016current_health\030\006 \001(\005\022\022\n\nmax_h"
     "ealth\030\007 \001(\005\022#\n\004kind\030\010 \001(\0162\025.battle.v1.En"
     "tityKind\022\021\n\tplayer_id\030\t \001(\003\022\024\n\014monster_k"
-    "ind\030\n \001(\t\022\014\n\004hero\030\013 \001(\tJ\004\010\004\020\005J\004\010\005\020\006\"\221\001\n\026"
-    "PlayerProgressSnapshot\022\021\n\tplayer_id\030\001 \001("
-    "\003\022\r\n\005level\030\002 \001(\005\022\022\n\nexperience\030\003 \001(\005\022 \n\030"
-    "experience_to_next_level\030\004 \001(\005\022\037\n\027pendin"
-    "g_upgrade_choices\030\005 \001(\005\"W\n\026BlessingOptio"
-    "nSnapshot\022\021\n\toption_id\030\001 \001(\005\022*\n\013blessing"
-    "_id\030\002 \001(\0162\025.battle.v1.BlessingId\"S\n\026Play"
-    "erBlessingSnapshot\022*\n\013blessing_id\030\001 \001(\0162"
-    "\025.battle.v1.BlessingId\022\r\n\005level\030\002 \001(\005\"\242\001"
-    "\n\033PlayerBlessingStateSnapshot\022\021\n\tplayer_"
-    "id\030\001 \001(\003\0224\n\tblessings\030\002 \003(\0132!.battle.v1."
-    "PlayerBlessingSnapshot\022:\n\017current_option"
-    "s\030\003 \003(\0132!.battle.v1.BlessingOptionSnapsh"
-    "ot\"\367\001\n\013AttackEvent\022\027\n\017attacker_entity\030\001 "
-    "\001(\004\022\021\n\taction_id\030\002 \001(\004\022*\n\013attack_kind\030\003 "
-    "\001(\0162\025.battle.v1.AttackKind\022\'\n\tdirection\030"
-    "\004 \001(\0132\024.battle.v1.Direction\022\022\n\nstart_tic"
-    "k\030\006 \001(\004\022\031\n\021active_start_tick\030\007 \001(\004\022\027\n\017ac"
-    "tive_end_tick\030\010 \001(\004\022\031\n\021recovery_end_tick"
-    "\030\t \001(\004J\004\010\005\020\006\"\330\001\n\nDeathEvent\022\025\n\rvictim_en"
-    "tity\030\001 \001(\004\022*\n\013victim_kind\030\002 \001(\0162\025.battle"
-    ".v1.EntityKind\022\024\n\014monster_kind\030\003 \001(\t\022%\n\010"
-    "position\030\004 \001(\0132\023.battle.v1.Position\022\'\n\td"
-    "irection\030\005 \001(\0132\024.battle.v1.Direction\022\025\n\r"
-    "killer_entity\030\010 \001(\004J\004\010\006\020\007J\004\010\007\020\010\"\346\001\n\013Batt"
-    "leEvent\022\020\n\010event_id\030\001 \001(\004\022(\n\006attack\030\002 \001("
-    "\0132\026.battle.v1.AttackEventH\000\022&\n\005death\030\003 \001"
-    "(\0132\025.battle.v1.DeathEventH\000\0223\n\014room_clea"
-    "red\030\004 \001(\0132\033.battle.v1.RoomClearedEventH\000"
-    "\0223\n\014room_entered\030\005 \001(\0132\033.battle.v1.RoomE"
-    "nteredEventH\000B\t\n\007payload\"G\n\034PlayerRoomEx"
-    "itChoiceSnapshot\022\021\n\tplayer_id\030\001 \001(\003\022\024\n\014r"
-    "oom_exit_id\030\002 \001(\r\"\250\004\n\rWorldSnapshot\022\021\n\tr"
-    "oom_name\030\001 \001(\t\022+\n\010entities\030\002 \003(\0132\031.battl"
-    "e.v1.EntitySnapshot\022*\n\"reward_selection_"
-    "remaining_seconds\030\005 \001(\002\022:\n\017player_progre"
-    "ss\030\006 \003(\0132!.battle.v1.PlayerProgressSnaps"
-    "hot\022@\n\020player_blessings\030\007 \003(\0132&.battle.v"
-    "1.PlayerBlessingStateSnapshot\022\023\n\013server_"
-    "tick\030\010 \001(\004\022&\n\006events\030\t \003(\0132\026.battle.v1.B"
-    "attleEvent\022\021\n\ttick_rate\030\n \001(\r\022\027\n\017current"
-    "_room_id\030\013 \001(\r\022,\n\nroom_state\030\014 \001(\0162\030.bat"
-    "tle.v1.RoomFlowState\022\037\n\027available_room_e"
-    "xit_ids\030\r \003(\r\022I\n\030player_room_exit_choice"
-    "s\030\016 \003(\0132\'.battle.v1.PlayerRoomExitChoice"
-    "Snapshot\022\036\n\026current_room_layout_id\030\017 \001(\t"
-    "J\004\010\003\020\004J\004\010\004\020\005\"I\n\016ChooseBlessing\022\021\n\troom_n"
-    "ame\030\001 \001(\t\022\021\n\tplayer_id\030\002 \001(\003\022\021\n\toption_i"
-    "d\030\003 \001(\005\"7\n\017ClientHeartbeat\022\021\n\troom_name\030"
-    "\001 \001(\t\022\021\n\tplayer_id\030\002 \001(\003\"L\n\016SelectRoomEx"
-    "it\022\021\n\troom_name\030\001 \001(\t\022\021\n\tplayer_id\030\002 \001(\003"
-    "\022\024\n\014next_room_id\030\003 \001(\r\"#\n\020RoomClearedEve"
-    "nt\022\017\n\007room_id\030\001 \001(\r\"6\n\020RoomEnteredEvent\022"
-    "\017\n\007room_id\030\001 \001(\r\022\021\n\tlayout_id\030\002 \001(\t*v\n\nE"
-    "ntityKind\022\033\n\027ENTITY_KIND_UNSPECIFIED\020\000\022\026"
-    "\n\022ENTITY_KIND_PLAYER\020\001\022\027\n\023ENTITY_KIND_MO"
-    "NSTER\020\002\022\032\n\026ENTITY_KIND_PROJECTILE\020\003*\200\002\n\r"
-    "RoomFlowState\022\037\n\033ROOM_FLOW_STATE_UNSPECI"
-    "FIED\020\000\022!\n\035ROOM_FLOW_STATE_ENTERING_ROOM\020"
-    "\001\022\034\n\030ROOM_FLOW_STATE_FIGHTING\020\002\022 \n\034ROOM_"
-    "FLOW_STATE_ROOM_CLEARED\020\003\022%\n!ROOM_FLOW_S"
-    "TATE_CHOOSING_BLESSING\020\004\022!\n\035ROOM_FLOW_ST"
-    "ATE_CHOOSING_EXIT\020\005\022!\n\035ROOM_FLOW_STATE_T"
-    "RANSITIONING\020\006*\303\001\n\nBlessingId\022\033\n\027BLESSIN"
-    "G_ID_UNSPECIFIED\020\000\022\033\n\027BLESSING_ID_BURN_O"
-    "N_HIT\020\001\022\032\n\026BLESSING_ID_LIFE_STEAL\020\002\022\035\n\031B"
-    "LESSING_ID_FREEZE_ON_HIT\020\003\022\037\n\033BLESSING_I"
-    "D_CRITICAL_STRIKE\020\004\022\037\n\033BLESSING_ID_CHAIN"
-    "_LIGHTNING\020\005*\\\n\nAttackKind\022\033\n\027ATTACK_KIN"
-    "D_UNSPECIFIED\020\000\022\025\n\021ATTACK_KIND_MELEE\020\001\022\032"
-    "\n\026ATTACK_KIND_PROJECTILE\020\002B,Z*server/int"
-    "ernal/contract/battlepb;battlepbb\006proto3"
+    "ind\030\n \001(\t\022\014\n\004hero\030\013 \001(\t\022\030\n\020collision_rad"
+    "ius\030\014 \001(\002\022\031\n\021scene_object_kind\030\r \001(\tJ\004\010\004"
+    "\020\005J\004\010\005\020\006\"\221\001\n\026PlayerProgressSnapshot\022\021\n\tp"
+    "layer_id\030\001 \001(\003\022\r\n\005level\030\002 \001(\005\022\022\n\nexperie"
+    "nce\030\003 \001(\005\022 \n\030experience_to_next_level\030\004 "
+    "\001(\005\022\037\n\027pending_upgrade_choices\030\005 \001(\005\"W\n\026"
+    "BlessingOptionSnapshot\022\021\n\toption_id\030\001 \001("
+    "\005\022*\n\013blessing_id\030\002 \001(\0162\025.battle.v1.Bless"
+    "ingId\"S\n\026PlayerBlessingSnapshot\022*\n\013bless"
+    "ing_id\030\001 \001(\0162\025.battle.v1.BlessingId\022\r\n\005l"
+    "evel\030\002 \001(\005\"\242\001\n\033PlayerBlessingStateSnapsh"
+    "ot\022\021\n\tplayer_id\030\001 \001(\003\0224\n\tblessings\030\002 \003(\013"
+    "2!.battle.v1.PlayerBlessingSnapshot\022:\n\017c"
+    "urrent_options\030\003 \003(\0132!.battle.v1.Blessin"
+    "gOptionSnapshot\"\367\001\n\013AttackEvent\022\027\n\017attac"
+    "ker_entity\030\001 \001(\004\022\021\n\taction_id\030\002 \001(\004\022*\n\013a"
+    "ttack_kind\030\003 \001(\0162\025.battle.v1.AttackKind\022"
+    "\'\n\tdirection\030\004 \001(\0132\024.battle.v1.Direction"
+    "\022\022\n\nstart_tick\030\006 \001(\004\022\031\n\021active_start_tic"
+    "k\030\007 \001(\004\022\027\n\017active_end_tick\030\010 \001(\004\022\031\n\021reco"
+    "very_end_tick\030\t \001(\004J\004\010\005\020\006\"\330\001\n\nDeathEvent"
+    "\022\025\n\rvictim_entity\030\001 \001(\004\022*\n\013victim_kind\030\002"
+    " \001(\0162\025.battle.v1.EntityKind\022\024\n\014monster_k"
+    "ind\030\003 \001(\t\022%\n\010position\030\004 \001(\0132\023.battle.v1."
+    "Position\022\'\n\tdirection\030\005 \001(\0132\024.battle.v1."
+    "Direction\022\025\n\rkiller_entity\030\010 \001(\004J\004\010\006\020\007J\004"
+    "\010\007\020\010\"\346\001\n\013BattleEvent\022\020\n\010event_id\030\001 \001(\004\022("
+    "\n\006attack\030\002 \001(\0132\026.battle.v1.AttackEventH\000"
+    "\022&\n\005death\030\003 \001(\0132\025.battle.v1.DeathEventH\000"
+    "\0223\n\014room_cleared\030\004 \001(\0132\033.battle.v1.RoomC"
+    "learedEventH\000\0223\n\014room_entered\030\005 \001(\0132\033.ba"
+    "ttle.v1.RoomEnteredEventH\000B\t\n\007payload\"G\n"
+    "\034PlayerRoomExitChoiceSnapshot\022\021\n\tplayer_"
+    "id\030\001 \001(\003\022\024\n\014room_exit_id\030\002 \001(\r\"\250\004\n\rWorld"
+    "Snapshot\022\021\n\troom_name\030\001 \001(\t\022+\n\010entities\030"
+    "\002 \003(\0132\031.battle.v1.EntitySnapshot\022*\n\"rewa"
+    "rd_selection_remaining_seconds\030\005 \001(\002\022:\n\017"
+    "player_progress\030\006 \003(\0132!.battle.v1.Player"
+    "ProgressSnapshot\022@\n\020player_blessings\030\007 \003"
+    "(\0132&.battle.v1.PlayerBlessingStateSnapsh"
+    "ot\022\023\n\013server_tick\030\010 \001(\004\022&\n\006events\030\t \003(\0132"
+    "\026.battle.v1.BattleEvent\022\021\n\ttick_rate\030\n \001"
+    "(\r\022\027\n\017current_room_id\030\013 \001(\r\022,\n\nroom_stat"
+    "e\030\014 \001(\0162\030.battle.v1.RoomFlowState\022\037\n\027ava"
+    "ilable_room_exit_ids\030\r \003(\r\022I\n\030player_roo"
+    "m_exit_choices\030\016 \003(\0132\'.battle.v1.PlayerR"
+    "oomExitChoiceSnapshot\022\036\n\026current_room_la"
+    "yout_id\030\017 \001(\tJ\004\010\003\020\004J\004\010\004\020\005\"I\n\016ChooseBless"
+    "ing\022\021\n\troom_name\030\001 \001(\t\022\021\n\tplayer_id\030\002 \001("
+    "\003\022\021\n\toption_id\030\003 \001(\005\"7\n\017ClientHeartbeat\022"
+    "\021\n\troom_name\030\001 \001(\t\022\021\n\tplayer_id\030\002 \001(\003\"L\n"
+    "\016SelectRoomExit\022\021\n\troom_name\030\001 \001(\t\022\021\n\tpl"
+    "ayer_id\030\002 \001(\003\022\024\n\014next_room_id\030\003 \001(\r\"#\n\020R"
+    "oomClearedEvent\022\017\n\007room_id\030\001 \001(\r\"6\n\020Room"
+    "EnteredEvent\022\017\n\007room_id\030\001 \001(\r\022\021\n\tlayout_"
+    "id\030\002 \001(\t*\246\001\n\nEntityKind\022\033\n\027ENTITY_KIND_U"
+    "NSPECIFIED\020\000\022\026\n\022ENTITY_KIND_PLAYER\020\001\022\027\n\023"
+    "ENTITY_KIND_MONSTER\020\002\022\032\n\026ENTITY_KIND_PRO"
+    "JECTILE\020\003\022\030\n\024ENTITY_KIND_OBSTACLE\020\004\022\024\n\020E"
+    "NTITY_KIND_TRAP\020\005*\200\002\n\rRoomFlowState\022\037\n\033R"
+    "OOM_FLOW_STATE_UNSPECIFIED\020\000\022!\n\035ROOM_FLO"
+    "W_STATE_ENTERING_ROOM\020\001\022\034\n\030ROOM_FLOW_STA"
+    "TE_FIGHTING\020\002\022 \n\034ROOM_FLOW_STATE_ROOM_CL"
+    "EARED\020\003\022%\n!ROOM_FLOW_STATE_CHOOSING_BLES"
+    "SING\020\004\022!\n\035ROOM_FLOW_STATE_CHOOSING_EXIT\020"
+    "\005\022!\n\035ROOM_FLOW_STATE_TRANSITIONING\020\006*\303\001\n"
+    "\nBlessingId\022\033\n\027BLESSING_ID_UNSPECIFIED\020\000"
+    "\022\033\n\027BLESSING_ID_BURN_ON_HIT\020\001\022\032\n\026BLESSIN"
+    "G_ID_LIFE_STEAL\020\002\022\035\n\031BLESSING_ID_FREEZE_"
+    "ON_HIT\020\003\022\037\n\033BLESSING_ID_CRITICAL_STRIKE\020"
+    "\004\022\037\n\033BLESSING_ID_CHAIN_LIGHTNING\020\005*\\\n\nAt"
+    "tackKind\022\033\n\027ATTACK_KIND_UNSPECIFIED\020\000\022\025\n"
+    "\021ATTACK_KIND_MELEE\020\001\022\032\n\026ATTACK_KIND_PROJ"
+    "ECTILE\020\002B,Z*server/internal/contract/bat"
+    "tlepb;battlepbb\006proto3"
 };
 static ::absl::once_flag descriptor_table_proto_2fbattle_2fv1_2fsession_2eproto_once;
 PROTOBUF_CONSTINIT const ::_pbi::DescriptorTable descriptor_table_proto_2fbattle_2fv1_2fsession_2eproto = {
     false,
     false,
-    4360,
+    4462,
     descriptor_table_protodef_proto_2fbattle_2fv1_2fsession_2eproto,
     "proto/battle/v1/session.proto",
     &descriptor_table_proto_2fbattle_2fv1_2fsession_2eproto_once,
@@ -1295,7 +1306,7 @@ const ::google::protobuf::EnumDescriptor* PROTOBUF_NONNULL EntityKind_descriptor
   return file_level_enum_descriptors_proto_2fbattle_2fv1_2fsession_2eproto[0];
 }
 PROTOBUF_CONSTINIT const uint32_t EntityKind_internal_data_[] = {
-    262144u, 0u, };
+    393216u, 0u, };
 const ::google::protobuf::EnumDescriptor* PROTOBUF_NONNULL RoomFlowState_descriptor() {
   ::google::protobuf::internal::AssignDescriptors(&descriptor_table_proto_2fbattle_2fv1_2fsession_2eproto);
   return file_level_enum_descriptors_proto_2fbattle_2fv1_2fsession_2eproto[1];
@@ -5584,7 +5595,8 @@ PROTOBUF_NDEBUG_INLINE EntitySnapshot::Impl_::Impl_(
       : _has_bits_{from._has_bits_},
         _cached_size_{0},
         monster_kind_(arena, from.monster_kind_),
-        hero_(arena, from.hero_) {}
+        hero_(arena, from.hero_),
+        scene_object_kind_(arena, from.scene_object_kind_) {}
 
 EntitySnapshot::EntitySnapshot(
     ::google::protobuf::Arena* PROTOBUF_NULLABLE arena,
@@ -5600,19 +5612,19 @@ EntitySnapshot::EntitySnapshot(
       from._internal_metadata_);
   new (&_impl_) Impl_(internal_visibility(), arena, from._impl_, from);
   ::uint32_t cached_has_bits = _impl_._has_bits_[0];
-  _impl_.position_ = ((cached_has_bits & 0x00000004u) != 0)
+  _impl_.position_ = ((cached_has_bits & 0x00000008u) != 0)
                 ? ::google::protobuf::Message::CopyConstruct(arena, *from._impl_.position_)
                 : nullptr;
-  _impl_.direction_ = ((cached_has_bits & 0x00000008u) != 0)
+  _impl_.direction_ = ((cached_has_bits & 0x00000010u) != 0)
                 ? ::google::protobuf::Message::CopyConstruct(arena, *from._impl_.direction_)
                 : nullptr;
   ::memcpy(reinterpret_cast<char *>(&_impl_) +
                offsetof(Impl_, entity_),
            reinterpret_cast<const char *>(&from._impl_) +
                offsetof(Impl_, entity_),
-           offsetof(Impl_, kind_) -
+           offsetof(Impl_, collision_radius_) -
                offsetof(Impl_, entity_) +
-               sizeof(Impl_::kind_));
+               sizeof(Impl_::collision_radius_));
 
   // @@protoc_insertion_point(copy_constructor:battle.v1.EntitySnapshot)
 }
@@ -5621,16 +5633,17 @@ PROTOBUF_NDEBUG_INLINE EntitySnapshot::Impl_::Impl_(
     ::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
       : _cached_size_{0},
         monster_kind_(arena),
-        hero_(arena) {}
+        hero_(arena),
+        scene_object_kind_(arena) {}
 
 inline void EntitySnapshot::SharedCtor(::_pb::Arena* PROTOBUF_NULLABLE arena) {
   new (&_impl_) Impl_(internal_visibility(), arena);
   ::memset(reinterpret_cast<char *>(&_impl_) +
                offsetof(Impl_, position_),
            0,
-           offsetof(Impl_, kind_) -
+           offsetof(Impl_, collision_radius_) -
                offsetof(Impl_, position_) +
-               sizeof(Impl_::kind_));
+               sizeof(Impl_::collision_radius_));
 }
 EntitySnapshot::~EntitySnapshot() {
   // @@protoc_insertion_point(destructor:battle.v1.EntitySnapshot)
@@ -5642,6 +5655,7 @@ inline void EntitySnapshot::SharedDtor(MessageLite& self) {
   ABSL_DCHECK(this_.GetArena() == nullptr);
   this_._impl_.monster_kind_.Destroy();
   this_._impl_.hero_.Destroy();
+  this_._impl_.scene_object_kind_.Destroy();
   delete this_._impl_.position_;
   delete this_._impl_.direction_;
   this_._impl_.~Impl_();
@@ -5690,16 +5704,16 @@ EntitySnapshot::GetClassData() const {
   return EntitySnapshot_class_data_.base();
 }
 PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
-const ::_pbi::TcParseTable<4, 9, 2, 57, 2>
+const ::_pbi::TcParseTable<4, 11, 2, 74, 2>
 EntitySnapshot::_table_ = {
   {
     PROTOBUF_FIELD_OFFSET(EntitySnapshot, _impl_._has_bits_),
     0, // no _extensions_
-    11, 120,  // max_field_number, fast_idx_mask
+    13, 120,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
-    4294965272,  // skipmap
+    4294959128,  // skipmap
     offsetof(decltype(_table_), field_entries),
-    9,  // num_field_entries
+    11,  // num_field_entries
     2,  // num_aux_entries
     offsetof(decltype(_table_), aux_entries),
     EntitySnapshot_class_data_.base(),
@@ -5711,61 +5725,65 @@ EntitySnapshot::_table_ = {
   }, {{
     {::_pbi::TcParser::MiniParse, {}},
     // uint64 entity = 1;
-    {::_pbi::TcParser::SingularVarintNoZag1<::uint64_t, offsetof(EntitySnapshot, _impl_.entity_), 4>(),
-     {8, 4, 0, PROTOBUF_FIELD_OFFSET(EntitySnapshot, _impl_.entity_)}},
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint64_t, offsetof(EntitySnapshot, _impl_.entity_), 5>(),
+     {8, 5, 0, PROTOBUF_FIELD_OFFSET(EntitySnapshot, _impl_.entity_)}},
     // .battle.v1.Position position = 2;
     {::_pbi::TcParser::FastMtS1,
-     {18, 2, 0, PROTOBUF_FIELD_OFFSET(EntitySnapshot, _impl_.position_)}},
+     {18, 3, 0, PROTOBUF_FIELD_OFFSET(EntitySnapshot, _impl_.position_)}},
     // .battle.v1.Direction direction = 3;
     {::_pbi::TcParser::FastMtS1,
-     {26, 3, 1, PROTOBUF_FIELD_OFFSET(EntitySnapshot, _impl_.direction_)}},
+     {26, 4, 1, PROTOBUF_FIELD_OFFSET(EntitySnapshot, _impl_.direction_)}},
     {::_pbi::TcParser::MiniParse, {}},
     {::_pbi::TcParser::MiniParse, {}},
     // int32 current_health = 6;
-    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(EntitySnapshot, _impl_.current_health_), 5>(),
-     {48, 5, 0, PROTOBUF_FIELD_OFFSET(EntitySnapshot, _impl_.current_health_)}},
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(EntitySnapshot, _impl_.current_health_), 6>(),
+     {48, 6, 0, PROTOBUF_FIELD_OFFSET(EntitySnapshot, _impl_.current_health_)}},
     // int32 max_health = 7;
-    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(EntitySnapshot, _impl_.max_health_), 6>(),
-     {56, 6, 0, PROTOBUF_FIELD_OFFSET(EntitySnapshot, _impl_.max_health_)}},
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(EntitySnapshot, _impl_.max_health_), 7>(),
+     {56, 7, 0, PROTOBUF_FIELD_OFFSET(EntitySnapshot, _impl_.max_health_)}},
     // .battle.v1.EntityKind kind = 8;
-    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(EntitySnapshot, _impl_.kind_), 8>(),
-     {64, 8, 0, PROTOBUF_FIELD_OFFSET(EntitySnapshot, _impl_.kind_)}},
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(EntitySnapshot, _impl_.kind_), 9>(),
+     {64, 9, 0, PROTOBUF_FIELD_OFFSET(EntitySnapshot, _impl_.kind_)}},
     // int64 player_id = 9;
-    {::_pbi::TcParser::SingularVarintNoZag1<::uint64_t, offsetof(EntitySnapshot, _impl_.player_id_), 7>(),
-     {72, 7, 0, PROTOBUF_FIELD_OFFSET(EntitySnapshot, _impl_.player_id_)}},
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint64_t, offsetof(EntitySnapshot, _impl_.player_id_), 8>(),
+     {72, 8, 0, PROTOBUF_FIELD_OFFSET(EntitySnapshot, _impl_.player_id_)}},
     // string monster_kind = 10;
     {::_pbi::TcParser::FastUS1,
      {82, 0, 0, PROTOBUF_FIELD_OFFSET(EntitySnapshot, _impl_.monster_kind_)}},
     // string hero = 11;
     {::_pbi::TcParser::FastUS1,
      {90, 1, 0, PROTOBUF_FIELD_OFFSET(EntitySnapshot, _impl_.hero_)}},
-    {::_pbi::TcParser::MiniParse, {}},
-    {::_pbi::TcParser::MiniParse, {}},
+    // float collision_radius = 12;
+    {::_pbi::TcParser::FastF32S1,
+     {101, 10, 0, PROTOBUF_FIELD_OFFSET(EntitySnapshot, _impl_.collision_radius_)}},
+    // string scene_object_kind = 13;
+    {::_pbi::TcParser::FastUS1,
+     {106, 2, 0, PROTOBUF_FIELD_OFFSET(EntitySnapshot, _impl_.scene_object_kind_)}},
     {::_pbi::TcParser::MiniParse, {}},
     {::_pbi::TcParser::MiniParse, {}},
   }}, {{
     65535, 65535
   }}, {{
     // uint64 entity = 1;
-    {PROTOBUF_FIELD_OFFSET(EntitySnapshot, _impl_.entity_), _Internal::kHasBitsOffset + 4, 0,
+    {PROTOBUF_FIELD_OFFSET(EntitySnapshot, _impl_.entity_), _Internal::kHasBitsOffset + 5, 0,
     (0 | ::_fl::kFcOptional | ::_fl::kUInt64)},
     // .battle.v1.Position position = 2;
-    {PROTOBUF_FIELD_OFFSET(EntitySnapshot, _impl_.position_), _Internal::kHasBitsOffset + 2, 0,
+    {PROTOBUF_FIELD_OFFSET(EntitySnapshot, _impl_.position_), _Internal::kHasBitsOffset + 3, 0,
     (0 | ::_fl::kFcOptional | ::_fl::kMessage | ::_fl::kTvTable)},
     // .battle.v1.Direction direction = 3;
-    {PROTOBUF_FIELD_OFFSET(EntitySnapshot, _impl_.direction_), _Internal::kHasBitsOffset + 3, 1,
+    {PROTOBUF_FIELD_OFFSET(EntitySnapshot, _impl_.direction_), _Internal::kHasBitsOffset + 4, 1,
     (0 | ::_fl::kFcOptional | ::_fl::kMessage | ::_fl::kTvTable)},
     // int32 current_health = 6;
-    {PROTOBUF_FIELD_OFFSET(EntitySnapshot, _impl_.current_health_), _Internal::kHasBitsOffset + 5, 0,
+    {PROTOBUF_FIELD_OFFSET(EntitySnapshot, _impl_.current_health_), _Internal::kHasBitsOffset + 6, 0,
     (0 | ::_fl::kFcOptional | ::_fl::kInt32)},
     // int32 max_health = 7;
-    {PROTOBUF_FIELD_OFFSET(EntitySnapshot, _impl_.max_health_), _Internal::kHasBitsOffset + 6, 0,
+    {PROTOBUF_FIELD_OFFSET(EntitySnapshot, _impl_.max_health_), _Internal::kHasBitsOffset + 7, 0,
     (0 | ::_fl::kFcOptional | ::_fl::kInt32)},
     // .battle.v1.EntityKind kind = 8;
-    {PROTOBUF_FIELD_OFFSET(EntitySnapshot, _impl_.kind_), _Internal::kHasBitsOffset + 8, 0,
+    {PROTOBUF_FIELD_OFFSET(EntitySnapshot, _impl_.kind_), _Internal::kHasBitsOffset + 9, 0,
     (0 | ::_fl::kFcOptional | ::_fl::kOpenEnum)},
     // int64 player_id = 9;
-    {PROTOBUF_FIELD_OFFSET(EntitySnapshot, _impl_.player_id_), _Internal::kHasBitsOffset + 7, 0,
+    {PROTOBUF_FIELD_OFFSET(EntitySnapshot, _impl_.player_id_), _Internal::kHasBitsOffset + 8, 0,
     (0 | ::_fl::kFcOptional | ::_fl::kInt64)},
     // string monster_kind = 10;
     {PROTOBUF_FIELD_OFFSET(EntitySnapshot, _impl_.monster_kind_), _Internal::kHasBitsOffset + 0, 0,
@@ -5773,16 +5791,23 @@ EntitySnapshot::_table_ = {
     // string hero = 11;
     {PROTOBUF_FIELD_OFFSET(EntitySnapshot, _impl_.hero_), _Internal::kHasBitsOffset + 1, 0,
     (0 | ::_fl::kFcOptional | ::_fl::kUtf8String | ::_fl::kRepAString)},
+    // float collision_radius = 12;
+    {PROTOBUF_FIELD_OFFSET(EntitySnapshot, _impl_.collision_radius_), _Internal::kHasBitsOffset + 10, 0,
+    (0 | ::_fl::kFcOptional | ::_fl::kFloat)},
+    // string scene_object_kind = 13;
+    {PROTOBUF_FIELD_OFFSET(EntitySnapshot, _impl_.scene_object_kind_), _Internal::kHasBitsOffset + 2, 0,
+    (0 | ::_fl::kFcOptional | ::_fl::kUtf8String | ::_fl::kRepAString)},
   }},
   {{
       {::_pbi::TcParser::GetTable<::battle::v1::Position>()},
       {::_pbi::TcParser::GetTable<::battle::v1::Direction>()},
   }},
   {{
-    "\30\0\0\0\0\0\0\0\14\4\0\0\0\0\0\0"
+    "\30\0\0\0\0\0\0\0\14\4\0\21\0\0\0\0"
     "battle.v1.EntitySnapshot"
     "monster_kind"
     "hero"
+    "scene_object_kind"
   }},
 };
 PROTOBUF_NOINLINE void EntitySnapshot::Clear() {
@@ -5793,7 +5818,7 @@ PROTOBUF_NOINLINE void EntitySnapshot::Clear() {
   (void) cached_has_bits;
 
   cached_has_bits = _impl_._has_bits_[0];
-  if ((cached_has_bits & 0x0000000fu) != 0) {
+  if ((cached_has_bits & 0x0000001fu) != 0) {
     if ((cached_has_bits & 0x00000001u) != 0) {
       _impl_.monster_kind_.ClearNonDefaultToEmpty();
     }
@@ -5801,20 +5826,27 @@ PROTOBUF_NOINLINE void EntitySnapshot::Clear() {
       _impl_.hero_.ClearNonDefaultToEmpty();
     }
     if ((cached_has_bits & 0x00000004u) != 0) {
+      _impl_.scene_object_kind_.ClearNonDefaultToEmpty();
+    }
+    if ((cached_has_bits & 0x00000008u) != 0) {
       ABSL_DCHECK(_impl_.position_ != nullptr);
       _impl_.position_->Clear();
     }
-    if ((cached_has_bits & 0x00000008u) != 0) {
+    if ((cached_has_bits & 0x00000010u) != 0) {
       ABSL_DCHECK(_impl_.direction_ != nullptr);
       _impl_.direction_->Clear();
     }
   }
-  if ((cached_has_bits & 0x000000f0u) != 0) {
+  if ((cached_has_bits & 0x000000e0u) != 0) {
     ::memset(&_impl_.entity_, 0, static_cast<::size_t>(
-        reinterpret_cast<char*>(&_impl_.player_id_) -
-        reinterpret_cast<char*>(&_impl_.entity_)) + sizeof(_impl_.player_id_));
+        reinterpret_cast<char*>(&_impl_.max_health_) -
+        reinterpret_cast<char*>(&_impl_.entity_)) + sizeof(_impl_.max_health_));
   }
-  _impl_.kind_ = 0;
+  if ((cached_has_bits & 0x00000700u) != 0) {
+    ::memset(&_impl_.player_id_, 0, static_cast<::size_t>(
+        reinterpret_cast<char*>(&_impl_.collision_radius_) -
+        reinterpret_cast<char*>(&_impl_.player_id_)) + sizeof(_impl_.collision_radius_));
+  }
   _impl_._has_bits_.Clear();
   _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
 }
@@ -5835,7 +5867,7 @@ PROTOBUF_NOINLINE void EntitySnapshot::Clear() {
   (void)cached_has_bits;
 
   // uint64 entity = 1;
-  if ((this_._impl_._has_bits_[0] & 0x00000010u) != 0) {
+  if ((this_._impl_._has_bits_[0] & 0x00000020u) != 0) {
     if (this_._internal_entity() != 0) {
       target = stream->EnsureSpace(target);
       target = ::_pbi::WireFormatLite::WriteUInt64ToArray(
@@ -5845,21 +5877,21 @@ PROTOBUF_NOINLINE void EntitySnapshot::Clear() {
 
   cached_has_bits = this_._impl_._has_bits_[0];
   // .battle.v1.Position position = 2;
-  if ((cached_has_bits & 0x00000004u) != 0) {
+  if ((cached_has_bits & 0x00000008u) != 0) {
     target = ::google::protobuf::internal::WireFormatLite::InternalWriteMessage(
         2, *this_._impl_.position_, this_._impl_.position_->GetCachedSize(), target,
         stream);
   }
 
   // .battle.v1.Direction direction = 3;
-  if ((cached_has_bits & 0x00000008u) != 0) {
+  if ((cached_has_bits & 0x00000010u) != 0) {
     target = ::google::protobuf::internal::WireFormatLite::InternalWriteMessage(
         3, *this_._impl_.direction_, this_._impl_.direction_->GetCachedSize(), target,
         stream);
   }
 
   // int32 current_health = 6;
-  if ((cached_has_bits & 0x00000020u) != 0) {
+  if ((cached_has_bits & 0x00000040u) != 0) {
     if (this_._internal_current_health() != 0) {
       target =
           ::google::protobuf::internal::WireFormatLite::WriteInt32ToArrayWithField<6>(
@@ -5868,7 +5900,7 @@ PROTOBUF_NOINLINE void EntitySnapshot::Clear() {
   }
 
   // int32 max_health = 7;
-  if ((cached_has_bits & 0x00000040u) != 0) {
+  if ((cached_has_bits & 0x00000080u) != 0) {
     if (this_._internal_max_health() != 0) {
       target =
           ::google::protobuf::internal::WireFormatLite::WriteInt32ToArrayWithField<7>(
@@ -5877,7 +5909,7 @@ PROTOBUF_NOINLINE void EntitySnapshot::Clear() {
   }
 
   // .battle.v1.EntityKind kind = 8;
-  if ((cached_has_bits & 0x00000100u) != 0) {
+  if ((cached_has_bits & 0x00000200u) != 0) {
     if (this_._internal_kind() != 0) {
       target = stream->EnsureSpace(target);
       target = ::_pbi::WireFormatLite::WriteEnumToArray(
@@ -5886,7 +5918,7 @@ PROTOBUF_NOINLINE void EntitySnapshot::Clear() {
   }
 
   // int64 player_id = 9;
-  if ((cached_has_bits & 0x00000080u) != 0) {
+  if ((cached_has_bits & 0x00000100u) != 0) {
     if (this_._internal_player_id() != 0) {
       target =
           ::google::protobuf::internal::WireFormatLite::WriteInt64ToArrayWithField<9>(
@@ -5911,6 +5943,25 @@ PROTOBUF_NOINLINE void EntitySnapshot::Clear() {
       ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
           _s.data(), static_cast<int>(_s.length()), ::google::protobuf::internal::WireFormatLite::SERIALIZE, "battle.v1.EntitySnapshot.hero");
       target = stream->WriteStringMaybeAliased(11, _s, target);
+    }
+  }
+
+  // float collision_radius = 12;
+  if ((cached_has_bits & 0x00000400u) != 0) {
+    if (::absl::bit_cast<::uint32_t>(this_._internal_collision_radius()) != 0) {
+      target = stream->EnsureSpace(target);
+      target = ::_pbi::WireFormatLite::WriteFloatToArray(
+          12, this_._internal_collision_radius(), target);
+    }
+  }
+
+  // string scene_object_kind = 13;
+  if ((cached_has_bits & 0x00000004u) != 0) {
+    if (!this_._internal_scene_object_kind().empty()) {
+      const ::std::string& _s = this_._internal_scene_object_kind();
+      ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+          _s.data(), static_cast<int>(_s.length()), ::google::protobuf::internal::WireFormatLite::SERIALIZE, "battle.v1.EntitySnapshot.scene_object_kind");
+      target = stream->WriteStringMaybeAliased(13, _s, target);
     }
   }
 
@@ -5954,51 +6005,64 @@ PROTOBUF_NOINLINE void EntitySnapshot::Clear() {
                                         this_._internal_hero());
       }
     }
-    // .battle.v1.Position position = 2;
+    // string scene_object_kind = 13;
     if ((cached_has_bits & 0x00000004u) != 0) {
+      if (!this_._internal_scene_object_kind().empty()) {
+        total_size += 1 + ::google::protobuf::internal::WireFormatLite::StringSize(
+                                        this_._internal_scene_object_kind());
+      }
+    }
+    // .battle.v1.Position position = 2;
+    if ((cached_has_bits & 0x00000008u) != 0) {
       total_size += 1 +
                     ::google::protobuf::internal::WireFormatLite::MessageSize(*this_._impl_.position_);
     }
     // .battle.v1.Direction direction = 3;
-    if ((cached_has_bits & 0x00000008u) != 0) {
+    if ((cached_has_bits & 0x00000010u) != 0) {
       total_size += 1 +
                     ::google::protobuf::internal::WireFormatLite::MessageSize(*this_._impl_.direction_);
     }
     // uint64 entity = 1;
-    if ((cached_has_bits & 0x00000010u) != 0) {
+    if ((cached_has_bits & 0x00000020u) != 0) {
       if (this_._internal_entity() != 0) {
         total_size += ::_pbi::WireFormatLite::UInt64SizePlusOne(
             this_._internal_entity());
       }
     }
     // int32 current_health = 6;
-    if ((cached_has_bits & 0x00000020u) != 0) {
+    if ((cached_has_bits & 0x00000040u) != 0) {
       if (this_._internal_current_health() != 0) {
         total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(
             this_._internal_current_health());
       }
     }
     // int32 max_health = 7;
-    if ((cached_has_bits & 0x00000040u) != 0) {
+    if ((cached_has_bits & 0x00000080u) != 0) {
       if (this_._internal_max_health() != 0) {
         total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(
             this_._internal_max_health());
       }
     }
+  }
+  if ((cached_has_bits & 0x00000700u) != 0) {
     // int64 player_id = 9;
-    if ((cached_has_bits & 0x00000080u) != 0) {
+    if ((cached_has_bits & 0x00000100u) != 0) {
       if (this_._internal_player_id() != 0) {
         total_size += ::_pbi::WireFormatLite::Int64SizePlusOne(
             this_._internal_player_id());
       }
     }
-  }
-   {
     // .battle.v1.EntityKind kind = 8;
-    if ((cached_has_bits & 0x00000100u) != 0) {
+    if ((cached_has_bits & 0x00000200u) != 0) {
       if (this_._internal_kind() != 0) {
         total_size += 1 +
                       ::_pbi::WireFormatLite::EnumSize(this_._internal_kind());
+      }
+    }
+    // float collision_radius = 12;
+    if ((cached_has_bits & 0x00000400u) != 0) {
+      if (::absl::bit_cast<::uint32_t>(this_._internal_collision_radius()) != 0) {
+        total_size += 5;
       }
     }
   }
@@ -6036,6 +6100,15 @@ void EntitySnapshot::MergeImpl(::google::protobuf::MessageLite& to_msg, const ::
       }
     }
     if ((cached_has_bits & 0x00000004u) != 0) {
+      if (!from._internal_scene_object_kind().empty()) {
+        _this->_internal_set_scene_object_kind(from._internal_scene_object_kind());
+      } else {
+        if (_this->_impl_.scene_object_kind_.IsDefault()) {
+          _this->_internal_set_scene_object_kind("");
+        }
+      }
+    }
+    if ((cached_has_bits & 0x00000008u) != 0) {
       ABSL_DCHECK(from._impl_.position_ != nullptr);
       if (_this->_impl_.position_ == nullptr) {
         _this->_impl_.position_ = ::google::protobuf::Message::CopyConstruct(arena, *from._impl_.position_);
@@ -6043,7 +6116,7 @@ void EntitySnapshot::MergeImpl(::google::protobuf::MessageLite& to_msg, const ::
         _this->_impl_.position_->MergeFrom(*from._impl_.position_);
       }
     }
-    if ((cached_has_bits & 0x00000008u) != 0) {
+    if ((cached_has_bits & 0x00000010u) != 0) {
       ABSL_DCHECK(from._impl_.direction_ != nullptr);
       if (_this->_impl_.direction_ == nullptr) {
         _this->_impl_.direction_ = ::google::protobuf::Message::CopyConstruct(arena, *from._impl_.direction_);
@@ -6051,30 +6124,37 @@ void EntitySnapshot::MergeImpl(::google::protobuf::MessageLite& to_msg, const ::
         _this->_impl_.direction_->MergeFrom(*from._impl_.direction_);
       }
     }
-    if ((cached_has_bits & 0x00000010u) != 0) {
+    if ((cached_has_bits & 0x00000020u) != 0) {
       if (from._internal_entity() != 0) {
         _this->_impl_.entity_ = from._impl_.entity_;
       }
     }
-    if ((cached_has_bits & 0x00000020u) != 0) {
+    if ((cached_has_bits & 0x00000040u) != 0) {
       if (from._internal_current_health() != 0) {
         _this->_impl_.current_health_ = from._impl_.current_health_;
       }
     }
-    if ((cached_has_bits & 0x00000040u) != 0) {
+    if ((cached_has_bits & 0x00000080u) != 0) {
       if (from._internal_max_health() != 0) {
         _this->_impl_.max_health_ = from._impl_.max_health_;
       }
     }
-    if ((cached_has_bits & 0x00000080u) != 0) {
+  }
+  if ((cached_has_bits & 0x00000700u) != 0) {
+    if ((cached_has_bits & 0x00000100u) != 0) {
       if (from._internal_player_id() != 0) {
         _this->_impl_.player_id_ = from._impl_.player_id_;
       }
     }
-  }
-  if ((cached_has_bits & 0x00000100u) != 0) {
-    if (from._internal_kind() != 0) {
-      _this->_impl_.kind_ = from._impl_.kind_;
+    if ((cached_has_bits & 0x00000200u) != 0) {
+      if (from._internal_kind() != 0) {
+        _this->_impl_.kind_ = from._impl_.kind_;
+      }
+    }
+    if ((cached_has_bits & 0x00000400u) != 0) {
+      if (::absl::bit_cast<::uint32_t>(from._internal_collision_radius()) != 0) {
+        _this->_impl_.collision_radius_ = from._impl_.collision_radius_;
+      }
     }
   }
   _this->_impl_._has_bits_[0] |= cached_has_bits;
@@ -6097,9 +6177,10 @@ void EntitySnapshot::InternalSwap(EntitySnapshot* PROTOBUF_RESTRICT PROTOBUF_NON
   swap(_impl_._has_bits_[0], other->_impl_._has_bits_[0]);
   ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.monster_kind_, &other->_impl_.monster_kind_, arena);
   ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.hero_, &other->_impl_.hero_, arena);
+  ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.scene_object_kind_, &other->_impl_.scene_object_kind_, arena);
   ::google::protobuf::internal::memswap<
-      PROTOBUF_FIELD_OFFSET(EntitySnapshot, _impl_.kind_)
-      + sizeof(EntitySnapshot::_impl_.kind_)
+      PROTOBUF_FIELD_OFFSET(EntitySnapshot, _impl_.collision_radius_)
+      + sizeof(EntitySnapshot::_impl_.collision_radius_)
       - PROTOBUF_FIELD_OFFSET(EntitySnapshot, _impl_.position_)>(
           reinterpret_cast<char*>(&_impl_.position_),
           reinterpret_cast<char*>(&other->_impl_.position_));

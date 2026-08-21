@@ -235,13 +235,15 @@ TEST(RoomRuntimeTest, EntersStartRoomWithoutEncounter) {
     RoomRuntime runtime{graph, catalog};
 
     EXPECT_EQ(runtime.state(), RoomFlowState::EnteringRoom);
-    EXPECT_TRUE(runtime.enter_current_room());
+    ASSERT_TRUE(runtime.prepare_current_room());
+    EXPECT_TRUE(runtime.start_current_room());
     EXPECT_EQ(runtime.state(), RoomFlowState::Fighting);
     EXPECT_TRUE(runtime.monster_configs().empty());
-    EXPECT_FALSE(runtime.enter_current_room());
+    EXPECT_FALSE(runtime.start_current_room());
+    EXPECT_FALSE(runtime.prepare_current_room());
 }
 
-TEST(RoomRuntimeTest, PlansCombatEncounterOnceOnEntry) {
+TEST(RoomRuntimeTest, PreparesCombatEncounterBeforeStartingRoom) {
     const DungeonRoomGraph graph{
         .start_room_id = 2,
         .rooms = {
@@ -260,12 +262,60 @@ TEST(RoomRuntimeTest, PlansCombatEncounterOnceOnEntry) {
     const auto catalog = default_room_layout_catalog();
     RoomRuntime runtime{graph, catalog};
 
-    ASSERT_TRUE(runtime.enter_current_room());
+    ASSERT_TRUE(runtime.prepare_current_room());
     ASSERT_EQ(runtime.monster_configs().size(), 2);
     EXPECT_EQ(runtime.monster_configs()[0].kind, MonsterKind::Melee);
     EXPECT_EQ(runtime.monster_configs()[1].kind, MonsterKind::Melee);
-    EXPECT_FALSE(runtime.enter_current_room());
+    ASSERT_TRUE(runtime.start_current_room());
+    EXPECT_FALSE(runtime.prepare_current_room());
     EXPECT_EQ(runtime.monster_configs().size(), 2);
+}
+
+TEST(RoomRuntimeTest, PreparesObstaclesAndTrapsFromRoomLayout) {
+    const DungeonRoomGraph graph{
+        .start_room_id = 1,
+        .rooms = {
+            DungeonRoomNode{
+                .room_id = 1,
+                .kind = DungeonRoomKind::Combat,
+                .layout_id = "hazard_room",
+            },
+        },
+    };
+    const RoomLayoutCatalog catalog{
+        .layouts = {
+            RoomLayout{
+                .layout_id = "hazard_room",
+                .obstacles = {
+                    RoomObstacle{
+                        .obstacle_id = 7,
+                        .center = ecs::Position{.x = 2.0f, .y = -3.0f},
+                        .radius = 1.5f,
+                    },
+                },
+                .traps = {
+                    RoomTrap{
+                        .trap_id = 9,
+                        .center = ecs::Position{.x = -4.0f, .y = 5.0f},
+                        .radius = 2.5f,
+                        .kind = TrapKind::PoisonPool,
+                    },
+                },
+            },
+        },
+    };
+    RoomRuntime runtime{graph, catalog};
+
+    ASSERT_TRUE(runtime.prepare_current_room());
+    ASSERT_EQ(runtime.obstacle_configs().size(), 1);
+    EXPECT_FLOAT_EQ(runtime.obstacle_configs()[0].position.x, 2.0f);
+    EXPECT_FLOAT_EQ(runtime.obstacle_configs()[0].position.y, -3.0f);
+    EXPECT_FLOAT_EQ(runtime.obstacle_configs()[0].radius, 1.5f);
+    ASSERT_EQ(runtime.trap_configs().size(), 1);
+    EXPECT_FLOAT_EQ(runtime.trap_configs()[0].position.x, -4.0f);
+    EXPECT_FLOAT_EQ(runtime.trap_configs()[0].position.y, 5.0f);
+    EXPECT_FLOAT_EQ(runtime.trap_configs()[0].radius, 2.5f);
+    EXPECT_EQ(runtime.trap_configs()[0].kind, TrapKind::PoisonPool);
 }
 
 TEST(RoomRuntimeTest, KeepsStateWhenCurrentLayoutIsMissing) {
@@ -282,7 +332,7 @@ TEST(RoomRuntimeTest, KeepsStateWhenCurrentLayoutIsMissing) {
     const auto catalog = default_room_layout_catalog();
     RoomRuntime runtime{graph, catalog};
 
-    EXPECT_FALSE(runtime.enter_current_room());
+    EXPECT_FALSE(runtime.prepare_current_room());
     EXPECT_EQ(runtime.state(), RoomFlowState::EnteringRoom);
     EXPECT_TRUE(runtime.monster_configs().empty());
 }
@@ -292,7 +342,8 @@ TEST(RoomRuntimeTest, ClearsRoomWhenLastLivingMonsterIsGone) {
     const auto catalog = default_room_layout_catalog();
     RoomRuntime runtime{graph, catalog};
 
-    ASSERT_TRUE(runtime.enter_current_room());
+    ASSERT_TRUE(runtime.prepare_current_room());
+    ASSERT_TRUE(runtime.start_current_room());
     EXPECT_FALSE(runtime.update_living_monster_count(1));
     EXPECT_EQ(runtime.state(), RoomFlowState::Fighting);
 
@@ -319,7 +370,8 @@ TEST(RoomRuntimeTest, RejectsInvalidExitWithoutChangingRoom) {
     EXPECT_FALSE(runtime.select_exit(2));
     EXPECT_EQ(runtime.state(), RoomFlowState::EnteringRoom);
 
-    ASSERT_TRUE(runtime.enter_current_room());
+    ASSERT_TRUE(runtime.prepare_current_room());
+    ASSERT_TRUE(runtime.start_current_room());
     ASSERT_TRUE(runtime.update_living_monster_count(0));
     ASSERT_TRUE(runtime.begin_exit_selection());
     EXPECT_FALSE(runtime.select_exit(4));
@@ -352,7 +404,8 @@ TEST(RoomRuntimeTest, CompletesTransitionAndEntersNextRoom) {
     const auto catalog = default_room_layout_catalog();
     RoomRuntime runtime{graph, catalog};
 
-    ASSERT_TRUE(runtime.enter_current_room());
+    ASSERT_TRUE(runtime.prepare_current_room());
+    ASSERT_TRUE(runtime.start_current_room());
     ASSERT_EQ(runtime.monster_configs().size(), 2);
     EXPECT_FALSE(runtime.complete_transition());
     EXPECT_EQ(runtime.monster_configs().size(), 2);
@@ -364,8 +417,11 @@ TEST(RoomRuntimeTest, CompletesTransitionAndEntersNextRoom) {
     EXPECT_EQ(runtime.current_room_id(), 3);
     EXPECT_EQ(runtime.state(), RoomFlowState::EnteringRoom);
     EXPECT_TRUE(runtime.monster_configs().empty());
+    EXPECT_TRUE(runtime.obstacle_configs().empty());
+    EXPECT_TRUE(runtime.trap_configs().empty());
 
-    EXPECT_TRUE(runtime.enter_current_room());
+    ASSERT_TRUE(runtime.prepare_current_room());
+    EXPECT_TRUE(runtime.start_current_room());
     EXPECT_EQ(runtime.state(), RoomFlowState::Fighting);
     EXPECT_TRUE(runtime.monster_configs().empty());
 }

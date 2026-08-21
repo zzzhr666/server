@@ -13,7 +13,7 @@ namespace {
     }
 
     bool is_interactable(const battle::ecs::Collider& lhs, const battle::ecs::Collider& rhs) {
-        return is_character(lhs) && is_character(rhs) && (lhs.category & rhs.collision_mask) != 0 &&
+        return (lhs.category & rhs.collision_mask) != 0 &&
             (lhs.collision_mask & rhs.category) != 0;
     }
 

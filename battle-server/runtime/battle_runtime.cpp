@@ -26,6 +26,10 @@ namespace {
             return battle::v1::ENTITY_KIND_MONSTER;
         case battle::ecs::EntityKind::Projectile:
             return battle::v1::ENTITY_KIND_PROJECTILE;
+        case battle::ecs::EntityKind::Obstacle:
+            return battle::v1::ENTITY_KIND_OBSTACLE;
+        case battle::ecs::EntityKind::Trap:
+            return battle::v1::ENTITY_KIND_TRAP;
         default:
             return battle::v1::ENTITY_KIND_UNSPECIFIED;
         }
@@ -163,6 +167,8 @@ namespace {
             entity_snapshot->mutable_direction()->set_y(entity.direction.y);
             entity_snapshot->set_current_health(entity.current_health);
             entity_snapshot->set_max_health(entity.max_health);
+            entity_snapshot->set_collision_radius(entity.collision_radius);
+            entity_snapshot->set_scene_object_kind(entity.scene_object_kind);
 
             if (entity.hero.has_value()) {
                 entity_snapshot->set_hero(battle::hero_kind_to_string(entity.hero.value()));

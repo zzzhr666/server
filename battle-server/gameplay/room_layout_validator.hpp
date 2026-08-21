@@ -13,6 +13,12 @@ namespace battle {
         PlayerSpawnOutsideBounds,
         MonsterSpawnOutsideBounds,
         DoorOutsideBounds,
+        DuplicateObstacleID,
+        InvalidObstacleRadius,
+        ObstacleOutsideBounds,
+        DuplicateTrapID,
+        InvalidTrapRadius,
+        TrapOutsideBounds,
     };
 
     struct RoomLayoutIssue {

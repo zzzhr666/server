@@ -5,6 +5,7 @@
 #include "blessing_config.hpp"
 #include "blessing_helpers.hpp"
 #include "ecs/world.hpp"
+#include "gameplay/gameplay_config.hpp"
 namespace {
     void handle_life_steal(battle::ecs::World& world, const battle::ecs::DamageAppliedEvent& event) {
         auto health = world.registry().try_get<battle::ecs::Health>(event.source);
@@ -32,7 +33,7 @@ namespace {
         status_effect->burns.emplace_back(battle::ecs::BurnStatus{
             .source = event.source,
             .remaining_seconds = battle::ecs::burn_duration_seconds(blessing->level),
-            .tick_interval_seconds = battle::ecs::BurnOnHitConfig::TickIntervalSeconds,
+            .tick_interval_seconds = battle::gameplay_config::blessing::burn_on_hit::TickInterval,
             .tick_timer_seconds = battle::ecs::DeltaTime{0.0f},
             .damage_per_tick = battle::ecs::burn_damage_per_tick(blessing->level),
         });

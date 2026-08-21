@@ -29,14 +29,16 @@ void battle::ecs::projectile_hit_system(World& world, DeltaTime) {
             const float distance_squared = delta_x * delta_x + delta_y * delta_y;
             const float radius_sum = collider->radius + target_collider->radius;
             if (distance_squared <= radius_sum * radius_sum) {
-                world.add_damage_event(DamageEvent{
-                    .source = projectile->context.owner,
-                    .target = target,
-                    .base_damage = projectile->damage,
-                    .modified_damage = projectile->damage,
-                    .source_kind = DamageSourceKind::Attack,
-                    .context = projectile->context
-                });
+                if (target_collider->category != CollisionCategory::Obstacle) {
+                    world.add_damage_event(DamageEvent{
+                        .source = projectile->context.owner,
+                        .target = target,
+                        .base_damage = projectile->damage,
+                        .modified_damage = projectile->damage,
+                        .source_kind = DamageSourceKind::Attack,
+                        .context = projectile->context
+                    });
+                }
                 entities_to_erase.emplace_back(entity);
                 break;
             }

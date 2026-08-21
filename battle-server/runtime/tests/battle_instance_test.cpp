@@ -4,6 +4,8 @@
 
 #include <gtest/gtest.h>
 
+#include "gameplay/gameplay_config.hpp"
+
 namespace battle {
 namespace {
 
@@ -13,7 +15,7 @@ std::unique_ptr<BattleInstance> create_test_instance(BattleInstanceConfig config
     return instance;
 }
 
-TEST(BattleInstanceTest, CreateBuildsPlayersAtPlannedSpawns) {
+TEST(BattleInstanceTest, CreateBuildsPlayersAtRoomLayoutSpawns) {
     auto instance = create_test_instance({
         .room_name = "room-1",
         .player_ids = {1001, 1002},
@@ -21,10 +23,13 @@ TEST(BattleInstanceTest, CreateBuildsPlayersAtPlannedSpawns) {
 
     auto snapshot = instance->snapshot();
     ASSERT_EQ(snapshot.entities.size(), 2);
-    EXPECT_FLOAT_EQ(snapshot.entities[0].position.x, -2.0f);
-    EXPECT_FLOAT_EQ(snapshot.entities[0].position.y, 0.0f);
-    EXPECT_FLOAT_EQ(snapshot.entities[1].position.x, 2.0f);
-    EXPECT_FLOAT_EQ(snapshot.entities[1].position.y, 0.0f);
+    EXPECT_FLOAT_EQ(snapshot.entities[0].position.x, 0.0f);
+    EXPECT_FLOAT_EQ(snapshot.entities[0].position.y, gameplay_config::room::PlayerSpawnY);
+    EXPECT_FLOAT_EQ(snapshot.entities[1].position.x,
+                    -2.0f * gameplay_config::combat::DefaultCharacterCollisionRadius);
+    EXPECT_FLOAT_EQ(snapshot.entities[1].position.y,
+                    gameplay_config::room::PlayerSpawnY +
+                        2.0f * gameplay_config::combat::DefaultCharacterCollisionRadius);
 }
 
 TEST(BattleInstanceTest, CreateEntersConfiguredInitialRoom) {

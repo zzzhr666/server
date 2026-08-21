@@ -28,6 +28,8 @@ const (
 	EntityKind_ENTITY_KIND_PLAYER      EntityKind = 1
 	EntityKind_ENTITY_KIND_MONSTER     EntityKind = 2
 	EntityKind_ENTITY_KIND_PROJECTILE  EntityKind = 3
+	EntityKind_ENTITY_KIND_OBSTACLE    EntityKind = 4
+	EntityKind_ENTITY_KIND_TRAP        EntityKind = 5
 )
 
 // Enum value maps for EntityKind.
@@ -37,12 +39,16 @@ var (
 		1: "ENTITY_KIND_PLAYER",
 		2: "ENTITY_KIND_MONSTER",
 		3: "ENTITY_KIND_PROJECTILE",
+		4: "ENTITY_KIND_OBSTACLE",
+		5: "ENTITY_KIND_TRAP",
 	}
 	EntityKind_value = map[string]int32{
 		"ENTITY_KIND_UNSPECIFIED": 0,
 		"ENTITY_KIND_PLAYER":      1,
 		"ENTITY_KIND_MONSTER":     2,
 		"ENTITY_KIND_PROJECTILE":  3,
+		"ENTITY_KIND_OBSTACLE":    4,
+		"ENTITY_KIND_TRAP":        5,
 	}
 )
 
@@ -1078,18 +1084,20 @@ func (x *Direction) GetY() float32 {
 }
 
 type EntitySnapshot struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Entity        uint64                 `protobuf:"varint,1,opt,name=entity,proto3" json:"entity,omitempty"`
-	Position      *Position              `protobuf:"bytes,2,opt,name=position,proto3" json:"position,omitempty"`
-	Direction     *Direction             `protobuf:"bytes,3,opt,name=direction,proto3" json:"direction,omitempty"`
-	CurrentHealth int32                  `protobuf:"varint,6,opt,name=current_health,json=currentHealth,proto3" json:"current_health,omitempty"`
-	MaxHealth     int32                  `protobuf:"varint,7,opt,name=max_health,json=maxHealth,proto3" json:"max_health,omitempty"`
-	Kind          EntityKind             `protobuf:"varint,8,opt,name=kind,proto3,enum=battle.v1.EntityKind" json:"kind,omitempty"`
-	PlayerId      int64                  `protobuf:"varint,9,opt,name=player_id,json=playerId,proto3" json:"player_id,omitempty"`
-	MonsterKind   string                 `protobuf:"bytes,10,opt,name=monster_kind,json=monsterKind,proto3" json:"monster_kind,omitempty"`
-	Hero          string                 `protobuf:"bytes,11,opt,name=hero,proto3" json:"hero,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	Entity          uint64                 `protobuf:"varint,1,opt,name=entity,proto3" json:"entity,omitempty"`
+	Position        *Position              `protobuf:"bytes,2,opt,name=position,proto3" json:"position,omitempty"`
+	Direction       *Direction             `protobuf:"bytes,3,opt,name=direction,proto3" json:"direction,omitempty"`
+	CurrentHealth   int32                  `protobuf:"varint,6,opt,name=current_health,json=currentHealth,proto3" json:"current_health,omitempty"`
+	MaxHealth       int32                  `protobuf:"varint,7,opt,name=max_health,json=maxHealth,proto3" json:"max_health,omitempty"`
+	Kind            EntityKind             `protobuf:"varint,8,opt,name=kind,proto3,enum=battle.v1.EntityKind" json:"kind,omitempty"`
+	PlayerId        int64                  `protobuf:"varint,9,opt,name=player_id,json=playerId,proto3" json:"player_id,omitempty"`
+	MonsterKind     string                 `protobuf:"bytes,10,opt,name=monster_kind,json=monsterKind,proto3" json:"monster_kind,omitempty"`
+	Hero            string                 `protobuf:"bytes,11,opt,name=hero,proto3" json:"hero,omitempty"`
+	CollisionRadius float32                `protobuf:"fixed32,12,opt,name=collision_radius,json=collisionRadius,proto3" json:"collision_radius,omitempty"`
+	SceneObjectKind string                 `protobuf:"bytes,13,opt,name=scene_object_kind,json=sceneObjectKind,proto3" json:"scene_object_kind,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
 }
 
 func (x *EntitySnapshot) Reset() {
@@ -1181,6 +1189,20 @@ func (x *EntitySnapshot) GetMonsterKind() string {
 func (x *EntitySnapshot) GetHero() string {
 	if x != nil {
 		return x.Hero
+	}
+	return ""
+}
+
+func (x *EntitySnapshot) GetCollisionRadius() float32 {
+	if x != nil {
+		return x.CollisionRadius
+	}
+	return 0
+}
+
+func (x *EntitySnapshot) GetSceneObjectKind() string {
+	if x != nil {
+		return x.SceneObjectKind
 	}
 	return ""
 }
@@ -2250,7 +2272,7 @@ const file_proto_battle_v1_session_proto_rawDesc = "" +
 	"\x01y\x18\x02 \x01(\x02R\x01y\"'\n" +
 	"\tDirection\x12\f\n" +
 	"\x01x\x18\x01 \x01(\x02R\x01x\x12\f\n" +
-	"\x01y\x18\x02 \x01(\x02R\x01y\"\xde\x02\n" +
+	"\x01y\x18\x02 \x01(\x02R\x01y\"\xb5\x03\n" +
 	"\x0eEntitySnapshot\x12\x16\n" +
 	"\x06entity\x18\x01 \x01(\x04R\x06entity\x12/\n" +
 	"\bposition\x18\x02 \x01(\v2\x13.battle.v1.PositionR\bposition\x122\n" +
@@ -2262,7 +2284,9 @@ const file_proto_battle_v1_session_proto_rawDesc = "" +
 	"\tplayer_id\x18\t \x01(\x03R\bplayerId\x12!\n" +
 	"\fmonster_kind\x18\n" +
 	" \x01(\tR\vmonsterKind\x12\x12\n" +
-	"\x04hero\x18\v \x01(\tR\x04heroJ\x04\b\x04\x10\x05J\x04\b\x05\x10\x06\"\xdc\x01\n" +
+	"\x04hero\x18\v \x01(\tR\x04hero\x12)\n" +
+	"\x10collision_radius\x18\f \x01(\x02R\x0fcollisionRadius\x12*\n" +
+	"\x11scene_object_kind\x18\r \x01(\tR\x0fsceneObjectKindJ\x04\b\x04\x10\x05J\x04\b\x05\x10\x06\"\xdc\x01\n" +
 	"\x16PlayerProgressSnapshot\x12\x1b\n" +
 	"\tplayer_id\x18\x01 \x01(\x03R\bplayerId\x12\x14\n" +
 	"\x05level\x18\x02 \x01(\x05R\x05level\x12\x1e\n" +
@@ -2347,13 +2371,15 @@ const file_proto_battle_v1_session_proto_rawDesc = "" +
 	"\aroom_id\x18\x01 \x01(\rR\x06roomId\"H\n" +
 	"\x10RoomEnteredEvent\x12\x17\n" +
 	"\aroom_id\x18\x01 \x01(\rR\x06roomId\x12\x1b\n" +
-	"\tlayout_id\x18\x02 \x01(\tR\blayoutId*v\n" +
+	"\tlayout_id\x18\x02 \x01(\tR\blayoutId*\xa6\x01\n" +
 	"\n" +
 	"EntityKind\x12\x1b\n" +
 	"\x17ENTITY_KIND_UNSPECIFIED\x10\x00\x12\x16\n" +
 	"\x12ENTITY_KIND_PLAYER\x10\x01\x12\x17\n" +
 	"\x13ENTITY_KIND_MONSTER\x10\x02\x12\x1a\n" +
-	"\x16ENTITY_KIND_PROJECTILE\x10\x03*\x80\x02\n" +
+	"\x16ENTITY_KIND_PROJECTILE\x10\x03\x12\x18\n" +
+	"\x14ENTITY_KIND_OBSTACLE\x10\x04\x12\x14\n" +
+	"\x10ENTITY_KIND_TRAP\x10\x05*\x80\x02\n" +
 	"\rRoomFlowState\x12\x1f\n" +
 	"\x1bROOM_FLOW_STATE_UNSPECIFIED\x10\x00\x12!\n" +
 	"\x1dROOM_FLOW_STATE_ENTERING_ROOM\x10\x01\x12\x1c\n" +

@@ -8,6 +8,7 @@
 
 #include "ecs/world.hpp"
 #include "gameplay/blessing.hpp"
+#include "gameplay/gameplay_config.hpp"
 #include "gameplay/growth.hpp"
 #include "gameplay/monster_kind.hpp"
 #include "gameplay/hero.hpp"
@@ -18,10 +19,10 @@
 
 namespace battle {
     struct ProgressionConfig {
-        int base_experience_to_next_level = 100;
-        int experience_to_next_level_growth = 50;
-        int melee_experience = 35;
-        int ranged_experience = 45;
+        int base_experience_to_next_level = gameplay_config::progression::BaseExperienceToNextLevel;
+        int experience_to_next_level_growth = gameplay_config::progression::ExperienceToNextLevelGrowth;
+        int melee_experience = gameplay_config::progression::MeleeMonsterExperience;
+        int ranged_experience = gameplay_config::progression::RangedMonsterExperience;
     };
 
     struct BlessingOption {
@@ -44,10 +45,10 @@ namespace battle {
         std::optional<ecs::CreatePlayerConfig> player_config_override;
         std::optional<std::uint32_t> reward_random_seed;
         ecs::WorldBounds world_bounds = ecs::WorldBounds{
-            .min_x = -20.0f,
-            .max_x = 20.0f,
-            .min_y = -20.0f,
-            .max_y = 20.0f,
+            .min_x = gameplay_config::room::MinCoordinate,
+            .max_x = gameplay_config::room::MaxCoordinate,
+            .min_y = gameplay_config::room::MinCoordinate,
+            .max_y = gameplay_config::room::MaxCoordinate,
         };
         ProgressionConfig progression_config;
         std::uint32_t tick_rate = DefaultBattleTickRate;
@@ -112,6 +113,8 @@ namespace battle {
         int current_health{};
         int max_health{};
         std::optional<MonsterKind> monster_kind{};
+        float collision_radius{};
+        std::string scene_object_kind;
     };
 
     struct PlayerBattleStats {
@@ -139,8 +142,6 @@ namespace battle {
     struct RewardSelectionState {
         ecs::DeltaTime remaining_seconds{0.0f};
     };
-
-    constexpr ecs::DeltaTime SelectionTime{15.0f};
 
     struct PlayerProgressSnapshot {
         std::int64_t player_id = 0;

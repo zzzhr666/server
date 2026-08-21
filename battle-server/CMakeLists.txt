@@ -59,6 +59,7 @@ add_library(battle_ecs
         ecs/system/projectile_range_system.cpp
         ecs/system/projectile_hit_system.cpp
         ecs/spatial_index.cpp
+        ecs/system/trap_system.cpp
 )
 add_library(battle_game
         game/room.cpp

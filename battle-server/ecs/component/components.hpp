@@ -7,14 +7,11 @@
 #include "ecs/time.hpp"
 #include "ecs/combat/combat.hpp"
 #include "gameplay/blessing.hpp"
+#include "gameplay/gameplay_config.hpp"
 #include "gameplay/monster_kind.hpp"
+#include "gameplay/trap_kind.hpp"
 
 namespace battle::ecs {
-    /// @brief 未指定攻击参数时使用的投射物命中半径。
-    constexpr float DefaultProjectileHitRadius = 0.5f;
-    /// @brief 未显式配置攻击时间轴时使用的默认生效窗口。
-    constexpr DeltaTime DefaultAttackActiveSeconds{0.05f};
-
     /// @brief 一帧网络输入转换后的玩家动作请求。
     struct PlayerCommand {
         float move_x;
@@ -123,11 +120,11 @@ namespace battle::ecs {
         float range;
         DeltaTime cooldown_seconds;
         DeltaTime windup_seconds{};
-        DeltaTime active_seconds{DefaultAttackActiveSeconds};
+        DeltaTime active_seconds{gameplay_config::combat::DefaultAttackActiveSeconds};
         DeltaTime recovery_seconds{};
         float movement_multiplier{1.0f};
         float projectile_speed;
-        float projectile_hit_radius{DefaultProjectileHitRadius};
+        float projectile_hit_radius{gameplay_config::combat::DefaultProjectileHitRadius};
     };
 
     /// @brief 冲刺的冷却和速度倍率配置。
@@ -151,6 +148,7 @@ namespace battle::ecs {
         Attack,
         Burn,
         ChainLightning,
+        Trap,
     };
 
     /// @brief 在伤害修正与应用系统之间传递的伤害事件。
@@ -233,7 +231,7 @@ namespace battle::ecs {
     struct BurnStatus {
         Entity source{};
         DeltaTime remaining_seconds{0.0f};
-        DeltaTime tick_interval_seconds{1.0f};
+        DeltaTime tick_interval_seconds{gameplay_config::blessing::burn_on_hit::TickInterval};
         DeltaTime tick_timer_seconds{0.0f};
         int damage_per_tick{};
     };
@@ -243,10 +241,27 @@ namespace battle::ecs {
         DeltaTime remaining_seconds{0.0f};
     };
 
+    /// @brief 毒池施加的单实例持续伤害；重复进入只刷新持续时间，不重置 tick 计时。
+    struct PoisonStatus {
+        Entity source{};
+        DeltaTime remaining_seconds{};
+        DeltaTime tick_interval_seconds{};
+        DeltaTime tick_timer_seconds{};
+        int damage_per_tick{};
+    };
+
+    /// @brief 沼泽施加的短时移动倍率；影响普通移动和怪物 AI，不影响冲刺。
+    struct SwampStatus {
+        DeltaTime remaining_seconds{};
+        float movement_multiplier{1.0f};
+    };
+
     /// @brief 实体当前承受的持续状态集合。
     struct StatusEffects {
         std::vector<BurnStatus> burns;
         std::optional<FreezeStatus> freeze;
+        std::optional<PoisonStatus> poison;
+        std::optional<SwampStatus> swamp;
     };
 
     /// @brief 投射物的飞行距离、伤害和攻击归属。
@@ -262,6 +277,12 @@ namespace battle::ecs {
         float retreat_distance;
     };
 
+    /// @brief 陷阱类型及上一 tick 的范围内目标，用于区分尖刺进入与持续停留。
+    struct Trap {
+        TrapKind kind{};
+        std::vector<Entity> active_targets{};
+    };
+
     enum class CollisionShape {
         Circle,
     };
@@ -271,6 +292,8 @@ namespace battle::ecs {
         Monster = 1u << 1,
         PlayerProjectile = 1u << 2,
         MonsterProjectile = 1u << 3,
+        Obstacle = 1u << 4,
+        Trap = 1u << 5,
     };
 
     using CollisionMask = std::uint32_t;

@@ -1,10 +1,12 @@
 #pragma once
 
 #include <memory>
-#include <string>
-#include <random>
-#include <unordered_map>
 #include <optional>
+#include <random>
+#include <string>
+#include <unordered_map>
+#include <utility>
+#include <vector>
 
 #include "battle_instance_types.hpp"
 #include "player_input.hpp"
@@ -75,6 +77,7 @@ namespace battle {
         bool choose_blessing(std::int64_t player_id, int option_id);
 
         bool select_room_exit(std::int64_t player_id, DungeonRoomID next_room_id);
+
     private:
         explicit BattleInstance(BattleInstanceConfig config);
 
@@ -130,6 +133,8 @@ namespace battle {
         /// @brief 根据 World 的存活怪物数将已清空房间推进到出口选择阶段。
         bool update_room_completion_();
 
+        bool relocate_players_for_current_room_(std::vector<std::pair<ecs::Entity, ecs::Position>>& relocated_players);
+
     private:
         std::string room_name_;
         ecs::World world_;
@@ -163,6 +168,9 @@ namespace battle {
         RoomLayoutCatalog room_layout_catalog_;
         RoomRuntime room_runtime_;
         std::unordered_map<std::int64_t, DungeonRoomID> room_exit_choices_;
+        /// @brief 当前房间拥有的静态实体；切房时统一销毁并按新布局重建。
+        std::vector<ecs::Entity> active_obstacles_;
+        std::vector<ecs::Entity> active_traps_;
 
         bool initialization_failed_{false};
     };

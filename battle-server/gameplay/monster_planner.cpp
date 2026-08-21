@@ -1,21 +1,22 @@
 #include "monster_planner.hpp"
+#include "gameplay_config.hpp"
 
 battle::MonsterDefinition battle::monster_definition(MonsterKind kind) {
     switch (kind) {
     case MonsterKind::Melee:
         return {
             .kind = MonsterKind::Melee,
-            .base_health = 50,
-            .base_move_speed = 3.0f,
+            .base_health = gameplay_config::monster::melee::Health,
+            .base_move_speed = gameplay_config::monster::melee::MoveSpeed,
             .base_attack = ecs::AttackDefinition{
                 .kind = ecs::AttackKind::Melee,
-                .damage = 10,
-                .range = MeleeMonsterAttackRange,
-                .cooldown_seconds = MeleeMonsterAttackCooldown,
-                .windup_seconds = MeleeMonsterAttackWindup,
-                .active_seconds = MeleeMonsterAttackActive,
-                .recovery_seconds = MeleeMonsterAttackRecovery,
-                .movement_multiplier = MeleeMonsterAttackMovementMultiplier,
+                .damage = gameplay_config::monster::melee::AttackDamage,
+                .range = gameplay_config::monster::melee::AttackRange,
+                .cooldown_seconds = gameplay_config::monster::melee::AttackCooldown,
+                .windup_seconds = gameplay_config::monster::melee::AttackWindup,
+                .active_seconds = gameplay_config::monster::melee::AttackActive,
+                .recovery_seconds = gameplay_config::monster::melee::AttackRecovery,
+                .movement_multiplier = gameplay_config::monster::melee::AttackMovementMultiplier,
                 .projectile_speed = 0.0f,
             },
         };
@@ -23,21 +24,21 @@ battle::MonsterDefinition battle::monster_definition(MonsterKind kind) {
         case MonsterKind::Ranged:
         return {
             .kind = MonsterKind::Ranged,
-            .base_health = 35,
-            .base_move_speed = 3.5f,
+            .base_health = gameplay_config::monster::ranged::Health,
+            .base_move_speed = gameplay_config::monster::ranged::MoveSpeed,
             .base_attack = {
                 .kind = ecs::AttackKind::Projectile,
-                .damage = 12,
-                .range = RangedMonsterAttackRange,
-                .cooldown_seconds = RangedMonsterAttackCooldown,
-                .windup_seconds = RangedMonsterAttackWindup,
-                .active_seconds = RangedMonsterAttackActive,
-                .recovery_seconds = RangedMonsterAttackRecovery,
-                .movement_multiplier = RangedMonsterAttackMovementMultiplier,
-                .projectile_speed = RangedMonsterProjectileSpeed,
+                .damage = gameplay_config::monster::ranged::AttackDamage,
+                .range = gameplay_config::monster::ranged::AttackRange,
+                .cooldown_seconds = gameplay_config::monster::ranged::AttackCooldown,
+                .windup_seconds = gameplay_config::monster::ranged::AttackWindup,
+                .active_seconds = gameplay_config::monster::ranged::AttackActive,
+                .recovery_seconds = gameplay_config::monster::ranged::AttackRecovery,
+                .movement_multiplier = gameplay_config::monster::ranged::AttackMovementMultiplier,
+                .projectile_speed = gameplay_config::monster::ranged::ProjectileSpeed,
             },
             .kiting_ai = ecs::KitingAI{
-                .retreat_distance = RangedMonsterRetreatDistance,
+                .retreat_distance = gameplay_config::monster::ranged::RetreatDistance,
             }
         };
     default:

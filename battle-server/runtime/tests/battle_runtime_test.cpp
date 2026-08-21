@@ -11,6 +11,7 @@
 #include <gtest/gtest.h>
 
 #include "game/game_manager.hpp"
+#include "gameplay/gameplay_config.hpp"
 #include "platform/metrics.hpp"
 #include "session/battle_session.hpp"
 #include "session/session_manager.hpp"
@@ -151,12 +152,16 @@ TEST(BattleRuntimeTest, ReceiveInputAndTickBroadcastsMovedSnapshot) {
         ASSERT_GE(packet.snapshot().entities_size(), 2);
         EXPECT_EQ(packet.snapshot().entities(0).kind(), v1::ENTITY_KIND_PLAYER);
         EXPECT_EQ(packet.snapshot().entities(0).player_id(), 1001);
-        EXPECT_FLOAT_EQ(packet.snapshot().entities(0).position().x(), -2.0f);
-        EXPECT_FLOAT_EQ(packet.snapshot().entities(0).position().y(), 0.0f);
+        EXPECT_FLOAT_EQ(packet.snapshot().entities(0).position().x(), 0.0f);
+        EXPECT_FLOAT_EQ(packet.snapshot().entities(0).position().y(), gameplay_config::room::PlayerSpawnY);
         EXPECT_EQ(packet.snapshot().entities(1).kind(), v1::ENTITY_KIND_PLAYER);
         EXPECT_EQ(packet.snapshot().entities(1).player_id(), 1002);
-        EXPECT_FLOAT_EQ(packet.snapshot().entities(1).position().x(), 2.0f + ecs::DefaultPlayerMoveSpeed);
-        EXPECT_FLOAT_EQ(packet.snapshot().entities(1).position().y(), 0.0f);
+        EXPECT_FLOAT_EQ(packet.snapshot().entities(1).position().x(),
+                        -2.0f * gameplay_config::combat::DefaultCharacterCollisionRadius +
+                            gameplay_config::player::MoveSpeed);
+        EXPECT_FLOAT_EQ(packet.snapshot().entities(1).position().y(),
+                        gameplay_config::room::PlayerSpawnY +
+                            2.0f * gameplay_config::combat::DefaultCharacterCollisionRadius);
         EXPECT_FLOAT_EQ(packet.snapshot().entities(1).direction().x(), 1.0f);
         EXPECT_FLOAT_EQ(packet.snapshot().entities(1).direction().y(), 0.0f);
     }
@@ -332,7 +337,7 @@ TEST(BattleRuntimeTest, StartAdvancesWorldWithFixedDeltaTime) {
     const auto snapshot = first_snapshot_future.get();
     ASSERT_EQ(snapshot.entities_size(), 1);
     EXPECT_FLOAT_EQ(snapshot.entities(0).position().x(),
-                    -2.0f + ecs::DefaultPlayerMoveSpeed / static_cast<float>(TickRate));
+                    gameplay_config::player::MoveSpeed / static_cast<float>(TickRate));
     EXPECT_EQ(snapshot.server_tick(), 1);
 }
 

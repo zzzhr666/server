@@ -20,6 +20,7 @@
 #include "system/projectile_range_system.hpp"
 #include "system/projectile_spawn_system.hpp"
 #include "system/status_effect_system.hpp"
+#include "system/trap_system.hpp"
 
 namespace {
     bool is_character(const battle::ecs::Collider& collider) {
@@ -28,7 +29,7 @@ namespace {
     }
 
     bool is_interactable(const battle::ecs::Collider& lhs, const battle::ecs::Collider& rhs) {
-        return is_character(lhs) && is_character(rhs) && (lhs.category & rhs.collision_mask) != 0 &&
+        return (lhs.category & rhs.collision_mask) != 0 &&
             (lhs.collision_mask & rhs.category) != 0;
     }
 
@@ -52,12 +53,14 @@ battle::ecs::World::World(WorldBounds bounds, std::uint32_t random_seed, float c
       next_combat_action_id_(1),
       next_combat_effect_id_(1) {
     damage_events_.reserve(InitialDamageEventCount);
+    // 状态先衰减，移动与冲刺随后结算，陷阱在新位置触发，伤害最终进入统一死亡链路。
     system_scheduler_.add_system(move_resolve_system);
     system_scheduler_.add_system(status_effect_system);
     system_scheduler_.add_system(monster_ai_system);
     system_scheduler_.add_system(dash_resolve_system);
     system_scheduler_.add_system(dash_system);
     system_scheduler_.add_system(move_system);
+    system_scheduler_.add_system(trap_system);
     system_scheduler_.add_system(projectile_hit_system);
     system_scheduler_.add_system(projectile_range_system);
     system_scheduler_.add_system(attack_resolve_system);
@@ -97,7 +100,8 @@ battle::ecs::Entity battle::ecs::World::create_player(CreatePlayerConfig config)
     registry_.emplace<Health>(entity, config.max_health, config.max_health);
     registry_.emplace<CharacterStats>(entity, config.move_speed);
     registry_.emplace<PlayerController>(entity);
-    registry_.emplace<Dash>(entity, DefaultPlayerDashCooldown, DefaultPlayerDashSpeedMultiplier);
+    registry_.emplace<Dash>(entity, gameplay_config::player::DashCooldown,
+                            gameplay_config::player::DashSpeedMultiplier);
     registry_.emplace<DashIntent>(entity, false, 0.0f);
     registry_.emplace<AttackDefinition>(entity, config.attack);
     registry_.emplace<AttackCooldown>(entity, DeltaTime{0.0f});
@@ -169,6 +173,25 @@ battle::ecs::Entity battle::ecs::World::create_projectile(CreateProjectileConfig
     return entity;
 }
 
+battle::ecs::Entity battle::ecs::World::create_obstacle(CreateObstacleConfig config) {
+    const Entity entity = registry_.create();
+    registry_.emplace<Transform>(entity, config.position, Direction{});
+    registry_.emplace<Collider>(entity, CollisionShape::Circle, config.radius, CollisionCategory::Obstacle,
+                                ObstacleCollisionMask);
+    spatial_index_.insert(entity, config.position, config.radius);
+    return entity;
+}
+
+battle::ecs::Entity battle::ecs::World::create_trap(CreateTrapConfig config) {
+    const Entity entity = registry_.create();
+    registry_.emplace<Transform>(entity, config.position, Direction{});
+    registry_.emplace<Trap>(entity, config.kind);
+    registry_.emplace<Collider>(entity, CollisionShape::Circle, config.radius,
+                                CollisionCategory::Trap, TrapCollisionMask);
+    spatial_index_.insert(entity, config.position, config.radius);
+    return entity;
+}
+
 bool battle::ecs::World::has_entity(Entity entity) const {
     return registry_.valid(entity);
 }
@@ -192,6 +215,29 @@ std::shared_ptr<battle::ecs::CombatActionState> battle::ecs::World::create_comba
 
 battle::ecs::CombatEffectID battle::ecs::World::create_combat_effect() {
     return next_combat_effect_id_++;
+}
+
+bool battle::ecs::World::relocate_character(Entity entity, const Position& position) {
+    auto* transform = registry_.try_get<Transform>(entity);
+    const auto* collider = registry_.try_get<Collider>(entity);
+    if (!transform || !collider || !is_character(*collider)) {
+        return false;
+    }
+
+    const auto old_position = transform->position;
+    if (!spatial_index_.remove(entity)) {
+        return false;
+    }
+
+    const auto valid_position = resolve_character_spawn_(position, *collider);
+    if (!valid_position.has_value()) {
+        spatial_index_.insert(entity, old_position, collider->radius);
+        return false;
+    }
+
+    transform->position = *valid_position;
+    spatial_index_.insert(entity, *valid_position, collider->radius);
+    return true;
 }
 
 bool battle::ecs::World::set_move_request_(Entity entity, float x, float y) {
@@ -246,7 +292,7 @@ bool battle::ecs::World::can_place_character_(Position position, const Collider&
 }
 
 std::optional<battle::ecs::Position> battle::ecs::World::resolve_character_spawn_(Position position,
-                                                                                  const Collider& collider) const {
+    const Collider& collider) const {
     if (collider.radius <= 0.0f || bounds_.min_x + collider.radius > bounds_.max_x - collider.radius ||
         bounds_.min_y + collider.radius > bounds_.max_y - collider.radius) {
         return std::nullopt;
@@ -327,10 +373,12 @@ battle::ecs::WorldSnapshot battle::ecs::World::snapshot() const {
     WorldSnapshot snap_shot;
 
     for (const auto entity : registry_.entities()) {
-        auto* transform = registry_.try_get<Transform>(entity);
-        auto* health = registry_.try_get<Health>(entity);
+        const auto* transform = registry_.try_get<Transform>(entity);
+        const auto* health = registry_.try_get<Health>(entity);
+        const auto* collider = registry_.try_get<Collider>(entity);
         auto kind = EntityKind::Unknown;
         std::optional<MonsterKind> monster_kind = std::nullopt;
+        std::string scene_object_kind;
 
         if (registry_.has<PlayerController>(entity)) {
             kind = EntityKind::Player;
@@ -343,19 +391,34 @@ battle::ecs::WorldSnapshot battle::ecs::World::snapshot() const {
             monster_kind = std::make_optional(monster_identity->kind);
         } else if (registry_.has<Projectile>(entity)) {
             kind = EntityKind::Projectile;
+        } else if (collider != nullptr && collider->category == CollisionCategory::Obstacle) {
+            kind = EntityKind::Obstacle;
+            scene_object_kind = "obstacle";
+        } else if (const auto* trap = registry().try_get<Trap>(entity); trap != nullptr && collider != nullptr &&
+            collider->category == CollisionCategory::Trap) {
+            kind = EntityKind::Trap;
+            switch (trap->kind) {
+            case TrapKind::Spikes: {
+                scene_object_kind = "spikes";
+                break;
+            }
+            case TrapKind::PoisonPool: {
+                scene_object_kind = "poison_pool";
+                break;
+            }
+            case TrapKind::Swamp: {
+                scene_object_kind = "swamp";
+                break;
+            }
+            }
         }
-        if (!transform) {
+        if (transform == nullptr || kind == EntityKind::Unknown) {
             continue;
         }
-        if (kind == EntityKind::Projectile) {
-            snap_shot.entities.emplace_back(entity, kind, transform->position, transform->direction, 0, 0,
-                                            monster_kind);
-            continue;
-        }
-        if (health) {
-            snap_shot.entities.emplace_back(entity, kind, transform->position, transform->direction,
-                                            health->current_health, health->max_health, monster_kind);
-        }
+        snap_shot.entities.emplace_back(entity, kind, transform->position, transform->direction,
+                                        health != nullptr ? health->current_health : 0,
+                                        health != nullptr ? health->max_health : 0, monster_kind,
+                                        collider != nullptr ? collider->radius : 0.0f, std::move(scene_object_kind));
     }
     return snap_shot;
 }

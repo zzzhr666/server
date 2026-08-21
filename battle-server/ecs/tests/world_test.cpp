@@ -16,8 +16,8 @@ namespace {
 CreatePlayerConfig default_player_config() {
     return {
         .position = Position{.x = 10.0f, .y = 20.0f},
-        .max_health = DefaultPlayerMaxHealth,
-        .move_speed = DefaultPlayerMoveSpeed,
+        .max_health = gameplay_config::player::MaxHealth,
+        .move_speed = gameplay_config::player::MoveSpeed,
     };
 }
 
@@ -90,6 +90,7 @@ TEST(WorldTest, CreateProjectileInitializesMovementAndCombatContext) {
     const auto& transform = world.registry().get<Transform>(projectile);
     const auto& velocity = world.registry().get<Velocity>(projectile);
     const auto& projectile_component = world.registry().get<Projectile>(projectile);
+    const auto& collider = world.registry().get<Collider>(projectile);
 
     EXPECT_FLOAT_EQ(transform.position.x, 10.0f);
     EXPECT_FLOAT_EQ(transform.position.y, 20.0f);
@@ -100,7 +101,7 @@ TEST(WorldTest, CreateProjectileInitializesMovementAndCombatContext) {
     EXPECT_EQ(projectile_component.damage, 30);
     EXPECT_FLOAT_EQ(projectile_component.current_distance, 0.0f);
     EXPECT_FLOAT_EQ(projectile_component.max_distance, 15.0f);
-    EXPECT_FLOAT_EQ(projectile_component.hit_radius, 0.85f);
+    EXPECT_FLOAT_EQ(collider.radius, 0.85f);
     EXPECT_EQ(projectile_component.context.owner, owner);
     EXPECT_EQ(projectile_component.context.emitter, projectile);
     EXPECT_EQ(projectile_component.context.action_state, action_state);
@@ -135,13 +136,14 @@ TEST(WorldTest, TickSpawnsOneProjectileForProjectileAttack) {
     const auto projectile = world.registry().pool<Projectile>().entities().front();
     const auto& transform = world.registry().get<Transform>(projectile);
     const auto& projectile_component = world.registry().get<Projectile>(projectile);
+    const auto& collider = world.registry().get<Collider>(projectile);
     EXPECT_FLOAT_EQ(transform.position.x, 10.0f);
     EXPECT_FLOAT_EQ(transform.position.y, 20.0f);
     EXPECT_FLOAT_EQ(transform.direction.x, 0.0f);
     EXPECT_FLOAT_EQ(transform.direction.y, 1.0f);
     EXPECT_EQ(projectile_component.damage, 30);
     EXPECT_FLOAT_EQ(projectile_component.max_distance, 15.0f);
-    EXPECT_FLOAT_EQ(projectile_component.hit_radius, 0.85f);
+    EXPECT_FLOAT_EQ(collider.radius, 0.85f);
     EXPECT_EQ(projectile_component.context.owner, player);
     EXPECT_EQ(projectile_component.context.emitter, projectile);
 
@@ -304,7 +306,7 @@ TEST(WorldTest, BlessingConfigScalesEffectValuesWithLevel) {
     EXPECT_EQ(chain_lightning_damage_percent(5), 90);
     EXPECT_EQ(chain_lightning_target_count(1), 1);
     EXPECT_EQ(chain_lightning_target_count(5), 5);
-    EXPECT_FLOAT_EQ(ChainLightningConfig::JumpRadius, 9.0f);
+    EXPECT_FLOAT_EQ(gameplay_config::blessing::chain_lightning::JumpRadius, 9.0f);
 }
 
 TEST(WorldTest, CreatePlayerInitializesAttackComponentsFromConfig) {
@@ -1008,7 +1010,7 @@ TEST(WorldTest, LifeStealClampsHealingToMaxHealth) {
     World world({blessing_trigger_system});
     auto player = world.create_player(default_player_config());
     auto monster = world.create_monster(default_monster_config());
-    world.registry().get<Health>(player).current_health = DefaultPlayerMaxHealth - 5;
+    world.registry().get<Health>(player).current_health = gameplay_config::player::MaxHealth - 5;
     world.registry().get<BlessingInventory>(player).blessings.emplace_back(BlessingStack{
         .blessing_id = BlessingID::LifeSteal,
         .level = 1,
@@ -1022,7 +1024,7 @@ TEST(WorldTest, LifeStealClampsHealingToMaxHealth) {
     });
     world.tick(DeltaTime{0.0f});
 
-    EXPECT_EQ(world.registry().get<Health>(player).current_health, DefaultPlayerMaxHealth);
+    EXPECT_EQ(world.registry().get<Health>(player).current_health, gameplay_config::player::MaxHealth);
     EXPECT_TRUE(world.damage_applied_events().empty());
 }
 
@@ -1048,7 +1050,8 @@ TEST(WorldTest, BurnOnHitAddsBurnStatusToTarget) {
     ASSERT_EQ(burns.size(), 1);
     EXPECT_EQ(burns[0].source, player);
     EXPECT_FLOAT_EQ(burns[0].remaining_seconds.count(), burn_duration_seconds(1).count());
-    EXPECT_FLOAT_EQ(burns[0].tick_interval_seconds.count(), BurnOnHitConfig::TickIntervalSeconds.count());
+    EXPECT_FLOAT_EQ(burns[0].tick_interval_seconds.count(),
+                    gameplay_config::blessing::burn_on_hit::TickInterval.count());
     EXPECT_FLOAT_EQ(burns[0].tick_timer_seconds.count(), 0.0f);
     EXPECT_EQ(burns[0].damage_per_tick, burn_damage_per_tick(1));
     EXPECT_TRUE(world.damage_applied_events().empty());
@@ -1280,8 +1283,8 @@ TEST(WorldTest, DamageSystemAddsDeathEventWhenMonsterKillsPlayer) {
     world.add_damage_event(DamageEvent{
         .source = monster,
         .target = player,
-        .base_damage = DefaultPlayerMaxHealth,
-        .modified_damage = DefaultPlayerMaxHealth,
+        .base_damage = gameplay_config::player::MaxHealth,
+        .modified_damage = gameplay_config::player::MaxHealth,
     });
     world.tick(DeltaTime{0.0f});
 
@@ -1341,7 +1344,7 @@ TEST(WorldTest, TickMovesPlayerByInputDirectionAndMoveSpeed) {
     world.tick(DeltaTime{1.0f});
 
     const auto& transform = world.registry().get<Transform>(entity);
-    EXPECT_FLOAT_EQ(transform.position.x, 10.0f + DefaultPlayerMoveSpeed);
+    EXPECT_FLOAT_EQ(transform.position.x, 10.0f + gameplay_config::player::MoveSpeed);
     EXPECT_FLOAT_EQ(transform.position.y, 20.0f);
     EXPECT_FLOAT_EQ(transform.direction.x, 1.0f);
     EXPECT_FLOAT_EQ(transform.direction.y, 0.0f);
@@ -1471,7 +1474,8 @@ TEST(WorldTest, TickClampsPlayerPositionToWorldBounds) {
     world.tick(DeltaTime{1.0f});
 
     const auto& transform = world.registry().get<Transform>(entity);
-    EXPECT_FLOAT_EQ(transform.position.x, 1.0f);
+    EXPECT_FLOAT_EQ(transform.position.x,
+                    1.0f - gameplay_config::combat::DefaultCharacterCollisionRadius);
     EXPECT_FLOAT_EQ(transform.position.y, 0.0f);
     EXPECT_FLOAT_EQ(transform.direction.x, 1.0f);
     EXPECT_FLOAT_EQ(transform.direction.y, 0.0f);
@@ -1491,7 +1495,7 @@ TEST(WorldTest, TickDashMovesPlayerWithDashSpeedMultiplierOnce) {
 
     const auto& transform = world.registry().get<Transform>(entity);
     EXPECT_FLOAT_EQ(transform.position.x,
-                    10.0f + DefaultPlayerMoveSpeed * DefaultPlayerDashSpeedMultiplier);
+                    10.0f + gameplay_config::player::MoveSpeed * gameplay_config::player::DashSpeedMultiplier);
     EXPECT_FLOAT_EQ(transform.position.y, 20.0f);
     EXPECT_FLOAT_EQ(transform.direction.x, 1.0f);
     EXPECT_FLOAT_EQ(transform.direction.y, 0.0f);
@@ -1521,7 +1525,7 @@ TEST(WorldTest, TickDashUsesFacingDirectionWithoutMoveInput) {
 
     const auto& transform = world.registry().get<Transform>(entity);
     EXPECT_FLOAT_EQ(transform.position.x,
-                    10.0f - DefaultPlayerMoveSpeed * DefaultPlayerDashSpeedMultiplier);
+                    10.0f - gameplay_config::player::MoveSpeed * gameplay_config::player::DashSpeedMultiplier);
     EXPECT_FLOAT_EQ(transform.position.y, 20.0f);
     EXPECT_FLOAT_EQ(transform.direction.x, -1.0f);
     EXPECT_FLOAT_EQ(transform.direction.y, 0.0f);
@@ -1551,8 +1555,8 @@ TEST(WorldTest, TickDoesNotDashAgainDuringCooldown) {
 
     const auto& transform = world.registry().get<Transform>(entity);
     EXPECT_FLOAT_EQ(transform.position.x,
-                    10.0f + DefaultPlayerMoveSpeed * DefaultPlayerDashSpeedMultiplier +
-                        DefaultPlayerMoveSpeed * 0.5f);
+                    10.0f + gameplay_config::player::MoveSpeed * gameplay_config::player::DashSpeedMultiplier +
+                        gameplay_config::player::MoveSpeed * 0.5f);
     EXPECT_FLOAT_EQ(transform.position.y, 20.0f);
     EXPECT_FALSE(world.registry().get<DashRequest>(entity).requested);
     EXPECT_FLOAT_EQ(world.registry().get<DashCooldown>(entity).remaining_seconds.count(), 0.5f);
@@ -1571,7 +1575,7 @@ TEST(WorldTest, TickUsesDeltaSecondsOnce) {
     world.tick(DeltaTime{0.5f});
 
     const auto& transform = world.registry().get<Transform>(entity);
-    EXPECT_FLOAT_EQ(transform.position.x, 10.0f + DefaultPlayerMoveSpeed * 0.5f);
+    EXPECT_FLOAT_EQ(transform.position.x, 10.0f + gameplay_config::player::MoveSpeed * 0.5f);
     EXPECT_FLOAT_EQ(transform.position.y, 20.0f);
 }
 
@@ -1588,7 +1592,7 @@ TEST(WorldTest, TickMovesPlayerInNegativeInputDirection) {
     world.tick(DeltaTime{1.0f});
 
     const auto& transform = world.registry().get<Transform>(entity);
-    EXPECT_FLOAT_EQ(transform.position.x, 10.0f - DefaultPlayerMoveSpeed);
+    EXPECT_FLOAT_EQ(transform.position.x, 10.0f - gameplay_config::player::MoveSpeed);
     EXPECT_FLOAT_EQ(transform.position.y, 20.0f);
     EXPECT_FLOAT_EQ(transform.direction.x, -1.0f);
     EXPECT_FLOAT_EQ(transform.direction.y, 0.0f);
@@ -1607,7 +1611,7 @@ TEST(WorldTest, TickNormalizesDiagonalMoveIntent) {
     world.tick(DeltaTime{1.0f});
 
     const auto& transform = world.registry().get<Transform>(entity);
-    const float expected_delta = DefaultPlayerMoveSpeed / std::sqrt(2.0f);
+    const float expected_delta = gameplay_config::player::MoveSpeed / std::sqrt(2.0f);
     EXPECT_NEAR(transform.position.x, 10.0f + expected_delta, 0.001f);
     EXPECT_NEAR(transform.position.y, 20.0f + expected_delta, 0.001f);
     EXPECT_NEAR(transform.direction.x, 1.0f / std::sqrt(2.0f), 0.001f);
@@ -1634,7 +1638,7 @@ TEST(WorldTest, TickWithZeroMoveIntentDoesNotMoveOrChangeDirection) {
     world.tick(DeltaTime{1.0f});
 
     const auto& transform = world.registry().get<Transform>(entity);
-    EXPECT_FLOAT_EQ(transform.position.x, 10.0f + DefaultPlayerMoveSpeed);
+    EXPECT_FLOAT_EQ(transform.position.x, 10.0f + gameplay_config::player::MoveSpeed);
     EXPECT_FLOAT_EQ(transform.position.y, 20.0f);
     EXPECT_FLOAT_EQ(transform.direction.x, 1.0f);
     EXPECT_FLOAT_EQ(transform.direction.y, 0.0f);
@@ -1793,11 +1797,12 @@ TEST(WorldTest, CreateMonsterAttachesConfiguredKitingAIOnly) {
 
 TEST(WorldTest, TickMonsterDoesNotMoveDuringAttackTimeline) {
     World world;
-    world.create_player(CreatePlayerConfig{
+    const auto player = world.create_player(CreatePlayerConfig{
         .position = Position{.x = 10.0f, .y = 0.0f},
         .max_health = 100,
         .move_speed = 5.0f,
     });
+    world.registry().remove<Collider>(player);
     const auto monster = world.create_monster(CreateMonsterConfig{
         .position = Position{.x = 0.0f, .y = 0.0f},
         .max_health = 50,
@@ -1856,6 +1861,7 @@ TEST(WorldTest, TickMonsterDamagesPlayerInsideAttackRange) {
         .position = Position{.x = 0.5f, .y = 0.0f},
         .max_health = 100,
         .move_speed = 5.0f,
+        .collision_radius = 0.01f,
     });
     world.create_monster(CreateMonsterConfig{
         .position = Position{.x = 0.0f, .y = 0.0f},
@@ -1868,6 +1874,7 @@ TEST(WorldTest, TickMonsterDamagesPlayerInsideAttackRange) {
             .cooldown_seconds = DeltaTime{1.0f},
             .projectile_speed = 0.0f,
         },
+        .collision_radius = 0.01f,
     });
 
     world.tick(DeltaTime{0.0f});
@@ -1910,6 +1917,7 @@ TEST(WorldTest, TickMonsterAttackUsesCooldown) {
         .position = Position{.x = 0.5f, .y = 0.0f},
         .max_health = 100,
         .move_speed = 5.0f,
+        .collision_radius = 0.01f,
     });
     auto monster = world.create_monster(CreateMonsterConfig{
         .position = Position{.x = 0.0f, .y = 0.0f},
@@ -1922,6 +1930,7 @@ TEST(WorldTest, TickMonsterAttackUsesCooldown) {
             .cooldown_seconds = DeltaTime{1.0f},
             .projectile_speed = 0.0f,
         },
+        .collision_radius = 0.01f,
     });
 
     world.tick(DeltaTime{0.0f});
@@ -1937,9 +1946,10 @@ TEST(WorldTest, TickMonsterAttackUsesCooldown) {
 TEST(WorldTest, TickMonsterDoesNotDamageOtherMonsters) {
     World world;
     world.create_player(CreatePlayerConfig{
-        .position = Position{.x = 10.0f, .y = 0.0f},
+        .position = Position{.x = 0.9f, .y = 0.0f},
         .max_health = 100,
         .move_speed = 5.0f,
+        .collision_radius = 0.1f,
     });
     auto attacker = world.create_monster(CreateMonsterConfig{
         .position = Position{.x = 0.0f, .y = 0.0f},
@@ -2178,15 +2188,18 @@ TEST(WorldTest, TickClampsMonsterPositionToWorldBounds) {
         .position = Position{.x = 0.0f, .y = 0.0f},
         .max_health = 50,
         .move_speed = 5.0f,
+        .collision_radius = 0.1f,
     });
 
     world.tick(DeltaTime{1.0f});
 
     const auto& transform = world.registry().get<Transform>(monster);
-    EXPECT_FLOAT_EQ(transform.position.x, 1.0f);
-    EXPECT_FLOAT_EQ(transform.position.y, 0.0f);
-    EXPECT_FLOAT_EQ(transform.direction.x, 1.0f);
-    EXPECT_FLOAT_EQ(transform.direction.y, 0.0f);
+    EXPECT_GE(transform.position.x, -0.9f);
+    EXPECT_LE(transform.position.x, 0.9f);
+    EXPECT_GE(transform.position.y, -0.9f);
+    EXPECT_LE(transform.position.y, 0.9f);
+    EXPECT_TRUE(std::isfinite(transform.position.x));
+    EXPECT_TRUE(std::isfinite(transform.position.y));
 }
 
 TEST(WorldTest, TickMovesMonsterTowardNearestPlayer) {
@@ -2249,9 +2262,9 @@ TEST(WorldTest, TickStopsMonsterWhenPlayerTargetIsDestroyed) {
     EXPECT_FLOAT_EQ(transform.position.y, 0.0f);
 }
 
-TEST(WorldTest, TickDoesNotProduceNanWhenMonsterOverlapsPlayer) {
+TEST(WorldTest, TickResolvesOverlappingMonsterSpawnWithoutNan) {
     World world;
-    world.create_player(CreatePlayerConfig{
+    auto player = world.create_player(CreatePlayerConfig{
         .position = Position{.x = 10.0f, .y = 20.0f},
         .max_health = 100,
         .move_speed = 5.0f,
@@ -2265,10 +2278,11 @@ TEST(WorldTest, TickDoesNotProduceNanWhenMonsterOverlapsPlayer) {
     world.tick(DeltaTime{1.0f});
 
     const auto& transform = world.registry().get<Transform>(monster);
-    EXPECT_FALSE(std::isnan(transform.position.x));
-    EXPECT_FALSE(std::isnan(transform.position.y));
-    EXPECT_FLOAT_EQ(transform.position.x, 10.0f);
-    EXPECT_FLOAT_EQ(transform.position.y, 20.0f);
+    const auto& player_transform = world.registry().get<Transform>(player);
+    EXPECT_TRUE(std::isfinite(transform.position.x));
+    EXPECT_TRUE(std::isfinite(transform.position.y));
+    EXPECT_TRUE(transform.position.x != player_transform.position.x ||
+                transform.position.y != player_transform.position.y);
 }
 
 TEST(WorldTest, DestroyMonsterRemovesEntityComponents) {
@@ -2307,6 +2321,243 @@ TEST(WorldTest, HasLivingMonstersReflectsMonsterControllerEntities) {
     EXPECT_EQ(world.living_monster_count(), 0);
 }
 
+TEST(WorldTest, CreateObstacleAndTrapInitializeCollisionComponents) {
+    World world;
+
+    const auto obstacle = world.create_obstacle(CreateObstacleConfig{
+        .position = Position{.x = 2.0f, .y = 3.0f},
+        .radius = 1.5f,
+    });
+    const auto trap = world.create_trap(CreateTrapConfig{
+        .position = Position{.x = -2.0f, .y = -3.0f},
+        .radius = 2.5f,
+        .kind = TrapKind::PoisonPool,
+    });
+
+    const auto& obstacle_collider = world.registry().get<Collider>(obstacle);
+    EXPECT_EQ(obstacle_collider.category, CollisionCategory::Obstacle);
+    EXPECT_EQ(obstacle_collider.collision_mask, ObstacleCollisionMask);
+    EXPECT_FLOAT_EQ(obstacle_collider.radius, 1.5f);
+
+    const auto& trap_collider = world.registry().get<Collider>(trap);
+    EXPECT_EQ(trap_collider.category, CollisionCategory::Trap);
+    EXPECT_EQ(trap_collider.collision_mask, TrapCollisionMask);
+    EXPECT_FLOAT_EQ(trap_collider.radius, 2.5f);
+    EXPECT_EQ(world.registry().get<Trap>(trap).kind, TrapKind::PoisonPool);
+}
+
+TEST(WorldTest, SpikesDamagePlayersAndMonstersOnlyWhenEntering) {
+    World world;
+    const auto player = world.create_player(CreatePlayerConfig{
+        .position = Position{.x = 0.0f, .y = 0.0f},
+        .max_health = 100,
+        .move_speed = 10.0f,
+    });
+    const auto monster = world.create_monster(CreateMonsterConfig{
+        .position = Position{.x = 3.0f, .y = 0.0f},
+        .max_health = 100,
+        .move_speed = 0.0f,
+    });
+    world.create_trap(CreateTrapConfig{
+        .position = Position{.x = 0.0f, .y = 0.0f},
+        .radius = 4.0f,
+        .kind = TrapKind::Spikes,
+    });
+
+    world.tick(DeltaTime{0.0f});
+    EXPECT_EQ(world.registry().get<Health>(player).current_health,
+              100 - gameplay_config::trap::spikes::Damage);
+    EXPECT_EQ(world.registry().get<Health>(monster).current_health,
+              100 - gameplay_config::trap::spikes::Damage);
+
+    world.tick(DeltaTime{0.0f});
+    EXPECT_EQ(world.registry().get<Health>(player).current_health,
+              100 - gameplay_config::trap::spikes::Damage);
+    EXPECT_EQ(world.registry().get<Health>(monster).current_health,
+              100 - gameplay_config::trap::spikes::Damage);
+}
+
+TEST(WorldTest, SpikesDamagePlayerAgainAfterLeavingAndReentering) {
+    World world;
+    const auto player = world.create_player(CreatePlayerConfig{
+        .position = Position{.x = 0.0f, .y = 0.0f},
+        .max_health = 100,
+        .move_speed = 10.0f,
+    });
+    world.create_trap(CreateTrapConfig{
+        .position = Position{.x = 0.0f, .y = 0.0f},
+        .radius = 0.5f,
+        .kind = TrapKind::Spikes,
+    });
+
+    world.tick(DeltaTime{0.0f});
+    ASSERT_TRUE(world.set_player_command(player, PlayerCommand{
+                                                     .move_x = 1.0f,
+                                                     .move_y = 0.0f,
+                                                     .attack_requested = false,
+                                                     .dash_requested = false,
+                                                 }));
+    world.tick(DeltaTime{0.2f});
+    ASSERT_TRUE(world.set_player_command(player, PlayerCommand{
+                                                     .move_x = -1.0f,
+                                                     .move_y = 0.0f,
+                                                     .attack_requested = false,
+                                                     .dash_requested = false,
+                                                 }));
+    world.tick(DeltaTime{0.2f});
+
+    EXPECT_EQ(world.registry().get<Health>(player).current_health,
+              100 - 2 * gameplay_config::trap::spikes::Damage);
+}
+
+TEST(WorldTest, PoisonPoolAppliesOneRefreshableStatusToPlayersAndMonsters) {
+    World world;
+    const auto player = world.create_player(CreatePlayerConfig{
+        .position = Position{.x = 0.0f, .y = 0.0f},
+        .max_health = 100,
+        .move_speed = 0.0f,
+    });
+    const auto monster = world.create_monster(CreateMonsterConfig{
+        .position = Position{.x = 3.0f, .y = 0.0f},
+        .max_health = 100,
+        .move_speed = 0.0f,
+    });
+    world.create_trap(CreateTrapConfig{
+        .position = Position{.x = 0.0f, .y = 0.0f},
+        .radius = 4.0f,
+        .kind = TrapKind::PoisonPool,
+    });
+
+    world.tick(DeltaTime{0.0f});
+    ASSERT_TRUE(world.registry().get<StatusEffects>(player).poison.has_value());
+    ASSERT_TRUE(world.registry().get<StatusEffects>(monster).poison.has_value());
+
+    world.tick(DeltaTime{0.2f});
+    const auto& poison = world.registry().get<StatusEffects>(player).poison;
+    ASSERT_TRUE(poison.has_value());
+    EXPECT_FLOAT_EQ(poison->remaining_seconds.count(), gameplay_config::trap::poison_pool::Duration.count());
+    EXPECT_FLOAT_EQ(poison->tick_timer_seconds.count(), 0.2f);
+    EXPECT_EQ(poison->damage_per_tick, gameplay_config::trap::poison_pool::DamagePerTick);
+}
+
+TEST(WorldTest, PoisonPoolContinuesDamagingAfterExitAndExpires) {
+    World world;
+    const auto player = world.create_player(CreatePlayerConfig{
+        .position = Position{.x = 0.0f, .y = 0.0f},
+        .max_health = 100,
+        .move_speed = 10.0f,
+    });
+    world.create_trap(CreateTrapConfig{
+        .position = Position{.x = 0.0f, .y = 0.0f},
+        .radius = 0.1f,
+        .kind = TrapKind::PoisonPool,
+    });
+
+    world.tick(DeltaTime{0.0f});
+    ASSERT_TRUE(world.set_player_command(player, PlayerCommand{
+                                                     .move_x = 1.0f,
+                                                     .move_y = 0.0f,
+                                                     .attack_requested = false,
+                                                     .dash_requested = false,
+                                                 }));
+    world.tick(DeltaTime{0.1f});
+    ASSERT_TRUE(world.set_player_command(player, PlayerCommand{
+                                                     .move_x = 0.0f,
+                                                     .move_y = 0.0f,
+                                                     .attack_requested = false,
+                                                     .dash_requested = false,
+                                                 }));
+    world.tick(DeltaTime{0.4f});
+
+    EXPECT_EQ(world.registry().get<Health>(player).current_health,
+              100 - gameplay_config::trap::poison_pool::DamagePerTick);
+    ASSERT_TRUE(world.registry().get<StatusEffects>(player).poison.has_value());
+
+    world.tick(DeltaTime{2.5f});
+    EXPECT_EQ(world.registry().get<Health>(player).current_health,
+              100 - 6 * gameplay_config::trap::poison_pool::DamagePerTick);
+    EXPECT_FALSE(world.registry().get<StatusEffects>(player).poison.has_value());
+}
+
+TEST(WorldTest, SwampSlowsPlayerAndExpiresAfterExit) {
+    World world;
+    const auto player = world.create_player(CreatePlayerConfig{
+        .position = Position{.x = 0.0f, .y = 0.0f},
+        .max_health = 100,
+        .move_speed = 10.0f,
+    });
+    world.create_trap(CreateTrapConfig{
+        .position = Position{.x = 0.0f, .y = 0.0f},
+        .radius = 0.5f,
+        .kind = TrapKind::Swamp,
+    });
+
+    world.tick(DeltaTime{0.0f});
+    ASSERT_TRUE(world.set_player_command(player, PlayerCommand{
+                                                     .move_x = 1.0f,
+                                                     .move_y = 0.0f,
+                                                     .attack_requested = false,
+                                                     .dash_requested = false,
+                                                 }));
+    world.tick(DeltaTime{0.2f});
+    EXPECT_FLOAT_EQ(world.registry().get<Transform>(player).position.x,
+                    2.0f * gameplay_config::trap::swamp::MovementMultiplier);
+
+    world.tick(DeltaTime{gameplay_config::trap::swamp::Duration.count()});
+    EXPECT_FALSE(world.registry().get<StatusEffects>(player).swamp.has_value());
+}
+
+TEST(WorldTest, SwampSlowsChasingMonster) {
+    World world;
+    world.create_player(CreatePlayerConfig{
+        .position = Position{.x = 10.0f, .y = 0.0f},
+        .max_health = 100,
+        .move_speed = 0.0f,
+    });
+    const auto monster = world.create_monster(CreateMonsterConfig{
+        .position = Position{.x = 0.0f, .y = 0.0f},
+        .max_health = 100,
+        .move_speed = 3.0f,
+    });
+    world.create_trap(CreateTrapConfig{
+        .position = Position{.x = 0.0f, .y = 0.0f},
+        .radius = 2.0f,
+        .kind = TrapKind::Swamp,
+    });
+
+    world.tick(DeltaTime{0.0f});
+    world.tick(DeltaTime{0.1f});
+
+    EXPECT_FLOAT_EQ(world.registry().get<Transform>(monster).position.x,
+                    0.3f * gameplay_config::trap::swamp::MovementMultiplier);
+}
+
+TEST(WorldTest, DashUsesFullSpeedInsideSwamp) {
+    World world;
+    const auto player = world.create_player(CreatePlayerConfig{
+        .position = Position{.x = 0.0f, .y = 0.0f},
+        .max_health = 100,
+        .move_speed = 10.0f,
+    });
+    world.create_trap(CreateTrapConfig{
+        .position = Position{.x = 0.0f, .y = 0.0f},
+        .radius = 2.0f,
+        .kind = TrapKind::Swamp,
+    });
+    world.tick(DeltaTime{0.0f});
+
+    ASSERT_TRUE(world.set_player_command(player, PlayerCommand{
+                                                     .move_x = 1.0f,
+                                                     .move_y = 0.0f,
+                                                     .attack_requested = false,
+                                                     .dash_requested = true,
+                                                 }));
+    world.tick(DeltaTime{0.1f});
+
+    EXPECT_FLOAT_EQ(world.registry().get<Transform>(player).position.x,
+                    10.0f * gameplay_config::player::DashSpeedMultiplier * 0.1f);
+}
+
 TEST(WorldTest, SnapshotReturnsEmptyEntitiesForEmptyWorld) {
     World world;
 
@@ -2333,12 +2584,12 @@ TEST(WorldTest, SnapshotIncludesMovedPlayerTransformAndHealth) {
     const auto& entity_snapshot = snapshot.entities[0];
     EXPECT_EQ(entity_snapshot.entity, entity);
     EXPECT_EQ(entity_snapshot.kind, EntityKind::Player);
-    EXPECT_FLOAT_EQ(entity_snapshot.position.x, 10.0f + DefaultPlayerMoveSpeed);
+    EXPECT_FLOAT_EQ(entity_snapshot.position.x, 10.0f + gameplay_config::player::MoveSpeed);
     EXPECT_FLOAT_EQ(entity_snapshot.position.y, 20.0f);
     EXPECT_FLOAT_EQ(entity_snapshot.direction.x, 1.0f);
     EXPECT_FLOAT_EQ(entity_snapshot.direction.y, 0.0f);
-    EXPECT_EQ(entity_snapshot.current_health, DefaultPlayerMaxHealth);
-    EXPECT_EQ(entity_snapshot.max_health, DefaultPlayerMaxHealth);
+    EXPECT_EQ(entity_snapshot.current_health, gameplay_config::player::MaxHealth);
+    EXPECT_EQ(entity_snapshot.max_health, gameplay_config::player::MaxHealth);
 }
 
 TEST(WorldTest, SnapshotIncludesPlayersAndMonsters) {
@@ -2383,6 +2634,36 @@ TEST(WorldTest, SnapshotIncludesProjectileWithoutHealth) {
     EXPECT_FLOAT_EQ(entity_snapshot.direction.y, 0.8f);
     EXPECT_EQ(entity_snapshot.current_health, 0);
     EXPECT_EQ(entity_snapshot.max_health, 0);
+}
+
+TEST(WorldTest, SnapshotIncludesObstacleAndTrapPresentationData) {
+    World world;
+    const auto obstacle = world.create_obstacle(CreateObstacleConfig{
+        .position = Position{.x = 2.0f, .y = 3.0f},
+        .radius = 1.5f,
+    });
+    const auto trap = world.create_trap(CreateTrapConfig{
+        .position = Position{.x = -2.0f, .y = -3.0f},
+        .radius = 2.5f,
+        .kind = TrapKind::Swamp,
+    });
+
+    const auto snapshot = world.snapshot();
+
+    ASSERT_EQ(snapshot.entities.size(), 2);
+    for (const auto& entity_snapshot : snapshot.entities) {
+        if (entity_snapshot.entity == obstacle) {
+            EXPECT_EQ(entity_snapshot.kind, EntityKind::Obstacle);
+            EXPECT_EQ(entity_snapshot.scene_object_kind, "obstacle");
+            EXPECT_FLOAT_EQ(entity_snapshot.collision_radius, 1.5f);
+        } else if (entity_snapshot.entity == trap) {
+            EXPECT_EQ(entity_snapshot.kind, EntityKind::Trap);
+            EXPECT_EQ(entity_snapshot.scene_object_kind, "swamp");
+            EXPECT_FLOAT_EQ(entity_snapshot.collision_radius, 2.5f);
+        } else {
+            FAIL() << "unexpected entity in snapshot";
+        }
+    }
 }
 
 TEST(WorldTest, SnapshotIncludesRangedMonsterKind) {

@@ -21,6 +21,6 @@ void battle::ecs::projectile_range_system(World& world, DeltaTime delta_seconds)
         }
     }
     for (Entity entity : entities_to_erase) {
-        world.registry().destroy(entity);
+        world.destroy_entity(entity);
     }
 }

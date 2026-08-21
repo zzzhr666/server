@@ -6,6 +6,7 @@
 #include "blessing_config.hpp"
 #include "blessing_helpers.hpp"
 #include "ecs/world.hpp"
+#include "gameplay/gameplay_config.hpp"
 
 namespace {
     std::vector<battle::ecs::Entity> find_chain_lightning_targets(const battle::ecs::World& world,
@@ -85,7 +86,7 @@ void battle::ecs::pre_damage_blessing_system(World& world, DeltaTime) {
         }
         const auto targets = find_chain_lightning_targets(world, event.context.owner, event.target,
                                                           chain_lightning_target_count(blessing->level),
-                                                          ChainLightningConfig::JumpRadius);
+                                                          gameplay_config::blessing::chain_lightning::JumpRadius);
         if (targets.empty()) {
             continue;
         }

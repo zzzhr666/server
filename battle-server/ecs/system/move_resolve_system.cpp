@@ -34,6 +34,9 @@ void battle::ecs::move_resolve_system(World& world, DeltaTime) {
                 movement_multiplier = attack->movement_multiplier;
             }
         }
+        if (auto* effect = world.registry().try_get<StatusEffects>(entity); effect && effect->swamp.has_value()) {
+            movement_multiplier *= effect->swamp.value().movement_multiplier;
+        }
         velocity->x = direction_x * stats->move_speed * movement_multiplier;
         velocity->y = direction_y * stats->move_speed * movement_multiplier;
     }

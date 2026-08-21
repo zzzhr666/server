@@ -18,11 +18,18 @@ void battle::ecs::monster_ai_system(World& world, DeltaTime) {
         if (attack_request) {
             attack_request->requested = false;
         }
+        float movement_multiplier = 1.0f;
+
         const auto status_effects = world.registry().try_get<StatusEffects>(entity);
-        if (status_effects && status_effects->freeze.has_value()) {
-            velocity->x = 0.0f;
-            velocity->y = 0.0f;
-            continue;
+        if (status_effects) {
+            if (status_effects->freeze.has_value()) {
+                velocity->x = 0.0f;
+                velocity->y = 0.0f;
+                continue;
+            }
+            if (status_effects->swamp.has_value()) {
+                movement_multiplier *= status_effects->swamp.value().movement_multiplier;
+            }
         }
         const auto* attack_state = world.registry().try_get<AttackState>(entity);
         if (attack_state && attack_state->phase != AttackPhase::Idle) {
@@ -68,10 +75,11 @@ void battle::ecs::monster_ai_system(World& world, DeltaTime) {
         }
         const float direction_x = delta_x / distance;
         const float direction_y = delta_y / distance;
+
         if (const auto* kiting_ai = world.registry().try_get<KitingAI>(entity); kiting_ai && distance < kiting_ai->
             retreat_distance) {
-            velocity->x = -direction_x * stats->move_speed;
-            velocity->y = -direction_y * stats->move_speed;
+            velocity->x = -direction_x * stats->move_speed * movement_multiplier;
+            velocity->y = -direction_y * stats->move_speed * movement_multiplier;
             continue;
         }
         transform->direction = {.x = direction_x, .y = direction_y};
@@ -82,7 +90,7 @@ void battle::ecs::monster_ai_system(World& world, DeltaTime) {
             continue;
         }
 
-        velocity->x = delta_x / distance * stats->move_speed;
-        velocity->y = delta_y / distance * stats->move_speed;
+        velocity->x = delta_x / distance * stats->move_speed * movement_multiplier;
+        velocity->y = delta_y / distance * stats->move_speed * movement_multiplier;
     }
 }

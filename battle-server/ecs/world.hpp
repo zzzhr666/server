@@ -1,6 +1,7 @@
 #pragma once
 
 #include <random>
+#include <string>
 
 
 #include "entity/entity.hpp"
@@ -9,48 +10,51 @@
 #include "spatial_index.hpp"
 #include "system/system_scheduler.hpp"
 #include "time.hpp"
+#include "gameplay/trap_kind.hpp"
+#include "gameplay/gameplay_config.hpp"
 
 
 namespace battle::ecs {
     /// @brief 伤害事件缓冲区的初始预留容量，避免战斗中频繁扩容。
     constexpr std::size_t InitialDamageEventCount = 256;
-    constexpr int DefaultPlayerMaxHealth = 1000;
-    constexpr float DefaultPlayerMoveSpeed = 11.0f;
-    constexpr int DefaultPlayerAttackDamage = 23;
-    constexpr float DefaultPlayerAttackRange = 3.0f;
-    constexpr DeltaTime DefaultPlayerAttackCooldown{0.24f};
-    constexpr float DefaultPlayerDashSpeedMultiplier = 25.0f;
-    constexpr DeltaTime DefaultPlayerDashCooldown{1.0f};
-
-    constexpr float DefaultCharacterCollisionRadius{0.5f};
 
     constexpr CollisionMask PlayerCollisionMask{
-        CollisionCategory::Player | CollisionCategory::Monster | CollisionCategory::MonsterProjectile
+        CollisionCategory::Player | CollisionCategory::Monster | CollisionCategory::MonsterProjectile |
+        CollisionCategory::Obstacle
     };
     constexpr CollisionMask MonsterCollisionMask{
-        CollisionCategory::Monster | CollisionCategory::PlayerProjectile | CollisionCategory::Player
+        CollisionCategory::Monster | CollisionCategory::PlayerProjectile
+        | CollisionCategory::Player | CollisionCategory::Obstacle
     };
     constexpr CollisionMask PlayerProjectileCollisionMask{
-        static_cast<CollisionMask>(CollisionCategory::Monster)
+        CollisionCategory::Monster | CollisionCategory::Obstacle
     };
     constexpr CollisionMask MonsterProjectileCollisionMask{
-        static_cast<CollisionMask>(CollisionCategory::Player)
+        CollisionCategory::Player | CollisionCategory::Obstacle
+    };
+    constexpr CollisionMask ObstacleCollisionMask{
+        CollisionCategory::Player | CollisionCategory::Monster |
+        CollisionCategory::PlayerProjectile | CollisionCategory::MonsterProjectile
+    };
+
+    constexpr CollisionMask TrapCollisionMask{
+        static_cast<CollisionMask>(CollisionCategory::Player) | static_cast<CollisionMask>(CollisionCategory::Monster)
     };
 
     /// @brief 创建玩家实体时写入的基础组件配置。
     struct CreatePlayerConfig {
         Position position{.x = 0.0f, .y = 0.0f};
-        int max_health = DefaultPlayerMaxHealth;
-        float move_speed = DefaultPlayerMoveSpeed;
+        int max_health = gameplay_config::player::MaxHealth;
+        float move_speed = gameplay_config::player::MoveSpeed;
         AttackDefinition attack{
             .kind = AttackKind::Melee,
-            .damage = DefaultPlayerAttackDamage,
-            .range = DefaultPlayerAttackRange,
-            .cooldown_seconds = DefaultPlayerAttackCooldown,
+            .damage = gameplay_config::player::AttackDamage,
+            .range = gameplay_config::player::AttackRange,
+            .cooldown_seconds = gameplay_config::player::AttackCooldown,
             .projectile_speed = 0.0f,
-            .projectile_hit_radius = DefaultProjectileHitRadius,
+            .projectile_hit_radius = gameplay_config::combat::DefaultProjectileHitRadius,
         };
-        float collision_radius = DefaultCharacterCollisionRadius;
+        float collision_radius = gameplay_config::combat::DefaultCharacterCollisionRadius;
     };
 
     /// @brief 创建怪物实体时写入的种类、属性和攻击配置。
@@ -61,14 +65,14 @@ namespace battle::ecs {
         float move_speed{};
         AttackDefinition attack{
             .kind = AttackKind::Melee,
-            .damage = 10,
-            .range = 1.0f,
-            .cooldown_seconds = DeltaTime{1.0f},
+            .damage = gameplay_config::monster::melee::AttackDamage,
+            .range = gameplay_config::monster::melee::AttackRange,
+            .cooldown_seconds = gameplay_config::monster::melee::AttackCooldown,
             .projectile_speed = 0.0f,
-            .projectile_hit_radius = DefaultProjectileHitRadius,
+            .projectile_hit_radius = gameplay_config::combat::DefaultProjectileHitRadius,
         };
 
-        float collision_radius = DefaultCharacterCollisionRadius;
+        float collision_radius = gameplay_config::combat::DefaultCharacterCollisionRadius;
         std::optional<KitingAI> kiting_ai;
     };
 
@@ -94,6 +98,8 @@ namespace battle::ecs {
         Player,
         Monster,
         Projectile,
+        Obstacle,
+        Trap,
     };
 
     /// @brief 供运行时序列化的单个实体权威状态。
@@ -105,6 +111,8 @@ namespace battle::ecs {
         int current_health{};
         int max_health{};
         std::optional<MonsterKind> monster_kind;
+        float collision_radius{};
+        std::string scene_object_kind;
     };
 
     /// @brief 单次 tick 后供外部读取的世界快照。
@@ -119,8 +127,21 @@ namespace battle::ecs {
         float speed{};
         int damage{};
         float max_distance{};
-        float hit_radius{DefaultProjectileHitRadius};
+        float hit_radius{gameplay_config::combat::DefaultProjectileHitRadius};
         CombatContext context;
+    };
+
+    /// @brief 创建静态圆形障碍物所需的房间布局数据。
+    struct CreateObstacleConfig {
+        Position position{};
+        float radius{};
+    };
+
+    /// @brief 创建可通行圆形陷阱所需的房间布局数据。
+    struct CreateTrapConfig {
+        Position position{};
+        float radius{};
+        TrapKind kind{};
     };
 
     /// @brief World 注册的全部组件类型，组件池只能按此集合访问。
@@ -147,7 +168,8 @@ namespace battle::ecs {
         Projectile,
         KitingAI,
         AttackState,
-        Collider
+        Collider,
+        Trap
     >;
 
     /// @brief World 管理 ECS 实体、事件缓冲与固定顺序的战斗系统调度。
@@ -169,6 +191,12 @@ namespace battle::ecs {
 
         /// @brief 创建继承攻击上下文的投射物实体。
         Entity create_projectile(CreateProjectileConfig config);
+
+        /// @brief 创建阻挡角色移动的静态障碍物实体。
+        Entity create_obstacle(CreateObstacleConfig config);
+
+        /// @brief 创建作用于玩家和怪物、但不阻挡移动的陷阱实体。
+        Entity create_trap(CreateTrapConfig config);
 
         /// @brief 返回闭区间 [1, 100] 的随机百分比，供可复现的随机玩法使用。
         int random_percent() {
@@ -284,6 +312,8 @@ namespace battle::ecs {
         [[nodiscard]] const SpatialIndex& spatial_index() const noexcept {
             return spatial_index_;
         }
+
+        bool relocate_character(Entity entity, const Position& position);
 
     private:
         bool set_move_request_(Entity entity, float x, float y);

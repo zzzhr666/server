@@ -2,6 +2,8 @@
 
 #include <gtest/gtest.h>
 
+#include "gameplay/gameplay_config.hpp"
+
 namespace battle {
 namespace {
 
@@ -40,10 +42,10 @@ TEST(SpawnPlannerTest, PlayerSpawnUsesTunedStatsWithoutReducingHealth) {
 
     auto spawn = planner.player_spawn(0);
 
-    EXPECT_EQ(spawn.max_health, 1000);
-    EXPECT_FLOAT_EQ(spawn.move_speed, 11.0f);
-    EXPECT_EQ(spawn.attack.damage, 23);
-    EXPECT_FLOAT_EQ(spawn.attack.cooldown_seconds.count(), 0.34f);
+    EXPECT_EQ(spawn.max_health, gameplay_config::player::MaxHealth);
+    EXPECT_FLOAT_EQ(spawn.move_speed, gameplay_config::player::MoveSpeed);
+    EXPECT_EQ(spawn.attack.damage, gameplay_config::hero::fire::AttackDamage);
+    EXPECT_EQ(spawn.attack.cooldown_seconds, gameplay_config::hero::fire::AttackCooldown);
 }
 
 TEST(SpawnPlannerTest, MonsterSpawnPlacesMonstersOnCircle) {
