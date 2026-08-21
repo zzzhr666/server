@@ -21,6 +21,21 @@ namespace battle::ecs {
     constexpr float DefaultPlayerDashSpeedMultiplier = 25.0f;
     constexpr DeltaTime DefaultPlayerDashCooldown{1.0f};
 
+    constexpr float DefaultCharacterCollisionRadius{0.5f};
+
+    constexpr CollisionMask PlayerCollisionMask{
+        CollisionCategory::Player | CollisionCategory::Monster | CollisionCategory::MonsterProjectile
+    };
+    constexpr CollisionMask MonsterCollisionMask{
+        CollisionCategory::Monster | CollisionCategory::PlayerProjectile | CollisionCategory::Player
+    };
+    constexpr CollisionMask PlayerProjectileCollisionMask{
+        static_cast<CollisionMask>(CollisionCategory::Monster)
+    };
+    constexpr CollisionMask MonsterProjectileCollisionMask{
+        static_cast<CollisionMask>(CollisionCategory::Player)
+    };
+
     /// @brief 创建玩家实体时写入的基础组件配置。
     struct CreatePlayerConfig {
         Position position{.x = 0.0f, .y = 0.0f};
@@ -34,6 +49,7 @@ namespace battle::ecs {
             .projectile_speed = 0.0f,
             .projectile_hit_radius = DefaultProjectileHitRadius,
         };
+        float collision_radius = DefaultCharacterCollisionRadius;
     };
 
     /// @brief 创建怪物实体时写入的种类、属性和攻击配置。
@@ -50,6 +66,8 @@ namespace battle::ecs {
             .projectile_speed = 0.0f,
             .projectile_hit_radius = DefaultProjectileHitRadius,
         };
+
+        float collision_radius = DefaultCharacterCollisionRadius;
         std::optional<KitingAI> kiting_ai;
     };
 
@@ -127,7 +145,8 @@ namespace battle::ecs {
         StatusEffects,
         Projectile,
         KitingAI,
-        AttackState
+        AttackState,
+        Collider
     >;
 
     /// @brief World 管理 ECS 实体、事件缓冲与固定顺序的战斗系统调度。
@@ -238,7 +257,7 @@ namespace battle::ecs {
         }
 
         [[nodiscard]] bool is_living_player(Entity entity) const {
-            return registry_.pool<PlayerController>().try_get(entity);
+            return registry_.has<PlayerController>(entity);
         }
 
         [[nodiscard]] bool has_living_monsters() const {

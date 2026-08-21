@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstdint>
 #include <optional>
 #include <vector>
 
@@ -254,12 +255,55 @@ namespace battle::ecs {
         int damage{};
         float current_distance{};
         float max_distance{};
-        float hit_radius{DefaultProjectileHitRadius};
         CombatContext context;
     };
 
     /// @brief 远程怪物保持安全距离的 AI 配置。
     struct KitingAI {
         float retreat_distance;
+    };
+
+    enum class CollisionShape {
+        Circle,
+    };
+
+    enum class CollisionCategory : std::uint32_t {
+        Player = 1u << 0,
+        Monster = 1u << 1,
+        PlayerProjectile = 1u << 2,
+        MonsterProjectile = 1u << 3,
+    };
+
+    using CollisionMask = std::uint32_t;
+
+    constexpr CollisionMask operator|(CollisionCategory lhs, CollisionCategory rhs) {
+        return static_cast<CollisionMask>(lhs) | static_cast<CollisionMask>(rhs);
+    }
+
+    constexpr CollisionMask operator|(CollisionMask lhs, CollisionCategory rhs) {
+        return lhs | static_cast<CollisionMask>(rhs);
+    }
+
+    constexpr CollisionMask operator|(CollisionCategory lhs, CollisionMask rhs) {
+        return static_cast<CollisionMask>(lhs) | rhs;
+    }
+
+    constexpr CollisionMask operator&(CollisionCategory lhs, CollisionCategory rhs) {
+        return static_cast<CollisionMask>(lhs) & static_cast<CollisionMask>(rhs);
+    }
+
+    constexpr CollisionMask operator&(CollisionMask lhs, CollisionCategory rhs) {
+        return lhs & static_cast<CollisionMask>(rhs);
+    }
+
+    constexpr CollisionMask operator&(CollisionCategory lhs, CollisionMask rhs) {
+        return static_cast<CollisionMask>(lhs) & rhs;
+    }
+
+    struct Collider {
+        CollisionShape shape;
+        float radius;
+        CollisionCategory category;
+        CollisionMask collision_mask;
     };
 }

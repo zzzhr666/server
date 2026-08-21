@@ -68,6 +68,8 @@ battle::ecs::Entity battle::ecs::World::create_player(CreatePlayerConfig config)
     registry_.emplace<BlessingInventory>(entity);
     registry_.emplace<StatusEffects>(entity);
     registry_.emplace<AttackState>(entity);
+    registry_.emplace<Collider>(entity, CollisionShape::Circle, config.collision_radius,
+                                CollisionCategory::Player, PlayerCollisionMask);
     return entity;
 }
 
@@ -85,6 +87,8 @@ battle::ecs::Entity battle::ecs::World::create_monster(CreateMonsterConfig confi
     registry_.emplace<MonsterIdentity>(entity, config.kind);
     registry_.emplace<StatusEffects>(entity);
     registry_.emplace<AttackState>(entity);
+    registry_.emplace<Collider>(entity, CollisionShape::Circle, config.collision_radius,
+                                CollisionCategory::Monster, MonsterCollisionMask);
     if (config.kiting_ai.has_value()) {
         registry_.emplace<KitingAI>(entity, config.kiting_ai.value());
     }
@@ -96,9 +100,15 @@ battle::ecs::Entity battle::ecs::World::create_projectile(CreateProjectileConfig
     config.context.emitter = entity;
     registry_.emplace<Transform>(entity, config.position, config.direction);
     registry_.emplace<Velocity>(entity, config.direction.x * config.speed, config.direction.y * config.speed);
-    registry_.emplace<Projectile>(entity, config.damage, 0.0f, config.max_distance, config.hit_radius,
-                                  config.context);
+    registry_.emplace<Projectile>(entity, config.damage, 0.0f, config.max_distance, config.context);
 
+    if (registry_.has<PlayerController>(config.context.owner)) {
+        registry_.emplace<Collider>(entity, CollisionShape::Circle, config.hit_radius,
+                                    CollisionCategory::PlayerProjectile, PlayerProjectileCollisionMask);
+    } else if (registry_.has<MonsterController>(config.context.owner)) {
+        registry_.emplace<Collider>(entity, CollisionShape::Circle, config.hit_radius,
+                                    CollisionCategory::MonsterProjectile, MonsterProjectileCollisionMask);
+    }
     return entity;
 }
 
