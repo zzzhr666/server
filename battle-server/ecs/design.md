@@ -117,13 +117,15 @@ AttackState / Projectile
 
 ## 房间、升级与祝福
 
+当前阶段已经打通战斗房的局内流程：玩家进入房间后完成战斗、获得经验并处理祝福选择，随后选择出口进入下一房间；最终房间清空后进入胜利，所有玩家死亡后进入失败。奖励房和永久属性增益尚未纳入当前阶段，后续实现路径见项目根目录的玩法路线图。
+
 `DungeonRoomGraph` 定义房间连接和起始房间，`RoomLayoutCatalog` 定义玩家出生点、怪物出生点、障碍物和陷阱。`RoomRuntime` 按以下阶段推进：
 
 ```text
 EnteringRoom -> Fighting -> RoomCleared -> ChoosingBlessing -> ChoosingExit -> Transitioning
 ```
 
-进入房间时，`BattleInstance` 根据布局创建怪物、障碍物和陷阱；切房时先销毁旧房间的静态实体，再按新布局重建。`BattleInstance` 仅在 `Fighting` 阶段推进 World 并消费 kill events；击杀按怪物种类授予经验。升级会增加待选择次数，清空房间后进入祝福选择：
+进入房间时，`BattleInstance` 根据布局创建怪物、障碍物和陷阱；切房时先销毁旧房间的静态实体，再按新布局重建。重建过程失败会恢复旧地图、静态实体和玩家位置，避免房间状态只更新了一半。`BattleInstance` 仅在 `Fighting` 阶段推进 World 并消费 kill events；击杀按怪物种类授予经验。升级会增加待选择次数，清空房间后进入祝福选择：
 
 ![奖励选择状态](../../docs/diagrams/reward-selection-state.svg)
 

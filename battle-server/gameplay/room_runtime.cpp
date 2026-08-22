@@ -59,6 +59,7 @@ bool battle::RoomRuntime::select_exit(DungeonRoomID next_room_id) {
 }
 
 bool battle::RoomRuntime::complete_transition() {
+    // 只有切房事务完成后才清理下一房间的待生成配置。
     if (!flow_.complete_transition()) {
         return false;
     }
