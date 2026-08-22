@@ -277,6 +277,13 @@ namespace battle::ecs {
         float retreat_distance;
     };
 
+    struct PathFollowing {
+        Entity target{};
+        std::vector<Position> waypoints;
+        std::size_t current_waypoint{};
+        Position target_position{};
+    };
+
     /// @brief 陷阱类型及上一 tick 的范围内目标，用于区分尖刺进入与持续停留。
     struct Trap {
         TrapKind kind{};

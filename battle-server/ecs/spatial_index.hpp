@@ -6,9 +6,9 @@
 
 #include "component/components.hpp"
 #include "entity/entity.hpp"
+#include "grid_geometry.hpp"
 
 namespace battle::ecs {
-    constexpr float DefaultCellSize = 5.0f;
     class SpatialIndex {
     public:
         explicit SpatialIndex(float cell_size);
@@ -28,21 +28,11 @@ namespace battle::ecs {
             std::vector<Entity> entities;
         };
 
-        struct CellCoordinate {
-            int x;
-            int y;
-            bool operator==(const CellCoordinate&) const = default;
-        };
-
-        struct CellCoordinateHash {
-            std::size_t operator()(const CellCoordinate& coordinate) const noexcept;
-        };
-
-        [[nodiscard]] std::vector<CellCoordinate> cells_for_aabb_(Position min_corner,
-                                                                 Position max_corner) const;
+        [[nodiscard]] std::vector<GridCoordinate> cells_for_aabb_(Position min_corner,
+                                                                   Position max_corner) const;
 
         float cell_size_;
-        std::unordered_map<CellCoordinate, Cell, CellCoordinateHash> cells_;
-        std::unordered_map<Entity, std::vector<CellCoordinate>> entity_cells_;
+        std::unordered_map<GridCoordinate, Cell, GridCoordinateHash> cells_;
+        std::unordered_map<Entity, std::vector<GridCoordinate>> entity_cells_;
     };
 }

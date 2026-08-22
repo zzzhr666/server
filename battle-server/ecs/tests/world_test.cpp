@@ -1058,7 +1058,10 @@ TEST(WorldTest, BurnOnHitAddsBurnStatusToTarget) {
 }
 
 TEST(WorldTest, FreezeOnHitAddsFreezeStatusToTarget) {
-    World world({blessing_trigger_system}, DefaultWorldBounds, 5);
+    World world({blessing_trigger_system}, MapConfig{
+                    .bounds = DefaultWorldBounds,
+                    .cell_size = 5.0f,
+                }, 5);
     auto player = world.create_player(default_player_config());
     auto monster = world.create_monster(default_monster_config());
     world.registry().get<BlessingInventory>(player).blessings.emplace_back(BlessingStack{
@@ -1101,7 +1104,10 @@ TEST(WorldTest, BlessingTriggerDoesNotAddStatusWithoutMatchingBlessing) {
 }
 
 TEST(WorldTest, FreezeOnHitKeepsLongerExistingDuration) {
-    World world({blessing_trigger_system}, DefaultWorldBounds, 5);
+    World world({blessing_trigger_system}, MapConfig{
+                    .bounds = DefaultWorldBounds,
+                    .cell_size = 5.0f,
+                }, 5);
     auto player = world.create_player(default_player_config());
     auto monster = world.create_monster(default_monster_config());
     world.registry().get<BlessingInventory>(player).blessings.emplace_back(BlessingStack{
@@ -1188,7 +1194,10 @@ TEST(WorldTest, FreezeStatusExpiresAndIsRemoved) {
 }
 
 TEST(WorldTest, CriticalStrikeUsesConfiguredDamagePercent) {
-    World world({damage_modify_system, damage_system}, DefaultWorldBounds, 5);
+    World world({damage_modify_system, damage_system}, MapConfig{
+                    .bounds = DefaultWorldBounds,
+                    .cell_size = 5.0f,
+                }, 5);
     auto player = world.create_player(default_player_config());
     auto monster = world.create_monster(default_monster_config());
     world.registry().get<BlessingInventory>(player).blessings.emplace_back(BlessingStack{
@@ -1453,11 +1462,14 @@ TEST(WorldTest, TickRestoresFullMovementAfterAttackEnds) {
 }
 
 TEST(WorldTest, TickClampsPlayerPositionToWorldBounds) {
-    World world(WorldBounds{
-        .min_x = -1.0f,
-        .max_x = 1.0f,
-        .min_y = -1.0f,
-        .max_y = 1.0f,
+    World world(MapConfig{
+        .bounds = WorldBounds{
+            .min_x = -1.0f,
+            .max_x = 1.0f,
+            .min_y = -1.0f,
+            .max_y = 1.0f,
+        },
+        .cell_size = DefaultGridCellSize,
     });
     auto entity = world.create_player(CreatePlayerConfig{
         .position = Position{.x = 0.0f, .y = 0.0f},
@@ -1907,7 +1919,9 @@ TEST(WorldTest, TickMonsterDoesNotDamagePlayerOutsideAttackRange) {
     world.tick(DeltaTime{1.0f});
 
     EXPECT_EQ(world.registry().get<Health>(player).current_health, 100);
-    EXPECT_FLOAT_EQ(world.registry().get<Transform>(monster).position.x, 1.0f);
+    const auto& transform = world.registry().get<Transform>(monster);
+    EXPECT_GT(transform.position.x, 0.0f);
+    EXPECT_LT(transform.position.x, 1.0f);
     EXPECT_FALSE(world.registry().get<AttackRequest>(monster).requested);
 }
 
@@ -2002,10 +2016,10 @@ TEST(WorldTest, TickMovesMonsterTowardPlayerUsingMonsterMoveSpeed) {
     world.tick(DeltaTime{1.0f});
 
     const auto& transform = world.registry().get<Transform>(monster);
-    EXPECT_FLOAT_EQ(transform.position.x, 3.0f);
-    EXPECT_FLOAT_EQ(transform.position.y, 0.0f);
-    EXPECT_FLOAT_EQ(transform.direction.x, 1.0f);
-    EXPECT_FLOAT_EQ(transform.direction.y, 0.0f);
+    EXPECT_NEAR(std::hypot(transform.position.x, transform.position.y), 3.0f,
+                0.001f);
+    EXPECT_GT(transform.position.x, 0.0f);
+    EXPECT_GT(transform.direction.x, 0.0f);
 }
 
 TEST(WorldTest, TickRangedMonsterRetreatsWhenPlayerIsTooClose) {
@@ -2089,7 +2103,7 @@ TEST(WorldTest, TickMeleeMonsterDoesNotRetreatWithoutKitingAI) {
 
     world.tick(DeltaTime{1.0f});
 
-    EXPECT_FLOAT_EQ(world.registry().get<Transform>(monster).position.x, 1.0f);
+    EXPECT_LT(world.registry().get<Transform>(monster).position.x, 4.0f);
     EXPECT_FALSE(world.registry().has<KitingAI>(monster));
 }
 
@@ -2168,16 +2182,21 @@ TEST(WorldTest, TickMonsterMovesAfterFreezeExpires) {
     world.tick(DeltaTime{1.0f});
 
     EXPECT_FALSE(world.registry().get<StatusEffects>(monster).freeze.has_value());
-    EXPECT_FLOAT_EQ(world.registry().get<Transform>(monster).position.x, 3.0f);
-    EXPECT_FLOAT_EQ(world.registry().get<Transform>(monster).position.y, 0.0f);
+    const auto& transform = world.registry().get<Transform>(monster);
+    EXPECT_NEAR(std::hypot(transform.position.x, transform.position.y), 3.0f,
+                0.001f);
+    EXPECT_GT(transform.position.x, 0.0f);
 }
 
 TEST(WorldTest, TickClampsMonsterPositionToWorldBounds) {
-    World world(WorldBounds{
-        .min_x = -1.0f,
-        .max_x = 1.0f,
-        .min_y = -1.0f,
-        .max_y = 1.0f,
+    World world(MapConfig{
+        .bounds = WorldBounds{
+            .min_x = -1.0f,
+            .max_x = 1.0f,
+            .min_y = -1.0f,
+            .max_y = 1.0f,
+        },
+        .cell_size = DefaultGridCellSize,
     });
     world.create_player(CreatePlayerConfig{
         .position = Position{.x = 10.0f, .y = 0.0f},
@@ -2223,10 +2242,10 @@ TEST(WorldTest, TickMovesMonsterTowardNearestPlayer) {
     world.tick(DeltaTime{1.0f});
 
     const auto& transform = world.registry().get<Transform>(monster);
-    EXPECT_FLOAT_EQ(transform.position.x, 0.0f);
-    EXPECT_FLOAT_EQ(transform.position.y, 2.0f);
-    EXPECT_FLOAT_EQ(transform.direction.x, 0.0f);
-    EXPECT_FLOAT_EQ(transform.direction.y, 1.0f);
+    EXPECT_NEAR(std::hypot(transform.position.x, transform.position.y), 2.0f,
+                0.001f);
+    EXPECT_GT(transform.position.y, transform.position.x);
+    EXPECT_GT(transform.direction.y, transform.direction.x);
 }
 
 TEST(WorldTest, TickDoesNotMoveMonsterWithoutPlayerTarget) {
@@ -2258,8 +2277,9 @@ TEST(WorldTest, TickStopsMonsterWhenPlayerTargetIsDestroyed) {
     world.tick(DeltaTime{1.0f});
 
     const auto& transform = world.registry().get<Transform>(monster);
-    EXPECT_FLOAT_EQ(transform.position.x, 3.0f);
-    EXPECT_FLOAT_EQ(transform.position.y, 0.0f);
+    EXPECT_NEAR(std::hypot(transform.position.x, transform.position.y), 3.0f,
+                0.001f);
+    EXPECT_GT(transform.position.x, 0.0f);
 }
 
 TEST(WorldTest, TickResolvesOverlappingMonsterSpawnWithoutNan) {
@@ -2528,8 +2548,9 @@ TEST(WorldTest, SwampSlowsChasingMonster) {
     world.tick(DeltaTime{0.0f});
     world.tick(DeltaTime{0.1f});
 
-    EXPECT_FLOAT_EQ(world.registry().get<Transform>(monster).position.x,
-                    0.3f * gameplay_config::trap::swamp::MovementMultiplier);
+    const auto& transform = world.registry().get<Transform>(monster);
+    EXPECT_GT(transform.position.x, 0.0f);
+    EXPECT_LT(transform.position.x, 0.3f);
 }
 
 TEST(WorldTest, DashUsesFullSpeedInsideSwamp) {

@@ -2,14 +2,13 @@
 
 #include <algorithm>
 #include <cmath>
-#include <functional>
 #include <unordered_set>
 #include <utility>
 
 namespace {
     float normalize_cell_size(float cell_size) {
         if (!std::isfinite(cell_size) || cell_size <= 0) {
-            return battle::ecs::DefaultCellSize;
+            return battle::ecs::DefaultGridCellSize;
         }
         return cell_size;
     }
@@ -53,7 +52,7 @@ void battle::ecs::SpatialIndex::update(Entity entity, Position position, float r
     if (entity_it->second == cell_coordinates) {
         return;
     }
-    std::vector<CellCoordinate> possible_empty_cells;
+    std::vector<GridCoordinate> possible_empty_cells;
     for (const auto old_coordinate : entity_it->second) {
         auto cell_it = cells_.find(old_coordinate);
         if (cell_it == cells_.end()) {
@@ -85,7 +84,7 @@ bool battle::ecs::SpatialIndex::remove(Entity entity) {
     if (it == entity_cells_.end()) {
         return false;
     }
-    std::vector<CellCoordinate> empty_cells;
+    std::vector<GridCoordinate> empty_cells;
     for (const auto coordinate : it->second) {
         auto cell_it = cells_.find(coordinate);
         if (cell_it == cells_.end()) {
@@ -128,26 +127,20 @@ std::vector<battle::ecs::Entity> battle::ecs::SpatialIndex::query_aabb(Position 
     return result;
 }
 
-std::size_t battle::ecs::SpatialIndex::CellCoordinateHash::operator()(const CellCoordinate& coordinate) const noexcept {
-    const auto packed = (static_cast<std::uint64_t>(static_cast<std::uint32_t>(coordinate.x)) << 32) |
-        static_cast<std::uint32_t>(coordinate.y);
-    return std::hash<std::uint64_t>{}(packed);
-}
-
-std::vector<battle::ecs::SpatialIndex::CellCoordinate> battle::ecs::SpatialIndex::cells_for_aabb_(Position min_corner,
+std::vector<battle::ecs::GridCoordinate> battle::ecs::SpatialIndex::cells_for_aabb_(Position min_corner,
     Position max_corner) const {
-    std::vector<CellCoordinate> cells;
+    std::vector<GridCoordinate> cells;
     if (min_corner.x > max_corner.x) {
         std::swap(min_corner.x, max_corner.x);
     }
     if (min_corner.y > max_corner.y) {
         std::swap(min_corner.y, max_corner.y);
     }
-    const CellCoordinate start{
+    const GridCoordinate start{
         .x = static_cast<int>(std::floor(min_corner.x / cell_size_)),
         .y = static_cast<int>(std::floor(min_corner.y / cell_size_)),
     };
-    const CellCoordinate end{
+    const GridCoordinate end{
         .x = static_cast<int>(std::floor(max_corner.x / cell_size_)),
         .y = static_cast<int>(std::floor(max_corner.y / cell_size_)),
     };

@@ -7,6 +7,9 @@
 #include "entity/entity.hpp"
 #include "component/components.hpp"
 #include "registry.hpp"
+#include "grid_geometry.hpp"
+#include "map_config.hpp"
+#include "navigation.hpp"
 #include "spatial_index.hpp"
 #include "system/system_scheduler.hpp"
 #include "time.hpp"
@@ -75,22 +78,6 @@ namespace battle::ecs {
         float collision_radius = gameplay_config::combat::DefaultCharacterCollisionRadius;
         std::optional<KitingAI> kiting_ai;
     };
-
-    /// @brief World 中实体可活动的二维边界。
-    struct WorldBounds {
-        float min_x;
-        float max_x;
-        float min_y;
-        float max_y;
-    };
-
-    constexpr WorldBounds DefaultWorldBounds{
-        .min_x = -1000.0f,
-        .max_x = 1000.0f,
-        .min_y = -1000.0f,
-        .max_y = 1000.0f,
-    };
-
 
     /// @brief 快照中使用的实体类别。
     enum class EntityKind {
@@ -167,6 +154,7 @@ namespace battle::ecs {
         StatusEffects,
         Projectile,
         KitingAI,
+        PathFollowing,
         AttackState,
         Collider,
         Trap
@@ -177,11 +165,18 @@ namespace battle::ecs {
     /// 系统顺序定义玩法因果关系；调整顺序必须同步更新 ECS 回归测试。
     class World {
     public:
-        explicit World(WorldBounds bounds = DefaultWorldBounds,
-                       std::uint32_t random_seed = std::random_device{}(), float cell_size = DefaultCellSize);
+        explicit World(MapConfig map_config = DefaultMapConfig(),
+                       std::uint32_t random_seed = std::random_device{}());
 
-        World(std::initializer_list<sysFunc> functions, WorldBounds bounds = DefaultWorldBounds,
-              std::uint32_t random_seed = std::random_device{}(), float cell_size = DefaultCellSize);
+        World(std::initializer_list<sysFunc> functions,
+              MapConfig map_config = DefaultMapConfig(),
+              std::uint32_t random_seed = std::random_device{}());
+
+        bool rebuild_navigation(const MapConfig& map_config);
+
+        [[nodiscard]] const MapConfig& map_config() const noexcept {
+            return map_config_;
+        }
 
         /// @brief 按配置创建玩家实体及其必需组件。
         Entity create_player(CreatePlayerConfig config);
@@ -313,6 +308,10 @@ namespace battle::ecs {
             return spatial_index_;
         }
 
+        [[nodiscard]] const NavigationGrid& navigation_grid() const noexcept {
+            return grid_;
+        }
+
         bool relocate_character(Entity entity, const Position& position);
 
     private:
@@ -338,8 +337,10 @@ namespace battle::ecs {
 
         /// @brief 按固定顺序执行玩法系统的调度器。
         SystemScheduler system_scheduler_;
+        MapConfig map_config_;
         WorldBounds bounds_;
         SpatialIndex spatial_index_;
+        NavigationGrid grid_;
 
         std::mt19937 random_engine_;
         std::uniform_int_distribution<int> percent_distribution_;

@@ -35,10 +35,9 @@ void battle::ecs::hit_resolve_system(World& world, DeltaTime) {
                 !are_opposing_characters(*attacker_collider, *target_collider)) {
                 continue;
             }
-            float delta_x = transform->position.x - target_transform->position.x;
-            float delta_y = transform->position.y - target_transform->position.y;
-            float distance = delta_x * delta_x + delta_y * delta_y;
-            if (distance > attack->range * attack->range) {
+            const float distance_squared = battle::ecs::distance_squared(
+                transform->position, target_transform->position);
+            if (distance_squared > attack->range * attack->range) {
                 continue;
             }
             const float to_target_x = target_transform->position.x - transform->position.x;

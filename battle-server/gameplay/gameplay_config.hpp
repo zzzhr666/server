@@ -73,6 +73,9 @@ namespace battle::gameplay_config {
     }
 
     namespace monster {
+        inline constexpr float PathFollowingRefindDistance = 5.0f;
+        inline constexpr float PathFollowingWaypointReachDistance = 0.1f;
+
         namespace melee {
             inline constexpr int Health = 100;
             inline constexpr float MoveSpeed = 3.0f;
@@ -165,17 +168,20 @@ namespace battle::gameplay_config {
     namespace trap {
         namespace spikes {
             inline constexpr int Damage = 25;
+            inline constexpr float CostMultiplier = 1.5f;
         }
 
         namespace poison_pool {
             inline constexpr int DamagePerTick = 6;
             inline constexpr ecs::DeltaTime Duration{3.0f};
             inline constexpr ecs::DeltaTime TickInterval{0.5f};
+            inline constexpr float CostMultiplier = 1.8f;
         }
 
         namespace swamp {
             inline constexpr float MovementMultiplier = 0.35f;
             inline constexpr ecs::DeltaTime Duration{0.25f};
+            inline constexpr float CostMultiplier = 1.2f;
         }
     }
 

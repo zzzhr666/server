@@ -58,8 +58,10 @@ add_library(battle_ecs
         ecs/system/projectile_spawn_system.cpp
         ecs/system/projectile_range_system.cpp
         ecs/system/projectile_hit_system.cpp
+        ecs/grid_geometry.cpp
         ecs/spatial_index.cpp
         ecs/system/trap_system.cpp
+        ecs/navigation.cpp
 )
 add_library(battle_game
         game/room.cpp
@@ -206,6 +208,7 @@ target_link_libraries(battle_server PRIVATE
 
 add_executable(battle_ecs_tests
         ecs/tests/world_test.cpp
+        ecs/tests/navigation_test.cpp
 )
 
 target_link_libraries(battle_ecs_tests PRIVATE

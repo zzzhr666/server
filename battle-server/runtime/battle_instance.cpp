@@ -32,11 +32,46 @@ namespace {
         }
         return valid;
     }
+
+    float get_multiplier(battle::TrapKind trap_kind) noexcept {
+        switch (trap_kind) {
+        case battle::TrapKind::Spikes:
+            return battle::gameplay_config::trap::spikes::CostMultiplier;
+        case battle::TrapKind::PoisonPool:
+            return battle::gameplay_config::trap::poison_pool::CostMultiplier;
+        case battle::TrapKind::Swamp:
+            return battle::gameplay_config::trap::swamp::CostMultiplier;
+        }
+        return battle::ecs::DefaultPassingCost;
+    }
+
+    std::vector<battle::ecs::MapObstacle>
+    to_map_obstacles(const std::vector<battle::RoomObstacle>& obstacles) noexcept {
+        std::vector<battle::ecs::MapObstacle> result;
+        result.reserve(obstacles.size());
+        for (const auto& obstacle : obstacles) {
+            result.emplace_back(obstacle.center, obstacle.radius);
+        }
+        return result;
+    }
+
+    std::vector<battle::ecs::MapCostZone>
+    to_map_cost_zones(const std::vector<battle::RoomTrap>& traps) {
+        std::vector<battle::ecs::MapCostZone> result;
+        result.reserve(traps.size());
+        for (const auto& cost_zone : traps) {
+            result.emplace_back(cost_zone.center, cost_zone.radius, get_multiplier(cost_zone.kind));
+        }
+        return result;
+    }
 }
 
 battle::BattleInstance::BattleInstance(BattleInstanceConfig config)
     : room_name_(std::move(config.room_name)),
-      world_(config.world_bounds),
+      world_(ecs::MapConfig{
+          .bounds = config.world_bounds,
+          .cell_size = ecs::DefaultGridCellSize,
+      }),
       state_(BattleState::Running),
       end_reason_(BattleEndReason::None),
       reward_selection_(gameplay_config::progression::RewardSelectionTime),
@@ -586,6 +621,30 @@ bool battle::BattleInstance::enter_current_room_() {
     if (current_room == nullptr || !room_runtime_.prepare_current_room()) {
         return false;
     }
+    const auto* current_layout = room_layout_catalog_.find_layout(current_room->layout_id);
+    if (current_layout == nullptr) {
+        return false;
+    }
+    const auto old_map_config = world_.map_config();
+    std::vector<ecs::CreateObstacleConfig> old_obstacle_configs;
+    old_obstacle_configs.reserve(active_obstacles_.size());
+    for (const auto entity : active_obstacles_) {
+        const auto* transform = world_.registry().try_get<ecs::Transform>(entity);
+        const auto* collider = world_.registry().try_get<ecs::Collider>(entity);
+        if (transform && collider) {
+            old_obstacle_configs.emplace_back(transform->position, collider->radius);
+        }
+    }
+    std::vector<ecs::CreateTrapConfig> old_trap_configs;
+    old_trap_configs.reserve(active_traps_.size());
+    for (const auto entity : active_traps_) {
+        const auto* transform = world_.registry().try_get<ecs::Transform>(entity);
+        const auto* collider = world_.registry().try_get<ecs::Collider>(entity);
+        const auto* trap = world_.registry().try_get<ecs::Trap>(entity);
+        if (transform && collider && trap) {
+            old_trap_configs.emplace_back(transform->position, collider->radius, trap->kind);
+        }
+    }
     for (const auto old_obstacle : active_obstacles_) {
         world_.destroy_entity(old_obstacle);
     }
@@ -596,16 +655,34 @@ bool battle::BattleInstance::enter_current_room_() {
     active_traps_.clear();
     std::vector<ecs::Entity> spawned_entities;
     std::vector<std::pair<ecs::Entity, ecs::Position>> relocated_players;
-    auto revert = [this, &spawned_entities, &relocated_players]() {
+    auto revert = [this, &spawned_entities, &relocated_players, &old_map_config,
+            &old_obstacle_configs, &old_trap_configs]() {
         for (const auto entity : spawned_entities) {
             world_.destroy_entity(entity);
         }
-        for (auto & [entity, position] : std::views::reverse(relocated_players)) {
+        for (auto& [entity, position] : std::views::reverse(relocated_players)) {
             world_.relocate_character(entity, position);
         }
+        world_.rebuild_navigation(old_map_config);
         active_obstacles_.clear();
         active_traps_.clear();
+        for (const auto& config : old_obstacle_configs) {
+            if (const auto entity = world_.create_obstacle(config); entity != ecs::NullEntity) {
+                active_obstacles_.emplace_back(entity);
+            }
+        }
+        for (const auto& config : old_trap_configs) {
+            if (const auto entity = world_.create_trap(config); entity != ecs::NullEntity) {
+                active_traps_.emplace_back(entity);
+            }
+        }
     };
+    world_.rebuild_navigation({
+        .bounds = current_layout->bounds,
+        .cell_size = ecs::DefaultGridCellSize,
+        .obstacles = to_map_obstacles(current_layout->obstacles),
+        .cost_zones = to_map_cost_zones(current_layout->traps),
+    });
     for (const auto& config : room_runtime_.obstacle_configs()) {
         if (auto entity = world_.create_obstacle(config); entity == ecs::NullEntity) {
             revert();

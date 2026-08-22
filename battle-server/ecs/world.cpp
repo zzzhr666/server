@@ -48,8 +48,9 @@ namespace {
     }
 }
 
-battle::ecs::World::World(WorldBounds bounds, std::uint32_t random_seed, float cell_size)
-    : bounds_(bounds), spatial_index_(cell_size), random_engine_(random_seed), percent_distribution_(1, 100),
+battle::ecs::World::World(MapConfig map_config, std::uint32_t random_seed)
+    : map_config_(std::move(map_config)), bounds_(map_config_.bounds),
+      spatial_index_(map_config_.cell_size), grid_(map_config_), random_engine_(random_seed),
       next_combat_action_id_(1),
       next_combat_effect_id_(1) {
     damage_events_.reserve(InitialDamageEventCount);
@@ -73,11 +74,28 @@ battle::ecs::World::World(WorldBounds bounds, std::uint32_t random_seed, float c
     system_scheduler_.add_system(death_system);
 }
 
-battle::ecs::World::World(std::initializer_list<sysFunc> functions, WorldBounds bounds,
-                          std::uint32_t random_seed, float cell_size)
-    : system_scheduler_(functions), bounds_(bounds), spatial_index_(cell_size), random_engine_(random_seed),
+battle::ecs::World::World(std::initializer_list<sysFunc> functions, MapConfig map_config,
+                          std::uint32_t random_seed)
+    : system_scheduler_(functions), map_config_(std::move(map_config)), bounds_(map_config_.bounds),
+      spatial_index_(map_config_.cell_size), grid_(map_config_),
+      random_engine_(random_seed),
       percent_distribution_(1, 100),
       next_combat_action_id_(1), next_combat_effect_id_(1) {}
+
+bool battle::ecs::World::rebuild_navigation(const MapConfig& map_config) {
+    map_config_ = map_config;
+    bounds_ = map_config_.bounds;
+    grid_ = NavigationGrid{map_config_};
+    spatial_index_ = SpatialIndex{map_config_.cell_size};
+    for (const auto entity : registry_.pool<Collider>().entities()) {
+        const auto* transform = registry_.try_get<Transform>(entity);
+        const auto* collider = registry_.try_get<Collider>(entity);
+        if (transform && collider) {
+            spatial_index_.insert(entity, transform->position, collider->radius);
+        }
+    }
+    return true;
+}
 
 battle::ecs::Entity battle::ecs::World::create_player(CreatePlayerConfig config) {
     auto position = resolve_character_spawn_(config.position, {
@@ -142,6 +160,7 @@ battle::ecs::Entity battle::ecs::World::create_monster(CreateMonsterConfig confi
     registry_.emplace<AttackState>(entity);
     registry_.emplace<Collider>(entity, CollisionShape::Circle, config.collision_radius,
                                 CollisionCategory::Monster, MonsterCollisionMask);
+    registry_.emplace<PathFollowing>(entity);
     if (config.kiting_ai.has_value()) {
         registry_.emplace<KitingAI>(entity, config.kiting_ai.value());
     }

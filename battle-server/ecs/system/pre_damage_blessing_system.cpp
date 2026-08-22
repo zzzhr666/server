@@ -46,9 +46,8 @@ namespace {
                     !battle::ecs::are_opposing_characters(*owner_collider, *candidate_collider)) {
                     continue;
                 }
-                const float delta_x = transform->position.x - anchor_transform->position.x;
-                const float delta_y = transform->position.y - anchor_transform->position.y;
-                const float distance_squared = delta_x * delta_x + delta_y * delta_y;
+                const float distance_squared = battle::ecs::distance_squared(
+                    transform->position, anchor_transform->position);
                 if (distance_squared > max_distance_squared) {
                     continue;
                 }

@@ -24,9 +24,8 @@ void battle::ecs::projectile_hit_system(World& world, DeltaTime) {
                 (target_collider->collision_mask & collider->category) == 0) {
                 continue;
             }
-            const float delta_x = transform->position.x - target_transform->position.x;
-            const float delta_y = transform->position.y - target_transform->position.y;
-            const float distance_squared = delta_x * delta_x + delta_y * delta_y;
+            const float distance_squared = battle::ecs::distance_squared(
+                transform->position, target_transform->position);
             const float radius_sum = collider->radius + target_collider->radius;
             if (distance_squared <= radius_sum * radius_sum) {
                 if (target_collider->category != CollisionCategory::Obstacle) {
