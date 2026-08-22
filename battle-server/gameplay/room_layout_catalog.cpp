@@ -52,6 +52,38 @@ battle::RoomLayoutCatalog battle::default_room_layout_catalog() {
                         .position = ecs::Position{.x = 0.0f, .y = gameplay_config::room::MaxCoordinate},
                     },
                 },
+                .obstacles = {
+                    RoomObstacle{
+                        .obstacle_id = 1,
+                        .center = ecs::Position{.x = -5.0f, .y = 1.0f},
+                        .radius = 1.4f,
+                    },
+                    RoomObstacle{
+                        .obstacle_id = 2,
+                        .center = ecs::Position{.x = 3.0f, .y = 4.0f},
+                        .radius = 1.1f,
+                    },
+                },
+                .traps = {
+                    RoomTrap{
+                        .trap_id = 1,
+                        .center = ecs::Position{.x = -2.0f, .y = 3.0f},
+                        .radius = 1.0f,
+                        .kind = TrapKind::Spikes,
+                    },
+                    RoomTrap{
+                        .trap_id = 2,
+                        .center = ecs::Position{.x = 5.0f, .y = -3.0f},
+                        .radius = 1.5f,
+                        .kind = TrapKind::PoisonPool,
+                    },
+                    RoomTrap{
+                        .trap_id = 3,
+                        .center = ecs::Position{.x = -5.0f, .y = -4.0f},
+                        .radius = 1.7f,
+                        .kind = TrapKind::Swamp,
+                    },
+                },
             },
             RoomLayout{
                 .layout_id = "reward_small",
