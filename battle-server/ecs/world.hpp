@@ -75,7 +75,7 @@ namespace battle::ecs {
             .projectile_hit_radius = gameplay_config::combat::DefaultProjectileHitRadius,
         };
 
-        float collision_radius = gameplay_config::combat::DefaultCharacterCollisionRadius;
+        float collision_radius = gameplay_config::combat::MonsterCollisionRadius;
         std::optional<KitingAI> kiting_ai;
     };
 

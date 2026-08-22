@@ -131,6 +131,15 @@ void battle::BattleInstance::tick(ecs::DeltaTime delta_time) {
         tick_blessing_selection_(delta_time);
         return;
     }
+    if (room_state() == RoomFlowState::ChoosingExit) {
+        world_.tick(delta_time);
+        collect_combat_events_();
+        consume_kill_events_();
+        if (!world_.has_living_players()) {
+            end_battle_(BattleEndReason::Defeat);
+        }
+        return;
+    }
     if (room_state() != RoomFlowState::Fighting) {
         return;
     }

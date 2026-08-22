@@ -9,6 +9,7 @@ namespace battle::gameplay_config {
         inline constexpr float DefaultProjectileHitRadius = 0.5f;
         inline constexpr ecs::DeltaTime DefaultAttackActiveSeconds{0.05f};
         inline constexpr float DefaultCharacterCollisionRadius = 0.5f;
+        inline constexpr float MonsterCollisionRadius = 0.4f;
     }
 
     namespace player {
@@ -80,7 +81,7 @@ namespace battle::gameplay_config {
             inline constexpr int Health = 100;
             inline constexpr float MoveSpeed = 3.0f;
             inline constexpr int AttackDamage = 10;
-            inline constexpr float AttackRange = 0.7f;
+            inline constexpr float AttackRange = 1.2f;
             inline constexpr ecs::DeltaTime AttackCooldown{1.6f};
             inline constexpr ecs::DeltaTime AttackWindup{0.45f};
             inline constexpr ecs::DeltaTime AttackActive{0.1f};

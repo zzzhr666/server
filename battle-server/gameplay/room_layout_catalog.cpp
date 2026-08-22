@@ -44,7 +44,13 @@ battle::RoomLayoutCatalog battle::default_room_layout_catalog() {
                     ecs::Position{.x = 0.0f, .y = gameplay_config::room::PlayerSpawnY},
                 },
                 .monster_spawn_points = {
-                    ecs::Position{.x = gameplay_config::room::MonsterSpawnX, .y = 0.0f},
+                    ecs::Position{.x = -12.0f, .y = 8.0f},
+                    ecs::Position{.x = 0.0f, .y = 10.0f},
+                    ecs::Position{.x = 12.0f, .y = 8.0f},
+                    ecs::Position{.x = -14.0f, .y = 0.0f},
+                    ecs::Position{.x = 14.0f, .y = 0.0f},
+                    ecs::Position{.x = -10.0f, .y = -8.0f},
+                    ecs::Position{.x = 10.0f, .y = -8.0f},
                 },
                 .doors = {
                     RoomDoor{
@@ -115,7 +121,7 @@ battle::RoomLayoutCatalog battle::default_room_layout_catalog() {
                     ecs::Position{.x = 0.0f, .y = gameplay_config::room::PlayerSpawnY},
                 },
                 .monster_spawn_points = {
-                    ecs::Position{.x = gameplay_config::room::MonsterSpawnX, .y = 0.0f},
+                    ecs::Position{.x = 0.0f, .y = 10.0f},
                 },
             },
         },
