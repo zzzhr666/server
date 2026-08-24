@@ -23,6 +23,7 @@ namespace battle {
         RoomObstacleID obstacle_id{};
         ecs::Position center{};
         float radius{};
+        ecs::ObstacleKind kind{};
     };
 
     using RoomTrapID = std::uint8_t;

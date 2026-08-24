@@ -174,6 +174,14 @@ namespace battle {
         int pending_upgrade_choices = 0;
     };
 
+    struct PlayerCombatStatsSnapshot {
+        std::int64_t player_id = 0;
+        int attack_damage = 0;
+        float move_speed = 0.0f;
+        float attack_cooldown_seconds = 0.0f;
+        int armor = 0;
+    };
+
     struct PlayerRoomExitChoiceSnapshot {
         std::int64_t player_id = 0;
         DungeonRoomID room_exit_id = 0;
@@ -183,6 +191,7 @@ namespace battle {
         std::vector<BattleEntitySnapshot> entities;
         ecs::DeltaTime reward_selection_remaining{0.0f};
         std::vector<PlayerProgressSnapshot> player_progress;
+        std::vector<PlayerCombatStatsSnapshot> player_combat_stats;
         std::vector<PlayerBlessingState> player_blessings;
         std::uint64_t server_tick{};
         std::vector<BattleEvent> events;

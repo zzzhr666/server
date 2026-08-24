@@ -108,6 +108,20 @@ battle::RoomLayoutCatalog battle::default_room_layout_catalog() {
                         .position = ecs::Position{.x = 0.0f, .y = gameplay_config::room::MaxCoordinate},
                     },
                 },
+                .obstacles = {
+                    RoomObstacle{
+                        .obstacle_id = 1,
+                        .center = ecs::Position{.x = -5.0f, .y = 2.0f},
+                        .radius = 1.5f,
+                        .kind = ecs::ObstacleKind::RewardFountain,
+                    },
+                    RoomObstacle{
+                        .obstacle_id = 2,
+                        .center = ecs::Position{.x = 5.0f, .y = 2.0f},
+                        .radius = 1.5f,
+                        .kind = ecs::ObstacleKind::Shop,
+                    },
+                },
             },
             RoomLayout{
                 .layout_id = "boss_small",

@@ -122,6 +122,7 @@ namespace battle::ecs {
     struct CreateObstacleConfig {
         Position position{};
         float radius{};
+        ObstacleKind kind{};
     };
 
     /// @brief 创建可通行圆形陷阱所需的房间布局数据。
@@ -157,6 +158,7 @@ namespace battle::ecs {
         PathFollowing,
         AttackState,
         Collider,
+        Obstacle,
         Trap
     >;
 

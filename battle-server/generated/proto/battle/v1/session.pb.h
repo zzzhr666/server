@@ -143,6 +143,10 @@ class PlayerBlessingStateSnapshot;
 struct PlayerBlessingStateSnapshotDefaultTypeInternal;
 extern PlayerBlessingStateSnapshotDefaultTypeInternal _PlayerBlessingStateSnapshot_default_instance_;
 extern const ::google::protobuf::internal::ClassDataFull PlayerBlessingStateSnapshot_class_data_;
+class PlayerCombatStatsSnapshot;
+struct PlayerCombatStatsSnapshotDefaultTypeInternal;
+extern PlayerCombatStatsSnapshotDefaultTypeInternal _PlayerCombatStatsSnapshot_default_instance_;
+extern const ::google::protobuf::internal::ClassDataFull PlayerCombatStatsSnapshot_class_data_;
 class PlayerFreeRewardState;
 struct PlayerFreeRewardStateDefaultTypeInternal;
 extern PlayerFreeRewardStateDefaultTypeInternal _PlayerFreeRewardState_default_instance_;
@@ -736,7 +740,7 @@ class ShopBuff final : public ::google::protobuf::Message
     return *reinterpret_cast<const ShopBuff*>(
         &_ShopBuff_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 32;
+  static constexpr int kIndexInFileMessages = 33;
   friend void swap(ShopBuff& a, ShopBuff& b) { a.Swap(&b); }
   inline void Swap(ShopBuff* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -2595,7 +2599,7 @@ class PlayerPurchasedShopItemsSnapshot final : public ::google::protobuf::Messag
     return *reinterpret_cast<const PlayerPurchasedShopItemsSnapshot*>(
         &_PlayerPurchasedShopItemsSnapshot_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 34;
+  static constexpr int kIndexInFileMessages = 35;
   friend void swap(PlayerPurchasedShopItemsSnapshot& a, PlayerPurchasedShopItemsSnapshot& b) { a.Swap(&b); }
   inline void Swap(PlayerPurchasedShopItemsSnapshot* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -3204,6 +3208,245 @@ class PlayerFreeRewardState final : public ::google::protobuf::Message
 };
 
 extern const ::google::protobuf::internal::ClassDataFull PlayerFreeRewardState_class_data_;
+// -------------------------------------------------------------------
+
+class PlayerCombatStatsSnapshot final : public ::google::protobuf::Message
+/* @@protoc_insertion_point(class_definition:battle.v1.PlayerCombatStatsSnapshot) */ {
+ public:
+  inline PlayerCombatStatsSnapshot() : PlayerCombatStatsSnapshot(nullptr) {}
+  ~PlayerCombatStatsSnapshot() PROTOBUF_FINAL;
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+  void operator delete(PlayerCombatStatsSnapshot* PROTOBUF_NONNULL msg, std::destroying_delete_t) {
+    SharedDtor(*msg);
+    ::google::protobuf::internal::SizedDelete(msg, sizeof(PlayerCombatStatsSnapshot));
+  }
+#endif
+
+  template <typename = void>
+  explicit PROTOBUF_CONSTEXPR PlayerCombatStatsSnapshot(::google::protobuf::internal::ConstantInitialized);
+
+  inline PlayerCombatStatsSnapshot(const PlayerCombatStatsSnapshot& from) : PlayerCombatStatsSnapshot(nullptr, from) {}
+  inline PlayerCombatStatsSnapshot(PlayerCombatStatsSnapshot&& from) noexcept
+      : PlayerCombatStatsSnapshot(nullptr, ::std::move(from)) {}
+  inline PlayerCombatStatsSnapshot& operator=(const PlayerCombatStatsSnapshot& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline PlayerCombatStatsSnapshot& operator=(PlayerCombatStatsSnapshot&& from) noexcept {
+    if (this == &from) return *this;
+    if (::google::protobuf::internal::CanMoveWithInternalSwap(GetArena(), from.GetArena())) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance);
+  }
+  inline ::google::protobuf::UnknownFieldSet* PROTOBUF_NONNULL mutable_unknown_fields()
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.mutable_unknown_fields<::google::protobuf::UnknownFieldSet>();
+  }
+
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL descriptor() {
+    return GetDescriptor();
+  }
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::google::protobuf::Reflection* PROTOBUF_NONNULL GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const PlayerCombatStatsSnapshot& default_instance() {
+    return *reinterpret_cast<const PlayerCombatStatsSnapshot*>(
+        &_PlayerCombatStatsSnapshot_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages = 32;
+  friend void swap(PlayerCombatStatsSnapshot& a, PlayerCombatStatsSnapshot& b) { a.Swap(&b); }
+  inline void Swap(PlayerCombatStatsSnapshot* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    if (::google::protobuf::internal::CanUseInternalSwap(GetArena(), other->GetArena())) {
+      InternalSwap(other);
+    } else {
+      ::google::protobuf::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(PlayerCombatStatsSnapshot* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    ABSL_DCHECK(GetArena() == other->GetArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  PlayerCombatStatsSnapshot* PROTOBUF_NONNULL New(::google::protobuf::Arena* PROTOBUF_NULLABLE arena = nullptr) const {
+    return ::google::protobuf::Message::DefaultConstruct<PlayerCombatStatsSnapshot>(arena);
+  }
+  using ::google::protobuf::Message::CopyFrom;
+  void CopyFrom(const PlayerCombatStatsSnapshot& from);
+  using ::google::protobuf::Message::MergeFrom;
+  void MergeFrom(const PlayerCombatStatsSnapshot& from) { PlayerCombatStatsSnapshot::MergeImpl(*this, from); }
+
+  private:
+  static void MergeImpl(::google::protobuf::MessageLite& to_msg,
+                        const ::google::protobuf::MessageLite& from_msg);
+
+  public:
+  bool IsInitialized() const {
+    return true;
+  }
+  ABSL_ATTRIBUTE_REINITIALIZES void Clear() PROTOBUF_FINAL;
+  #if defined(PROTOBUF_CUSTOM_VTABLE)
+  private:
+  static ::size_t ByteSizeLong(const ::google::protobuf::MessageLite& msg);
+  static ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      const ::google::protobuf::MessageLite& msg, ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream);
+
+  public:
+  ::size_t ByteSizeLong() const { return ByteSizeLong(*this); }
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+    return _InternalSerialize(*this, target, stream);
+  }
+  #else   // PROTOBUF_CUSTOM_VTABLE
+  ::size_t ByteSizeLong() const final;
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const final;
+  #endif  // PROTOBUF_CUSTOM_VTABLE
+  int GetCachedSize() const { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static void SharedDtor(MessageLite& self);
+  void InternalSwap(PlayerCombatStatsSnapshot* PROTOBUF_NONNULL other);
+ private:
+  template <typename T>
+  friend ::absl::string_view(::google::protobuf::internal::GetAnyMessageName)();
+  static ::absl::string_view FullMessageName() { return "battle.v1.PlayerCombatStatsSnapshot"; }
+
+ protected:
+  explicit PlayerCombatStatsSnapshot(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  PlayerCombatStatsSnapshot(::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const PlayerCombatStatsSnapshot& from);
+  PlayerCombatStatsSnapshot(
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, PlayerCombatStatsSnapshot&& from) noexcept
+      : PlayerCombatStatsSnapshot(arena) {
+    *this = ::std::move(from);
+  }
+  const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL GetClassData() const PROTOBUF_FINAL;
+  static void* PROTOBUF_NONNULL PlacementNew_(
+      const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static constexpr auto InternalNewImpl_();
+
+ public:
+  static constexpr auto InternalGenerateClassData_();
+
+  ::google::protobuf::Metadata GetMetadata() const;
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+  enum : int {
+    kPlayerIdFieldNumber = 1,
+    kAttackDamageFieldNumber = 2,
+    kMoveSpeedFieldNumber = 3,
+    kAttackCooldownSecondsFieldNumber = 4,
+    kArmorFieldNumber = 5,
+  };
+  // int64 player_id = 1;
+  void clear_player_id() ;
+  ::int64_t player_id() const;
+  void set_player_id(::int64_t value);
+
+  private:
+  ::int64_t _internal_player_id() const;
+  void _internal_set_player_id(::int64_t value);
+
+  public:
+  // int32 attack_damage = 2;
+  void clear_attack_damage() ;
+  ::int32_t attack_damage() const;
+  void set_attack_damage(::int32_t value);
+
+  private:
+  ::int32_t _internal_attack_damage() const;
+  void _internal_set_attack_damage(::int32_t value);
+
+  public:
+  // float move_speed = 3;
+  void clear_move_speed() ;
+  float move_speed() const;
+  void set_move_speed(float value);
+
+  private:
+  float _internal_move_speed() const;
+  void _internal_set_move_speed(float value);
+
+  public:
+  // float attack_cooldown_seconds = 4;
+  void clear_attack_cooldown_seconds() ;
+  float attack_cooldown_seconds() const;
+  void set_attack_cooldown_seconds(float value);
+
+  private:
+  float _internal_attack_cooldown_seconds() const;
+  void _internal_set_attack_cooldown_seconds(float value);
+
+  public:
+  // int32 armor = 5;
+  void clear_armor() ;
+  ::int32_t armor() const;
+  void set_armor(::int32_t value);
+
+  private:
+  ::int32_t _internal_armor() const;
+  void _internal_set_armor(::int32_t value);
+
+  public:
+  // @@protoc_insertion_point(class_scope:battle.v1.PlayerCombatStatsSnapshot)
+ private:
+  class _Internal;
+  friend class ::google::protobuf::internal::TcParser;
+  static const ::google::protobuf::internal::TcParseTable<3, 5,
+                                   0, 0,
+                                   2>
+      _table_;
+
+  friend class ::google::protobuf::MessageLite;
+  friend class ::google::protobuf::Arena;
+  template <typename T>
+  friend class ::google::protobuf::Arena::InternalHelper;
+  using InternalArenaConstructable_ = void;
+  using DestructorSkippable_ = void;
+  struct Impl_ {
+    inline explicit constexpr Impl_(::google::protobuf::internal::ConstantInitialized) noexcept;
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
+        const PlayerCombatStatsSnapshot& from_msg);
+    ::google::protobuf::internal::HasBits<1> _has_bits_;
+    ::google::protobuf::internal::CachedSize _cached_size_;
+    ::int64_t player_id_;
+    ::int32_t attack_damage_;
+    float move_speed_;
+    float attack_cooldown_seconds_;
+    ::int32_t armor_;
+    PROTOBUF_TSAN_DECLARE_MEMBER
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_proto_2fbattle_2fv1_2fsession_2eproto;
+};
+
+extern const ::google::protobuf::internal::ClassDataFull PlayerCombatStatsSnapshot_class_data_;
 // -------------------------------------------------------------------
 
 class PlayerBlessingSnapshot final : public ::google::protobuf::Message
@@ -5381,7 +5624,7 @@ class ShopItemDefinition final : public ::google::protobuf::Message
     return *reinterpret_cast<const ShopItemDefinition*>(
         &_ShopItemDefinition_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 33;
+  static constexpr int kIndexInFileMessages = 34;
   friend void swap(ShopItemDefinition& a, ShopItemDefinition& b) { a.Swap(&b); }
   inline void Swap(ShopItemDefinition* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -8188,6 +8431,7 @@ class WorldSnapshot final : public ::google::protobuf::Message
     kPlayerSoulsFieldNumber = 18,
     kShopItemDefinitionsFieldNumber = 19,
     kPurchasedShopItemsFieldNumber = 20,
+    kPlayerCombatStatsFieldNumber = 21,
     kRoomNameFieldNumber = 1,
     kCurrentRoomLayoutIdFieldNumber = 15,
     kRewardSelectionRemainingSecondsFieldNumber = 5,
@@ -8384,6 +8628,23 @@ class WorldSnapshot final : public ::google::protobuf::Message
   const ::battle::v1::PlayerPurchasedShopItemsSnapshot& purchased_shop_items(int index) const;
   ::battle::v1::PlayerPurchasedShopItemsSnapshot* PROTOBUF_NONNULL add_purchased_shop_items();
   const ::google::protobuf::RepeatedPtrField<::battle::v1::PlayerPurchasedShopItemsSnapshot>& purchased_shop_items() const;
+  // repeated .battle.v1.PlayerCombatStatsSnapshot player_combat_stats = 21;
+  int player_combat_stats_size() const;
+  private:
+  int _internal_player_combat_stats_size() const;
+
+  public:
+  void clear_player_combat_stats() ;
+  ::battle::v1::PlayerCombatStatsSnapshot* PROTOBUF_NONNULL mutable_player_combat_stats(int index);
+  ::google::protobuf::RepeatedPtrField<::battle::v1::PlayerCombatStatsSnapshot>* PROTOBUF_NONNULL mutable_player_combat_stats();
+
+  private:
+  const ::google::protobuf::RepeatedPtrField<::battle::v1::PlayerCombatStatsSnapshot>& _internal_player_combat_stats() const;
+  ::google::protobuf::RepeatedPtrField<::battle::v1::PlayerCombatStatsSnapshot>* PROTOBUF_NONNULL _internal_mutable_player_combat_stats();
+  public:
+  const ::battle::v1::PlayerCombatStatsSnapshot& player_combat_stats(int index) const;
+  ::battle::v1::PlayerCombatStatsSnapshot* PROTOBUF_NONNULL add_player_combat_stats();
+  const ::google::protobuf::RepeatedPtrField<::battle::v1::PlayerCombatStatsSnapshot>& player_combat_stats() const;
   // string room_name = 1;
   void clear_room_name() ;
   const ::std::string& room_name() const;
@@ -8468,8 +8729,8 @@ class WorldSnapshot final : public ::google::protobuf::Message
  private:
   class _Internal;
   friend class ::google::protobuf::internal::TcParser;
-  static const ::google::protobuf::internal::TcParseTable<5, 18,
-                                   10, 79,
+  static const ::google::protobuf::internal::TcParseTable<5, 19,
+                                   11, 79,
                                    2>
       _table_;
 
@@ -8502,6 +8763,7 @@ class WorldSnapshot final : public ::google::protobuf::Message
     ::google::protobuf::RepeatedPtrField< ::battle::v1::PlayerSoulSnapshot > player_souls_;
     ::google::protobuf::RepeatedPtrField< ::battle::v1::ShopItemDefinition > shop_item_definitions_;
     ::google::protobuf::RepeatedPtrField< ::battle::v1::PlayerPurchasedShopItemsSnapshot > purchased_shop_items_;
+    ::google::protobuf::RepeatedPtrField< ::battle::v1::PlayerCombatStatsSnapshot > player_combat_stats_;
     ::google::protobuf::internal::ArenaStringPtr room_name_;
     ::google::protobuf::internal::ArenaStringPtr current_room_layout_id_;
     float reward_selection_remaining_seconds_;
@@ -13815,6 +14077,56 @@ WorldSnapshot::_internal_mutable_purchased_shop_items() {
   return &_impl_.purchased_shop_items_;
 }
 
+// repeated .battle.v1.PlayerCombatStatsSnapshot player_combat_stats = 21;
+inline int WorldSnapshot::_internal_player_combat_stats_size() const {
+  return _internal_player_combat_stats().size();
+}
+inline int WorldSnapshot::player_combat_stats_size() const {
+  return _internal_player_combat_stats_size();
+}
+inline void WorldSnapshot::clear_player_combat_stats() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.player_combat_stats_.Clear();
+}
+inline ::battle::v1::PlayerCombatStatsSnapshot* PROTOBUF_NONNULL WorldSnapshot::mutable_player_combat_stats(int index)
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_mutable:battle.v1.WorldSnapshot.player_combat_stats)
+  return _internal_mutable_player_combat_stats()->Mutable(index);
+}
+inline ::google::protobuf::RepeatedPtrField<::battle::v1::PlayerCombatStatsSnapshot>* PROTOBUF_NONNULL WorldSnapshot::mutable_player_combat_stats()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_mutable_list:battle.v1.WorldSnapshot.player_combat_stats)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  return _internal_mutable_player_combat_stats();
+}
+inline const ::battle::v1::PlayerCombatStatsSnapshot& WorldSnapshot::player_combat_stats(int index) const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:battle.v1.WorldSnapshot.player_combat_stats)
+  return _internal_player_combat_stats().Get(index);
+}
+inline ::battle::v1::PlayerCombatStatsSnapshot* PROTOBUF_NONNULL WorldSnapshot::add_player_combat_stats()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  ::battle::v1::PlayerCombatStatsSnapshot* _add = _internal_mutable_player_combat_stats()->Add();
+  // @@protoc_insertion_point(field_add:battle.v1.WorldSnapshot.player_combat_stats)
+  return _add;
+}
+inline const ::google::protobuf::RepeatedPtrField<::battle::v1::PlayerCombatStatsSnapshot>& WorldSnapshot::player_combat_stats() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_list:battle.v1.WorldSnapshot.player_combat_stats)
+  return _internal_player_combat_stats();
+}
+inline const ::google::protobuf::RepeatedPtrField<::battle::v1::PlayerCombatStatsSnapshot>&
+WorldSnapshot::_internal_player_combat_stats() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.player_combat_stats_;
+}
+inline ::google::protobuf::RepeatedPtrField<::battle::v1::PlayerCombatStatsSnapshot>* PROTOBUF_NONNULL
+WorldSnapshot::_internal_mutable_player_combat_stats() {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return &_impl_.player_combat_stats_;
+}
+
 // -------------------------------------------------------------------
 
 // ChooseBlessing
@@ -14675,6 +14987,130 @@ inline ::int32_t PlayerSoulSnapshot::_internal_souls() const {
 inline void PlayerSoulSnapshot::_internal_set_souls(::int32_t value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.souls_ = value;
+}
+
+// -------------------------------------------------------------------
+
+// PlayerCombatStatsSnapshot
+
+// int64 player_id = 1;
+inline void PlayerCombatStatsSnapshot::clear_player_id() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.player_id_ = ::int64_t{0};
+  _impl_._has_bits_[0] &= ~0x00000001u;
+}
+inline ::int64_t PlayerCombatStatsSnapshot::player_id() const {
+  // @@protoc_insertion_point(field_get:battle.v1.PlayerCombatStatsSnapshot.player_id)
+  return _internal_player_id();
+}
+inline void PlayerCombatStatsSnapshot::set_player_id(::int64_t value) {
+  _internal_set_player_id(value);
+  _impl_._has_bits_[0] |= 0x00000001u;
+  // @@protoc_insertion_point(field_set:battle.v1.PlayerCombatStatsSnapshot.player_id)
+}
+inline ::int64_t PlayerCombatStatsSnapshot::_internal_player_id() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.player_id_;
+}
+inline void PlayerCombatStatsSnapshot::_internal_set_player_id(::int64_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.player_id_ = value;
+}
+
+// int32 attack_damage = 2;
+inline void PlayerCombatStatsSnapshot::clear_attack_damage() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.attack_damage_ = 0;
+  _impl_._has_bits_[0] &= ~0x00000002u;
+}
+inline ::int32_t PlayerCombatStatsSnapshot::attack_damage() const {
+  // @@protoc_insertion_point(field_get:battle.v1.PlayerCombatStatsSnapshot.attack_damage)
+  return _internal_attack_damage();
+}
+inline void PlayerCombatStatsSnapshot::set_attack_damage(::int32_t value) {
+  _internal_set_attack_damage(value);
+  _impl_._has_bits_[0] |= 0x00000002u;
+  // @@protoc_insertion_point(field_set:battle.v1.PlayerCombatStatsSnapshot.attack_damage)
+}
+inline ::int32_t PlayerCombatStatsSnapshot::_internal_attack_damage() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.attack_damage_;
+}
+inline void PlayerCombatStatsSnapshot::_internal_set_attack_damage(::int32_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.attack_damage_ = value;
+}
+
+// float move_speed = 3;
+inline void PlayerCombatStatsSnapshot::clear_move_speed() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.move_speed_ = 0;
+  _impl_._has_bits_[0] &= ~0x00000004u;
+}
+inline float PlayerCombatStatsSnapshot::move_speed() const {
+  // @@protoc_insertion_point(field_get:battle.v1.PlayerCombatStatsSnapshot.move_speed)
+  return _internal_move_speed();
+}
+inline void PlayerCombatStatsSnapshot::set_move_speed(float value) {
+  _internal_set_move_speed(value);
+  _impl_._has_bits_[0] |= 0x00000004u;
+  // @@protoc_insertion_point(field_set:battle.v1.PlayerCombatStatsSnapshot.move_speed)
+}
+inline float PlayerCombatStatsSnapshot::_internal_move_speed() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.move_speed_;
+}
+inline void PlayerCombatStatsSnapshot::_internal_set_move_speed(float value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.move_speed_ = value;
+}
+
+// float attack_cooldown_seconds = 4;
+inline void PlayerCombatStatsSnapshot::clear_attack_cooldown_seconds() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.attack_cooldown_seconds_ = 0;
+  _impl_._has_bits_[0] &= ~0x00000008u;
+}
+inline float PlayerCombatStatsSnapshot::attack_cooldown_seconds() const {
+  // @@protoc_insertion_point(field_get:battle.v1.PlayerCombatStatsSnapshot.attack_cooldown_seconds)
+  return _internal_attack_cooldown_seconds();
+}
+inline void PlayerCombatStatsSnapshot::set_attack_cooldown_seconds(float value) {
+  _internal_set_attack_cooldown_seconds(value);
+  _impl_._has_bits_[0] |= 0x00000008u;
+  // @@protoc_insertion_point(field_set:battle.v1.PlayerCombatStatsSnapshot.attack_cooldown_seconds)
+}
+inline float PlayerCombatStatsSnapshot::_internal_attack_cooldown_seconds() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.attack_cooldown_seconds_;
+}
+inline void PlayerCombatStatsSnapshot::_internal_set_attack_cooldown_seconds(float value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.attack_cooldown_seconds_ = value;
+}
+
+// int32 armor = 5;
+inline void PlayerCombatStatsSnapshot::clear_armor() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.armor_ = 0;
+  _impl_._has_bits_[0] &= ~0x00000010u;
+}
+inline ::int32_t PlayerCombatStatsSnapshot::armor() const {
+  // @@protoc_insertion_point(field_get:battle.v1.PlayerCombatStatsSnapshot.armor)
+  return _internal_armor();
+}
+inline void PlayerCombatStatsSnapshot::set_armor(::int32_t value) {
+  _internal_set_armor(value);
+  _impl_._has_bits_[0] |= 0x00000010u;
+  // @@protoc_insertion_point(field_set:battle.v1.PlayerCombatStatsSnapshot.armor)
+}
+inline ::int32_t PlayerCombatStatsSnapshot::_internal_armor() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.armor_;
+}
+inline void PlayerCombatStatsSnapshot::_internal_set_armor(::int32_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.armor_ = value;
 }
 
 // -------------------------------------------------------------------

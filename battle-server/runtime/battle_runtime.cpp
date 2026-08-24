@@ -296,6 +296,14 @@ namespace {
             proto_player_soul->set_player_id(player_soul.player_id);
             proto_player_soul->set_souls(player_soul.souls);
         }
+        for (const auto& stats : snapshot.player_combat_stats) {
+            auto* proto_stats = send_pkg->add_player_combat_stats();
+            proto_stats->set_player_id(stats.player_id);
+            proto_stats->set_attack_damage(stats.attack_damage);
+            proto_stats->set_move_speed(stats.move_speed);
+            proto_stats->set_attack_cooldown_seconds(stats.attack_cooldown_seconds);
+            proto_stats->set_armor(stats.armor);
+        }
         for (const auto& definition : snapshot.shop_item_definitions) {
             auto* proto_definition = send_pkg->add_shop_item_definitions();
             proto_definition->set_item_id(definition.item_id);

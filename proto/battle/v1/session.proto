@@ -216,6 +216,7 @@ message WorldSnapshot {
   repeated PlayerSoulSnapshot player_souls = 18;
   repeated ShopItemDefinition shop_item_definitions = 19;
   repeated PlayerPurchasedShopItemsSnapshot purchased_shop_items = 20;
+  repeated PlayerCombatStatsSnapshot player_combat_stats = 21;
 }
 
 message ChooseBlessing {
@@ -280,6 +281,14 @@ message ShopOffer {
 message PlayerSoulSnapshot {
   int64 player_id = 1;
   int32 souls = 2;
+}
+
+message PlayerCombatStatsSnapshot {
+  int64 player_id = 1;
+  int32 attack_damage = 2;
+  float move_speed = 3;
+  float attack_cooldown_seconds = 4;
+  int32 armor = 5;
 }
 
 enum ShopBuffKind {

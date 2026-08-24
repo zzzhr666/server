@@ -195,6 +195,7 @@ battle::ecs::Entity battle::ecs::World::create_projectile(CreateProjectileConfig
 battle::ecs::Entity battle::ecs::World::create_obstacle(CreateObstacleConfig config) {
     const Entity entity = registry_.create();
     registry_.emplace<Transform>(entity, config.position, Direction{});
+    registry_.emplace<Obstacle>(entity, config.kind);
     registry_.emplace<Collider>(entity, CollisionShape::Circle, config.radius, CollisionCategory::Obstacle,
                                 ObstacleCollisionMask);
     spatial_index_.insert(entity, config.position, config.radius);
@@ -412,7 +413,18 @@ battle::ecs::WorldSnapshot battle::ecs::World::snapshot() const {
             kind = EntityKind::Projectile;
         } else if (collider != nullptr && collider->category == CollisionCategory::Obstacle) {
             kind = EntityKind::Obstacle;
-            scene_object_kind = "obstacle";
+            const auto* obstacle = registry_.try_get<Obstacle>(entity);
+            switch (obstacle != nullptr ? obstacle->kind : ObstacleKind::Generic) {
+            case ObstacleKind::Generic:
+                scene_object_kind = "obstacle";
+                break;
+            case ObstacleKind::RewardFountain:
+                scene_object_kind = "reward_fountain";
+                break;
+            case ObstacleKind::Shop:
+                scene_object_kind = "shop";
+                break;
+            }
         } else if (const auto* trap = registry().try_get<Trap>(entity); trap != nullptr && collider != nullptr &&
             collider->category == CollisionCategory::Trap) {
             kind = EntityKind::Trap;

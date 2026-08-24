@@ -1973,6 +1973,7 @@ type WorldSnapshot struct {
 	PlayerSouls                     []*PlayerSoulSnapshot               `protobuf:"bytes,18,rep,name=player_souls,json=playerSouls,proto3" json:"player_souls,omitempty"`
 	ShopItemDefinitions             []*ShopItemDefinition               `protobuf:"bytes,19,rep,name=shop_item_definitions,json=shopItemDefinitions,proto3" json:"shop_item_definitions,omitempty"`
 	PurchasedShopItems              []*PlayerPurchasedShopItemsSnapshot `protobuf:"bytes,20,rep,name=purchased_shop_items,json=purchasedShopItems,proto3" json:"purchased_shop_items,omitempty"`
+	PlayerCombatStats               []*PlayerCombatStatsSnapshot        `protobuf:"bytes,21,rep,name=player_combat_stats,json=playerCombatStats,proto3" json:"player_combat_stats,omitempty"`
 	unknownFields                   protoimpl.UnknownFields
 	sizeCache                       protoimpl.SizeCache
 }
@@ -2129,6 +2130,13 @@ func (x *WorldSnapshot) GetShopItemDefinitions() []*ShopItemDefinition {
 func (x *WorldSnapshot) GetPurchasedShopItems() []*PlayerPurchasedShopItemsSnapshot {
 	if x != nil {
 		return x.PurchasedShopItems
+	}
+	return nil
+}
+
+func (x *WorldSnapshot) GetPlayerCombatStats() []*PlayerCombatStatsSnapshot {
+	if x != nil {
+		return x.PlayerCombatStats
 	}
 	return nil
 }
@@ -2685,6 +2693,82 @@ func (x *PlayerSoulSnapshot) GetSouls() int32 {
 	return 0
 }
 
+type PlayerCombatStatsSnapshot struct {
+	state                 protoimpl.MessageState `protogen:"open.v1"`
+	PlayerId              int64                  `protobuf:"varint,1,opt,name=player_id,json=playerId,proto3" json:"player_id,omitempty"`
+	AttackDamage          int32                  `protobuf:"varint,2,opt,name=attack_damage,json=attackDamage,proto3" json:"attack_damage,omitempty"`
+	MoveSpeed             float32                `protobuf:"fixed32,3,opt,name=move_speed,json=moveSpeed,proto3" json:"move_speed,omitempty"`
+	AttackCooldownSeconds float32                `protobuf:"fixed32,4,opt,name=attack_cooldown_seconds,json=attackCooldownSeconds,proto3" json:"attack_cooldown_seconds,omitempty"`
+	Armor                 int32                  `protobuf:"varint,5,opt,name=armor,proto3" json:"armor,omitempty"`
+	unknownFields         protoimpl.UnknownFields
+	sizeCache             protoimpl.SizeCache
+}
+
+func (x *PlayerCombatStatsSnapshot) Reset() {
+	*x = PlayerCombatStatsSnapshot{}
+	mi := &file_proto_battle_v1_session_proto_msgTypes[32]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PlayerCombatStatsSnapshot) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PlayerCombatStatsSnapshot) ProtoMessage() {}
+
+func (x *PlayerCombatStatsSnapshot) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_battle_v1_session_proto_msgTypes[32]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PlayerCombatStatsSnapshot.ProtoReflect.Descriptor instead.
+func (*PlayerCombatStatsSnapshot) Descriptor() ([]byte, []int) {
+	return file_proto_battle_v1_session_proto_rawDescGZIP(), []int{32}
+}
+
+func (x *PlayerCombatStatsSnapshot) GetPlayerId() int64 {
+	if x != nil {
+		return x.PlayerId
+	}
+	return 0
+}
+
+func (x *PlayerCombatStatsSnapshot) GetAttackDamage() int32 {
+	if x != nil {
+		return x.AttackDamage
+	}
+	return 0
+}
+
+func (x *PlayerCombatStatsSnapshot) GetMoveSpeed() float32 {
+	if x != nil {
+		return x.MoveSpeed
+	}
+	return 0
+}
+
+func (x *PlayerCombatStatsSnapshot) GetAttackCooldownSeconds() float32 {
+	if x != nil {
+		return x.AttackCooldownSeconds
+	}
+	return 0
+}
+
+func (x *PlayerCombatStatsSnapshot) GetArmor() int32 {
+	if x != nil {
+		return x.Armor
+	}
+	return 0
+}
+
 type ShopBuff struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Kind          ShopBuffKind           `protobuf:"varint,1,opt,name=kind,proto3,enum=battle.v1.ShopBuffKind" json:"kind,omitempty"`
@@ -2695,7 +2779,7 @@ type ShopBuff struct {
 
 func (x *ShopBuff) Reset() {
 	*x = ShopBuff{}
-	mi := &file_proto_battle_v1_session_proto_msgTypes[32]
+	mi := &file_proto_battle_v1_session_proto_msgTypes[33]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2707,7 +2791,7 @@ func (x *ShopBuff) String() string {
 func (*ShopBuff) ProtoMessage() {}
 
 func (x *ShopBuff) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_battle_v1_session_proto_msgTypes[32]
+	mi := &file_proto_battle_v1_session_proto_msgTypes[33]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2720,7 +2804,7 @@ func (x *ShopBuff) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ShopBuff.ProtoReflect.Descriptor instead.
 func (*ShopBuff) Descriptor() ([]byte, []int) {
-	return file_proto_battle_v1_session_proto_rawDescGZIP(), []int{32}
+	return file_proto_battle_v1_session_proto_rawDescGZIP(), []int{33}
 }
 
 func (x *ShopBuff) GetKind() ShopBuffKind {
@@ -2748,7 +2832,7 @@ type ShopItemDefinition struct {
 
 func (x *ShopItemDefinition) Reset() {
 	*x = ShopItemDefinition{}
-	mi := &file_proto_battle_v1_session_proto_msgTypes[33]
+	mi := &file_proto_battle_v1_session_proto_msgTypes[34]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2760,7 +2844,7 @@ func (x *ShopItemDefinition) String() string {
 func (*ShopItemDefinition) ProtoMessage() {}
 
 func (x *ShopItemDefinition) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_battle_v1_session_proto_msgTypes[33]
+	mi := &file_proto_battle_v1_session_proto_msgTypes[34]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2773,7 +2857,7 @@ func (x *ShopItemDefinition) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ShopItemDefinition.ProtoReflect.Descriptor instead.
 func (*ShopItemDefinition) Descriptor() ([]byte, []int) {
-	return file_proto_battle_v1_session_proto_rawDescGZIP(), []int{33}
+	return file_proto_battle_v1_session_proto_rawDescGZIP(), []int{34}
 }
 
 func (x *ShopItemDefinition) GetItemId() uint32 {
@@ -2807,7 +2891,7 @@ type PlayerPurchasedShopItemsSnapshot struct {
 
 func (x *PlayerPurchasedShopItemsSnapshot) Reset() {
 	*x = PlayerPurchasedShopItemsSnapshot{}
-	mi := &file_proto_battle_v1_session_proto_msgTypes[34]
+	mi := &file_proto_battle_v1_session_proto_msgTypes[35]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2819,7 +2903,7 @@ func (x *PlayerPurchasedShopItemsSnapshot) String() string {
 func (*PlayerPurchasedShopItemsSnapshot) ProtoMessage() {}
 
 func (x *PlayerPurchasedShopItemsSnapshot) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_battle_v1_session_proto_msgTypes[34]
+	mi := &file_proto_battle_v1_session_proto_msgTypes[35]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2832,7 +2916,7 @@ func (x *PlayerPurchasedShopItemsSnapshot) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PlayerPurchasedShopItemsSnapshot.ProtoReflect.Descriptor instead.
 func (*PlayerPurchasedShopItemsSnapshot) Descriptor() ([]byte, []int) {
-	return file_proto_battle_v1_session_proto_rawDescGZIP(), []int{34}
+	return file_proto_battle_v1_session_proto_rawDescGZIP(), []int{35}
 }
 
 func (x *PlayerPurchasedShopItemsSnapshot) GetPlayerId() int64 {
@@ -2975,7 +3059,7 @@ const file_proto_battle_v1_session_proto_rawDesc = "" +
 	"\x1cPlayerRoomExitChoiceSnapshot\x12\x1b\n" +
 	"\tplayer_id\x18\x01 \x01(\x03R\bplayerId\x12 \n" +
 	"\froom_exit_id\x18\x02 \x01(\rR\n" +
-	"roomExitId\"\xf3\b\n" +
+	"roomExitId\"\xc9\t\n" +
 	"\rWorldSnapshot\x12\x1b\n" +
 	"\troom_name\x18\x01 \x01(\tR\broomName\x125\n" +
 	"\bentities\x18\x02 \x03(\v2\x19.battle.v1.EntitySnapshotR\bentities\x12K\n" +
@@ -2998,7 +3082,8 @@ const file_proto_battle_v1_session_proto_rawDesc = "" +
 	"shopOffers\x12@\n" +
 	"\fplayer_souls\x18\x12 \x03(\v2\x1d.battle.v1.PlayerSoulSnapshotR\vplayerSouls\x12Q\n" +
 	"\x15shop_item_definitions\x18\x13 \x03(\v2\x1d.battle.v1.ShopItemDefinitionR\x13shopItemDefinitions\x12]\n" +
-	"\x14purchased_shop_items\x18\x14 \x03(\v2+.battle.v1.PlayerPurchasedShopItemsSnapshotR\x12purchasedShopItemsJ\x04\b\x03\x10\x04J\x04\b\x04\x10\x05\"g\n" +
+	"\x14purchased_shop_items\x18\x14 \x03(\v2+.battle.v1.PlayerPurchasedShopItemsSnapshotR\x12purchasedShopItems\x12T\n" +
+	"\x13player_combat_stats\x18\x15 \x03(\v2$.battle.v1.PlayerCombatStatsSnapshotR\x11playerCombatStatsJ\x04\b\x03\x10\x04J\x04\b\x04\x10\x05\"g\n" +
 	"\x0eChooseBlessing\x12\x1b\n" +
 	"\troom_name\x18\x01 \x01(\tR\broomName\x12\x1b\n" +
 	"\tplayer_id\x18\x02 \x01(\x03R\bplayerId\x12\x1b\n" +
@@ -3033,7 +3118,14 @@ const file_proto_battle_v1_session_proto_rawDesc = "" +
 	"\x05price\x18\x02 \x01(\x05R\x05price\"G\n" +
 	"\x12PlayerSoulSnapshot\x12\x1b\n" +
 	"\tplayer_id\x18\x01 \x01(\x03R\bplayerId\x12\x14\n" +
-	"\x05souls\x18\x02 \x01(\x05R\x05souls\"M\n" +
+	"\x05souls\x18\x02 \x01(\x05R\x05souls\"\xca\x01\n" +
+	"\x19PlayerCombatStatsSnapshot\x12\x1b\n" +
+	"\tplayer_id\x18\x01 \x01(\x03R\bplayerId\x12#\n" +
+	"\rattack_damage\x18\x02 \x01(\x05R\fattackDamage\x12\x1d\n" +
+	"\n" +
+	"move_speed\x18\x03 \x01(\x02R\tmoveSpeed\x126\n" +
+	"\x17attack_cooldown_seconds\x18\x04 \x01(\x02R\x15attackCooldownSeconds\x12\x14\n" +
+	"\x05armor\x18\x05 \x01(\x05R\x05armor\"M\n" +
 	"\bShopBuff\x12+\n" +
 	"\x04kind\x18\x01 \x01(\x0e2\x17.battle.v1.ShopBuffKindR\x04kind\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\x02R\x05value\"u\n" +
@@ -3101,7 +3193,7 @@ func file_proto_battle_v1_session_proto_rawDescGZIP() []byte {
 }
 
 var file_proto_battle_v1_session_proto_enumTypes = make([]protoimpl.EnumInfo, 6)
-var file_proto_battle_v1_session_proto_msgTypes = make([]protoimpl.MessageInfo, 35)
+var file_proto_battle_v1_session_proto_msgTypes = make([]protoimpl.MessageInfo, 36)
 var file_proto_battle_v1_session_proto_goTypes = []any{
 	(EntityKind)(0),                          // 0: battle.v1.EntityKind
 	(RoomFlowState)(0),                       // 1: battle.v1.RoomFlowState
@@ -3141,9 +3233,10 @@ var file_proto_battle_v1_session_proto_goTypes = []any{
 	(*PurchaseShopItem)(nil),                 // 35: battle.v1.PurchaseShopItem
 	(*ShopOffer)(nil),                        // 36: battle.v1.ShopOffer
 	(*PlayerSoulSnapshot)(nil),               // 37: battle.v1.PlayerSoulSnapshot
-	(*ShopBuff)(nil),                         // 38: battle.v1.ShopBuff
-	(*ShopItemDefinition)(nil),               // 39: battle.v1.ShopItemDefinition
-	(*PlayerPurchasedShopItemsSnapshot)(nil), // 40: battle.v1.PlayerPurchasedShopItemsSnapshot
+	(*PlayerCombatStatsSnapshot)(nil),        // 38: battle.v1.PlayerCombatStatsSnapshot
+	(*ShopBuff)(nil),                         // 39: battle.v1.ShopBuff
+	(*ShopItemDefinition)(nil),               // 40: battle.v1.ShopItemDefinition
+	(*PlayerPurchasedShopItemsSnapshot)(nil), // 41: battle.v1.PlayerPurchasedShopItemsSnapshot
 }
 var file_proto_battle_v1_session_proto_depIdxs = []int32{
 	6,  // 0: battle.v1.ClientPacket.hello:type_name -> battle.v1.ClientHello
@@ -3186,17 +3279,18 @@ var file_proto_battle_v1_session_proto_depIdxs = []int32{
 	33, // 37: battle.v1.WorldSnapshot.free_reward_states:type_name -> battle.v1.PlayerFreeRewardState
 	36, // 38: battle.v1.WorldSnapshot.shop_offers:type_name -> battle.v1.ShopOffer
 	37, // 39: battle.v1.WorldSnapshot.player_souls:type_name -> battle.v1.PlayerSoulSnapshot
-	39, // 40: battle.v1.WorldSnapshot.shop_item_definitions:type_name -> battle.v1.ShopItemDefinition
-	40, // 41: battle.v1.WorldSnapshot.purchased_shop_items:type_name -> battle.v1.PlayerPurchasedShopItemsSnapshot
-	4,  // 42: battle.v1.PlayerFreeRewardState.selected_kind:type_name -> battle.v1.FreeRewardKind
-	4,  // 43: battle.v1.ChooseFreeReward.kind:type_name -> battle.v1.FreeRewardKind
-	5,  // 44: battle.v1.ShopBuff.kind:type_name -> battle.v1.ShopBuffKind
-	38, // 45: battle.v1.ShopItemDefinition.buffs:type_name -> battle.v1.ShopBuff
-	46, // [46:46] is the sub-list for method output_type
-	46, // [46:46] is the sub-list for method input_type
-	46, // [46:46] is the sub-list for extension type_name
-	46, // [46:46] is the sub-list for extension extendee
-	0,  // [0:46] is the sub-list for field type_name
+	40, // 40: battle.v1.WorldSnapshot.shop_item_definitions:type_name -> battle.v1.ShopItemDefinition
+	41, // 41: battle.v1.WorldSnapshot.purchased_shop_items:type_name -> battle.v1.PlayerPurchasedShopItemsSnapshot
+	38, // 42: battle.v1.WorldSnapshot.player_combat_stats:type_name -> battle.v1.PlayerCombatStatsSnapshot
+	4,  // 43: battle.v1.PlayerFreeRewardState.selected_kind:type_name -> battle.v1.FreeRewardKind
+	4,  // 44: battle.v1.ChooseFreeReward.kind:type_name -> battle.v1.FreeRewardKind
+	5,  // 45: battle.v1.ShopBuff.kind:type_name -> battle.v1.ShopBuffKind
+	39, // 46: battle.v1.ShopItemDefinition.buffs:type_name -> battle.v1.ShopBuff
+	47, // [47:47] is the sub-list for method output_type
+	47, // [47:47] is the sub-list for method input_type
+	47, // [47:47] is the sub-list for extension type_name
+	47, // [47:47] is the sub-list for extension extendee
+	0,  // [0:47] is the sub-list for field type_name
 }
 
 func init() { file_proto_battle_v1_session_proto_init() }
@@ -3232,7 +3326,7 @@ func file_proto_battle_v1_session_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_battle_v1_session_proto_rawDesc), len(file_proto_battle_v1_session_proto_rawDesc)),
 			NumEnums:      6,
-			NumMessages:   35,
+			NumMessages:   36,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

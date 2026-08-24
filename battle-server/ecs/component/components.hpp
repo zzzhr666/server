@@ -292,6 +292,16 @@ namespace battle::ecs {
         std::vector<Entity> active_targets{};
     };
 
+    enum class ObstacleKind {
+        Generic,
+        RewardFountain,
+        Shop,
+    };
+
+    struct Obstacle {
+        ObstacleKind kind{};
+    };
+
     enum class CollisionShape {
         Circle,
     };

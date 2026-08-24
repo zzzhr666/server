@@ -229,15 +229,11 @@ void battle::BattleInstance::tick(ecs::DeltaTime delta_time) {
     }
     ++server_tick_;
     discard_expired_combat_events_();
-    if (room_state() == RoomFlowState::Rewarding) {
-        return;
-    }
-
     if (room_state() == RoomFlowState::ChoosingBlessing) {
         tick_blessing_selection_(delta_time);
         return;
     }
-    if (room_state() == RoomFlowState::ChoosingExit) {
+    if (room_state() == RoomFlowState::Rewarding || room_state() == RoomFlowState::ChoosingExit) {
         world_.tick(delta_time);
         collect_combat_events_();
         consume_kill_events_();
@@ -312,13 +308,17 @@ battle::BattleWorldSnapshot battle::BattleInstance::snapshot() const {
                                                     std::move(snapshot.scene_object_kind));
     }
     for (auto [player_id, player_entity] : player_entities_) {
-        auto progress = world_.registry().try_get<ecs::PlayerProgress>(player_entity);
-        if (!progress) {
-            continue;
+        if (const auto* progress = world_.registry().try_get<ecs::PlayerProgress>(player_entity)) {
+            battle_world_snapshot.player_progress.emplace_back(player_id, progress->level, progress->experience,
+                                                               progress->experience_to_next_level,
+                                                               progress->pending_upgrade_choices);
         }
-        battle_world_snapshot.player_progress.emplace_back(player_id, progress->level, progress->experience,
-                                                           progress->experience_to_next_level,
-                                                           progress->pending_upgrade_choices);
+        const auto* attack = world_.registry().try_get<ecs::AttackDefinition>(player_entity);
+        const auto* stats = world_.registry().try_get<ecs::CharacterStats>(player_entity);
+        if (attack != nullptr && stats != nullptr) {
+            battle_world_snapshot.player_combat_stats.emplace_back(
+                player_id, attack->damage, stats->move_speed, attack->cooldown_seconds.count(), stats->armor);
+        }
     }
 
     for (auto& player_blessing : player_blessings_ | std::views::values) {
@@ -335,23 +335,24 @@ battle::BattleWorldSnapshot battle::BattleInstance::snapshot() const {
         std::ranges::sort(battle_world_snapshot.free_reward_states, {},
                           &PlayerFreeRewardState::player_id);
     }
+    for (const auto& [player_id, souls] : player_souls_) {
+        battle_world_snapshot.player_souls.emplace_back(player_id, souls);
+    }
     if (is_current_reward_room_() &&
         (room_state() == RoomFlowState::Rewarding || room_state() == RoomFlowState::ChoosingExit)) {
         battle_world_snapshot.shop_offers = shop_offers_;
         battle_world_snapshot.shop_item_definitions = shop_item_definitions_;
-        for (const auto& [id,souls] : player_souls_) {
-            battle_world_snapshot.player_souls.emplace_back(id, souls);
-        }
         for (const auto& [id, purchased_items] : purchased_shop_items_) {
             auto& snapshot_items = battle_world_snapshot.purchased_shop_items[id];
             snapshot_items.assign(purchased_items.begin(), purchased_items.end());
             std::ranges::sort(snapshot_items);
         }
-        std::ranges::sort(battle_world_snapshot.player_souls, {}, &PlayerSoulSnapshot::player_id);
     }
 
 
     std::ranges::sort(battle_world_snapshot.player_progress, {}, &PlayerProgressSnapshot::player_id);
+    std::ranges::sort(battle_world_snapshot.player_combat_stats, {}, &PlayerCombatStatsSnapshot::player_id);
+    std::ranges::sort(battle_world_snapshot.player_souls, {}, &PlayerSoulSnapshot::player_id);
 
     std::ranges::sort(battle_world_snapshot.player_blessings, {}, &PlayerBlessingState::player_id);
     battle_world_snapshot.tick_rate = tick_rate_;

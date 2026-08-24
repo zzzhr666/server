@@ -27,7 +27,7 @@ bool battle::RoomRuntime::prepare_current_room() {
     }
     obstacle_configs_.clear();
     for (const auto& obstacle : current_layout->obstacles) {
-        obstacle_configs_.emplace_back(obstacle.center, obstacle.radius);
+        obstacle_configs_.emplace_back(obstacle.center, obstacle.radius, obstacle.kind);
     }
     trap_configs_.clear();
     for (const auto& trap : current_layout->traps) {
