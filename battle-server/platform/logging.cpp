@@ -103,7 +103,7 @@ std::shared_ptr<spdlog::logger> battle::InitializeLogging(
     try {
         std::filesystem::create_directories("./logs");
         auto file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(
-            "./logs/" + std::string{service_name} + ".log", true);
+            "./logs/" + std::string{service_name} + ".log", false);
         std::vector<spdlog::sink_ptr> sinks;
         if (normalized_mode == "debug") {
             sinks.push_back(std::make_shared<spdlog::sinks::stdout_sink_mt>());

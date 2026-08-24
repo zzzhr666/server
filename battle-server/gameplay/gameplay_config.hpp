@@ -81,7 +81,7 @@ namespace battle::gameplay_config {
             inline constexpr int Health = 100;
             inline constexpr float MoveSpeed = 3.0f;
             inline constexpr int AttackDamage = 10;
-            inline constexpr float AttackRange = 1.2f;
+            inline constexpr float AttackRange = 2.0f;
             inline constexpr ecs::DeltaTime AttackCooldown{1.6f};
             inline constexpr ecs::DeltaTime AttackWindup{0.45f};
             inline constexpr ecs::DeltaTime AttackActive{0.1f};

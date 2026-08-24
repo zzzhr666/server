@@ -5,7 +5,7 @@
 #include "component/components.hpp"
 
 namespace battle::ecs {
-    constexpr float DefaultGridCellSize = 5.0f;
+    constexpr float DefaultGridCellSize = 1.0f;
 
     [[nodiscard]] float distance_squared(Position lhs, Position rhs) noexcept;
 
