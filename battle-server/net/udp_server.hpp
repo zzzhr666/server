@@ -53,6 +53,12 @@ namespace battle {
         void handle_choose_blessing_(const v1::ClientPacket& packet, const sockaddr_in& remote_addr,
                                      socklen_t remote_addr_len) const;
 
+        void handle_choose_free_reward_(const v1::ClientPacket& packet, const sockaddr_in& remote_addr,
+                                        socklen_t remote_addr_len) const;
+
+        void handle_purchase_shop_item_(const v1::ClientPacket& packet, const sockaddr_in& remote_addr,
+                                        socklen_t remote_addr_len) const;
+
         void handle_select_room_exit_(const v1::ClientPacket& packet, const sockaddr_in& remote_addr,
                                       socklen_t remote_addr_len) const;
 

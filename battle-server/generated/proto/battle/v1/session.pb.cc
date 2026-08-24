@@ -27,6 +27,58 @@ namespace _fl = ::google::protobuf::internal::field_layout;
 namespace battle {
 namespace v1 {
 
+inline constexpr ShopOffer::Impl_::Impl_(
+    ::_pbi::ConstantInitialized) noexcept
+      : _cached_size_{0},
+        item_id_{0u},
+        price_{0} {}
+
+template <typename>
+PROTOBUF_CONSTEXPR ShopOffer::ShopOffer(::_pbi::ConstantInitialized)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(ShopOffer_class_data_.base()),
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(),
+#endif  // PROTOBUF_CUSTOM_VTABLE
+      _impl_(::_pbi::ConstantInitialized()) {
+}
+struct ShopOfferDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR ShopOfferDefaultTypeInternal() : _instance(::_pbi::ConstantInitialized{}) {}
+  ~ShopOfferDefaultTypeInternal() {}
+  union {
+    ShopOffer _instance;
+  };
+};
+
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT
+    PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 ShopOfferDefaultTypeInternal _ShopOffer_default_instance_;
+
+inline constexpr ShopBuff::Impl_::Impl_(
+    ::_pbi::ConstantInitialized) noexcept
+      : _cached_size_{0},
+        kind_{static_cast< ::battle::v1::ShopBuffKind >(0)},
+        value_{0} {}
+
+template <typename>
+PROTOBUF_CONSTEXPR ShopBuff::ShopBuff(::_pbi::ConstantInitialized)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(ShopBuff_class_data_.base()),
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(),
+#endif  // PROTOBUF_CUSTOM_VTABLE
+      _impl_(::_pbi::ConstantInitialized()) {
+}
+struct ShopBuffDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR ShopBuffDefaultTypeInternal() : _instance(::_pbi::ConstantInitialized{}) {}
+  ~ShopBuffDefaultTypeInternal() {}
+  union {
+    ShopBuff _instance;
+  };
+};
+
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT
+    PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 ShopBuffDefaultTypeInternal _ShopBuff_default_instance_;
+
 inline constexpr ServerHello::Impl_::Impl_(
     ::_pbi::ConstantInitialized) noexcept
       : _cached_size_{0},
@@ -137,6 +189,35 @@ struct RoomClearedEventDefaultTypeInternal {
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT
     PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 RoomClearedEventDefaultTypeInternal _RoomClearedEvent_default_instance_;
 
+inline constexpr PurchaseShopItem::Impl_::Impl_(
+    ::_pbi::ConstantInitialized) noexcept
+      : _cached_size_{0},
+        room_name_(
+            &::google::protobuf::internal::fixed_address_empty_string,
+            ::_pbi::ConstantInitialized()),
+        player_id_{::int64_t{0}},
+        item_id_{0u} {}
+
+template <typename>
+PROTOBUF_CONSTEXPR PurchaseShopItem::PurchaseShopItem(::_pbi::ConstantInitialized)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(PurchaseShopItem_class_data_.base()),
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(),
+#endif  // PROTOBUF_CUSTOM_VTABLE
+      _impl_(::_pbi::ConstantInitialized()) {
+}
+struct PurchaseShopItemDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR PurchaseShopItemDefaultTypeInternal() : _instance(::_pbi::ConstantInitialized{}) {}
+  ~PurchaseShopItemDefaultTypeInternal() {}
+  union {
+    PurchaseShopItem _instance;
+  };
+};
+
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT
+    PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 PurchaseShopItemDefaultTypeInternal _PurchaseShopItem_default_instance_;
+
 inline constexpr Position::Impl_::Impl_(
     ::_pbi::ConstantInitialized) noexcept
       : _cached_size_{0},
@@ -163,6 +244,32 @@ struct PositionDefaultTypeInternal {
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT
     PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 PositionDefaultTypeInternal _Position_default_instance_;
 
+inline constexpr PlayerSoulSnapshot::Impl_::Impl_(
+    ::_pbi::ConstantInitialized) noexcept
+      : _cached_size_{0},
+        player_id_{::int64_t{0}},
+        souls_{0} {}
+
+template <typename>
+PROTOBUF_CONSTEXPR PlayerSoulSnapshot::PlayerSoulSnapshot(::_pbi::ConstantInitialized)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(PlayerSoulSnapshot_class_data_.base()),
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(),
+#endif  // PROTOBUF_CUSTOM_VTABLE
+      _impl_(::_pbi::ConstantInitialized()) {
+}
+struct PlayerSoulSnapshotDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR PlayerSoulSnapshotDefaultTypeInternal() : _instance(::_pbi::ConstantInitialized{}) {}
+  ~PlayerSoulSnapshotDefaultTypeInternal() {}
+  union {
+    PlayerSoulSnapshot _instance;
+  };
+};
+
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT
+    PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 PlayerSoulSnapshotDefaultTypeInternal _PlayerSoulSnapshot_default_instance_;
+
 inline constexpr PlayerRoomExitChoiceSnapshot::Impl_::Impl_(
     ::_pbi::ConstantInitialized) noexcept
       : _cached_size_{0},
@@ -188,6 +295,33 @@ struct PlayerRoomExitChoiceSnapshotDefaultTypeInternal {
 
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT
     PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 PlayerRoomExitChoiceSnapshotDefaultTypeInternal _PlayerRoomExitChoiceSnapshot_default_instance_;
+
+inline constexpr PlayerPurchasedShopItemsSnapshot::Impl_::Impl_(
+    ::_pbi::ConstantInitialized) noexcept
+      : _cached_size_{0},
+        item_ids_{},
+        _item_ids_cached_byte_size_{0},
+        player_id_{::int64_t{0}} {}
+
+template <typename>
+PROTOBUF_CONSTEXPR PlayerPurchasedShopItemsSnapshot::PlayerPurchasedShopItemsSnapshot(::_pbi::ConstantInitialized)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(PlayerPurchasedShopItemsSnapshot_class_data_.base()),
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(),
+#endif  // PROTOBUF_CUSTOM_VTABLE
+      _impl_(::_pbi::ConstantInitialized()) {
+}
+struct PlayerPurchasedShopItemsSnapshotDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR PlayerPurchasedShopItemsSnapshotDefaultTypeInternal() : _instance(::_pbi::ConstantInitialized{}) {}
+  ~PlayerPurchasedShopItemsSnapshotDefaultTypeInternal() {}
+  union {
+    PlayerPurchasedShopItemsSnapshot _instance;
+  };
+};
+
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT
+    PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 PlayerPurchasedShopItemsSnapshotDefaultTypeInternal _PlayerPurchasedShopItemsSnapshot_default_instance_;
 
 inline constexpr PlayerProgressSnapshot::Impl_::Impl_(
     ::_pbi::ConstantInitialized) noexcept
@@ -217,6 +351,33 @@ struct PlayerProgressSnapshotDefaultTypeInternal {
 
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT
     PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 PlayerProgressSnapshotDefaultTypeInternal _PlayerProgressSnapshot_default_instance_;
+
+inline constexpr PlayerFreeRewardState::Impl_::Impl_(
+    ::_pbi::ConstantInitialized) noexcept
+      : _cached_size_{0},
+        player_id_{::int64_t{0}},
+        completed_{false},
+        selected_kind_{static_cast< ::battle::v1::FreeRewardKind >(0)} {}
+
+template <typename>
+PROTOBUF_CONSTEXPR PlayerFreeRewardState::PlayerFreeRewardState(::_pbi::ConstantInitialized)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(PlayerFreeRewardState_class_data_.base()),
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(),
+#endif  // PROTOBUF_CUSTOM_VTABLE
+      _impl_(::_pbi::ConstantInitialized()) {
+}
+struct PlayerFreeRewardStateDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR PlayerFreeRewardStateDefaultTypeInternal() : _instance(::_pbi::ConstantInitialized{}) {}
+  ~PlayerFreeRewardStateDefaultTypeInternal() {}
+  union {
+    PlayerFreeRewardState _instance;
+  };
+};
+
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT
+    PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 PlayerFreeRewardStateDefaultTypeInternal _PlayerFreeRewardState_default_instance_;
 
 inline constexpr PlayerBlessingSnapshot::Impl_::Impl_(
     ::_pbi::ConstantInitialized) noexcept
@@ -416,6 +577,35 @@ struct ClientHeartbeatDefaultTypeInternal {
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT
     PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 ClientHeartbeatDefaultTypeInternal _ClientHeartbeat_default_instance_;
 
+inline constexpr ChooseFreeReward::Impl_::Impl_(
+    ::_pbi::ConstantInitialized) noexcept
+      : _cached_size_{0},
+        room_name_(
+            &::google::protobuf::internal::fixed_address_empty_string,
+            ::_pbi::ConstantInitialized()),
+        player_id_{::int64_t{0}},
+        kind_{static_cast< ::battle::v1::FreeRewardKind >(0)} {}
+
+template <typename>
+PROTOBUF_CONSTEXPR ChooseFreeReward::ChooseFreeReward(::_pbi::ConstantInitialized)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(ChooseFreeReward_class_data_.base()),
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(),
+#endif  // PROTOBUF_CUSTOM_VTABLE
+      _impl_(::_pbi::ConstantInitialized()) {
+}
+struct ChooseFreeRewardDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR ChooseFreeRewardDefaultTypeInternal() : _instance(::_pbi::ConstantInitialized{}) {}
+  ~ChooseFreeRewardDefaultTypeInternal() {}
+  union {
+    ChooseFreeReward _instance;
+  };
+};
+
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT
+    PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 ChooseFreeRewardDefaultTypeInternal _ChooseFreeReward_default_instance_;
+
 inline constexpr ChooseBlessing::Impl_::Impl_(
     ::_pbi::ConstantInitialized) noexcept
       : _cached_size_{0},
@@ -470,6 +660,35 @@ struct BlessingOptionSnapshotDefaultTypeInternal {
 
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT
     PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 BlessingOptionSnapshotDefaultTypeInternal _BlessingOptionSnapshot_default_instance_;
+
+inline constexpr ShopItemDefinition::Impl_::Impl_(
+    ::_pbi::ConstantInitialized) noexcept
+      : _cached_size_{0},
+        buffs_{},
+        item_name_(
+            &::google::protobuf::internal::fixed_address_empty_string,
+            ::_pbi::ConstantInitialized()),
+        item_id_{0u} {}
+
+template <typename>
+PROTOBUF_CONSTEXPR ShopItemDefinition::ShopItemDefinition(::_pbi::ConstantInitialized)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(ShopItemDefinition_class_data_.base()),
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(),
+#endif  // PROTOBUF_CUSTOM_VTABLE
+      _impl_(::_pbi::ConstantInitialized()) {
+}
+struct ShopItemDefinitionDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR ShopItemDefinitionDefaultTypeInternal() : _instance(::_pbi::ConstantInitialized{}) {}
+  ~ShopItemDefinitionDefaultTypeInternal() {}
+  union {
+    ShopItemDefinition _instance;
+  };
+};
+
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT
+    PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 ShopItemDefinitionDefaultTypeInternal _ShopItemDefinition_default_instance_;
 
 inline constexpr PlayerBlessingStateSnapshot::Impl_::Impl_(
     ::_pbi::ConstantInitialized) noexcept
@@ -757,6 +976,11 @@ inline constexpr WorldSnapshot::Impl_::Impl_(
         available_room_exit_ids_{},
         _available_room_exit_ids_cached_byte_size_{0},
         player_room_exit_choices_{},
+        free_reward_states_{},
+        shop_offers_{},
+        player_souls_{},
+        shop_item_definitions_{},
+        purchased_shop_items_{},
         room_name_(
             &::google::protobuf::internal::fixed_address_empty_string,
             ::_pbi::ConstantInitialized()),
@@ -817,7 +1041,7 @@ PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT
 }  // namespace v1
 }  // namespace battle
 static const ::_pb::EnumDescriptor* PROTOBUF_NONNULL
-    file_level_enum_descriptors_proto_2fbattle_2fv1_2fsession_2eproto[4];
+    file_level_enum_descriptors_proto_2fbattle_2fv1_2fsession_2eproto[6];
 static constexpr const ::_pb::ServiceDescriptor *PROTOBUF_NONNULL *PROTOBUF_NULLABLE
     file_level_service_descriptors_proto_2fbattle_2fv1_2fsession_2eproto = nullptr;
 const ::uint32_t
@@ -855,6 +1079,8 @@ const ::uint32_t
         1,
         0x004, // bitmap
         PROTOBUF_FIELD_OFFSET(::battle::v1::ClientPacket, _impl_._oneof_case_[0]),
+        ::_pbi::kInvalidFieldOffsetTag,
+        ::_pbi::kInvalidFieldOffsetTag,
         ::_pbi::kInvalidFieldOffsetTag,
         ::_pbi::kInvalidFieldOffsetTag,
         ::_pbi::kInvalidFieldOffsetTag,
@@ -1042,7 +1268,7 @@ const ::uint32_t
         1,
         0x081, // bitmap
         PROTOBUF_FIELD_OFFSET(::battle::v1::WorldSnapshot, _impl_._has_bits_),
-        16, // hasbit index offset
+        21, // hasbit index offset
         PROTOBUF_FIELD_OFFSET(::battle::v1::WorldSnapshot, _impl_.room_name_),
         PROTOBUF_FIELD_OFFSET(::battle::v1::WorldSnapshot, _impl_.entities_),
         PROTOBUF_FIELD_OFFSET(::battle::v1::WorldSnapshot, _impl_.reward_selection_remaining_seconds_),
@@ -1056,6 +1282,11 @@ const ::uint32_t
         PROTOBUF_FIELD_OFFSET(::battle::v1::WorldSnapshot, _impl_.available_room_exit_ids_),
         PROTOBUF_FIELD_OFFSET(::battle::v1::WorldSnapshot, _impl_.player_room_exit_choices_),
         PROTOBUF_FIELD_OFFSET(::battle::v1::WorldSnapshot, _impl_.current_room_layout_id_),
+        PROTOBUF_FIELD_OFFSET(::battle::v1::WorldSnapshot, _impl_.free_reward_states_),
+        PROTOBUF_FIELD_OFFSET(::battle::v1::WorldSnapshot, _impl_.shop_offers_),
+        PROTOBUF_FIELD_OFFSET(::battle::v1::WorldSnapshot, _impl_.player_souls_),
+        PROTOBUF_FIELD_OFFSET(::battle::v1::WorldSnapshot, _impl_.shop_item_definitions_),
+        PROTOBUF_FIELD_OFFSET(::battle::v1::WorldSnapshot, _impl_.purchased_shop_items_),
         0,
         ~0u,
         2,
@@ -1069,6 +1300,11 @@ const ::uint32_t
         ~0u,
         ~0u,
         1,
+        ~0u,
+        ~0u,
+        ~0u,
+        ~0u,
+        ~0u,
         0x081, // bitmap
         PROTOBUF_FIELD_OFFSET(::battle::v1::ChooseBlessing, _impl_._has_bits_),
         6, // hasbit index offset
@@ -1106,6 +1342,70 @@ const ::uint32_t
         PROTOBUF_FIELD_OFFSET(::battle::v1::RoomEnteredEvent, _impl_.layout_id_),
         1,
         0,
+        0x081, // bitmap
+        PROTOBUF_FIELD_OFFSET(::battle::v1::PlayerFreeRewardState, _impl_._has_bits_),
+        6, // hasbit index offset
+        PROTOBUF_FIELD_OFFSET(::battle::v1::PlayerFreeRewardState, _impl_.player_id_),
+        PROTOBUF_FIELD_OFFSET(::battle::v1::PlayerFreeRewardState, _impl_.completed_),
+        PROTOBUF_FIELD_OFFSET(::battle::v1::PlayerFreeRewardState, _impl_.selected_kind_),
+        0,
+        1,
+        2,
+        0x081, // bitmap
+        PROTOBUF_FIELD_OFFSET(::battle::v1::ChooseFreeReward, _impl_._has_bits_),
+        6, // hasbit index offset
+        PROTOBUF_FIELD_OFFSET(::battle::v1::ChooseFreeReward, _impl_.room_name_),
+        PROTOBUF_FIELD_OFFSET(::battle::v1::ChooseFreeReward, _impl_.player_id_),
+        PROTOBUF_FIELD_OFFSET(::battle::v1::ChooseFreeReward, _impl_.kind_),
+        0,
+        1,
+        2,
+        0x081, // bitmap
+        PROTOBUF_FIELD_OFFSET(::battle::v1::PurchaseShopItem, _impl_._has_bits_),
+        6, // hasbit index offset
+        PROTOBUF_FIELD_OFFSET(::battle::v1::PurchaseShopItem, _impl_.room_name_),
+        PROTOBUF_FIELD_OFFSET(::battle::v1::PurchaseShopItem, _impl_.player_id_),
+        PROTOBUF_FIELD_OFFSET(::battle::v1::PurchaseShopItem, _impl_.item_id_),
+        0,
+        1,
+        2,
+        0x081, // bitmap
+        PROTOBUF_FIELD_OFFSET(::battle::v1::ShopOffer, _impl_._has_bits_),
+        5, // hasbit index offset
+        PROTOBUF_FIELD_OFFSET(::battle::v1::ShopOffer, _impl_.item_id_),
+        PROTOBUF_FIELD_OFFSET(::battle::v1::ShopOffer, _impl_.price_),
+        0,
+        1,
+        0x081, // bitmap
+        PROTOBUF_FIELD_OFFSET(::battle::v1::PlayerSoulSnapshot, _impl_._has_bits_),
+        5, // hasbit index offset
+        PROTOBUF_FIELD_OFFSET(::battle::v1::PlayerSoulSnapshot, _impl_.player_id_),
+        PROTOBUF_FIELD_OFFSET(::battle::v1::PlayerSoulSnapshot, _impl_.souls_),
+        0,
+        1,
+        0x081, // bitmap
+        PROTOBUF_FIELD_OFFSET(::battle::v1::ShopBuff, _impl_._has_bits_),
+        5, // hasbit index offset
+        PROTOBUF_FIELD_OFFSET(::battle::v1::ShopBuff, _impl_.kind_),
+        PROTOBUF_FIELD_OFFSET(::battle::v1::ShopBuff, _impl_.value_),
+        0,
+        1,
+        0x081, // bitmap
+        PROTOBUF_FIELD_OFFSET(::battle::v1::ShopItemDefinition, _impl_._has_bits_),
+        6, // hasbit index offset
+        PROTOBUF_FIELD_OFFSET(::battle::v1::ShopItemDefinition, _impl_.item_id_),
+        PROTOBUF_FIELD_OFFSET(::battle::v1::ShopItemDefinition, _impl_.item_name_),
+        PROTOBUF_FIELD_OFFSET(::battle::v1::ShopItemDefinition, _impl_.buffs_),
+        1,
+        0,
+        ~0u,
+        0x081, // bitmap
+        PROTOBUF_FIELD_OFFSET(::battle::v1::PlayerPurchasedShopItemsSnapshot, _impl_._has_bits_),
+        5, // hasbit index offset
+        PROTOBUF_FIELD_OFFSET(::battle::v1::PlayerPurchasedShopItemsSnapshot, _impl_.player_id_),
+        PROTOBUF_FIELD_OFFSET(::battle::v1::PlayerPurchasedShopItemsSnapshot, _impl_.item_ids_),
+        0,
+        ~0u,
 };
 
 static const ::_pbi::MigrationSchema
@@ -1115,28 +1415,36 @@ static const ::_pbi::MigrationSchema
         {16, sizeof(::battle::v1::GameStart)},
         {23, sizeof(::battle::v1::Error)},
         {30, sizeof(::battle::v1::ClientPacket)},
-        {38, sizeof(::battle::v1::ServerPacket)},
-        {46, sizeof(::battle::v1::GameOver)},
-        {57, sizeof(::battle::v1::PlayerBattleStats)},
-        {66, sizeof(::battle::v1::MonsterKillCount)},
-        {73, sizeof(::battle::v1::ClientInput)},
-        {86, sizeof(::battle::v1::Position)},
-        {93, sizeof(::battle::v1::Direction)},
-        {100, sizeof(::battle::v1::EntitySnapshot)},
-        {125, sizeof(::battle::v1::PlayerProgressSnapshot)},
-        {138, sizeof(::battle::v1::BlessingOptionSnapshot)},
-        {145, sizeof(::battle::v1::PlayerBlessingSnapshot)},
-        {152, sizeof(::battle::v1::PlayerBlessingStateSnapshot)},
-        {161, sizeof(::battle::v1::AttackEvent)},
-        {180, sizeof(::battle::v1::DeathEvent)},
-        {195, sizeof(::battle::v1::BattleEvent)},
-        {210, sizeof(::battle::v1::PlayerRoomExitChoiceSnapshot)},
-        {217, sizeof(::battle::v1::WorldSnapshot)},
-        {246, sizeof(::battle::v1::ChooseBlessing)},
-        {255, sizeof(::battle::v1::ClientHeartbeat)},
-        {262, sizeof(::battle::v1::SelectRoomExit)},
-        {271, sizeof(::battle::v1::RoomClearedEvent)},
-        {276, sizeof(::battle::v1::RoomEnteredEvent)},
+        {40, sizeof(::battle::v1::ServerPacket)},
+        {48, sizeof(::battle::v1::GameOver)},
+        {59, sizeof(::battle::v1::PlayerBattleStats)},
+        {68, sizeof(::battle::v1::MonsterKillCount)},
+        {75, sizeof(::battle::v1::ClientInput)},
+        {88, sizeof(::battle::v1::Position)},
+        {95, sizeof(::battle::v1::Direction)},
+        {102, sizeof(::battle::v1::EntitySnapshot)},
+        {127, sizeof(::battle::v1::PlayerProgressSnapshot)},
+        {140, sizeof(::battle::v1::BlessingOptionSnapshot)},
+        {147, sizeof(::battle::v1::PlayerBlessingSnapshot)},
+        {154, sizeof(::battle::v1::PlayerBlessingStateSnapshot)},
+        {163, sizeof(::battle::v1::AttackEvent)},
+        {182, sizeof(::battle::v1::DeathEvent)},
+        {197, sizeof(::battle::v1::BattleEvent)},
+        {212, sizeof(::battle::v1::PlayerRoomExitChoiceSnapshot)},
+        {219, sizeof(::battle::v1::WorldSnapshot)},
+        {258, sizeof(::battle::v1::ChooseBlessing)},
+        {267, sizeof(::battle::v1::ClientHeartbeat)},
+        {274, sizeof(::battle::v1::SelectRoomExit)},
+        {283, sizeof(::battle::v1::RoomClearedEvent)},
+        {288, sizeof(::battle::v1::RoomEnteredEvent)},
+        {295, sizeof(::battle::v1::PlayerFreeRewardState)},
+        {304, sizeof(::battle::v1::ChooseFreeReward)},
+        {313, sizeof(::battle::v1::PurchaseShopItem)},
+        {322, sizeof(::battle::v1::ShopOffer)},
+        {329, sizeof(::battle::v1::PlayerSoulSnapshot)},
+        {336, sizeof(::battle::v1::ShopBuff)},
+        {343, sizeof(::battle::v1::ShopItemDefinition)},
+        {352, sizeof(::battle::v1::PlayerPurchasedShopItemsSnapshot)},
 };
 static const ::_pb::Message* PROTOBUF_NONNULL const file_default_instances[] = {
     &::battle::v1::_ClientHello_default_instance_._instance,
@@ -1166,6 +1474,14 @@ static const ::_pb::Message* PROTOBUF_NONNULL const file_default_instances[] = {
     &::battle::v1::_SelectRoomExit_default_instance_._instance,
     &::battle::v1::_RoomClearedEvent_default_instance_._instance,
     &::battle::v1::_RoomEnteredEvent_default_instance_._instance,
+    &::battle::v1::_PlayerFreeRewardState_default_instance_._instance,
+    &::battle::v1::_ChooseFreeReward_default_instance_._instance,
+    &::battle::v1::_PurchaseShopItem_default_instance_._instance,
+    &::battle::v1::_ShopOffer_default_instance_._instance,
+    &::battle::v1::_PlayerSoulSnapshot_default_instance_._instance,
+    &::battle::v1::_ShopBuff_default_instance_._instance,
+    &::battle::v1::_ShopItemDefinition_default_instance_._instance,
+    &::battle::v1::_PlayerPurchasedShopItemsSnapshot_default_instance_._instance,
 };
 const char descriptor_table_protodef_proto_2fbattle_2fv1_2fsession_2eproto[] ABSL_ATTRIBUTE_SECTION_VARIABLE(
     protodesc_cold) = {
@@ -1175,124 +1491,160 @@ const char descriptor_table_protodef_proto_2fbattle_2fv1_2fsession_2eproto[] ABS
     "Hello\022\014\n\004conv\030\001 \001(\r\022\017\n\007message\030\002 \001(\t\"2\n\t"
     "GameStart\022\021\n\troom_name\030\001 \001(\t\022\022\n\nplayer_i"
     "ds\030\002 \003(\003\"&\n\005Error\022\014\n\004code\030\001 \001(\t\022\017\n\007messa"
-    "ge\030\002 \001(\t\"\211\002\n\014ClientPacket\022\'\n\005hello\030\001 \001(\013"
+    "ge\030\002 \001(\t\"\205\003\n\014ClientPacket\022\'\n\005hello\030\001 \001(\013"
     "2\026.battle.v1.ClientHelloH\000\022\'\n\005input\030\002 \001("
     "\0132\026.battle.v1.ClientInputH\000\0224\n\017choose_bl"
     "essing\030\003 \001(\0132\031.battle.v1.ChooseBlessingH"
     "\000\022/\n\theartbeat\030\004 \001(\0132\032.battle.v1.ClientH"
     "eartbeatH\000\0225\n\020select_room_exit\030\005 \001(\0132\031.b"
-    "attle.v1.SelectRoomExitH\000B\t\n\007payload\"\351\001\n"
-    "\014ServerPacket\022\'\n\005hello\030\001 \001(\0132\026.battle.v1"
-    ".ServerHelloH\000\022*\n\ngame_start\030\002 \001(\0132\024.bat"
-    "tle.v1.GameStartH\000\022!\n\005error\030\003 \001(\0132\020.batt"
-    "le.v1.ErrorH\000\022(\n\tgame_over\030\004 \001(\0132\023.battl"
-    "e.v1.GameOverH\000\022,\n\010snapshot\030\005 \001(\0132\030.batt"
-    "le.v1.WorldSnapshotH\000B\t\n\007payload\"u\n\010Game"
-    "Over\022\021\n\troom_name\030\001 \001(\t\022\022\n\nplayer_ids\030\002 "
-    "\003(\003\022\016\n\006reason\030\003 \001(\t\0222\n\014player_stats\030\004 \003("
-    "\0132\034.battle.v1.PlayerBattleStats\"g\n\021Playe"
-    "rBattleStats\022\021\n\tplayer_id\030\001 \001(\003\022\023\n\013total"
-    "_kills\030\002 \001(\005\022*\n\005kills\030\003 \003(\0132\033.battle.v1."
-    "MonsterKillCount\"7\n\020MonsterKillCount\022\024\n\014"
-    "monster_kind\030\001 \001(\t\022\r\n\005count\030\002 \001(\005\"\223\001\n\013Cl"
-    "ientInput\022\021\n\troom_name\030\001 \001(\t\022\021\n\tplayer_i"
-    "d\030\002 \001(\003\022&\n\010movement\030\003 \001(\0132\024.battle.v1.Di"
-    "rection\022\030\n\020attack_requested\030\005 \001(\010\022\026\n\016das"
-    "h_requested\030\006 \001(\010J\004\010\004\020\005\" \n\010Position\022\t\n\001x"
-    "\030\001 \001(\002\022\t\n\001y\030\002 \001(\002\"!\n\tDirection\022\t\n\001x\030\001 \001("
-    "\002\022\t\n\001y\030\002 \001(\002\"\271\002\n\016EntitySnapshot\022\016\n\006entit"
-    "y\030\001 \001(\004\022%\n\010position\030\002 \001(\0132\023.battle.v1.Po"
-    "sition\022\'\n\tdirection\030\003 \001(\0132\024.battle.v1.Di"
-    "rection\022\026\n\016current_health\030\006 \001(\005\022\022\n\nmax_h"
-    "ealth\030\007 \001(\005\022#\n\004kind\030\010 \001(\0162\025.battle.v1.En"
-    "tityKind\022\021\n\tplayer_id\030\t \001(\003\022\024\n\014monster_k"
-    "ind\030\n \001(\t\022\014\n\004hero\030\013 \001(\t\022\030\n\020collision_rad"
-    "ius\030\014 \001(\002\022\031\n\021scene_object_kind\030\r \001(\tJ\004\010\004"
-    "\020\005J\004\010\005\020\006\"\221\001\n\026PlayerProgressSnapshot\022\021\n\tp"
-    "layer_id\030\001 \001(\003\022\r\n\005level\030\002 \001(\005\022\022\n\nexperie"
-    "nce\030\003 \001(\005\022 \n\030experience_to_next_level\030\004 "
-    "\001(\005\022\037\n\027pending_upgrade_choices\030\005 \001(\005\"W\n\026"
-    "BlessingOptionSnapshot\022\021\n\toption_id\030\001 \001("
-    "\005\022*\n\013blessing_id\030\002 \001(\0162\025.battle.v1.Bless"
-    "ingId\"S\n\026PlayerBlessingSnapshot\022*\n\013bless"
-    "ing_id\030\001 \001(\0162\025.battle.v1.BlessingId\022\r\n\005l"
-    "evel\030\002 \001(\005\"\242\001\n\033PlayerBlessingStateSnapsh"
-    "ot\022\021\n\tplayer_id\030\001 \001(\003\0224\n\tblessings\030\002 \003(\013"
-    "2!.battle.v1.PlayerBlessingSnapshot\022:\n\017c"
-    "urrent_options\030\003 \003(\0132!.battle.v1.Blessin"
-    "gOptionSnapshot\"\367\001\n\013AttackEvent\022\027\n\017attac"
-    "ker_entity\030\001 \001(\004\022\021\n\taction_id\030\002 \001(\004\022*\n\013a"
-    "ttack_kind\030\003 \001(\0162\025.battle.v1.AttackKind\022"
-    "\'\n\tdirection\030\004 \001(\0132\024.battle.v1.Direction"
-    "\022\022\n\nstart_tick\030\006 \001(\004\022\031\n\021active_start_tic"
-    "k\030\007 \001(\004\022\027\n\017active_end_tick\030\010 \001(\004\022\031\n\021reco"
-    "very_end_tick\030\t \001(\004J\004\010\005\020\006\"\330\001\n\nDeathEvent"
-    "\022\025\n\rvictim_entity\030\001 \001(\004\022*\n\013victim_kind\030\002"
-    " \001(\0162\025.battle.v1.EntityKind\022\024\n\014monster_k"
-    "ind\030\003 \001(\t\022%\n\010position\030\004 \001(\0132\023.battle.v1."
-    "Position\022\'\n\tdirection\030\005 \001(\0132\024.battle.v1."
-    "Direction\022\025\n\rkiller_entity\030\010 \001(\004J\004\010\006\020\007J\004"
-    "\010\007\020\010\"\346\001\n\013BattleEvent\022\020\n\010event_id\030\001 \001(\004\022("
-    "\n\006attack\030\002 \001(\0132\026.battle.v1.AttackEventH\000"
-    "\022&\n\005death\030\003 \001(\0132\025.battle.v1.DeathEventH\000"
-    "\0223\n\014room_cleared\030\004 \001(\0132\033.battle.v1.RoomC"
-    "learedEventH\000\0223\n\014room_entered\030\005 \001(\0132\033.ba"
-    "ttle.v1.RoomEnteredEventH\000B\t\n\007payload\"G\n"
-    "\034PlayerRoomExitChoiceSnapshot\022\021\n\tplayer_"
-    "id\030\001 \001(\003\022\024\n\014room_exit_id\030\002 \001(\r\"\250\004\n\rWorld"
-    "Snapshot\022\021\n\troom_name\030\001 \001(\t\022+\n\010entities\030"
-    "\002 \003(\0132\031.battle.v1.EntitySnapshot\022*\n\"rewa"
-    "rd_selection_remaining_seconds\030\005 \001(\002\022:\n\017"
-    "player_progress\030\006 \003(\0132!.battle.v1.Player"
-    "ProgressSnapshot\022@\n\020player_blessings\030\007 \003"
-    "(\0132&.battle.v1.PlayerBlessingStateSnapsh"
-    "ot\022\023\n\013server_tick\030\010 \001(\004\022&\n\006events\030\t \003(\0132"
-    "\026.battle.v1.BattleEvent\022\021\n\ttick_rate\030\n \001"
-    "(\r\022\027\n\017current_room_id\030\013 \001(\r\022,\n\nroom_stat"
-    "e\030\014 \001(\0162\030.battle.v1.RoomFlowState\022\037\n\027ava"
-    "ilable_room_exit_ids\030\r \003(\r\022I\n\030player_roo"
-    "m_exit_choices\030\016 \003(\0132\'.battle.v1.PlayerR"
-    "oomExitChoiceSnapshot\022\036\n\026current_room_la"
-    "yout_id\030\017 \001(\tJ\004\010\003\020\004J\004\010\004\020\005\"I\n\016ChooseBless"
-    "ing\022\021\n\troom_name\030\001 \001(\t\022\021\n\tplayer_id\030\002 \001("
-    "\003\022\021\n\toption_id\030\003 \001(\005\"7\n\017ClientHeartbeat\022"
-    "\021\n\troom_name\030\001 \001(\t\022\021\n\tplayer_id\030\002 \001(\003\"L\n"
-    "\016SelectRoomExit\022\021\n\troom_name\030\001 \001(\t\022\021\n\tpl"
-    "ayer_id\030\002 \001(\003\022\024\n\014next_room_id\030\003 \001(\r\"#\n\020R"
-    "oomClearedEvent\022\017\n\007room_id\030\001 \001(\r\"6\n\020Room"
-    "EnteredEvent\022\017\n\007room_id\030\001 \001(\r\022\021\n\tlayout_"
-    "id\030\002 \001(\t*\246\001\n\nEntityKind\022\033\n\027ENTITY_KIND_U"
+    "attle.v1.SelectRoomExitH\000\0229\n\022choose_free"
+    "_reward\030\007 \001(\0132\033.battle.v1.ChooseFreeRewa"
+    "rdH\000\0229\n\022purchase_shop_item\030\010 \001(\0132\033.battl"
+    "e.v1.PurchaseShopItemH\000B\t\n\007payloadJ\004\010\006\020\007"
+    "\"\351\001\n\014ServerPacket\022\'\n\005hello\030\001 \001(\0132\026.battl"
+    "e.v1.ServerHelloH\000\022*\n\ngame_start\030\002 \001(\0132\024"
+    ".battle.v1.GameStartH\000\022!\n\005error\030\003 \001(\0132\020."
+    "battle.v1.ErrorH\000\022(\n\tgame_over\030\004 \001(\0132\023.b"
+    "attle.v1.GameOverH\000\022,\n\010snapshot\030\005 \001(\0132\030."
+    "battle.v1.WorldSnapshotH\000B\t\n\007payload\"u\n\010"
+    "GameOver\022\021\n\troom_name\030\001 \001(\t\022\022\n\nplayer_id"
+    "s\030\002 \003(\003\022\016\n\006reason\030\003 \001(\t\0222\n\014player_stats\030"
+    "\004 \003(\0132\034.battle.v1.PlayerBattleStats\"g\n\021P"
+    "layerBattleStats\022\021\n\tplayer_id\030\001 \001(\003\022\023\n\013t"
+    "otal_kills\030\002 \001(\005\022*\n\005kills\030\003 \003(\0132\033.battle"
+    ".v1.MonsterKillCount\"7\n\020MonsterKillCount"
+    "\022\024\n\014monster_kind\030\001 \001(\t\022\r\n\005count\030\002 \001(\005\"\223\001"
+    "\n\013ClientInput\022\021\n\troom_name\030\001 \001(\t\022\021\n\tplay"
+    "er_id\030\002 \001(\003\022&\n\010movement\030\003 \001(\0132\024.battle.v"
+    "1.Direction\022\030\n\020attack_requested\030\005 \001(\010\022\026\n"
+    "\016dash_requested\030\006 \001(\010J\004\010\004\020\005\" \n\010Position\022"
+    "\t\n\001x\030\001 \001(\002\022\t\n\001y\030\002 \001(\002\"!\n\tDirection\022\t\n\001x\030"
+    "\001 \001(\002\022\t\n\001y\030\002 \001(\002\"\271\002\n\016EntitySnapshot\022\016\n\006e"
+    "ntity\030\001 \001(\004\022%\n\010position\030\002 \001(\0132\023.battle.v"
+    "1.Position\022\'\n\tdirection\030\003 \001(\0132\024.battle.v"
+    "1.Direction\022\026\n\016current_health\030\006 \001(\005\022\022\n\nm"
+    "ax_health\030\007 \001(\005\022#\n\004kind\030\010 \001(\0162\025.battle.v"
+    "1.EntityKind\022\021\n\tplayer_id\030\t \001(\003\022\024\n\014monst"
+    "er_kind\030\n \001(\t\022\014\n\004hero\030\013 \001(\t\022\030\n\020collision"
+    "_radius\030\014 \001(\002\022\031\n\021scene_object_kind\030\r \001(\t"
+    "J\004\010\004\020\005J\004\010\005\020\006\"\221\001\n\026PlayerProgressSnapshot\022"
+    "\021\n\tplayer_id\030\001 \001(\003\022\r\n\005level\030\002 \001(\005\022\022\n\nexp"
+    "erience\030\003 \001(\005\022 \n\030experience_to_next_leve"
+    "l\030\004 \001(\005\022\037\n\027pending_upgrade_choices\030\005 \001(\005"
+    "\"W\n\026BlessingOptionSnapshot\022\021\n\toption_id\030"
+    "\001 \001(\005\022*\n\013blessing_id\030\002 \001(\0162\025.battle.v1.B"
+    "lessingId\"S\n\026PlayerBlessingSnapshot\022*\n\013b"
+    "lessing_id\030\001 \001(\0162\025.battle.v1.BlessingId\022"
+    "\r\n\005level\030\002 \001(\005\"\242\001\n\033PlayerBlessingStateSn"
+    "apshot\022\021\n\tplayer_id\030\001 \001(\003\0224\n\tblessings\030\002"
+    " \003(\0132!.battle.v1.PlayerBlessingSnapshot\022"
+    ":\n\017current_options\030\003 \003(\0132!.battle.v1.Ble"
+    "ssingOptionSnapshot\"\367\001\n\013AttackEvent\022\027\n\017a"
+    "ttacker_entity\030\001 \001(\004\022\021\n\taction_id\030\002 \001(\004\022"
+    "*\n\013attack_kind\030\003 \001(\0162\025.battle.v1.AttackK"
+    "ind\022\'\n\tdirection\030\004 \001(\0132\024.battle.v1.Direc"
+    "tion\022\022\n\nstart_tick\030\006 \001(\004\022\031\n\021active_start"
+    "_tick\030\007 \001(\004\022\027\n\017active_end_tick\030\010 \001(\004\022\031\n\021"
+    "recovery_end_tick\030\t \001(\004J\004\010\005\020\006\"\330\001\n\nDeathE"
+    "vent\022\025\n\rvictim_entity\030\001 \001(\004\022*\n\013victim_ki"
+    "nd\030\002 \001(\0162\025.battle.v1.EntityKind\022\024\n\014monst"
+    "er_kind\030\003 \001(\t\022%\n\010position\030\004 \001(\0132\023.battle"
+    ".v1.Position\022\'\n\tdirection\030\005 \001(\0132\024.battle"
+    ".v1.Direction\022\025\n\rkiller_entity\030\010 \001(\004J\004\010\006"
+    "\020\007J\004\010\007\020\010\"\346\001\n\013BattleEvent\022\020\n\010event_id\030\001 \001"
+    "(\004\022(\n\006attack\030\002 \001(\0132\026.battle.v1.AttackEve"
+    "ntH\000\022&\n\005death\030\003 \001(\0132\025.battle.v1.DeathEve"
+    "ntH\000\0223\n\014room_cleared\030\004 \001(\0132\033.battle.v1.R"
+    "oomClearedEventH\000\0223\n\014room_entered\030\005 \001(\0132"
+    "\033.battle.v1.RoomEnteredEventH\000B\t\n\007payloa"
+    "d\"G\n\034PlayerRoomExitChoiceSnapshot\022\021\n\tpla"
+    "yer_id\030\001 \001(\003\022\024\n\014room_exit_id\030\002 \001(\r\"\317\006\n\rW"
+    "orldSnapshot\022\021\n\troom_name\030\001 \001(\t\022+\n\010entit"
+    "ies\030\002 \003(\0132\031.battle.v1.EntitySnapshot\022*\n\""
+    "reward_selection_remaining_seconds\030\005 \001(\002"
+    "\022:\n\017player_progress\030\006 \003(\0132!.battle.v1.Pl"
+    "ayerProgressSnapshot\022@\n\020player_blessings"
+    "\030\007 \003(\0132&.battle.v1.PlayerBlessingStateSn"
+    "apshot\022\023\n\013server_tick\030\010 \001(\004\022&\n\006events\030\t "
+    "\003(\0132\026.battle.v1.BattleEvent\022\021\n\ttick_rate"
+    "\030\n \001(\r\022\027\n\017current_room_id\030\013 \001(\r\022,\n\nroom_"
+    "state\030\014 \001(\0162\030.battle.v1.RoomFlowState\022\037\n"
+    "\027available_room_exit_ids\030\r \003(\r\022I\n\030player"
+    "_room_exit_choices\030\016 \003(\0132\'.battle.v1.Pla"
+    "yerRoomExitChoiceSnapshot\022\036\n\026current_roo"
+    "m_layout_id\030\017 \001(\t\022<\n\022free_reward_states\030"
+    "\020 \003(\0132 .battle.v1.PlayerFreeRewardState\022"
+    ")\n\013shop_offers\030\021 \003(\0132\024.battle.v1.ShopOff"
+    "er\0223\n\014player_souls\030\022 \003(\0132\035.battle.v1.Pla"
+    "yerSoulSnapshot\022<\n\025shop_item_definitions"
+    "\030\023 \003(\0132\035.battle.v1.ShopItemDefinition\022I\n"
+    "\024purchased_shop_items\030\024 \003(\0132+.battle.v1."
+    "PlayerPurchasedShopItemsSnapshotJ\004\010\003\020\004J\004"
+    "\010\004\020\005\"I\n\016ChooseBlessing\022\021\n\troom_name\030\001 \001("
+    "\t\022\021\n\tplayer_id\030\002 \001(\003\022\021\n\toption_id\030\003 \001(\005\""
+    "7\n\017ClientHeartbeat\022\021\n\troom_name\030\001 \001(\t\022\021\n"
+    "\tplayer_id\030\002 \001(\003\"L\n\016SelectRoomExit\022\021\n\tro"
+    "om_name\030\001 \001(\t\022\021\n\tplayer_id\030\002 \001(\003\022\024\n\014next"
+    "_room_id\030\003 \001(\r\"#\n\020RoomClearedEvent\022\017\n\007ro"
+    "om_id\030\001 \001(\r\"6\n\020RoomEnteredEvent\022\017\n\007room_"
+    "id\030\001 \001(\r\022\021\n\tlayout_id\030\002 \001(\t\"o\n\025PlayerFre"
+    "eRewardState\022\021\n\tplayer_id\030\001 \001(\003\022\021\n\tcompl"
+    "eted\030\002 \001(\010\0220\n\rselected_kind\030\003 \001(\0162\031.batt"
+    "le.v1.FreeRewardKind\"a\n\020ChooseFreeReward"
+    "\022\021\n\troom_name\030\001 \001(\t\022\021\n\tplayer_id\030\002 \001(\003\022\'"
+    "\n\004kind\030\003 \001(\0162\031.battle.v1.FreeRewardKind\""
+    "I\n\020PurchaseShopItem\022\021\n\troom_name\030\001 \001(\t\022\021"
+    "\n\tplayer_id\030\002 \001(\003\022\017\n\007item_id\030\003 \001(\r\"+\n\tSh"
+    "opOffer\022\017\n\007item_id\030\001 \001(\r\022\r\n\005price\030\002 \001(\005\""
+    "6\n\022PlayerSoulSnapshot\022\021\n\tplayer_id\030\001 \001(\003"
+    "\022\r\n\005souls\030\002 \001(\005\"@\n\010ShopBuff\022%\n\004kind\030\001 \001("
+    "\0162\027.battle.v1.ShopBuffKind\022\r\n\005value\030\002 \001("
+    "\002\"\\\n\022ShopItemDefinition\022\017\n\007item_id\030\001 \001(\r"
+    "\022\021\n\titem_name\030\002 \001(\t\022\"\n\005buffs\030\003 \003(\0132\023.bat"
+    "tle.v1.ShopBuff\"G\n PlayerPurchasedShopIt"
+    "emsSnapshot\022\021\n\tplayer_id\030\001 \001(\003\022\020\n\010item_i"
+    "ds\030\002 \003(\r*\246\001\n\nEntityKind\022\033\n\027ENTITY_KIND_U"
     "NSPECIFIED\020\000\022\026\n\022ENTITY_KIND_PLAYER\020\001\022\027\n\023"
     "ENTITY_KIND_MONSTER\020\002\022\032\n\026ENTITY_KIND_PRO"
     "JECTILE\020\003\022\030\n\024ENTITY_KIND_OBSTACLE\020\004\022\024\n\020E"
-    "NTITY_KIND_TRAP\020\005*\200\002\n\rRoomFlowState\022\037\n\033R"
+    "NTITY_KIND_TRAP\020\005*\237\002\n\rRoomFlowState\022\037\n\033R"
     "OOM_FLOW_STATE_UNSPECIFIED\020\000\022!\n\035ROOM_FLO"
     "W_STATE_ENTERING_ROOM\020\001\022\034\n\030ROOM_FLOW_STA"
     "TE_FIGHTING\020\002\022 \n\034ROOM_FLOW_STATE_ROOM_CL"
     "EARED\020\003\022%\n!ROOM_FLOW_STATE_CHOOSING_BLES"
     "SING\020\004\022!\n\035ROOM_FLOW_STATE_CHOOSING_EXIT\020"
-    "\005\022!\n\035ROOM_FLOW_STATE_TRANSITIONING\020\006*\303\001\n"
-    "\nBlessingId\022\033\n\027BLESSING_ID_UNSPECIFIED\020\000"
-    "\022\033\n\027BLESSING_ID_BURN_ON_HIT\020\001\022\032\n\026BLESSIN"
-    "G_ID_LIFE_STEAL\020\002\022\035\n\031BLESSING_ID_FREEZE_"
-    "ON_HIT\020\003\022\037\n\033BLESSING_ID_CRITICAL_STRIKE\020"
-    "\004\022\037\n\033BLESSING_ID_CHAIN_LIGHTNING\020\005*\\\n\nAt"
-    "tackKind\022\033\n\027ATTACK_KIND_UNSPECIFIED\020\000\022\025\n"
-    "\021ATTACK_KIND_MELEE\020\001\022\032\n\026ATTACK_KIND_PROJ"
-    "ECTILE\020\002B,Z*server/internal/contract/bat"
-    "tlepb;battlepbb\006proto3"
+    "\005\022!\n\035ROOM_FLOW_STATE_TRANSITIONING\020\006\022\035\n\031"
+    "ROOM_FLOW_STATE_REWARDING\020\007*\303\001\n\nBlessing"
+    "Id\022\033\n\027BLESSING_ID_UNSPECIFIED\020\000\022\033\n\027BLESS"
+    "ING_ID_BURN_ON_HIT\020\001\022\032\n\026BLESSING_ID_LIFE"
+    "_STEAL\020\002\022\035\n\031BLESSING_ID_FREEZE_ON_HIT\020\003\022"
+    "\037\n\033BLESSING_ID_CRITICAL_STRIKE\020\004\022\037\n\033BLES"
+    "SING_ID_CHAIN_LIGHTNING\020\005*\\\n\nAttackKind\022"
+    "\033\n\027ATTACK_KIND_UNSPECIFIED\020\000\022\025\n\021ATTACK_K"
+    "IND_MELEE\020\001\022\032\n\026ATTACK_KIND_PROJECTILE\020\002*"
+    "\313\001\n\016FreeRewardKind\022 \n\034FREE_REWARD_KIND_U"
+    "NSPECIFIED\020\000\022\031\n\025FREE_REWARD_KIND_HEAL\020\001\022"
+    "\033\n\027FREE_REWARD_KIND_ATTACK\020\002\022%\n!FREE_REW"
+    "ARD_KIND_DAMAGE_REDUCTION\020\003\022\035\n\031FREE_REWA"
+    "RD_KIND_BLESSING\020\004\022\031\n\025FREE_REWARD_KIND_S"
+    "KIP\020\005*\250\001\n\014ShopBuffKind\022\036\n\032SHOP_BUFF_KIND"
+    "_UNSPECIFIED\020\000\022 \n\034SHOP_BUFF_KIND_ATTACK_"
+    "DAMAGE\020\001\022\035\n\031SHOP_BUFF_KIND_MAX_HEALTH\020\002\022"
+    "\030\n\024SHOP_BUFF_KIND_ARMOR\020\003\022\035\n\031SHOP_BUFF_K"
+    "IND_MOVE_SPEED\020\004B,Z*server/internal/cont"
+    "ract/battlepb;battlepbb\006proto3"
 };
 static ::absl::once_flag descriptor_table_proto_2fbattle_2fv1_2fsession_2eproto_once;
 PROTOBUF_CONSTINIT const ::_pbi::DescriptorTable descriptor_table_proto_2fbattle_2fv1_2fsession_2eproto = {
     false,
     false,
-    4462,
+    5910,
     descriptor_table_protodef_proto_2fbattle_2fv1_2fsession_2eproto,
     "proto/battle/v1/session.proto",
     &descriptor_table_proto_2fbattle_2fv1_2fsession_2eproto_once,
     nullptr,
     0,
-    27,
+    35,
     schemas,
     file_default_instances,
     TableStruct_proto_2fbattle_2fv1_2fsession_2eproto::offsets,
@@ -1312,7 +1664,7 @@ const ::google::protobuf::EnumDescriptor* PROTOBUF_NONNULL RoomFlowState_descrip
   return file_level_enum_descriptors_proto_2fbattle_2fv1_2fsession_2eproto[1];
 }
 PROTOBUF_CONSTINIT const uint32_t RoomFlowState_internal_data_[] = {
-    458752u, 0u, };
+    524288u, 0u, };
 const ::google::protobuf::EnumDescriptor* PROTOBUF_NONNULL BlessingId_descriptor() {
   ::google::protobuf::internal::AssignDescriptors(&descriptor_table_proto_2fbattle_2fv1_2fsession_2eproto);
   return file_level_enum_descriptors_proto_2fbattle_2fv1_2fsession_2eproto[2];
@@ -1325,6 +1677,18 @@ const ::google::protobuf::EnumDescriptor* PROTOBUF_NONNULL AttackKind_descriptor
 }
 PROTOBUF_CONSTINIT const uint32_t AttackKind_internal_data_[] = {
     196608u, 0u, };
+const ::google::protobuf::EnumDescriptor* PROTOBUF_NONNULL FreeRewardKind_descriptor() {
+  ::google::protobuf::internal::AssignDescriptors(&descriptor_table_proto_2fbattle_2fv1_2fsession_2eproto);
+  return file_level_enum_descriptors_proto_2fbattle_2fv1_2fsession_2eproto[4];
+}
+PROTOBUF_CONSTINIT const uint32_t FreeRewardKind_internal_data_[] = {
+    393216u, 0u, };
+const ::google::protobuf::EnumDescriptor* PROTOBUF_NONNULL ShopBuffKind_descriptor() {
+  ::google::protobuf::internal::AssignDescriptors(&descriptor_table_proto_2fbattle_2fv1_2fsession_2eproto);
+  return file_level_enum_descriptors_proto_2fbattle_2fv1_2fsession_2eproto[5];
+}
+PROTOBUF_CONSTINIT const uint32_t ShopBuffKind_internal_data_[] = {
+    327680u, 0u, };
 // ===================================================================
 
 class ClientHello::_Internal {
@@ -2646,6 +3010,32 @@ void ClientPacket::set_allocated_select_room_exit(::battle::v1::SelectRoomExit* 
   }
   // @@protoc_insertion_point(field_set_allocated:battle.v1.ClientPacket.select_room_exit)
 }
+void ClientPacket::set_allocated_choose_free_reward(::battle::v1::ChooseFreeReward* PROTOBUF_NULLABLE choose_free_reward) {
+  ::google::protobuf::Arena* message_arena = GetArena();
+  clear_payload();
+  if (choose_free_reward) {
+    ::google::protobuf::Arena* submessage_arena = choose_free_reward->GetArena();
+    if (message_arena != submessage_arena) {
+      choose_free_reward = ::google::protobuf::internal::GetOwnedMessage(message_arena, choose_free_reward, submessage_arena);
+    }
+    set_has_choose_free_reward();
+    _impl_.payload_.choose_free_reward_ = choose_free_reward;
+  }
+  // @@protoc_insertion_point(field_set_allocated:battle.v1.ClientPacket.choose_free_reward)
+}
+void ClientPacket::set_allocated_purchase_shop_item(::battle::v1::PurchaseShopItem* PROTOBUF_NULLABLE purchase_shop_item) {
+  ::google::protobuf::Arena* message_arena = GetArena();
+  clear_payload();
+  if (purchase_shop_item) {
+    ::google::protobuf::Arena* submessage_arena = purchase_shop_item->GetArena();
+    if (message_arena != submessage_arena) {
+      purchase_shop_item = ::google::protobuf::internal::GetOwnedMessage(message_arena, purchase_shop_item, submessage_arena);
+    }
+    set_has_purchase_shop_item();
+    _impl_.payload_.purchase_shop_item_ = purchase_shop_item;
+  }
+  // @@protoc_insertion_point(field_set_allocated:battle.v1.ClientPacket.purchase_shop_item)
+}
 ClientPacket::ClientPacket(::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
 #if defined(PROTOBUF_CUSTOM_VTABLE)
     : ::google::protobuf::Message(arena, ClientPacket_class_data_.base()) {
@@ -2693,6 +3083,12 @@ ClientPacket::ClientPacket(
         break;
       case kSelectRoomExit:
         _impl_.payload_.select_room_exit_ = ::google::protobuf::Message::CopyConstruct(arena, *from._impl_.payload_.select_room_exit_);
+        break;
+      case kChooseFreeReward:
+        _impl_.payload_.choose_free_reward_ = ::google::protobuf::Message::CopyConstruct(arena, *from._impl_.payload_.choose_free_reward_);
+        break;
+      case kPurchaseShopItem:
+        _impl_.payload_.purchase_shop_item_ = ::google::protobuf::Message::CopyConstruct(arena, *from._impl_.payload_.purchase_shop_item_);
         break;
   }
 
@@ -2766,6 +3162,22 @@ void ClientPacket::clear_payload() {
       }
       break;
     }
+    case kChooseFreeReward: {
+      if (GetArena() == nullptr) {
+        delete _impl_.payload_.choose_free_reward_;
+      } else if (::google::protobuf::internal::DebugHardenClearOneofMessageOnArena()) {
+        ::google::protobuf::internal::MaybePoisonAfterClear(_impl_.payload_.choose_free_reward_);
+      }
+      break;
+    }
+    case kPurchaseShopItem: {
+      if (GetArena() == nullptr) {
+        delete _impl_.payload_.purchase_shop_item_;
+      } else if (::google::protobuf::internal::DebugHardenClearOneofMessageOnArena()) {
+        ::google::protobuf::internal::MaybePoisonAfterClear(_impl_.payload_.purchase_shop_item_);
+      }
+      break;
+    }
     case PAYLOAD_NOT_SET: {
       break;
     }
@@ -2817,17 +3229,17 @@ ClientPacket::GetClassData() const {
   return ClientPacket_class_data_.base();
 }
 PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
-const ::_pbi::TcParseTable<0, 5, 5, 0, 2>
+const ::_pbi::TcParseTable<0, 7, 7, 0, 2>
 ClientPacket::_table_ = {
   {
     0,  // no _has_bits_
     0, // no _extensions_
-    5, 0,  // max_field_number, fast_idx_mask
+    8, 0,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
-    4294967264,  // skipmap
+    4294967072,  // skipmap
     offsetof(decltype(_table_), field_entries),
-    5,  // num_field_entries
-    5,  // num_aux_entries
+    7,  // num_field_entries
+    7,  // num_aux_entries
     offsetof(decltype(_table_), aux_entries),
     ClientPacket_class_data_.base(),
     nullptr,  // post_loop_handler
@@ -2855,6 +3267,12 @@ ClientPacket::_table_ = {
     // .battle.v1.SelectRoomExit select_room_exit = 5;
     {PROTOBUF_FIELD_OFFSET(ClientPacket, _impl_.payload_.select_room_exit_), _Internal::kOneofCaseOffset + 0, 4,
     (0 | ::_fl::kFcOneof | ::_fl::kMessage | ::_fl::kTvTable)},
+    // .battle.v1.ChooseFreeReward choose_free_reward = 7;
+    {PROTOBUF_FIELD_OFFSET(ClientPacket, _impl_.payload_.choose_free_reward_), _Internal::kOneofCaseOffset + 0, 5,
+    (0 | ::_fl::kFcOneof | ::_fl::kMessage | ::_fl::kTvTable)},
+    // .battle.v1.PurchaseShopItem purchase_shop_item = 8;
+    {PROTOBUF_FIELD_OFFSET(ClientPacket, _impl_.payload_.purchase_shop_item_), _Internal::kOneofCaseOffset + 0, 6,
+    (0 | ::_fl::kFcOneof | ::_fl::kMessage | ::_fl::kTvTable)},
   }},
   {{
       {::_pbi::TcParser::GetTable<::battle::v1::ClientHello>()},
@@ -2862,6 +3280,8 @@ ClientPacket::_table_ = {
       {::_pbi::TcParser::GetTable<::battle::v1::ChooseBlessing>()},
       {::_pbi::TcParser::GetTable<::battle::v1::ClientHeartbeat>()},
       {::_pbi::TcParser::GetTable<::battle::v1::SelectRoomExit>()},
+      {::_pbi::TcParser::GetTable<::battle::v1::ChooseFreeReward>()},
+      {::_pbi::TcParser::GetTable<::battle::v1::PurchaseShopItem>()},
   }},
   {{
   }},
@@ -2923,6 +3343,18 @@ PROTOBUF_NOINLINE void ClientPacket::Clear() {
           stream);
       break;
     }
+    case kChooseFreeReward: {
+      target = ::google::protobuf::internal::WireFormatLite::InternalWriteMessage(
+          7, *this_._impl_.payload_.choose_free_reward_, this_._impl_.payload_.choose_free_reward_->GetCachedSize(), target,
+          stream);
+      break;
+    }
+    case kPurchaseShopItem: {
+      target = ::google::protobuf::internal::WireFormatLite::InternalWriteMessage(
+          8, *this_._impl_.payload_.purchase_shop_item_, this_._impl_.payload_.purchase_shop_item_->GetCachedSize(), target,
+          stream);
+      break;
+    }
     default:
       break;
   }
@@ -2978,6 +3410,18 @@ PROTOBUF_NOINLINE void ClientPacket::Clear() {
     case kSelectRoomExit: {
       total_size += 1 +
                     ::google::protobuf::internal::WireFormatLite::MessageSize(*this_._impl_.payload_.select_room_exit_);
+      break;
+    }
+    // .battle.v1.ChooseFreeReward choose_free_reward = 7;
+    case kChooseFreeReward: {
+      total_size += 1 +
+                    ::google::protobuf::internal::WireFormatLite::MessageSize(*this_._impl_.payload_.choose_free_reward_);
+      break;
+    }
+    // .battle.v1.PurchaseShopItem purchase_shop_item = 8;
+    case kPurchaseShopItem: {
+      total_size += 1 +
+                    ::google::protobuf::internal::WireFormatLite::MessageSize(*this_._impl_.payload_.purchase_shop_item_);
       break;
     }
     case PAYLOAD_NOT_SET: {
@@ -3045,6 +3489,22 @@ void ClientPacket::MergeImpl(::google::protobuf::MessageLite& to_msg, const ::go
           _this->_impl_.payload_.select_room_exit_ = ::google::protobuf::Message::CopyConstruct(arena, *from._impl_.payload_.select_room_exit_);
         } else {
           _this->_impl_.payload_.select_room_exit_->MergeFrom(*from._impl_.payload_.select_room_exit_);
+        }
+        break;
+      }
+      case kChooseFreeReward: {
+        if (oneof_needs_init) {
+          _this->_impl_.payload_.choose_free_reward_ = ::google::protobuf::Message::CopyConstruct(arena, *from._impl_.payload_.choose_free_reward_);
+        } else {
+          _this->_impl_.payload_.choose_free_reward_->MergeFrom(*from._impl_.payload_.choose_free_reward_);
+        }
+        break;
+      }
+      case kPurchaseShopItem: {
+        if (oneof_needs_init) {
+          _this->_impl_.payload_.purchase_shop_item_ = ::google::protobuf::Message::CopyConstruct(arena, *from._impl_.payload_.purchase_shop_item_);
+        } else {
+          _this->_impl_.payload_.purchase_shop_item_->MergeFrom(*from._impl_.payload_.purchase_shop_item_);
         }
         break;
       }
@@ -9179,6 +9639,11 @@ PROTOBUF_NDEBUG_INLINE WorldSnapshot::Impl_::Impl_(
         available_room_exit_ids_{visibility, arena, from.available_room_exit_ids_},
         _available_room_exit_ids_cached_byte_size_{0},
         player_room_exit_choices_{visibility, arena, from.player_room_exit_choices_},
+        free_reward_states_{visibility, arena, from.free_reward_states_},
+        shop_offers_{visibility, arena, from.shop_offers_},
+        player_souls_{visibility, arena, from.player_souls_},
+        shop_item_definitions_{visibility, arena, from.shop_item_definitions_},
+        purchased_shop_items_{visibility, arena, from.purchased_shop_items_},
         room_name_(arena, from.room_name_),
         current_room_layout_id_(arena, from.current_room_layout_id_) {}
 
@@ -9216,6 +9681,11 @@ PROTOBUF_NDEBUG_INLINE WorldSnapshot::Impl_::Impl_(
         available_room_exit_ids_{visibility, arena},
         _available_room_exit_ids_cached_byte_size_{0},
         player_room_exit_choices_{visibility, arena},
+        free_reward_states_{visibility, arena},
+        shop_offers_{visibility, arena},
+        player_souls_{visibility, arena},
+        shop_item_definitions_{visibility, arena},
+        purchased_shop_items_{visibility, arena},
         room_name_(arena),
         current_room_layout_id_(arena) {}
 
@@ -9272,6 +9742,26 @@ constexpr auto WorldSnapshot::InternalNewImpl_() {
           decltype(WorldSnapshot::_impl_.player_room_exit_choices_)::
               InternalGetArenaOffset(
                   ::google::protobuf::Message::internal_visibility()),
+      PROTOBUF_FIELD_OFFSET(WorldSnapshot, _impl_.free_reward_states_) +
+          decltype(WorldSnapshot::_impl_.free_reward_states_)::
+              InternalGetArenaOffset(
+                  ::google::protobuf::Message::internal_visibility()),
+      PROTOBUF_FIELD_OFFSET(WorldSnapshot, _impl_.shop_offers_) +
+          decltype(WorldSnapshot::_impl_.shop_offers_)::
+              InternalGetArenaOffset(
+                  ::google::protobuf::Message::internal_visibility()),
+      PROTOBUF_FIELD_OFFSET(WorldSnapshot, _impl_.player_souls_) +
+          decltype(WorldSnapshot::_impl_.player_souls_)::
+              InternalGetArenaOffset(
+                  ::google::protobuf::Message::internal_visibility()),
+      PROTOBUF_FIELD_OFFSET(WorldSnapshot, _impl_.shop_item_definitions_) +
+          decltype(WorldSnapshot::_impl_.shop_item_definitions_)::
+              InternalGetArenaOffset(
+                  ::google::protobuf::Message::internal_visibility()),
+      PROTOBUF_FIELD_OFFSET(WorldSnapshot, _impl_.purchased_shop_items_) +
+          decltype(WorldSnapshot::_impl_.purchased_shop_items_)::
+              InternalGetArenaOffset(
+                  ::google::protobuf::Message::internal_visibility()),
   });
   if (arena_bits.has_value()) {
     return ::google::protobuf::internal::MessageCreator::CopyInit(
@@ -9316,17 +9806,17 @@ WorldSnapshot::GetClassData() const {
   return WorldSnapshot_class_data_.base();
 }
 PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
-const ::_pbi::TcParseTable<4, 13, 5, 71, 2>
+const ::_pbi::TcParseTable<5, 18, 10, 79, 2>
 WorldSnapshot::_table_ = {
   {
     PROTOBUF_FIELD_OFFSET(WorldSnapshot, _impl_._has_bits_),
     0, // no _extensions_
-    15, 120,  // max_field_number, fast_idx_mask
+    20, 248,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
-    4294934540,  // skipmap
+    4293918732,  // skipmap
     offsetof(decltype(_table_), field_entries),
-    13,  // num_field_entries
-    5,  // num_aux_entries
+    18,  // num_field_entries
+    10,  // num_aux_entries
     offsetof(decltype(_table_), aux_entries),
     WorldSnapshot_class_data_.base(),
     nullptr,  // post_loop_handler
@@ -9377,6 +9867,32 @@ WorldSnapshot::_table_ = {
     // string current_room_layout_id = 15;
     {::_pbi::TcParser::FastUS1,
      {122, 1, 0, PROTOBUF_FIELD_OFFSET(WorldSnapshot, _impl_.current_room_layout_id_)}},
+    // repeated .battle.v1.PlayerFreeRewardState free_reward_states = 16;
+    {::_pbi::TcParser::FastMtR2,
+     {386, 63, 5, PROTOBUF_FIELD_OFFSET(WorldSnapshot, _impl_.free_reward_states_)}},
+    // repeated .battle.v1.ShopOffer shop_offers = 17;
+    {::_pbi::TcParser::FastMtR2,
+     {394, 63, 6, PROTOBUF_FIELD_OFFSET(WorldSnapshot, _impl_.shop_offers_)}},
+    // repeated .battle.v1.PlayerSoulSnapshot player_souls = 18;
+    {::_pbi::TcParser::FastMtR2,
+     {402, 63, 7, PROTOBUF_FIELD_OFFSET(WorldSnapshot, _impl_.player_souls_)}},
+    // repeated .battle.v1.ShopItemDefinition shop_item_definitions = 19;
+    {::_pbi::TcParser::FastMtR2,
+     {410, 63, 8, PROTOBUF_FIELD_OFFSET(WorldSnapshot, _impl_.shop_item_definitions_)}},
+    // repeated .battle.v1.PlayerPurchasedShopItemsSnapshot purchased_shop_items = 20;
+    {::_pbi::TcParser::FastMtR2,
+     {418, 63, 9, PROTOBUF_FIELD_OFFSET(WorldSnapshot, _impl_.purchased_shop_items_)}},
+    {::_pbi::TcParser::MiniParse, {}},
+    {::_pbi::TcParser::MiniParse, {}},
+    {::_pbi::TcParser::MiniParse, {}},
+    {::_pbi::TcParser::MiniParse, {}},
+    {::_pbi::TcParser::MiniParse, {}},
+    {::_pbi::TcParser::MiniParse, {}},
+    {::_pbi::TcParser::MiniParse, {}},
+    {::_pbi::TcParser::MiniParse, {}},
+    {::_pbi::TcParser::MiniParse, {}},
+    {::_pbi::TcParser::MiniParse, {}},
+    {::_pbi::TcParser::MiniParse, {}},
   }}, {{
     65535, 65535
   }}, {{
@@ -9419,6 +9935,21 @@ WorldSnapshot::_table_ = {
     // string current_room_layout_id = 15;
     {PROTOBUF_FIELD_OFFSET(WorldSnapshot, _impl_.current_room_layout_id_), _Internal::kHasBitsOffset + 1, 0,
     (0 | ::_fl::kFcOptional | ::_fl::kUtf8String | ::_fl::kRepAString)},
+    // repeated .battle.v1.PlayerFreeRewardState free_reward_states = 16;
+    {PROTOBUF_FIELD_OFFSET(WorldSnapshot, _impl_.free_reward_states_), -1, 5,
+    (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
+    // repeated .battle.v1.ShopOffer shop_offers = 17;
+    {PROTOBUF_FIELD_OFFSET(WorldSnapshot, _impl_.shop_offers_), -1, 6,
+    (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
+    // repeated .battle.v1.PlayerSoulSnapshot player_souls = 18;
+    {PROTOBUF_FIELD_OFFSET(WorldSnapshot, _impl_.player_souls_), -1, 7,
+    (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
+    // repeated .battle.v1.ShopItemDefinition shop_item_definitions = 19;
+    {PROTOBUF_FIELD_OFFSET(WorldSnapshot, _impl_.shop_item_definitions_), -1, 8,
+    (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
+    // repeated .battle.v1.PlayerPurchasedShopItemsSnapshot purchased_shop_items = 20;
+    {PROTOBUF_FIELD_OFFSET(WorldSnapshot, _impl_.purchased_shop_items_), -1, 9,
+    (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
   }},
   {{
       {::_pbi::TcParser::GetTable<::battle::v1::EntitySnapshot>()},
@@ -9426,9 +9957,14 @@ WorldSnapshot::_table_ = {
       {::_pbi::TcParser::GetTable<::battle::v1::PlayerBlessingStateSnapshot>()},
       {::_pbi::TcParser::GetTable<::battle::v1::BattleEvent>()},
       {::_pbi::TcParser::GetTable<::battle::v1::PlayerRoomExitChoiceSnapshot>()},
+      {::_pbi::TcParser::GetTable<::battle::v1::PlayerFreeRewardState>()},
+      {::_pbi::TcParser::GetTable<::battle::v1::ShopOffer>()},
+      {::_pbi::TcParser::GetTable<::battle::v1::PlayerSoulSnapshot>()},
+      {::_pbi::TcParser::GetTable<::battle::v1::ShopItemDefinition>()},
+      {::_pbi::TcParser::GetTable<::battle::v1::PlayerPurchasedShopItemsSnapshot>()},
   }},
   {{
-    "\27\11\0\0\0\0\0\0\0\0\0\0\0\26\0\0"
+    "\27\11\0\0\0\0\0\0\0\0\0\0\0\26\0\0\0\0\0\0\0\0\0\0"
     "battle.v1.WorldSnapshot"
     "room_name"
     "current_room_layout_id"
@@ -9447,6 +9983,11 @@ PROTOBUF_NOINLINE void WorldSnapshot::Clear() {
   _impl_.events_.Clear();
   _impl_.available_room_exit_ids_.Clear();
   _impl_.player_room_exit_choices_.Clear();
+  _impl_.free_reward_states_.Clear();
+  _impl_.shop_offers_.Clear();
+  _impl_.player_souls_.Clear();
+  _impl_.shop_item_definitions_.Clear();
+  _impl_.purchased_shop_items_.Clear();
   cached_has_bits = _impl_._has_bits_[0];
   if ((cached_has_bits & 0x00000003u) != 0) {
     if ((cached_has_bits & 0x00000001u) != 0) {
@@ -9609,6 +10150,61 @@ PROTOBUF_NOINLINE void WorldSnapshot::Clear() {
     }
   }
 
+  // repeated .battle.v1.PlayerFreeRewardState free_reward_states = 16;
+  for (unsigned i = 0, n = static_cast<unsigned>(
+                           this_._internal_free_reward_states_size());
+       i < n; i++) {
+    const auto& repfield = this_._internal_free_reward_states().Get(i);
+    target =
+        ::google::protobuf::internal::WireFormatLite::InternalWriteMessage(
+            16, repfield, repfield.GetCachedSize(),
+            target, stream);
+  }
+
+  // repeated .battle.v1.ShopOffer shop_offers = 17;
+  for (unsigned i = 0, n = static_cast<unsigned>(
+                           this_._internal_shop_offers_size());
+       i < n; i++) {
+    const auto& repfield = this_._internal_shop_offers().Get(i);
+    target =
+        ::google::protobuf::internal::WireFormatLite::InternalWriteMessage(
+            17, repfield, repfield.GetCachedSize(),
+            target, stream);
+  }
+
+  // repeated .battle.v1.PlayerSoulSnapshot player_souls = 18;
+  for (unsigned i = 0, n = static_cast<unsigned>(
+                           this_._internal_player_souls_size());
+       i < n; i++) {
+    const auto& repfield = this_._internal_player_souls().Get(i);
+    target =
+        ::google::protobuf::internal::WireFormatLite::InternalWriteMessage(
+            18, repfield, repfield.GetCachedSize(),
+            target, stream);
+  }
+
+  // repeated .battle.v1.ShopItemDefinition shop_item_definitions = 19;
+  for (unsigned i = 0, n = static_cast<unsigned>(
+                           this_._internal_shop_item_definitions_size());
+       i < n; i++) {
+    const auto& repfield = this_._internal_shop_item_definitions().Get(i);
+    target =
+        ::google::protobuf::internal::WireFormatLite::InternalWriteMessage(
+            19, repfield, repfield.GetCachedSize(),
+            target, stream);
+  }
+
+  // repeated .battle.v1.PlayerPurchasedShopItemsSnapshot purchased_shop_items = 20;
+  for (unsigned i = 0, n = static_cast<unsigned>(
+                           this_._internal_purchased_shop_items_size());
+       i < n; i++) {
+    const auto& repfield = this_._internal_purchased_shop_items().Get(i);
+    target =
+        ::google::protobuf::internal::WireFormatLite::InternalWriteMessage(
+            20, repfield, repfield.GetCachedSize(),
+            target, stream);
+  }
+
   if (ABSL_PREDICT_FALSE(this_._internal_metadata_.have_unknown_fields())) {
     target =
         ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
@@ -9673,6 +10269,41 @@ PROTOBUF_NOINLINE void WorldSnapshot::Clear() {
     {
       total_size += 1UL * this_._internal_player_room_exit_choices_size();
       for (const auto& msg : this_._internal_player_room_exit_choices()) {
+        total_size += ::google::protobuf::internal::WireFormatLite::MessageSize(msg);
+      }
+    }
+    // repeated .battle.v1.PlayerFreeRewardState free_reward_states = 16;
+    {
+      total_size += 2UL * this_._internal_free_reward_states_size();
+      for (const auto& msg : this_._internal_free_reward_states()) {
+        total_size += ::google::protobuf::internal::WireFormatLite::MessageSize(msg);
+      }
+    }
+    // repeated .battle.v1.ShopOffer shop_offers = 17;
+    {
+      total_size += 2UL * this_._internal_shop_offers_size();
+      for (const auto& msg : this_._internal_shop_offers()) {
+        total_size += ::google::protobuf::internal::WireFormatLite::MessageSize(msg);
+      }
+    }
+    // repeated .battle.v1.PlayerSoulSnapshot player_souls = 18;
+    {
+      total_size += 2UL * this_._internal_player_souls_size();
+      for (const auto& msg : this_._internal_player_souls()) {
+        total_size += ::google::protobuf::internal::WireFormatLite::MessageSize(msg);
+      }
+    }
+    // repeated .battle.v1.ShopItemDefinition shop_item_definitions = 19;
+    {
+      total_size += 2UL * this_._internal_shop_item_definitions_size();
+      for (const auto& msg : this_._internal_shop_item_definitions()) {
+        total_size += ::google::protobuf::internal::WireFormatLite::MessageSize(msg);
+      }
+    }
+    // repeated .battle.v1.PlayerPurchasedShopItemsSnapshot purchased_shop_items = 20;
+    {
+      total_size += 2UL * this_._internal_purchased_shop_items_size();
+      for (const auto& msg : this_._internal_purchased_shop_items()) {
         total_size += ::google::protobuf::internal::WireFormatLite::MessageSize(msg);
       }
     }
@@ -9751,6 +10382,16 @@ void WorldSnapshot::MergeImpl(::google::protobuf::MessageLite& to_msg, const ::g
   _this->_internal_mutable_available_room_exit_ids()->MergeFrom(from._internal_available_room_exit_ids());
   _this->_internal_mutable_player_room_exit_choices()->MergeFrom(
       from._internal_player_room_exit_choices());
+  _this->_internal_mutable_free_reward_states()->MergeFrom(
+      from._internal_free_reward_states());
+  _this->_internal_mutable_shop_offers()->MergeFrom(
+      from._internal_shop_offers());
+  _this->_internal_mutable_player_souls()->MergeFrom(
+      from._internal_player_souls());
+  _this->_internal_mutable_shop_item_definitions()->MergeFrom(
+      from._internal_shop_item_definitions());
+  _this->_internal_mutable_purchased_shop_items()->MergeFrom(
+      from._internal_purchased_shop_items());
   cached_has_bits = from._impl_._has_bits_[0];
   if ((cached_has_bits & 0x0000007fu) != 0) {
     if ((cached_has_bits & 0x00000001u) != 0) {
@@ -9821,6 +10462,11 @@ void WorldSnapshot::InternalSwap(WorldSnapshot* PROTOBUF_RESTRICT PROTOBUF_NONNU
   _impl_.events_.InternalSwap(&other->_impl_.events_);
   _impl_.available_room_exit_ids_.InternalSwap(&other->_impl_.available_room_exit_ids_);
   _impl_.player_room_exit_choices_.InternalSwap(&other->_impl_.player_room_exit_choices_);
+  _impl_.free_reward_states_.InternalSwap(&other->_impl_.free_reward_states_);
+  _impl_.shop_offers_.InternalSwap(&other->_impl_.shop_offers_);
+  _impl_.player_souls_.InternalSwap(&other->_impl_.player_souls_);
+  _impl_.shop_item_definitions_.InternalSwap(&other->_impl_.shop_item_definitions_);
+  _impl_.purchased_shop_items_.InternalSwap(&other->_impl_.purchased_shop_items_);
   ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.room_name_, &other->_impl_.room_name_, arena);
   ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.current_room_layout_id_, &other->_impl_.current_room_layout_id_, arena);
   ::google::protobuf::internal::memswap<
@@ -11347,6 +11993,2475 @@ void RoomEnteredEvent::InternalSwap(RoomEnteredEvent* PROTOBUF_RESTRICT PROTOBUF
 }
 
 ::google::protobuf::Metadata RoomEnteredEvent::GetMetadata() const {
+  return ::google::protobuf::Message::GetMetadataImpl(GetClassData()->full());
+}
+// ===================================================================
+
+class PlayerFreeRewardState::_Internal {
+ public:
+  using HasBits =
+      decltype(::std::declval<PlayerFreeRewardState>()._impl_._has_bits_);
+  static constexpr ::int32_t kHasBitsOffset =
+      8 * PROTOBUF_FIELD_OFFSET(PlayerFreeRewardState, _impl_._has_bits_);
+};
+
+PlayerFreeRewardState::PlayerFreeRewardState(::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(arena, PlayerFreeRewardState_class_data_.base()) {
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(arena) {
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  SharedCtor(arena);
+  // @@protoc_insertion_point(arena_constructor:battle.v1.PlayerFreeRewardState)
+}
+PlayerFreeRewardState::PlayerFreeRewardState(
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const PlayerFreeRewardState& from)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(arena, PlayerFreeRewardState_class_data_.base()),
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(arena),
+#endif  // PROTOBUF_CUSTOM_VTABLE
+      _impl_(from._impl_) {
+  _internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
+      from._internal_metadata_);
+}
+PROTOBUF_NDEBUG_INLINE PlayerFreeRewardState::Impl_::Impl_(
+    ::google::protobuf::internal::InternalVisibility visibility,
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
+      : _cached_size_{0} {}
+
+inline void PlayerFreeRewardState::SharedCtor(::_pb::Arena* PROTOBUF_NULLABLE arena) {
+  new (&_impl_) Impl_(internal_visibility(), arena);
+  ::memset(reinterpret_cast<char *>(&_impl_) +
+               offsetof(Impl_, player_id_),
+           0,
+           offsetof(Impl_, selected_kind_) -
+               offsetof(Impl_, player_id_) +
+               sizeof(Impl_::selected_kind_));
+}
+PlayerFreeRewardState::~PlayerFreeRewardState() {
+  // @@protoc_insertion_point(destructor:battle.v1.PlayerFreeRewardState)
+  SharedDtor(*this);
+}
+inline void PlayerFreeRewardState::SharedDtor(MessageLite& self) {
+  PlayerFreeRewardState& this_ = static_cast<PlayerFreeRewardState&>(self);
+  this_._internal_metadata_.Delete<::google::protobuf::UnknownFieldSet>();
+  ABSL_DCHECK(this_.GetArena() == nullptr);
+  this_._impl_.~Impl_();
+}
+
+inline void* PROTOBUF_NONNULL PlayerFreeRewardState::PlacementNew_(
+    const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena) {
+  return ::new (mem) PlayerFreeRewardState(arena);
+}
+constexpr auto PlayerFreeRewardState::InternalNewImpl_() {
+  return ::google::protobuf::internal::MessageCreator::ZeroInit(sizeof(PlayerFreeRewardState),
+                                            alignof(PlayerFreeRewardState));
+}
+constexpr auto PlayerFreeRewardState::InternalGenerateClassData_() {
+  return ::google::protobuf::internal::ClassDataFull{
+      ::google::protobuf::internal::ClassData{
+          &_PlayerFreeRewardState_default_instance_._instance,
+          &_table_.header,
+          nullptr,  // OnDemandRegisterArenaDtor
+          nullptr,  // IsInitialized
+          &PlayerFreeRewardState::MergeImpl,
+          ::google::protobuf::Message::GetNewImpl<PlayerFreeRewardState>(),
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+          &PlayerFreeRewardState::SharedDtor,
+          ::google::protobuf::Message::GetClearImpl<PlayerFreeRewardState>(), &PlayerFreeRewardState::ByteSizeLong,
+              &PlayerFreeRewardState::_InternalSerialize,
+#endif  // PROTOBUF_CUSTOM_VTABLE
+          PROTOBUF_FIELD_OFFSET(PlayerFreeRewardState, _impl_._cached_size_),
+          false,
+      },
+      &PlayerFreeRewardState::kDescriptorMethods,
+      &descriptor_table_proto_2fbattle_2fv1_2fsession_2eproto,
+      nullptr,  // tracker
+  };
+}
+
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 const
+    ::google::protobuf::internal::ClassDataFull PlayerFreeRewardState_class_data_ =
+        PlayerFreeRewardState::InternalGenerateClassData_();
+
+PROTOBUF_ATTRIBUTE_WEAK const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL
+PlayerFreeRewardState::GetClassData() const {
+  ::google::protobuf::internal::PrefetchToLocalCache(&PlayerFreeRewardState_class_data_);
+  ::google::protobuf::internal::PrefetchToLocalCache(PlayerFreeRewardState_class_data_.tc_table);
+  return PlayerFreeRewardState_class_data_.base();
+}
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
+const ::_pbi::TcParseTable<2, 3, 0, 0, 2>
+PlayerFreeRewardState::_table_ = {
+  {
+    PROTOBUF_FIELD_OFFSET(PlayerFreeRewardState, _impl_._has_bits_),
+    0, // no _extensions_
+    3, 24,  // max_field_number, fast_idx_mask
+    offsetof(decltype(_table_), field_lookup_table),
+    4294967288,  // skipmap
+    offsetof(decltype(_table_), field_entries),
+    3,  // num_field_entries
+    0,  // num_aux_entries
+    offsetof(decltype(_table_), field_names),  // no aux_entries
+    PlayerFreeRewardState_class_data_.base(),
+    nullptr,  // post_loop_handler
+    ::_pbi::TcParser::GenericFallback,  // fallback
+    #ifdef PROTOBUF_PREFETCH_PARSE_TABLE
+    ::_pbi::TcParser::GetTable<::battle::v1::PlayerFreeRewardState>(),  // to_prefetch
+    #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
+  }, {{
+    {::_pbi::TcParser::MiniParse, {}},
+    // int64 player_id = 1;
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint64_t, offsetof(PlayerFreeRewardState, _impl_.player_id_), 0>(),
+     {8, 0, 0, PROTOBUF_FIELD_OFFSET(PlayerFreeRewardState, _impl_.player_id_)}},
+    // bool completed = 2;
+    {::_pbi::TcParser::SingularVarintNoZag1<bool, offsetof(PlayerFreeRewardState, _impl_.completed_), 1>(),
+     {16, 1, 0, PROTOBUF_FIELD_OFFSET(PlayerFreeRewardState, _impl_.completed_)}},
+    // .battle.v1.FreeRewardKind selected_kind = 3;
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(PlayerFreeRewardState, _impl_.selected_kind_), 2>(),
+     {24, 2, 0, PROTOBUF_FIELD_OFFSET(PlayerFreeRewardState, _impl_.selected_kind_)}},
+  }}, {{
+    65535, 65535
+  }}, {{
+    // int64 player_id = 1;
+    {PROTOBUF_FIELD_OFFSET(PlayerFreeRewardState, _impl_.player_id_), _Internal::kHasBitsOffset + 0, 0,
+    (0 | ::_fl::kFcOptional | ::_fl::kInt64)},
+    // bool completed = 2;
+    {PROTOBUF_FIELD_OFFSET(PlayerFreeRewardState, _impl_.completed_), _Internal::kHasBitsOffset + 1, 0,
+    (0 | ::_fl::kFcOptional | ::_fl::kBool)},
+    // .battle.v1.FreeRewardKind selected_kind = 3;
+    {PROTOBUF_FIELD_OFFSET(PlayerFreeRewardState, _impl_.selected_kind_), _Internal::kHasBitsOffset + 2, 0,
+    (0 | ::_fl::kFcOptional | ::_fl::kOpenEnum)},
+  }},
+  // no aux_entries
+  {{
+  }},
+};
+PROTOBUF_NOINLINE void PlayerFreeRewardState::Clear() {
+// @@protoc_insertion_point(message_clear_start:battle.v1.PlayerFreeRewardState)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  ::uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  cached_has_bits = _impl_._has_bits_[0];
+  if ((cached_has_bits & 0x00000007u) != 0) {
+    ::memset(&_impl_.player_id_, 0, static_cast<::size_t>(
+        reinterpret_cast<char*>(&_impl_.selected_kind_) -
+        reinterpret_cast<char*>(&_impl_.player_id_)) + sizeof(_impl_.selected_kind_));
+  }
+  _impl_._has_bits_.Clear();
+  _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
+}
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+::uint8_t* PROTOBUF_NONNULL PlayerFreeRewardState::_InternalSerialize(
+    const ::google::protobuf::MessageLite& base, ::uint8_t* PROTOBUF_NONNULL target,
+    ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) {
+  const PlayerFreeRewardState& this_ = static_cast<const PlayerFreeRewardState&>(base);
+#else   // PROTOBUF_CUSTOM_VTABLE
+::uint8_t* PROTOBUF_NONNULL PlayerFreeRewardState::_InternalSerialize(
+    ::uint8_t* PROTOBUF_NONNULL target,
+    ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+  const PlayerFreeRewardState& this_ = *this;
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  // @@protoc_insertion_point(serialize_to_array_start:battle.v1.PlayerFreeRewardState)
+  ::uint32_t cached_has_bits = 0;
+  (void)cached_has_bits;
+
+  // int64 player_id = 1;
+  if ((this_._impl_._has_bits_[0] & 0x00000001u) != 0) {
+    if (this_._internal_player_id() != 0) {
+      target =
+          ::google::protobuf::internal::WireFormatLite::WriteInt64ToArrayWithField<1>(
+              stream, this_._internal_player_id(), target);
+    }
+  }
+
+  // bool completed = 2;
+  if ((this_._impl_._has_bits_[0] & 0x00000002u) != 0) {
+    if (this_._internal_completed() != 0) {
+      target = stream->EnsureSpace(target);
+      target = ::_pbi::WireFormatLite::WriteBoolToArray(
+          2, this_._internal_completed(), target);
+    }
+  }
+
+  // .battle.v1.FreeRewardKind selected_kind = 3;
+  if ((this_._impl_._has_bits_[0] & 0x00000004u) != 0) {
+    if (this_._internal_selected_kind() != 0) {
+      target = stream->EnsureSpace(target);
+      target = ::_pbi::WireFormatLite::WriteEnumToArray(
+          3, this_._internal_selected_kind(), target);
+    }
+  }
+
+  if (ABSL_PREDICT_FALSE(this_._internal_metadata_.have_unknown_fields())) {
+    target =
+        ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+            this_._internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:battle.v1.PlayerFreeRewardState)
+  return target;
+}
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+::size_t PlayerFreeRewardState::ByteSizeLong(const MessageLite& base) {
+  const PlayerFreeRewardState& this_ = static_cast<const PlayerFreeRewardState&>(base);
+#else   // PROTOBUF_CUSTOM_VTABLE
+::size_t PlayerFreeRewardState::ByteSizeLong() const {
+  const PlayerFreeRewardState& this_ = *this;
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  // @@protoc_insertion_point(message_byte_size_start:battle.v1.PlayerFreeRewardState)
+  ::size_t total_size = 0;
+
+  ::uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void)cached_has_bits;
+
+  ::_pbi::Prefetch5LinesFrom7Lines(&this_);
+  cached_has_bits = this_._impl_._has_bits_[0];
+  if ((cached_has_bits & 0x00000007u) != 0) {
+    // int64 player_id = 1;
+    if ((cached_has_bits & 0x00000001u) != 0) {
+      if (this_._internal_player_id() != 0) {
+        total_size += ::_pbi::WireFormatLite::Int64SizePlusOne(
+            this_._internal_player_id());
+      }
+    }
+    // bool completed = 2;
+    if ((cached_has_bits & 0x00000002u) != 0) {
+      if (this_._internal_completed() != 0) {
+        total_size += 2;
+      }
+    }
+    // .battle.v1.FreeRewardKind selected_kind = 3;
+    if ((cached_has_bits & 0x00000004u) != 0) {
+      if (this_._internal_selected_kind() != 0) {
+        total_size += 1 +
+                      ::_pbi::WireFormatLite::EnumSize(this_._internal_selected_kind());
+      }
+    }
+  }
+  return this_.MaybeComputeUnknownFieldsSize(total_size,
+                                             &this_._impl_._cached_size_);
+}
+
+void PlayerFreeRewardState::MergeImpl(::google::protobuf::MessageLite& to_msg, const ::google::protobuf::MessageLite& from_msg) {
+  auto* const _this = static_cast<PlayerFreeRewardState*>(&to_msg);
+  auto& from = static_cast<const PlayerFreeRewardState&>(from_msg);
+  // @@protoc_insertion_point(class_specific_merge_from_start:battle.v1.PlayerFreeRewardState)
+  ABSL_DCHECK_NE(&from, _this);
+  ::uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  cached_has_bits = from._impl_._has_bits_[0];
+  if ((cached_has_bits & 0x00000007u) != 0) {
+    if ((cached_has_bits & 0x00000001u) != 0) {
+      if (from._internal_player_id() != 0) {
+        _this->_impl_.player_id_ = from._impl_.player_id_;
+      }
+    }
+    if ((cached_has_bits & 0x00000002u) != 0) {
+      if (from._internal_completed() != 0) {
+        _this->_impl_.completed_ = from._impl_.completed_;
+      }
+    }
+    if ((cached_has_bits & 0x00000004u) != 0) {
+      if (from._internal_selected_kind() != 0) {
+        _this->_impl_.selected_kind_ = from._impl_.selected_kind_;
+      }
+    }
+  }
+  _this->_impl_._has_bits_[0] |= cached_has_bits;
+  _this->_internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(from._internal_metadata_);
+}
+
+void PlayerFreeRewardState::CopyFrom(const PlayerFreeRewardState& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:battle.v1.PlayerFreeRewardState)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+
+void PlayerFreeRewardState::InternalSwap(PlayerFreeRewardState* PROTOBUF_RESTRICT PROTOBUF_NONNULL other) {
+  using ::std::swap;
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  swap(_impl_._has_bits_[0], other->_impl_._has_bits_[0]);
+  ::google::protobuf::internal::memswap<
+      PROTOBUF_FIELD_OFFSET(PlayerFreeRewardState, _impl_.selected_kind_)
+      + sizeof(PlayerFreeRewardState::_impl_.selected_kind_)
+      - PROTOBUF_FIELD_OFFSET(PlayerFreeRewardState, _impl_.player_id_)>(
+          reinterpret_cast<char*>(&_impl_.player_id_),
+          reinterpret_cast<char*>(&other->_impl_.player_id_));
+}
+
+::google::protobuf::Metadata PlayerFreeRewardState::GetMetadata() const {
+  return ::google::protobuf::Message::GetMetadataImpl(GetClassData()->full());
+}
+// ===================================================================
+
+class ChooseFreeReward::_Internal {
+ public:
+  using HasBits =
+      decltype(::std::declval<ChooseFreeReward>()._impl_._has_bits_);
+  static constexpr ::int32_t kHasBitsOffset =
+      8 * PROTOBUF_FIELD_OFFSET(ChooseFreeReward, _impl_._has_bits_);
+};
+
+ChooseFreeReward::ChooseFreeReward(::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(arena, ChooseFreeReward_class_data_.base()) {
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(arena) {
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  SharedCtor(arena);
+  // @@protoc_insertion_point(arena_constructor:battle.v1.ChooseFreeReward)
+}
+PROTOBUF_NDEBUG_INLINE ChooseFreeReward::Impl_::Impl_(
+    ::google::protobuf::internal::InternalVisibility visibility,
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
+    const ::battle::v1::ChooseFreeReward& from_msg)
+      : _has_bits_{from._has_bits_},
+        _cached_size_{0},
+        room_name_(arena, from.room_name_) {}
+
+ChooseFreeReward::ChooseFreeReward(
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena,
+    const ChooseFreeReward& from)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(arena, ChooseFreeReward_class_data_.base()) {
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(arena) {
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  ChooseFreeReward* const _this = this;
+  (void)_this;
+  _internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
+      from._internal_metadata_);
+  new (&_impl_) Impl_(internal_visibility(), arena, from._impl_, from);
+  ::memcpy(reinterpret_cast<char *>(&_impl_) +
+               offsetof(Impl_, player_id_),
+           reinterpret_cast<const char *>(&from._impl_) +
+               offsetof(Impl_, player_id_),
+           offsetof(Impl_, kind_) -
+               offsetof(Impl_, player_id_) +
+               sizeof(Impl_::kind_));
+
+  // @@protoc_insertion_point(copy_constructor:battle.v1.ChooseFreeReward)
+}
+PROTOBUF_NDEBUG_INLINE ChooseFreeReward::Impl_::Impl_(
+    ::google::protobuf::internal::InternalVisibility visibility,
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
+      : _cached_size_{0},
+        room_name_(arena) {}
+
+inline void ChooseFreeReward::SharedCtor(::_pb::Arena* PROTOBUF_NULLABLE arena) {
+  new (&_impl_) Impl_(internal_visibility(), arena);
+  ::memset(reinterpret_cast<char *>(&_impl_) +
+               offsetof(Impl_, player_id_),
+           0,
+           offsetof(Impl_, kind_) -
+               offsetof(Impl_, player_id_) +
+               sizeof(Impl_::kind_));
+}
+ChooseFreeReward::~ChooseFreeReward() {
+  // @@protoc_insertion_point(destructor:battle.v1.ChooseFreeReward)
+  SharedDtor(*this);
+}
+inline void ChooseFreeReward::SharedDtor(MessageLite& self) {
+  ChooseFreeReward& this_ = static_cast<ChooseFreeReward&>(self);
+  this_._internal_metadata_.Delete<::google::protobuf::UnknownFieldSet>();
+  ABSL_DCHECK(this_.GetArena() == nullptr);
+  this_._impl_.room_name_.Destroy();
+  this_._impl_.~Impl_();
+}
+
+inline void* PROTOBUF_NONNULL ChooseFreeReward::PlacementNew_(
+    const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena) {
+  return ::new (mem) ChooseFreeReward(arena);
+}
+constexpr auto ChooseFreeReward::InternalNewImpl_() {
+  return ::google::protobuf::internal::MessageCreator::CopyInit(sizeof(ChooseFreeReward),
+                                            alignof(ChooseFreeReward));
+}
+constexpr auto ChooseFreeReward::InternalGenerateClassData_() {
+  return ::google::protobuf::internal::ClassDataFull{
+      ::google::protobuf::internal::ClassData{
+          &_ChooseFreeReward_default_instance_._instance,
+          &_table_.header,
+          nullptr,  // OnDemandRegisterArenaDtor
+          nullptr,  // IsInitialized
+          &ChooseFreeReward::MergeImpl,
+          ::google::protobuf::Message::GetNewImpl<ChooseFreeReward>(),
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+          &ChooseFreeReward::SharedDtor,
+          ::google::protobuf::Message::GetClearImpl<ChooseFreeReward>(), &ChooseFreeReward::ByteSizeLong,
+              &ChooseFreeReward::_InternalSerialize,
+#endif  // PROTOBUF_CUSTOM_VTABLE
+          PROTOBUF_FIELD_OFFSET(ChooseFreeReward, _impl_._cached_size_),
+          false,
+      },
+      &ChooseFreeReward::kDescriptorMethods,
+      &descriptor_table_proto_2fbattle_2fv1_2fsession_2eproto,
+      nullptr,  // tracker
+  };
+}
+
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 const
+    ::google::protobuf::internal::ClassDataFull ChooseFreeReward_class_data_ =
+        ChooseFreeReward::InternalGenerateClassData_();
+
+PROTOBUF_ATTRIBUTE_WEAK const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL
+ChooseFreeReward::GetClassData() const {
+  ::google::protobuf::internal::PrefetchToLocalCache(&ChooseFreeReward_class_data_);
+  ::google::protobuf::internal::PrefetchToLocalCache(ChooseFreeReward_class_data_.tc_table);
+  return ChooseFreeReward_class_data_.base();
+}
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
+const ::_pbi::TcParseTable<2, 3, 0, 44, 2>
+ChooseFreeReward::_table_ = {
+  {
+    PROTOBUF_FIELD_OFFSET(ChooseFreeReward, _impl_._has_bits_),
+    0, // no _extensions_
+    3, 24,  // max_field_number, fast_idx_mask
+    offsetof(decltype(_table_), field_lookup_table),
+    4294967288,  // skipmap
+    offsetof(decltype(_table_), field_entries),
+    3,  // num_field_entries
+    0,  // num_aux_entries
+    offsetof(decltype(_table_), field_names),  // no aux_entries
+    ChooseFreeReward_class_data_.base(),
+    nullptr,  // post_loop_handler
+    ::_pbi::TcParser::GenericFallback,  // fallback
+    #ifdef PROTOBUF_PREFETCH_PARSE_TABLE
+    ::_pbi::TcParser::GetTable<::battle::v1::ChooseFreeReward>(),  // to_prefetch
+    #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
+  }, {{
+    {::_pbi::TcParser::MiniParse, {}},
+    // string room_name = 1;
+    {::_pbi::TcParser::FastUS1,
+     {10, 0, 0, PROTOBUF_FIELD_OFFSET(ChooseFreeReward, _impl_.room_name_)}},
+    // int64 player_id = 2;
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint64_t, offsetof(ChooseFreeReward, _impl_.player_id_), 1>(),
+     {16, 1, 0, PROTOBUF_FIELD_OFFSET(ChooseFreeReward, _impl_.player_id_)}},
+    // .battle.v1.FreeRewardKind kind = 3;
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(ChooseFreeReward, _impl_.kind_), 2>(),
+     {24, 2, 0, PROTOBUF_FIELD_OFFSET(ChooseFreeReward, _impl_.kind_)}},
+  }}, {{
+    65535, 65535
+  }}, {{
+    // string room_name = 1;
+    {PROTOBUF_FIELD_OFFSET(ChooseFreeReward, _impl_.room_name_), _Internal::kHasBitsOffset + 0, 0,
+    (0 | ::_fl::kFcOptional | ::_fl::kUtf8String | ::_fl::kRepAString)},
+    // int64 player_id = 2;
+    {PROTOBUF_FIELD_OFFSET(ChooseFreeReward, _impl_.player_id_), _Internal::kHasBitsOffset + 1, 0,
+    (0 | ::_fl::kFcOptional | ::_fl::kInt64)},
+    // .battle.v1.FreeRewardKind kind = 3;
+    {PROTOBUF_FIELD_OFFSET(ChooseFreeReward, _impl_.kind_), _Internal::kHasBitsOffset + 2, 0,
+    (0 | ::_fl::kFcOptional | ::_fl::kOpenEnum)},
+  }},
+  // no aux_entries
+  {{
+    "\32\11\0\0\0\0\0\0"
+    "battle.v1.ChooseFreeReward"
+    "room_name"
+  }},
+};
+PROTOBUF_NOINLINE void ChooseFreeReward::Clear() {
+// @@protoc_insertion_point(message_clear_start:battle.v1.ChooseFreeReward)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  ::uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  cached_has_bits = _impl_._has_bits_[0];
+  if ((cached_has_bits & 0x00000001u) != 0) {
+    _impl_.room_name_.ClearNonDefaultToEmpty();
+  }
+  if ((cached_has_bits & 0x00000006u) != 0) {
+    ::memset(&_impl_.player_id_, 0, static_cast<::size_t>(
+        reinterpret_cast<char*>(&_impl_.kind_) -
+        reinterpret_cast<char*>(&_impl_.player_id_)) + sizeof(_impl_.kind_));
+  }
+  _impl_._has_bits_.Clear();
+  _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
+}
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+::uint8_t* PROTOBUF_NONNULL ChooseFreeReward::_InternalSerialize(
+    const ::google::protobuf::MessageLite& base, ::uint8_t* PROTOBUF_NONNULL target,
+    ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) {
+  const ChooseFreeReward& this_ = static_cast<const ChooseFreeReward&>(base);
+#else   // PROTOBUF_CUSTOM_VTABLE
+::uint8_t* PROTOBUF_NONNULL ChooseFreeReward::_InternalSerialize(
+    ::uint8_t* PROTOBUF_NONNULL target,
+    ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+  const ChooseFreeReward& this_ = *this;
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  // @@protoc_insertion_point(serialize_to_array_start:battle.v1.ChooseFreeReward)
+  ::uint32_t cached_has_bits = 0;
+  (void)cached_has_bits;
+
+  // string room_name = 1;
+  if ((this_._impl_._has_bits_[0] & 0x00000001u) != 0) {
+    if (!this_._internal_room_name().empty()) {
+      const ::std::string& _s = this_._internal_room_name();
+      ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+          _s.data(), static_cast<int>(_s.length()), ::google::protobuf::internal::WireFormatLite::SERIALIZE, "battle.v1.ChooseFreeReward.room_name");
+      target = stream->WriteStringMaybeAliased(1, _s, target);
+    }
+  }
+
+  // int64 player_id = 2;
+  if ((this_._impl_._has_bits_[0] & 0x00000002u) != 0) {
+    if (this_._internal_player_id() != 0) {
+      target =
+          ::google::protobuf::internal::WireFormatLite::WriteInt64ToArrayWithField<2>(
+              stream, this_._internal_player_id(), target);
+    }
+  }
+
+  // .battle.v1.FreeRewardKind kind = 3;
+  if ((this_._impl_._has_bits_[0] & 0x00000004u) != 0) {
+    if (this_._internal_kind() != 0) {
+      target = stream->EnsureSpace(target);
+      target = ::_pbi::WireFormatLite::WriteEnumToArray(
+          3, this_._internal_kind(), target);
+    }
+  }
+
+  if (ABSL_PREDICT_FALSE(this_._internal_metadata_.have_unknown_fields())) {
+    target =
+        ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+            this_._internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:battle.v1.ChooseFreeReward)
+  return target;
+}
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+::size_t ChooseFreeReward::ByteSizeLong(const MessageLite& base) {
+  const ChooseFreeReward& this_ = static_cast<const ChooseFreeReward&>(base);
+#else   // PROTOBUF_CUSTOM_VTABLE
+::size_t ChooseFreeReward::ByteSizeLong() const {
+  const ChooseFreeReward& this_ = *this;
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  // @@protoc_insertion_point(message_byte_size_start:battle.v1.ChooseFreeReward)
+  ::size_t total_size = 0;
+
+  ::uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void)cached_has_bits;
+
+  ::_pbi::Prefetch5LinesFrom7Lines(&this_);
+  cached_has_bits = this_._impl_._has_bits_[0];
+  if ((cached_has_bits & 0x00000007u) != 0) {
+    // string room_name = 1;
+    if ((cached_has_bits & 0x00000001u) != 0) {
+      if (!this_._internal_room_name().empty()) {
+        total_size += 1 + ::google::protobuf::internal::WireFormatLite::StringSize(
+                                        this_._internal_room_name());
+      }
+    }
+    // int64 player_id = 2;
+    if ((cached_has_bits & 0x00000002u) != 0) {
+      if (this_._internal_player_id() != 0) {
+        total_size += ::_pbi::WireFormatLite::Int64SizePlusOne(
+            this_._internal_player_id());
+      }
+    }
+    // .battle.v1.FreeRewardKind kind = 3;
+    if ((cached_has_bits & 0x00000004u) != 0) {
+      if (this_._internal_kind() != 0) {
+        total_size += 1 +
+                      ::_pbi::WireFormatLite::EnumSize(this_._internal_kind());
+      }
+    }
+  }
+  return this_.MaybeComputeUnknownFieldsSize(total_size,
+                                             &this_._impl_._cached_size_);
+}
+
+void ChooseFreeReward::MergeImpl(::google::protobuf::MessageLite& to_msg, const ::google::protobuf::MessageLite& from_msg) {
+  auto* const _this = static_cast<ChooseFreeReward*>(&to_msg);
+  auto& from = static_cast<const ChooseFreeReward&>(from_msg);
+  // @@protoc_insertion_point(class_specific_merge_from_start:battle.v1.ChooseFreeReward)
+  ABSL_DCHECK_NE(&from, _this);
+  ::uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  cached_has_bits = from._impl_._has_bits_[0];
+  if ((cached_has_bits & 0x00000007u) != 0) {
+    if ((cached_has_bits & 0x00000001u) != 0) {
+      if (!from._internal_room_name().empty()) {
+        _this->_internal_set_room_name(from._internal_room_name());
+      } else {
+        if (_this->_impl_.room_name_.IsDefault()) {
+          _this->_internal_set_room_name("");
+        }
+      }
+    }
+    if ((cached_has_bits & 0x00000002u) != 0) {
+      if (from._internal_player_id() != 0) {
+        _this->_impl_.player_id_ = from._impl_.player_id_;
+      }
+    }
+    if ((cached_has_bits & 0x00000004u) != 0) {
+      if (from._internal_kind() != 0) {
+        _this->_impl_.kind_ = from._impl_.kind_;
+      }
+    }
+  }
+  _this->_impl_._has_bits_[0] |= cached_has_bits;
+  _this->_internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(from._internal_metadata_);
+}
+
+void ChooseFreeReward::CopyFrom(const ChooseFreeReward& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:battle.v1.ChooseFreeReward)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+
+void ChooseFreeReward::InternalSwap(ChooseFreeReward* PROTOBUF_RESTRICT PROTOBUF_NONNULL other) {
+  using ::std::swap;
+  auto* arena = GetArena();
+  ABSL_DCHECK_EQ(arena, other->GetArena());
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  swap(_impl_._has_bits_[0], other->_impl_._has_bits_[0]);
+  ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.room_name_, &other->_impl_.room_name_, arena);
+  ::google::protobuf::internal::memswap<
+      PROTOBUF_FIELD_OFFSET(ChooseFreeReward, _impl_.kind_)
+      + sizeof(ChooseFreeReward::_impl_.kind_)
+      - PROTOBUF_FIELD_OFFSET(ChooseFreeReward, _impl_.player_id_)>(
+          reinterpret_cast<char*>(&_impl_.player_id_),
+          reinterpret_cast<char*>(&other->_impl_.player_id_));
+}
+
+::google::protobuf::Metadata ChooseFreeReward::GetMetadata() const {
+  return ::google::protobuf::Message::GetMetadataImpl(GetClassData()->full());
+}
+// ===================================================================
+
+class PurchaseShopItem::_Internal {
+ public:
+  using HasBits =
+      decltype(::std::declval<PurchaseShopItem>()._impl_._has_bits_);
+  static constexpr ::int32_t kHasBitsOffset =
+      8 * PROTOBUF_FIELD_OFFSET(PurchaseShopItem, _impl_._has_bits_);
+};
+
+PurchaseShopItem::PurchaseShopItem(::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(arena, PurchaseShopItem_class_data_.base()) {
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(arena) {
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  SharedCtor(arena);
+  // @@protoc_insertion_point(arena_constructor:battle.v1.PurchaseShopItem)
+}
+PROTOBUF_NDEBUG_INLINE PurchaseShopItem::Impl_::Impl_(
+    ::google::protobuf::internal::InternalVisibility visibility,
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
+    const ::battle::v1::PurchaseShopItem& from_msg)
+      : _has_bits_{from._has_bits_},
+        _cached_size_{0},
+        room_name_(arena, from.room_name_) {}
+
+PurchaseShopItem::PurchaseShopItem(
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena,
+    const PurchaseShopItem& from)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(arena, PurchaseShopItem_class_data_.base()) {
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(arena) {
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  PurchaseShopItem* const _this = this;
+  (void)_this;
+  _internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
+      from._internal_metadata_);
+  new (&_impl_) Impl_(internal_visibility(), arena, from._impl_, from);
+  ::memcpy(reinterpret_cast<char *>(&_impl_) +
+               offsetof(Impl_, player_id_),
+           reinterpret_cast<const char *>(&from._impl_) +
+               offsetof(Impl_, player_id_),
+           offsetof(Impl_, item_id_) -
+               offsetof(Impl_, player_id_) +
+               sizeof(Impl_::item_id_));
+
+  // @@protoc_insertion_point(copy_constructor:battle.v1.PurchaseShopItem)
+}
+PROTOBUF_NDEBUG_INLINE PurchaseShopItem::Impl_::Impl_(
+    ::google::protobuf::internal::InternalVisibility visibility,
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
+      : _cached_size_{0},
+        room_name_(arena) {}
+
+inline void PurchaseShopItem::SharedCtor(::_pb::Arena* PROTOBUF_NULLABLE arena) {
+  new (&_impl_) Impl_(internal_visibility(), arena);
+  ::memset(reinterpret_cast<char *>(&_impl_) +
+               offsetof(Impl_, player_id_),
+           0,
+           offsetof(Impl_, item_id_) -
+               offsetof(Impl_, player_id_) +
+               sizeof(Impl_::item_id_));
+}
+PurchaseShopItem::~PurchaseShopItem() {
+  // @@protoc_insertion_point(destructor:battle.v1.PurchaseShopItem)
+  SharedDtor(*this);
+}
+inline void PurchaseShopItem::SharedDtor(MessageLite& self) {
+  PurchaseShopItem& this_ = static_cast<PurchaseShopItem&>(self);
+  this_._internal_metadata_.Delete<::google::protobuf::UnknownFieldSet>();
+  ABSL_DCHECK(this_.GetArena() == nullptr);
+  this_._impl_.room_name_.Destroy();
+  this_._impl_.~Impl_();
+}
+
+inline void* PROTOBUF_NONNULL PurchaseShopItem::PlacementNew_(
+    const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena) {
+  return ::new (mem) PurchaseShopItem(arena);
+}
+constexpr auto PurchaseShopItem::InternalNewImpl_() {
+  return ::google::protobuf::internal::MessageCreator::CopyInit(sizeof(PurchaseShopItem),
+                                            alignof(PurchaseShopItem));
+}
+constexpr auto PurchaseShopItem::InternalGenerateClassData_() {
+  return ::google::protobuf::internal::ClassDataFull{
+      ::google::protobuf::internal::ClassData{
+          &_PurchaseShopItem_default_instance_._instance,
+          &_table_.header,
+          nullptr,  // OnDemandRegisterArenaDtor
+          nullptr,  // IsInitialized
+          &PurchaseShopItem::MergeImpl,
+          ::google::protobuf::Message::GetNewImpl<PurchaseShopItem>(),
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+          &PurchaseShopItem::SharedDtor,
+          ::google::protobuf::Message::GetClearImpl<PurchaseShopItem>(), &PurchaseShopItem::ByteSizeLong,
+              &PurchaseShopItem::_InternalSerialize,
+#endif  // PROTOBUF_CUSTOM_VTABLE
+          PROTOBUF_FIELD_OFFSET(PurchaseShopItem, _impl_._cached_size_),
+          false,
+      },
+      &PurchaseShopItem::kDescriptorMethods,
+      &descriptor_table_proto_2fbattle_2fv1_2fsession_2eproto,
+      nullptr,  // tracker
+  };
+}
+
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 const
+    ::google::protobuf::internal::ClassDataFull PurchaseShopItem_class_data_ =
+        PurchaseShopItem::InternalGenerateClassData_();
+
+PROTOBUF_ATTRIBUTE_WEAK const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL
+PurchaseShopItem::GetClassData() const {
+  ::google::protobuf::internal::PrefetchToLocalCache(&PurchaseShopItem_class_data_);
+  ::google::protobuf::internal::PrefetchToLocalCache(PurchaseShopItem_class_data_.tc_table);
+  return PurchaseShopItem_class_data_.base();
+}
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
+const ::_pbi::TcParseTable<2, 3, 0, 44, 2>
+PurchaseShopItem::_table_ = {
+  {
+    PROTOBUF_FIELD_OFFSET(PurchaseShopItem, _impl_._has_bits_),
+    0, // no _extensions_
+    3, 24,  // max_field_number, fast_idx_mask
+    offsetof(decltype(_table_), field_lookup_table),
+    4294967288,  // skipmap
+    offsetof(decltype(_table_), field_entries),
+    3,  // num_field_entries
+    0,  // num_aux_entries
+    offsetof(decltype(_table_), field_names),  // no aux_entries
+    PurchaseShopItem_class_data_.base(),
+    nullptr,  // post_loop_handler
+    ::_pbi::TcParser::GenericFallback,  // fallback
+    #ifdef PROTOBUF_PREFETCH_PARSE_TABLE
+    ::_pbi::TcParser::GetTable<::battle::v1::PurchaseShopItem>(),  // to_prefetch
+    #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
+  }, {{
+    {::_pbi::TcParser::MiniParse, {}},
+    // string room_name = 1;
+    {::_pbi::TcParser::FastUS1,
+     {10, 0, 0, PROTOBUF_FIELD_OFFSET(PurchaseShopItem, _impl_.room_name_)}},
+    // int64 player_id = 2;
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint64_t, offsetof(PurchaseShopItem, _impl_.player_id_), 1>(),
+     {16, 1, 0, PROTOBUF_FIELD_OFFSET(PurchaseShopItem, _impl_.player_id_)}},
+    // uint32 item_id = 3;
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(PurchaseShopItem, _impl_.item_id_), 2>(),
+     {24, 2, 0, PROTOBUF_FIELD_OFFSET(PurchaseShopItem, _impl_.item_id_)}},
+  }}, {{
+    65535, 65535
+  }}, {{
+    // string room_name = 1;
+    {PROTOBUF_FIELD_OFFSET(PurchaseShopItem, _impl_.room_name_), _Internal::kHasBitsOffset + 0, 0,
+    (0 | ::_fl::kFcOptional | ::_fl::kUtf8String | ::_fl::kRepAString)},
+    // int64 player_id = 2;
+    {PROTOBUF_FIELD_OFFSET(PurchaseShopItem, _impl_.player_id_), _Internal::kHasBitsOffset + 1, 0,
+    (0 | ::_fl::kFcOptional | ::_fl::kInt64)},
+    // uint32 item_id = 3;
+    {PROTOBUF_FIELD_OFFSET(PurchaseShopItem, _impl_.item_id_), _Internal::kHasBitsOffset + 2, 0,
+    (0 | ::_fl::kFcOptional | ::_fl::kUInt32)},
+  }},
+  // no aux_entries
+  {{
+    "\32\11\0\0\0\0\0\0"
+    "battle.v1.PurchaseShopItem"
+    "room_name"
+  }},
+};
+PROTOBUF_NOINLINE void PurchaseShopItem::Clear() {
+// @@protoc_insertion_point(message_clear_start:battle.v1.PurchaseShopItem)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  ::uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  cached_has_bits = _impl_._has_bits_[0];
+  if ((cached_has_bits & 0x00000001u) != 0) {
+    _impl_.room_name_.ClearNonDefaultToEmpty();
+  }
+  if ((cached_has_bits & 0x00000006u) != 0) {
+    ::memset(&_impl_.player_id_, 0, static_cast<::size_t>(
+        reinterpret_cast<char*>(&_impl_.item_id_) -
+        reinterpret_cast<char*>(&_impl_.player_id_)) + sizeof(_impl_.item_id_));
+  }
+  _impl_._has_bits_.Clear();
+  _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
+}
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+::uint8_t* PROTOBUF_NONNULL PurchaseShopItem::_InternalSerialize(
+    const ::google::protobuf::MessageLite& base, ::uint8_t* PROTOBUF_NONNULL target,
+    ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) {
+  const PurchaseShopItem& this_ = static_cast<const PurchaseShopItem&>(base);
+#else   // PROTOBUF_CUSTOM_VTABLE
+::uint8_t* PROTOBUF_NONNULL PurchaseShopItem::_InternalSerialize(
+    ::uint8_t* PROTOBUF_NONNULL target,
+    ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+  const PurchaseShopItem& this_ = *this;
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  // @@protoc_insertion_point(serialize_to_array_start:battle.v1.PurchaseShopItem)
+  ::uint32_t cached_has_bits = 0;
+  (void)cached_has_bits;
+
+  // string room_name = 1;
+  if ((this_._impl_._has_bits_[0] & 0x00000001u) != 0) {
+    if (!this_._internal_room_name().empty()) {
+      const ::std::string& _s = this_._internal_room_name();
+      ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+          _s.data(), static_cast<int>(_s.length()), ::google::protobuf::internal::WireFormatLite::SERIALIZE, "battle.v1.PurchaseShopItem.room_name");
+      target = stream->WriteStringMaybeAliased(1, _s, target);
+    }
+  }
+
+  // int64 player_id = 2;
+  if ((this_._impl_._has_bits_[0] & 0x00000002u) != 0) {
+    if (this_._internal_player_id() != 0) {
+      target =
+          ::google::protobuf::internal::WireFormatLite::WriteInt64ToArrayWithField<2>(
+              stream, this_._internal_player_id(), target);
+    }
+  }
+
+  // uint32 item_id = 3;
+  if ((this_._impl_._has_bits_[0] & 0x00000004u) != 0) {
+    if (this_._internal_item_id() != 0) {
+      target = stream->EnsureSpace(target);
+      target = ::_pbi::WireFormatLite::WriteUInt32ToArray(
+          3, this_._internal_item_id(), target);
+    }
+  }
+
+  if (ABSL_PREDICT_FALSE(this_._internal_metadata_.have_unknown_fields())) {
+    target =
+        ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+            this_._internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:battle.v1.PurchaseShopItem)
+  return target;
+}
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+::size_t PurchaseShopItem::ByteSizeLong(const MessageLite& base) {
+  const PurchaseShopItem& this_ = static_cast<const PurchaseShopItem&>(base);
+#else   // PROTOBUF_CUSTOM_VTABLE
+::size_t PurchaseShopItem::ByteSizeLong() const {
+  const PurchaseShopItem& this_ = *this;
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  // @@protoc_insertion_point(message_byte_size_start:battle.v1.PurchaseShopItem)
+  ::size_t total_size = 0;
+
+  ::uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void)cached_has_bits;
+
+  ::_pbi::Prefetch5LinesFrom7Lines(&this_);
+  cached_has_bits = this_._impl_._has_bits_[0];
+  if ((cached_has_bits & 0x00000007u) != 0) {
+    // string room_name = 1;
+    if ((cached_has_bits & 0x00000001u) != 0) {
+      if (!this_._internal_room_name().empty()) {
+        total_size += 1 + ::google::protobuf::internal::WireFormatLite::StringSize(
+                                        this_._internal_room_name());
+      }
+    }
+    // int64 player_id = 2;
+    if ((cached_has_bits & 0x00000002u) != 0) {
+      if (this_._internal_player_id() != 0) {
+        total_size += ::_pbi::WireFormatLite::Int64SizePlusOne(
+            this_._internal_player_id());
+      }
+    }
+    // uint32 item_id = 3;
+    if ((cached_has_bits & 0x00000004u) != 0) {
+      if (this_._internal_item_id() != 0) {
+        total_size += ::_pbi::WireFormatLite::UInt32SizePlusOne(
+            this_._internal_item_id());
+      }
+    }
+  }
+  return this_.MaybeComputeUnknownFieldsSize(total_size,
+                                             &this_._impl_._cached_size_);
+}
+
+void PurchaseShopItem::MergeImpl(::google::protobuf::MessageLite& to_msg, const ::google::protobuf::MessageLite& from_msg) {
+  auto* const _this = static_cast<PurchaseShopItem*>(&to_msg);
+  auto& from = static_cast<const PurchaseShopItem&>(from_msg);
+  // @@protoc_insertion_point(class_specific_merge_from_start:battle.v1.PurchaseShopItem)
+  ABSL_DCHECK_NE(&from, _this);
+  ::uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  cached_has_bits = from._impl_._has_bits_[0];
+  if ((cached_has_bits & 0x00000007u) != 0) {
+    if ((cached_has_bits & 0x00000001u) != 0) {
+      if (!from._internal_room_name().empty()) {
+        _this->_internal_set_room_name(from._internal_room_name());
+      } else {
+        if (_this->_impl_.room_name_.IsDefault()) {
+          _this->_internal_set_room_name("");
+        }
+      }
+    }
+    if ((cached_has_bits & 0x00000002u) != 0) {
+      if (from._internal_player_id() != 0) {
+        _this->_impl_.player_id_ = from._impl_.player_id_;
+      }
+    }
+    if ((cached_has_bits & 0x00000004u) != 0) {
+      if (from._internal_item_id() != 0) {
+        _this->_impl_.item_id_ = from._impl_.item_id_;
+      }
+    }
+  }
+  _this->_impl_._has_bits_[0] |= cached_has_bits;
+  _this->_internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(from._internal_metadata_);
+}
+
+void PurchaseShopItem::CopyFrom(const PurchaseShopItem& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:battle.v1.PurchaseShopItem)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+
+void PurchaseShopItem::InternalSwap(PurchaseShopItem* PROTOBUF_RESTRICT PROTOBUF_NONNULL other) {
+  using ::std::swap;
+  auto* arena = GetArena();
+  ABSL_DCHECK_EQ(arena, other->GetArena());
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  swap(_impl_._has_bits_[0], other->_impl_._has_bits_[0]);
+  ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.room_name_, &other->_impl_.room_name_, arena);
+  ::google::protobuf::internal::memswap<
+      PROTOBUF_FIELD_OFFSET(PurchaseShopItem, _impl_.item_id_)
+      + sizeof(PurchaseShopItem::_impl_.item_id_)
+      - PROTOBUF_FIELD_OFFSET(PurchaseShopItem, _impl_.player_id_)>(
+          reinterpret_cast<char*>(&_impl_.player_id_),
+          reinterpret_cast<char*>(&other->_impl_.player_id_));
+}
+
+::google::protobuf::Metadata PurchaseShopItem::GetMetadata() const {
+  return ::google::protobuf::Message::GetMetadataImpl(GetClassData()->full());
+}
+// ===================================================================
+
+class ShopOffer::_Internal {
+ public:
+  using HasBits =
+      decltype(::std::declval<ShopOffer>()._impl_._has_bits_);
+  static constexpr ::int32_t kHasBitsOffset =
+      8 * PROTOBUF_FIELD_OFFSET(ShopOffer, _impl_._has_bits_);
+};
+
+ShopOffer::ShopOffer(::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(arena, ShopOffer_class_data_.base()) {
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(arena) {
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  SharedCtor(arena);
+  // @@protoc_insertion_point(arena_constructor:battle.v1.ShopOffer)
+}
+ShopOffer::ShopOffer(
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const ShopOffer& from)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(arena, ShopOffer_class_data_.base()),
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(arena),
+#endif  // PROTOBUF_CUSTOM_VTABLE
+      _impl_(from._impl_) {
+  _internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
+      from._internal_metadata_);
+}
+PROTOBUF_NDEBUG_INLINE ShopOffer::Impl_::Impl_(
+    ::google::protobuf::internal::InternalVisibility visibility,
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
+      : _cached_size_{0} {}
+
+inline void ShopOffer::SharedCtor(::_pb::Arena* PROTOBUF_NULLABLE arena) {
+  new (&_impl_) Impl_(internal_visibility(), arena);
+  ::memset(reinterpret_cast<char *>(&_impl_) +
+               offsetof(Impl_, item_id_),
+           0,
+           offsetof(Impl_, price_) -
+               offsetof(Impl_, item_id_) +
+               sizeof(Impl_::price_));
+}
+ShopOffer::~ShopOffer() {
+  // @@protoc_insertion_point(destructor:battle.v1.ShopOffer)
+  SharedDtor(*this);
+}
+inline void ShopOffer::SharedDtor(MessageLite& self) {
+  ShopOffer& this_ = static_cast<ShopOffer&>(self);
+  this_._internal_metadata_.Delete<::google::protobuf::UnknownFieldSet>();
+  ABSL_DCHECK(this_.GetArena() == nullptr);
+  this_._impl_.~Impl_();
+}
+
+inline void* PROTOBUF_NONNULL ShopOffer::PlacementNew_(
+    const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena) {
+  return ::new (mem) ShopOffer(arena);
+}
+constexpr auto ShopOffer::InternalNewImpl_() {
+  return ::google::protobuf::internal::MessageCreator::ZeroInit(sizeof(ShopOffer),
+                                            alignof(ShopOffer));
+}
+constexpr auto ShopOffer::InternalGenerateClassData_() {
+  return ::google::protobuf::internal::ClassDataFull{
+      ::google::protobuf::internal::ClassData{
+          &_ShopOffer_default_instance_._instance,
+          &_table_.header,
+          nullptr,  // OnDemandRegisterArenaDtor
+          nullptr,  // IsInitialized
+          &ShopOffer::MergeImpl,
+          ::google::protobuf::Message::GetNewImpl<ShopOffer>(),
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+          &ShopOffer::SharedDtor,
+          ::google::protobuf::Message::GetClearImpl<ShopOffer>(), &ShopOffer::ByteSizeLong,
+              &ShopOffer::_InternalSerialize,
+#endif  // PROTOBUF_CUSTOM_VTABLE
+          PROTOBUF_FIELD_OFFSET(ShopOffer, _impl_._cached_size_),
+          false,
+      },
+      &ShopOffer::kDescriptorMethods,
+      &descriptor_table_proto_2fbattle_2fv1_2fsession_2eproto,
+      nullptr,  // tracker
+  };
+}
+
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 const
+    ::google::protobuf::internal::ClassDataFull ShopOffer_class_data_ =
+        ShopOffer::InternalGenerateClassData_();
+
+PROTOBUF_ATTRIBUTE_WEAK const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL
+ShopOffer::GetClassData() const {
+  ::google::protobuf::internal::PrefetchToLocalCache(&ShopOffer_class_data_);
+  ::google::protobuf::internal::PrefetchToLocalCache(ShopOffer_class_data_.tc_table);
+  return ShopOffer_class_data_.base();
+}
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
+const ::_pbi::TcParseTable<1, 2, 0, 0, 2>
+ShopOffer::_table_ = {
+  {
+    PROTOBUF_FIELD_OFFSET(ShopOffer, _impl_._has_bits_),
+    0, // no _extensions_
+    2, 8,  // max_field_number, fast_idx_mask
+    offsetof(decltype(_table_), field_lookup_table),
+    4294967292,  // skipmap
+    offsetof(decltype(_table_), field_entries),
+    2,  // num_field_entries
+    0,  // num_aux_entries
+    offsetof(decltype(_table_), field_names),  // no aux_entries
+    ShopOffer_class_data_.base(),
+    nullptr,  // post_loop_handler
+    ::_pbi::TcParser::GenericFallback,  // fallback
+    #ifdef PROTOBUF_PREFETCH_PARSE_TABLE
+    ::_pbi::TcParser::GetTable<::battle::v1::ShopOffer>(),  // to_prefetch
+    #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
+  }, {{
+    // int32 price = 2;
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(ShopOffer, _impl_.price_), 1>(),
+     {16, 1, 0, PROTOBUF_FIELD_OFFSET(ShopOffer, _impl_.price_)}},
+    // uint32 item_id = 1;
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(ShopOffer, _impl_.item_id_), 0>(),
+     {8, 0, 0, PROTOBUF_FIELD_OFFSET(ShopOffer, _impl_.item_id_)}},
+  }}, {{
+    65535, 65535
+  }}, {{
+    // uint32 item_id = 1;
+    {PROTOBUF_FIELD_OFFSET(ShopOffer, _impl_.item_id_), _Internal::kHasBitsOffset + 0, 0,
+    (0 | ::_fl::kFcOptional | ::_fl::kUInt32)},
+    // int32 price = 2;
+    {PROTOBUF_FIELD_OFFSET(ShopOffer, _impl_.price_), _Internal::kHasBitsOffset + 1, 0,
+    (0 | ::_fl::kFcOptional | ::_fl::kInt32)},
+  }},
+  // no aux_entries
+  {{
+  }},
+};
+PROTOBUF_NOINLINE void ShopOffer::Clear() {
+// @@protoc_insertion_point(message_clear_start:battle.v1.ShopOffer)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  ::uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  cached_has_bits = _impl_._has_bits_[0];
+  if ((cached_has_bits & 0x00000003u) != 0) {
+    ::memset(&_impl_.item_id_, 0, static_cast<::size_t>(
+        reinterpret_cast<char*>(&_impl_.price_) -
+        reinterpret_cast<char*>(&_impl_.item_id_)) + sizeof(_impl_.price_));
+  }
+  _impl_._has_bits_.Clear();
+  _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
+}
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+::uint8_t* PROTOBUF_NONNULL ShopOffer::_InternalSerialize(
+    const ::google::protobuf::MessageLite& base, ::uint8_t* PROTOBUF_NONNULL target,
+    ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) {
+  const ShopOffer& this_ = static_cast<const ShopOffer&>(base);
+#else   // PROTOBUF_CUSTOM_VTABLE
+::uint8_t* PROTOBUF_NONNULL ShopOffer::_InternalSerialize(
+    ::uint8_t* PROTOBUF_NONNULL target,
+    ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+  const ShopOffer& this_ = *this;
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  // @@protoc_insertion_point(serialize_to_array_start:battle.v1.ShopOffer)
+  ::uint32_t cached_has_bits = 0;
+  (void)cached_has_bits;
+
+  // uint32 item_id = 1;
+  if ((this_._impl_._has_bits_[0] & 0x00000001u) != 0) {
+    if (this_._internal_item_id() != 0) {
+      target = stream->EnsureSpace(target);
+      target = ::_pbi::WireFormatLite::WriteUInt32ToArray(
+          1, this_._internal_item_id(), target);
+    }
+  }
+
+  // int32 price = 2;
+  if ((this_._impl_._has_bits_[0] & 0x00000002u) != 0) {
+    if (this_._internal_price() != 0) {
+      target =
+          ::google::protobuf::internal::WireFormatLite::WriteInt32ToArrayWithField<2>(
+              stream, this_._internal_price(), target);
+    }
+  }
+
+  if (ABSL_PREDICT_FALSE(this_._internal_metadata_.have_unknown_fields())) {
+    target =
+        ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+            this_._internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:battle.v1.ShopOffer)
+  return target;
+}
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+::size_t ShopOffer::ByteSizeLong(const MessageLite& base) {
+  const ShopOffer& this_ = static_cast<const ShopOffer&>(base);
+#else   // PROTOBUF_CUSTOM_VTABLE
+::size_t ShopOffer::ByteSizeLong() const {
+  const ShopOffer& this_ = *this;
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  // @@protoc_insertion_point(message_byte_size_start:battle.v1.ShopOffer)
+  ::size_t total_size = 0;
+
+  ::uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void)cached_has_bits;
+
+  ::_pbi::Prefetch5LinesFrom7Lines(&this_);
+  cached_has_bits = this_._impl_._has_bits_[0];
+  if ((cached_has_bits & 0x00000003u) != 0) {
+    // uint32 item_id = 1;
+    if ((cached_has_bits & 0x00000001u) != 0) {
+      if (this_._internal_item_id() != 0) {
+        total_size += ::_pbi::WireFormatLite::UInt32SizePlusOne(
+            this_._internal_item_id());
+      }
+    }
+    // int32 price = 2;
+    if ((cached_has_bits & 0x00000002u) != 0) {
+      if (this_._internal_price() != 0) {
+        total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(
+            this_._internal_price());
+      }
+    }
+  }
+  return this_.MaybeComputeUnknownFieldsSize(total_size,
+                                             &this_._impl_._cached_size_);
+}
+
+void ShopOffer::MergeImpl(::google::protobuf::MessageLite& to_msg, const ::google::protobuf::MessageLite& from_msg) {
+  auto* const _this = static_cast<ShopOffer*>(&to_msg);
+  auto& from = static_cast<const ShopOffer&>(from_msg);
+  // @@protoc_insertion_point(class_specific_merge_from_start:battle.v1.ShopOffer)
+  ABSL_DCHECK_NE(&from, _this);
+  ::uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  cached_has_bits = from._impl_._has_bits_[0];
+  if ((cached_has_bits & 0x00000003u) != 0) {
+    if ((cached_has_bits & 0x00000001u) != 0) {
+      if (from._internal_item_id() != 0) {
+        _this->_impl_.item_id_ = from._impl_.item_id_;
+      }
+    }
+    if ((cached_has_bits & 0x00000002u) != 0) {
+      if (from._internal_price() != 0) {
+        _this->_impl_.price_ = from._impl_.price_;
+      }
+    }
+  }
+  _this->_impl_._has_bits_[0] |= cached_has_bits;
+  _this->_internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(from._internal_metadata_);
+}
+
+void ShopOffer::CopyFrom(const ShopOffer& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:battle.v1.ShopOffer)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+
+void ShopOffer::InternalSwap(ShopOffer* PROTOBUF_RESTRICT PROTOBUF_NONNULL other) {
+  using ::std::swap;
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  swap(_impl_._has_bits_[0], other->_impl_._has_bits_[0]);
+  ::google::protobuf::internal::memswap<
+      PROTOBUF_FIELD_OFFSET(ShopOffer, _impl_.price_)
+      + sizeof(ShopOffer::_impl_.price_)
+      - PROTOBUF_FIELD_OFFSET(ShopOffer, _impl_.item_id_)>(
+          reinterpret_cast<char*>(&_impl_.item_id_),
+          reinterpret_cast<char*>(&other->_impl_.item_id_));
+}
+
+::google::protobuf::Metadata ShopOffer::GetMetadata() const {
+  return ::google::protobuf::Message::GetMetadataImpl(GetClassData()->full());
+}
+// ===================================================================
+
+class PlayerSoulSnapshot::_Internal {
+ public:
+  using HasBits =
+      decltype(::std::declval<PlayerSoulSnapshot>()._impl_._has_bits_);
+  static constexpr ::int32_t kHasBitsOffset =
+      8 * PROTOBUF_FIELD_OFFSET(PlayerSoulSnapshot, _impl_._has_bits_);
+};
+
+PlayerSoulSnapshot::PlayerSoulSnapshot(::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(arena, PlayerSoulSnapshot_class_data_.base()) {
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(arena) {
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  SharedCtor(arena);
+  // @@protoc_insertion_point(arena_constructor:battle.v1.PlayerSoulSnapshot)
+}
+PlayerSoulSnapshot::PlayerSoulSnapshot(
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const PlayerSoulSnapshot& from)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(arena, PlayerSoulSnapshot_class_data_.base()),
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(arena),
+#endif  // PROTOBUF_CUSTOM_VTABLE
+      _impl_(from._impl_) {
+  _internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
+      from._internal_metadata_);
+}
+PROTOBUF_NDEBUG_INLINE PlayerSoulSnapshot::Impl_::Impl_(
+    ::google::protobuf::internal::InternalVisibility visibility,
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
+      : _cached_size_{0} {}
+
+inline void PlayerSoulSnapshot::SharedCtor(::_pb::Arena* PROTOBUF_NULLABLE arena) {
+  new (&_impl_) Impl_(internal_visibility(), arena);
+  ::memset(reinterpret_cast<char *>(&_impl_) +
+               offsetof(Impl_, player_id_),
+           0,
+           offsetof(Impl_, souls_) -
+               offsetof(Impl_, player_id_) +
+               sizeof(Impl_::souls_));
+}
+PlayerSoulSnapshot::~PlayerSoulSnapshot() {
+  // @@protoc_insertion_point(destructor:battle.v1.PlayerSoulSnapshot)
+  SharedDtor(*this);
+}
+inline void PlayerSoulSnapshot::SharedDtor(MessageLite& self) {
+  PlayerSoulSnapshot& this_ = static_cast<PlayerSoulSnapshot&>(self);
+  this_._internal_metadata_.Delete<::google::protobuf::UnknownFieldSet>();
+  ABSL_DCHECK(this_.GetArena() == nullptr);
+  this_._impl_.~Impl_();
+}
+
+inline void* PROTOBUF_NONNULL PlayerSoulSnapshot::PlacementNew_(
+    const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena) {
+  return ::new (mem) PlayerSoulSnapshot(arena);
+}
+constexpr auto PlayerSoulSnapshot::InternalNewImpl_() {
+  return ::google::protobuf::internal::MessageCreator::ZeroInit(sizeof(PlayerSoulSnapshot),
+                                            alignof(PlayerSoulSnapshot));
+}
+constexpr auto PlayerSoulSnapshot::InternalGenerateClassData_() {
+  return ::google::protobuf::internal::ClassDataFull{
+      ::google::protobuf::internal::ClassData{
+          &_PlayerSoulSnapshot_default_instance_._instance,
+          &_table_.header,
+          nullptr,  // OnDemandRegisterArenaDtor
+          nullptr,  // IsInitialized
+          &PlayerSoulSnapshot::MergeImpl,
+          ::google::protobuf::Message::GetNewImpl<PlayerSoulSnapshot>(),
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+          &PlayerSoulSnapshot::SharedDtor,
+          ::google::protobuf::Message::GetClearImpl<PlayerSoulSnapshot>(), &PlayerSoulSnapshot::ByteSizeLong,
+              &PlayerSoulSnapshot::_InternalSerialize,
+#endif  // PROTOBUF_CUSTOM_VTABLE
+          PROTOBUF_FIELD_OFFSET(PlayerSoulSnapshot, _impl_._cached_size_),
+          false,
+      },
+      &PlayerSoulSnapshot::kDescriptorMethods,
+      &descriptor_table_proto_2fbattle_2fv1_2fsession_2eproto,
+      nullptr,  // tracker
+  };
+}
+
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 const
+    ::google::protobuf::internal::ClassDataFull PlayerSoulSnapshot_class_data_ =
+        PlayerSoulSnapshot::InternalGenerateClassData_();
+
+PROTOBUF_ATTRIBUTE_WEAK const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL
+PlayerSoulSnapshot::GetClassData() const {
+  ::google::protobuf::internal::PrefetchToLocalCache(&PlayerSoulSnapshot_class_data_);
+  ::google::protobuf::internal::PrefetchToLocalCache(PlayerSoulSnapshot_class_data_.tc_table);
+  return PlayerSoulSnapshot_class_data_.base();
+}
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
+const ::_pbi::TcParseTable<1, 2, 0, 0, 2>
+PlayerSoulSnapshot::_table_ = {
+  {
+    PROTOBUF_FIELD_OFFSET(PlayerSoulSnapshot, _impl_._has_bits_),
+    0, // no _extensions_
+    2, 8,  // max_field_number, fast_idx_mask
+    offsetof(decltype(_table_), field_lookup_table),
+    4294967292,  // skipmap
+    offsetof(decltype(_table_), field_entries),
+    2,  // num_field_entries
+    0,  // num_aux_entries
+    offsetof(decltype(_table_), field_names),  // no aux_entries
+    PlayerSoulSnapshot_class_data_.base(),
+    nullptr,  // post_loop_handler
+    ::_pbi::TcParser::GenericFallback,  // fallback
+    #ifdef PROTOBUF_PREFETCH_PARSE_TABLE
+    ::_pbi::TcParser::GetTable<::battle::v1::PlayerSoulSnapshot>(),  // to_prefetch
+    #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
+  }, {{
+    // int32 souls = 2;
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(PlayerSoulSnapshot, _impl_.souls_), 1>(),
+     {16, 1, 0, PROTOBUF_FIELD_OFFSET(PlayerSoulSnapshot, _impl_.souls_)}},
+    // int64 player_id = 1;
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint64_t, offsetof(PlayerSoulSnapshot, _impl_.player_id_), 0>(),
+     {8, 0, 0, PROTOBUF_FIELD_OFFSET(PlayerSoulSnapshot, _impl_.player_id_)}},
+  }}, {{
+    65535, 65535
+  }}, {{
+    // int64 player_id = 1;
+    {PROTOBUF_FIELD_OFFSET(PlayerSoulSnapshot, _impl_.player_id_), _Internal::kHasBitsOffset + 0, 0,
+    (0 | ::_fl::kFcOptional | ::_fl::kInt64)},
+    // int32 souls = 2;
+    {PROTOBUF_FIELD_OFFSET(PlayerSoulSnapshot, _impl_.souls_), _Internal::kHasBitsOffset + 1, 0,
+    (0 | ::_fl::kFcOptional | ::_fl::kInt32)},
+  }},
+  // no aux_entries
+  {{
+  }},
+};
+PROTOBUF_NOINLINE void PlayerSoulSnapshot::Clear() {
+// @@protoc_insertion_point(message_clear_start:battle.v1.PlayerSoulSnapshot)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  ::uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  cached_has_bits = _impl_._has_bits_[0];
+  if ((cached_has_bits & 0x00000003u) != 0) {
+    ::memset(&_impl_.player_id_, 0, static_cast<::size_t>(
+        reinterpret_cast<char*>(&_impl_.souls_) -
+        reinterpret_cast<char*>(&_impl_.player_id_)) + sizeof(_impl_.souls_));
+  }
+  _impl_._has_bits_.Clear();
+  _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
+}
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+::uint8_t* PROTOBUF_NONNULL PlayerSoulSnapshot::_InternalSerialize(
+    const ::google::protobuf::MessageLite& base, ::uint8_t* PROTOBUF_NONNULL target,
+    ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) {
+  const PlayerSoulSnapshot& this_ = static_cast<const PlayerSoulSnapshot&>(base);
+#else   // PROTOBUF_CUSTOM_VTABLE
+::uint8_t* PROTOBUF_NONNULL PlayerSoulSnapshot::_InternalSerialize(
+    ::uint8_t* PROTOBUF_NONNULL target,
+    ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+  const PlayerSoulSnapshot& this_ = *this;
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  // @@protoc_insertion_point(serialize_to_array_start:battle.v1.PlayerSoulSnapshot)
+  ::uint32_t cached_has_bits = 0;
+  (void)cached_has_bits;
+
+  // int64 player_id = 1;
+  if ((this_._impl_._has_bits_[0] & 0x00000001u) != 0) {
+    if (this_._internal_player_id() != 0) {
+      target =
+          ::google::protobuf::internal::WireFormatLite::WriteInt64ToArrayWithField<1>(
+              stream, this_._internal_player_id(), target);
+    }
+  }
+
+  // int32 souls = 2;
+  if ((this_._impl_._has_bits_[0] & 0x00000002u) != 0) {
+    if (this_._internal_souls() != 0) {
+      target =
+          ::google::protobuf::internal::WireFormatLite::WriteInt32ToArrayWithField<2>(
+              stream, this_._internal_souls(), target);
+    }
+  }
+
+  if (ABSL_PREDICT_FALSE(this_._internal_metadata_.have_unknown_fields())) {
+    target =
+        ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+            this_._internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:battle.v1.PlayerSoulSnapshot)
+  return target;
+}
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+::size_t PlayerSoulSnapshot::ByteSizeLong(const MessageLite& base) {
+  const PlayerSoulSnapshot& this_ = static_cast<const PlayerSoulSnapshot&>(base);
+#else   // PROTOBUF_CUSTOM_VTABLE
+::size_t PlayerSoulSnapshot::ByteSizeLong() const {
+  const PlayerSoulSnapshot& this_ = *this;
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  // @@protoc_insertion_point(message_byte_size_start:battle.v1.PlayerSoulSnapshot)
+  ::size_t total_size = 0;
+
+  ::uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void)cached_has_bits;
+
+  ::_pbi::Prefetch5LinesFrom7Lines(&this_);
+  cached_has_bits = this_._impl_._has_bits_[0];
+  if ((cached_has_bits & 0x00000003u) != 0) {
+    // int64 player_id = 1;
+    if ((cached_has_bits & 0x00000001u) != 0) {
+      if (this_._internal_player_id() != 0) {
+        total_size += ::_pbi::WireFormatLite::Int64SizePlusOne(
+            this_._internal_player_id());
+      }
+    }
+    // int32 souls = 2;
+    if ((cached_has_bits & 0x00000002u) != 0) {
+      if (this_._internal_souls() != 0) {
+        total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(
+            this_._internal_souls());
+      }
+    }
+  }
+  return this_.MaybeComputeUnknownFieldsSize(total_size,
+                                             &this_._impl_._cached_size_);
+}
+
+void PlayerSoulSnapshot::MergeImpl(::google::protobuf::MessageLite& to_msg, const ::google::protobuf::MessageLite& from_msg) {
+  auto* const _this = static_cast<PlayerSoulSnapshot*>(&to_msg);
+  auto& from = static_cast<const PlayerSoulSnapshot&>(from_msg);
+  // @@protoc_insertion_point(class_specific_merge_from_start:battle.v1.PlayerSoulSnapshot)
+  ABSL_DCHECK_NE(&from, _this);
+  ::uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  cached_has_bits = from._impl_._has_bits_[0];
+  if ((cached_has_bits & 0x00000003u) != 0) {
+    if ((cached_has_bits & 0x00000001u) != 0) {
+      if (from._internal_player_id() != 0) {
+        _this->_impl_.player_id_ = from._impl_.player_id_;
+      }
+    }
+    if ((cached_has_bits & 0x00000002u) != 0) {
+      if (from._internal_souls() != 0) {
+        _this->_impl_.souls_ = from._impl_.souls_;
+      }
+    }
+  }
+  _this->_impl_._has_bits_[0] |= cached_has_bits;
+  _this->_internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(from._internal_metadata_);
+}
+
+void PlayerSoulSnapshot::CopyFrom(const PlayerSoulSnapshot& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:battle.v1.PlayerSoulSnapshot)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+
+void PlayerSoulSnapshot::InternalSwap(PlayerSoulSnapshot* PROTOBUF_RESTRICT PROTOBUF_NONNULL other) {
+  using ::std::swap;
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  swap(_impl_._has_bits_[0], other->_impl_._has_bits_[0]);
+  ::google::protobuf::internal::memswap<
+      PROTOBUF_FIELD_OFFSET(PlayerSoulSnapshot, _impl_.souls_)
+      + sizeof(PlayerSoulSnapshot::_impl_.souls_)
+      - PROTOBUF_FIELD_OFFSET(PlayerSoulSnapshot, _impl_.player_id_)>(
+          reinterpret_cast<char*>(&_impl_.player_id_),
+          reinterpret_cast<char*>(&other->_impl_.player_id_));
+}
+
+::google::protobuf::Metadata PlayerSoulSnapshot::GetMetadata() const {
+  return ::google::protobuf::Message::GetMetadataImpl(GetClassData()->full());
+}
+// ===================================================================
+
+class ShopBuff::_Internal {
+ public:
+  using HasBits =
+      decltype(::std::declval<ShopBuff>()._impl_._has_bits_);
+  static constexpr ::int32_t kHasBitsOffset =
+      8 * PROTOBUF_FIELD_OFFSET(ShopBuff, _impl_._has_bits_);
+};
+
+ShopBuff::ShopBuff(::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(arena, ShopBuff_class_data_.base()) {
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(arena) {
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  SharedCtor(arena);
+  // @@protoc_insertion_point(arena_constructor:battle.v1.ShopBuff)
+}
+ShopBuff::ShopBuff(
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const ShopBuff& from)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(arena, ShopBuff_class_data_.base()),
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(arena),
+#endif  // PROTOBUF_CUSTOM_VTABLE
+      _impl_(from._impl_) {
+  _internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
+      from._internal_metadata_);
+}
+PROTOBUF_NDEBUG_INLINE ShopBuff::Impl_::Impl_(
+    ::google::protobuf::internal::InternalVisibility visibility,
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
+      : _cached_size_{0} {}
+
+inline void ShopBuff::SharedCtor(::_pb::Arena* PROTOBUF_NULLABLE arena) {
+  new (&_impl_) Impl_(internal_visibility(), arena);
+  ::memset(reinterpret_cast<char *>(&_impl_) +
+               offsetof(Impl_, kind_),
+           0,
+           offsetof(Impl_, value_) -
+               offsetof(Impl_, kind_) +
+               sizeof(Impl_::value_));
+}
+ShopBuff::~ShopBuff() {
+  // @@protoc_insertion_point(destructor:battle.v1.ShopBuff)
+  SharedDtor(*this);
+}
+inline void ShopBuff::SharedDtor(MessageLite& self) {
+  ShopBuff& this_ = static_cast<ShopBuff&>(self);
+  this_._internal_metadata_.Delete<::google::protobuf::UnknownFieldSet>();
+  ABSL_DCHECK(this_.GetArena() == nullptr);
+  this_._impl_.~Impl_();
+}
+
+inline void* PROTOBUF_NONNULL ShopBuff::PlacementNew_(
+    const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena) {
+  return ::new (mem) ShopBuff(arena);
+}
+constexpr auto ShopBuff::InternalNewImpl_() {
+  return ::google::protobuf::internal::MessageCreator::ZeroInit(sizeof(ShopBuff),
+                                            alignof(ShopBuff));
+}
+constexpr auto ShopBuff::InternalGenerateClassData_() {
+  return ::google::protobuf::internal::ClassDataFull{
+      ::google::protobuf::internal::ClassData{
+          &_ShopBuff_default_instance_._instance,
+          &_table_.header,
+          nullptr,  // OnDemandRegisterArenaDtor
+          nullptr,  // IsInitialized
+          &ShopBuff::MergeImpl,
+          ::google::protobuf::Message::GetNewImpl<ShopBuff>(),
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+          &ShopBuff::SharedDtor,
+          ::google::protobuf::Message::GetClearImpl<ShopBuff>(), &ShopBuff::ByteSizeLong,
+              &ShopBuff::_InternalSerialize,
+#endif  // PROTOBUF_CUSTOM_VTABLE
+          PROTOBUF_FIELD_OFFSET(ShopBuff, _impl_._cached_size_),
+          false,
+      },
+      &ShopBuff::kDescriptorMethods,
+      &descriptor_table_proto_2fbattle_2fv1_2fsession_2eproto,
+      nullptr,  // tracker
+  };
+}
+
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 const
+    ::google::protobuf::internal::ClassDataFull ShopBuff_class_data_ =
+        ShopBuff::InternalGenerateClassData_();
+
+PROTOBUF_ATTRIBUTE_WEAK const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL
+ShopBuff::GetClassData() const {
+  ::google::protobuf::internal::PrefetchToLocalCache(&ShopBuff_class_data_);
+  ::google::protobuf::internal::PrefetchToLocalCache(ShopBuff_class_data_.tc_table);
+  return ShopBuff_class_data_.base();
+}
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
+const ::_pbi::TcParseTable<1, 2, 0, 0, 2>
+ShopBuff::_table_ = {
+  {
+    PROTOBUF_FIELD_OFFSET(ShopBuff, _impl_._has_bits_),
+    0, // no _extensions_
+    2, 8,  // max_field_number, fast_idx_mask
+    offsetof(decltype(_table_), field_lookup_table),
+    4294967292,  // skipmap
+    offsetof(decltype(_table_), field_entries),
+    2,  // num_field_entries
+    0,  // num_aux_entries
+    offsetof(decltype(_table_), field_names),  // no aux_entries
+    ShopBuff_class_data_.base(),
+    nullptr,  // post_loop_handler
+    ::_pbi::TcParser::GenericFallback,  // fallback
+    #ifdef PROTOBUF_PREFETCH_PARSE_TABLE
+    ::_pbi::TcParser::GetTable<::battle::v1::ShopBuff>(),  // to_prefetch
+    #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
+  }, {{
+    // float value = 2;
+    {::_pbi::TcParser::FastF32S1,
+     {21, 1, 0, PROTOBUF_FIELD_OFFSET(ShopBuff, _impl_.value_)}},
+    // .battle.v1.ShopBuffKind kind = 1;
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(ShopBuff, _impl_.kind_), 0>(),
+     {8, 0, 0, PROTOBUF_FIELD_OFFSET(ShopBuff, _impl_.kind_)}},
+  }}, {{
+    65535, 65535
+  }}, {{
+    // .battle.v1.ShopBuffKind kind = 1;
+    {PROTOBUF_FIELD_OFFSET(ShopBuff, _impl_.kind_), _Internal::kHasBitsOffset + 0, 0,
+    (0 | ::_fl::kFcOptional | ::_fl::kOpenEnum)},
+    // float value = 2;
+    {PROTOBUF_FIELD_OFFSET(ShopBuff, _impl_.value_), _Internal::kHasBitsOffset + 1, 0,
+    (0 | ::_fl::kFcOptional | ::_fl::kFloat)},
+  }},
+  // no aux_entries
+  {{
+  }},
+};
+PROTOBUF_NOINLINE void ShopBuff::Clear() {
+// @@protoc_insertion_point(message_clear_start:battle.v1.ShopBuff)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  ::uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  cached_has_bits = _impl_._has_bits_[0];
+  if ((cached_has_bits & 0x00000003u) != 0) {
+    ::memset(&_impl_.kind_, 0, static_cast<::size_t>(
+        reinterpret_cast<char*>(&_impl_.value_) -
+        reinterpret_cast<char*>(&_impl_.kind_)) + sizeof(_impl_.value_));
+  }
+  _impl_._has_bits_.Clear();
+  _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
+}
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+::uint8_t* PROTOBUF_NONNULL ShopBuff::_InternalSerialize(
+    const ::google::protobuf::MessageLite& base, ::uint8_t* PROTOBUF_NONNULL target,
+    ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) {
+  const ShopBuff& this_ = static_cast<const ShopBuff&>(base);
+#else   // PROTOBUF_CUSTOM_VTABLE
+::uint8_t* PROTOBUF_NONNULL ShopBuff::_InternalSerialize(
+    ::uint8_t* PROTOBUF_NONNULL target,
+    ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+  const ShopBuff& this_ = *this;
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  // @@protoc_insertion_point(serialize_to_array_start:battle.v1.ShopBuff)
+  ::uint32_t cached_has_bits = 0;
+  (void)cached_has_bits;
+
+  // .battle.v1.ShopBuffKind kind = 1;
+  if ((this_._impl_._has_bits_[0] & 0x00000001u) != 0) {
+    if (this_._internal_kind() != 0) {
+      target = stream->EnsureSpace(target);
+      target = ::_pbi::WireFormatLite::WriteEnumToArray(
+          1, this_._internal_kind(), target);
+    }
+  }
+
+  // float value = 2;
+  if ((this_._impl_._has_bits_[0] & 0x00000002u) != 0) {
+    if (::absl::bit_cast<::uint32_t>(this_._internal_value()) != 0) {
+      target = stream->EnsureSpace(target);
+      target = ::_pbi::WireFormatLite::WriteFloatToArray(
+          2, this_._internal_value(), target);
+    }
+  }
+
+  if (ABSL_PREDICT_FALSE(this_._internal_metadata_.have_unknown_fields())) {
+    target =
+        ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+            this_._internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:battle.v1.ShopBuff)
+  return target;
+}
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+::size_t ShopBuff::ByteSizeLong(const MessageLite& base) {
+  const ShopBuff& this_ = static_cast<const ShopBuff&>(base);
+#else   // PROTOBUF_CUSTOM_VTABLE
+::size_t ShopBuff::ByteSizeLong() const {
+  const ShopBuff& this_ = *this;
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  // @@protoc_insertion_point(message_byte_size_start:battle.v1.ShopBuff)
+  ::size_t total_size = 0;
+
+  ::uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void)cached_has_bits;
+
+  ::_pbi::Prefetch5LinesFrom7Lines(&this_);
+  cached_has_bits = this_._impl_._has_bits_[0];
+  if ((cached_has_bits & 0x00000003u) != 0) {
+    // .battle.v1.ShopBuffKind kind = 1;
+    if ((cached_has_bits & 0x00000001u) != 0) {
+      if (this_._internal_kind() != 0) {
+        total_size += 1 +
+                      ::_pbi::WireFormatLite::EnumSize(this_._internal_kind());
+      }
+    }
+    // float value = 2;
+    if ((cached_has_bits & 0x00000002u) != 0) {
+      if (::absl::bit_cast<::uint32_t>(this_._internal_value()) != 0) {
+        total_size += 5;
+      }
+    }
+  }
+  return this_.MaybeComputeUnknownFieldsSize(total_size,
+                                             &this_._impl_._cached_size_);
+}
+
+void ShopBuff::MergeImpl(::google::protobuf::MessageLite& to_msg, const ::google::protobuf::MessageLite& from_msg) {
+  auto* const _this = static_cast<ShopBuff*>(&to_msg);
+  auto& from = static_cast<const ShopBuff&>(from_msg);
+  // @@protoc_insertion_point(class_specific_merge_from_start:battle.v1.ShopBuff)
+  ABSL_DCHECK_NE(&from, _this);
+  ::uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  cached_has_bits = from._impl_._has_bits_[0];
+  if ((cached_has_bits & 0x00000003u) != 0) {
+    if ((cached_has_bits & 0x00000001u) != 0) {
+      if (from._internal_kind() != 0) {
+        _this->_impl_.kind_ = from._impl_.kind_;
+      }
+    }
+    if ((cached_has_bits & 0x00000002u) != 0) {
+      if (::absl::bit_cast<::uint32_t>(from._internal_value()) != 0) {
+        _this->_impl_.value_ = from._impl_.value_;
+      }
+    }
+  }
+  _this->_impl_._has_bits_[0] |= cached_has_bits;
+  _this->_internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(from._internal_metadata_);
+}
+
+void ShopBuff::CopyFrom(const ShopBuff& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:battle.v1.ShopBuff)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+
+void ShopBuff::InternalSwap(ShopBuff* PROTOBUF_RESTRICT PROTOBUF_NONNULL other) {
+  using ::std::swap;
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  swap(_impl_._has_bits_[0], other->_impl_._has_bits_[0]);
+  ::google::protobuf::internal::memswap<
+      PROTOBUF_FIELD_OFFSET(ShopBuff, _impl_.value_)
+      + sizeof(ShopBuff::_impl_.value_)
+      - PROTOBUF_FIELD_OFFSET(ShopBuff, _impl_.kind_)>(
+          reinterpret_cast<char*>(&_impl_.kind_),
+          reinterpret_cast<char*>(&other->_impl_.kind_));
+}
+
+::google::protobuf::Metadata ShopBuff::GetMetadata() const {
+  return ::google::protobuf::Message::GetMetadataImpl(GetClassData()->full());
+}
+// ===================================================================
+
+class ShopItemDefinition::_Internal {
+ public:
+  using HasBits =
+      decltype(::std::declval<ShopItemDefinition>()._impl_._has_bits_);
+  static constexpr ::int32_t kHasBitsOffset =
+      8 * PROTOBUF_FIELD_OFFSET(ShopItemDefinition, _impl_._has_bits_);
+};
+
+ShopItemDefinition::ShopItemDefinition(::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(arena, ShopItemDefinition_class_data_.base()) {
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(arena) {
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  SharedCtor(arena);
+  // @@protoc_insertion_point(arena_constructor:battle.v1.ShopItemDefinition)
+}
+PROTOBUF_NDEBUG_INLINE ShopItemDefinition::Impl_::Impl_(
+    ::google::protobuf::internal::InternalVisibility visibility,
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
+    const ::battle::v1::ShopItemDefinition& from_msg)
+      : _has_bits_{from._has_bits_},
+        _cached_size_{0},
+        buffs_{visibility, arena, from.buffs_},
+        item_name_(arena, from.item_name_) {}
+
+ShopItemDefinition::ShopItemDefinition(
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena,
+    const ShopItemDefinition& from)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(arena, ShopItemDefinition_class_data_.base()) {
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(arena) {
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  ShopItemDefinition* const _this = this;
+  (void)_this;
+  _internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
+      from._internal_metadata_);
+  new (&_impl_) Impl_(internal_visibility(), arena, from._impl_, from);
+  _impl_.item_id_ = from._impl_.item_id_;
+
+  // @@protoc_insertion_point(copy_constructor:battle.v1.ShopItemDefinition)
+}
+PROTOBUF_NDEBUG_INLINE ShopItemDefinition::Impl_::Impl_(
+    ::google::protobuf::internal::InternalVisibility visibility,
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
+      : _cached_size_{0},
+        buffs_{visibility, arena},
+        item_name_(arena) {}
+
+inline void ShopItemDefinition::SharedCtor(::_pb::Arena* PROTOBUF_NULLABLE arena) {
+  new (&_impl_) Impl_(internal_visibility(), arena);
+  _impl_.item_id_ = {};
+}
+ShopItemDefinition::~ShopItemDefinition() {
+  // @@protoc_insertion_point(destructor:battle.v1.ShopItemDefinition)
+  SharedDtor(*this);
+}
+inline void ShopItemDefinition::SharedDtor(MessageLite& self) {
+  ShopItemDefinition& this_ = static_cast<ShopItemDefinition&>(self);
+  this_._internal_metadata_.Delete<::google::protobuf::UnknownFieldSet>();
+  ABSL_DCHECK(this_.GetArena() == nullptr);
+  this_._impl_.item_name_.Destroy();
+  this_._impl_.~Impl_();
+}
+
+inline void* PROTOBUF_NONNULL ShopItemDefinition::PlacementNew_(
+    const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena) {
+  return ::new (mem) ShopItemDefinition(arena);
+}
+constexpr auto ShopItemDefinition::InternalNewImpl_() {
+  constexpr auto arena_bits = ::google::protobuf::internal::EncodePlacementArenaOffsets({
+      PROTOBUF_FIELD_OFFSET(ShopItemDefinition, _impl_.buffs_) +
+          decltype(ShopItemDefinition::_impl_.buffs_)::
+              InternalGetArenaOffset(
+                  ::google::protobuf::Message::internal_visibility()),
+  });
+  if (arena_bits.has_value()) {
+    return ::google::protobuf::internal::MessageCreator::CopyInit(
+        sizeof(ShopItemDefinition), alignof(ShopItemDefinition), *arena_bits);
+  } else {
+    return ::google::protobuf::internal::MessageCreator(&ShopItemDefinition::PlacementNew_,
+                                 sizeof(ShopItemDefinition),
+                                 alignof(ShopItemDefinition));
+  }
+}
+constexpr auto ShopItemDefinition::InternalGenerateClassData_() {
+  return ::google::protobuf::internal::ClassDataFull{
+      ::google::protobuf::internal::ClassData{
+          &_ShopItemDefinition_default_instance_._instance,
+          &_table_.header,
+          nullptr,  // OnDemandRegisterArenaDtor
+          nullptr,  // IsInitialized
+          &ShopItemDefinition::MergeImpl,
+          ::google::protobuf::Message::GetNewImpl<ShopItemDefinition>(),
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+          &ShopItemDefinition::SharedDtor,
+          ::google::protobuf::Message::GetClearImpl<ShopItemDefinition>(), &ShopItemDefinition::ByteSizeLong,
+              &ShopItemDefinition::_InternalSerialize,
+#endif  // PROTOBUF_CUSTOM_VTABLE
+          PROTOBUF_FIELD_OFFSET(ShopItemDefinition, _impl_._cached_size_),
+          false,
+      },
+      &ShopItemDefinition::kDescriptorMethods,
+      &descriptor_table_proto_2fbattle_2fv1_2fsession_2eproto,
+      nullptr,  // tracker
+  };
+}
+
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 const
+    ::google::protobuf::internal::ClassDataFull ShopItemDefinition_class_data_ =
+        ShopItemDefinition::InternalGenerateClassData_();
+
+PROTOBUF_ATTRIBUTE_WEAK const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL
+ShopItemDefinition::GetClassData() const {
+  ::google::protobuf::internal::PrefetchToLocalCache(&ShopItemDefinition_class_data_);
+  ::google::protobuf::internal::PrefetchToLocalCache(ShopItemDefinition_class_data_.tc_table);
+  return ShopItemDefinition_class_data_.base();
+}
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
+const ::_pbi::TcParseTable<2, 3, 1, 46, 2>
+ShopItemDefinition::_table_ = {
+  {
+    PROTOBUF_FIELD_OFFSET(ShopItemDefinition, _impl_._has_bits_),
+    0, // no _extensions_
+    3, 24,  // max_field_number, fast_idx_mask
+    offsetof(decltype(_table_), field_lookup_table),
+    4294967288,  // skipmap
+    offsetof(decltype(_table_), field_entries),
+    3,  // num_field_entries
+    1,  // num_aux_entries
+    offsetof(decltype(_table_), aux_entries),
+    ShopItemDefinition_class_data_.base(),
+    nullptr,  // post_loop_handler
+    ::_pbi::TcParser::GenericFallback,  // fallback
+    #ifdef PROTOBUF_PREFETCH_PARSE_TABLE
+    ::_pbi::TcParser::GetTable<::battle::v1::ShopItemDefinition>(),  // to_prefetch
+    #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
+  }, {{
+    {::_pbi::TcParser::MiniParse, {}},
+    // uint32 item_id = 1;
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(ShopItemDefinition, _impl_.item_id_), 1>(),
+     {8, 1, 0, PROTOBUF_FIELD_OFFSET(ShopItemDefinition, _impl_.item_id_)}},
+    // string item_name = 2;
+    {::_pbi::TcParser::FastUS1,
+     {18, 0, 0, PROTOBUF_FIELD_OFFSET(ShopItemDefinition, _impl_.item_name_)}},
+    // repeated .battle.v1.ShopBuff buffs = 3;
+    {::_pbi::TcParser::FastMtR1,
+     {26, 63, 0, PROTOBUF_FIELD_OFFSET(ShopItemDefinition, _impl_.buffs_)}},
+  }}, {{
+    65535, 65535
+  }}, {{
+    // uint32 item_id = 1;
+    {PROTOBUF_FIELD_OFFSET(ShopItemDefinition, _impl_.item_id_), _Internal::kHasBitsOffset + 1, 0,
+    (0 | ::_fl::kFcOptional | ::_fl::kUInt32)},
+    // string item_name = 2;
+    {PROTOBUF_FIELD_OFFSET(ShopItemDefinition, _impl_.item_name_), _Internal::kHasBitsOffset + 0, 0,
+    (0 | ::_fl::kFcOptional | ::_fl::kUtf8String | ::_fl::kRepAString)},
+    // repeated .battle.v1.ShopBuff buffs = 3;
+    {PROTOBUF_FIELD_OFFSET(ShopItemDefinition, _impl_.buffs_), -1, 0,
+    (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
+  }},
+  {{
+      {::_pbi::TcParser::GetTable<::battle::v1::ShopBuff>()},
+  }},
+  {{
+    "\34\0\11\0\0\0\0\0"
+    "battle.v1.ShopItemDefinition"
+    "item_name"
+  }},
+};
+PROTOBUF_NOINLINE void ShopItemDefinition::Clear() {
+// @@protoc_insertion_point(message_clear_start:battle.v1.ShopItemDefinition)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  ::uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  _impl_.buffs_.Clear();
+  cached_has_bits = _impl_._has_bits_[0];
+  if ((cached_has_bits & 0x00000001u) != 0) {
+    _impl_.item_name_.ClearNonDefaultToEmpty();
+  }
+  _impl_.item_id_ = 0u;
+  _impl_._has_bits_.Clear();
+  _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
+}
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+::uint8_t* PROTOBUF_NONNULL ShopItemDefinition::_InternalSerialize(
+    const ::google::protobuf::MessageLite& base, ::uint8_t* PROTOBUF_NONNULL target,
+    ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) {
+  const ShopItemDefinition& this_ = static_cast<const ShopItemDefinition&>(base);
+#else   // PROTOBUF_CUSTOM_VTABLE
+::uint8_t* PROTOBUF_NONNULL ShopItemDefinition::_InternalSerialize(
+    ::uint8_t* PROTOBUF_NONNULL target,
+    ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+  const ShopItemDefinition& this_ = *this;
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  // @@protoc_insertion_point(serialize_to_array_start:battle.v1.ShopItemDefinition)
+  ::uint32_t cached_has_bits = 0;
+  (void)cached_has_bits;
+
+  // uint32 item_id = 1;
+  if ((this_._impl_._has_bits_[0] & 0x00000002u) != 0) {
+    if (this_._internal_item_id() != 0) {
+      target = stream->EnsureSpace(target);
+      target = ::_pbi::WireFormatLite::WriteUInt32ToArray(
+          1, this_._internal_item_id(), target);
+    }
+  }
+
+  // string item_name = 2;
+  if ((this_._impl_._has_bits_[0] & 0x00000001u) != 0) {
+    if (!this_._internal_item_name().empty()) {
+      const ::std::string& _s = this_._internal_item_name();
+      ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+          _s.data(), static_cast<int>(_s.length()), ::google::protobuf::internal::WireFormatLite::SERIALIZE, "battle.v1.ShopItemDefinition.item_name");
+      target = stream->WriteStringMaybeAliased(2, _s, target);
+    }
+  }
+
+  // repeated .battle.v1.ShopBuff buffs = 3;
+  for (unsigned i = 0, n = static_cast<unsigned>(
+                           this_._internal_buffs_size());
+       i < n; i++) {
+    const auto& repfield = this_._internal_buffs().Get(i);
+    target =
+        ::google::protobuf::internal::WireFormatLite::InternalWriteMessage(
+            3, repfield, repfield.GetCachedSize(),
+            target, stream);
+  }
+
+  if (ABSL_PREDICT_FALSE(this_._internal_metadata_.have_unknown_fields())) {
+    target =
+        ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+            this_._internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:battle.v1.ShopItemDefinition)
+  return target;
+}
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+::size_t ShopItemDefinition::ByteSizeLong(const MessageLite& base) {
+  const ShopItemDefinition& this_ = static_cast<const ShopItemDefinition&>(base);
+#else   // PROTOBUF_CUSTOM_VTABLE
+::size_t ShopItemDefinition::ByteSizeLong() const {
+  const ShopItemDefinition& this_ = *this;
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  // @@protoc_insertion_point(message_byte_size_start:battle.v1.ShopItemDefinition)
+  ::size_t total_size = 0;
+
+  ::uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void)cached_has_bits;
+
+  ::_pbi::Prefetch5LinesFrom7Lines(&this_);
+   {
+    // repeated .battle.v1.ShopBuff buffs = 3;
+    {
+      total_size += 1UL * this_._internal_buffs_size();
+      for (const auto& msg : this_._internal_buffs()) {
+        total_size += ::google::protobuf::internal::WireFormatLite::MessageSize(msg);
+      }
+    }
+  }
+  cached_has_bits = this_._impl_._has_bits_[0];
+  if ((cached_has_bits & 0x00000003u) != 0) {
+    // string item_name = 2;
+    if ((cached_has_bits & 0x00000001u) != 0) {
+      if (!this_._internal_item_name().empty()) {
+        total_size += 1 + ::google::protobuf::internal::WireFormatLite::StringSize(
+                                        this_._internal_item_name());
+      }
+    }
+    // uint32 item_id = 1;
+    if ((cached_has_bits & 0x00000002u) != 0) {
+      if (this_._internal_item_id() != 0) {
+        total_size += ::_pbi::WireFormatLite::UInt32SizePlusOne(
+            this_._internal_item_id());
+      }
+    }
+  }
+  return this_.MaybeComputeUnknownFieldsSize(total_size,
+                                             &this_._impl_._cached_size_);
+}
+
+void ShopItemDefinition::MergeImpl(::google::protobuf::MessageLite& to_msg, const ::google::protobuf::MessageLite& from_msg) {
+  auto* const _this = static_cast<ShopItemDefinition*>(&to_msg);
+  auto& from = static_cast<const ShopItemDefinition&>(from_msg);
+  // @@protoc_insertion_point(class_specific_merge_from_start:battle.v1.ShopItemDefinition)
+  ABSL_DCHECK_NE(&from, _this);
+  ::uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  _this->_internal_mutable_buffs()->MergeFrom(
+      from._internal_buffs());
+  cached_has_bits = from._impl_._has_bits_[0];
+  if ((cached_has_bits & 0x00000003u) != 0) {
+    if ((cached_has_bits & 0x00000001u) != 0) {
+      if (!from._internal_item_name().empty()) {
+        _this->_internal_set_item_name(from._internal_item_name());
+      } else {
+        if (_this->_impl_.item_name_.IsDefault()) {
+          _this->_internal_set_item_name("");
+        }
+      }
+    }
+    if ((cached_has_bits & 0x00000002u) != 0) {
+      if (from._internal_item_id() != 0) {
+        _this->_impl_.item_id_ = from._impl_.item_id_;
+      }
+    }
+  }
+  _this->_impl_._has_bits_[0] |= cached_has_bits;
+  _this->_internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(from._internal_metadata_);
+}
+
+void ShopItemDefinition::CopyFrom(const ShopItemDefinition& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:battle.v1.ShopItemDefinition)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+
+void ShopItemDefinition::InternalSwap(ShopItemDefinition* PROTOBUF_RESTRICT PROTOBUF_NONNULL other) {
+  using ::std::swap;
+  auto* arena = GetArena();
+  ABSL_DCHECK_EQ(arena, other->GetArena());
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  swap(_impl_._has_bits_[0], other->_impl_._has_bits_[0]);
+  _impl_.buffs_.InternalSwap(&other->_impl_.buffs_);
+  ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.item_name_, &other->_impl_.item_name_, arena);
+  swap(_impl_.item_id_, other->_impl_.item_id_);
+}
+
+::google::protobuf::Metadata ShopItemDefinition::GetMetadata() const {
+  return ::google::protobuf::Message::GetMetadataImpl(GetClassData()->full());
+}
+// ===================================================================
+
+class PlayerPurchasedShopItemsSnapshot::_Internal {
+ public:
+  using HasBits =
+      decltype(::std::declval<PlayerPurchasedShopItemsSnapshot>()._impl_._has_bits_);
+  static constexpr ::int32_t kHasBitsOffset =
+      8 * PROTOBUF_FIELD_OFFSET(PlayerPurchasedShopItemsSnapshot, _impl_._has_bits_);
+};
+
+PlayerPurchasedShopItemsSnapshot::PlayerPurchasedShopItemsSnapshot(::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(arena, PlayerPurchasedShopItemsSnapshot_class_data_.base()) {
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(arena) {
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  SharedCtor(arena);
+  // @@protoc_insertion_point(arena_constructor:battle.v1.PlayerPurchasedShopItemsSnapshot)
+}
+PROTOBUF_NDEBUG_INLINE PlayerPurchasedShopItemsSnapshot::Impl_::Impl_(
+    ::google::protobuf::internal::InternalVisibility visibility,
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
+    const ::battle::v1::PlayerPurchasedShopItemsSnapshot& from_msg)
+      : _has_bits_{from._has_bits_},
+        _cached_size_{0},
+        item_ids_{visibility, arena, from.item_ids_},
+        _item_ids_cached_byte_size_{0} {}
+
+PlayerPurchasedShopItemsSnapshot::PlayerPurchasedShopItemsSnapshot(
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena,
+    const PlayerPurchasedShopItemsSnapshot& from)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(arena, PlayerPurchasedShopItemsSnapshot_class_data_.base()) {
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(arena) {
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  PlayerPurchasedShopItemsSnapshot* const _this = this;
+  (void)_this;
+  _internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
+      from._internal_metadata_);
+  new (&_impl_) Impl_(internal_visibility(), arena, from._impl_, from);
+  _impl_.player_id_ = from._impl_.player_id_;
+
+  // @@protoc_insertion_point(copy_constructor:battle.v1.PlayerPurchasedShopItemsSnapshot)
+}
+PROTOBUF_NDEBUG_INLINE PlayerPurchasedShopItemsSnapshot::Impl_::Impl_(
+    ::google::protobuf::internal::InternalVisibility visibility,
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
+      : _cached_size_{0},
+        item_ids_{visibility, arena},
+        _item_ids_cached_byte_size_{0} {}
+
+inline void PlayerPurchasedShopItemsSnapshot::SharedCtor(::_pb::Arena* PROTOBUF_NULLABLE arena) {
+  new (&_impl_) Impl_(internal_visibility(), arena);
+  _impl_.player_id_ = {};
+}
+PlayerPurchasedShopItemsSnapshot::~PlayerPurchasedShopItemsSnapshot() {
+  // @@protoc_insertion_point(destructor:battle.v1.PlayerPurchasedShopItemsSnapshot)
+  SharedDtor(*this);
+}
+inline void PlayerPurchasedShopItemsSnapshot::SharedDtor(MessageLite& self) {
+  PlayerPurchasedShopItemsSnapshot& this_ = static_cast<PlayerPurchasedShopItemsSnapshot&>(self);
+  this_._internal_metadata_.Delete<::google::protobuf::UnknownFieldSet>();
+  ABSL_DCHECK(this_.GetArena() == nullptr);
+  this_._impl_.~Impl_();
+}
+
+inline void* PROTOBUF_NONNULL PlayerPurchasedShopItemsSnapshot::PlacementNew_(
+    const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena) {
+  return ::new (mem) PlayerPurchasedShopItemsSnapshot(arena);
+}
+constexpr auto PlayerPurchasedShopItemsSnapshot::InternalNewImpl_() {
+  constexpr auto arena_bits = ::google::protobuf::internal::EncodePlacementArenaOffsets({
+      PROTOBUF_FIELD_OFFSET(PlayerPurchasedShopItemsSnapshot, _impl_.item_ids_) +
+          decltype(PlayerPurchasedShopItemsSnapshot::_impl_.item_ids_)::
+              InternalGetArenaOffset(
+                  ::google::protobuf::Message::internal_visibility()),
+  });
+  if (arena_bits.has_value()) {
+    return ::google::protobuf::internal::MessageCreator::ZeroInit(
+        sizeof(PlayerPurchasedShopItemsSnapshot), alignof(PlayerPurchasedShopItemsSnapshot), *arena_bits);
+  } else {
+    return ::google::protobuf::internal::MessageCreator(&PlayerPurchasedShopItemsSnapshot::PlacementNew_,
+                                 sizeof(PlayerPurchasedShopItemsSnapshot),
+                                 alignof(PlayerPurchasedShopItemsSnapshot));
+  }
+}
+constexpr auto PlayerPurchasedShopItemsSnapshot::InternalGenerateClassData_() {
+  return ::google::protobuf::internal::ClassDataFull{
+      ::google::protobuf::internal::ClassData{
+          &_PlayerPurchasedShopItemsSnapshot_default_instance_._instance,
+          &_table_.header,
+          nullptr,  // OnDemandRegisterArenaDtor
+          nullptr,  // IsInitialized
+          &PlayerPurchasedShopItemsSnapshot::MergeImpl,
+          ::google::protobuf::Message::GetNewImpl<PlayerPurchasedShopItemsSnapshot>(),
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+          &PlayerPurchasedShopItemsSnapshot::SharedDtor,
+          ::google::protobuf::Message::GetClearImpl<PlayerPurchasedShopItemsSnapshot>(), &PlayerPurchasedShopItemsSnapshot::ByteSizeLong,
+              &PlayerPurchasedShopItemsSnapshot::_InternalSerialize,
+#endif  // PROTOBUF_CUSTOM_VTABLE
+          PROTOBUF_FIELD_OFFSET(PlayerPurchasedShopItemsSnapshot, _impl_._cached_size_),
+          false,
+      },
+      &PlayerPurchasedShopItemsSnapshot::kDescriptorMethods,
+      &descriptor_table_proto_2fbattle_2fv1_2fsession_2eproto,
+      nullptr,  // tracker
+  };
+}
+
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 const
+    ::google::protobuf::internal::ClassDataFull PlayerPurchasedShopItemsSnapshot_class_data_ =
+        PlayerPurchasedShopItemsSnapshot::InternalGenerateClassData_();
+
+PROTOBUF_ATTRIBUTE_WEAK const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL
+PlayerPurchasedShopItemsSnapshot::GetClassData() const {
+  ::google::protobuf::internal::PrefetchToLocalCache(&PlayerPurchasedShopItemsSnapshot_class_data_);
+  ::google::protobuf::internal::PrefetchToLocalCache(PlayerPurchasedShopItemsSnapshot_class_data_.tc_table);
+  return PlayerPurchasedShopItemsSnapshot_class_data_.base();
+}
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
+const ::_pbi::TcParseTable<1, 2, 0, 0, 2>
+PlayerPurchasedShopItemsSnapshot::_table_ = {
+  {
+    PROTOBUF_FIELD_OFFSET(PlayerPurchasedShopItemsSnapshot, _impl_._has_bits_),
+    0, // no _extensions_
+    2, 8,  // max_field_number, fast_idx_mask
+    offsetof(decltype(_table_), field_lookup_table),
+    4294967292,  // skipmap
+    offsetof(decltype(_table_), field_entries),
+    2,  // num_field_entries
+    0,  // num_aux_entries
+    offsetof(decltype(_table_), field_names),  // no aux_entries
+    PlayerPurchasedShopItemsSnapshot_class_data_.base(),
+    nullptr,  // post_loop_handler
+    ::_pbi::TcParser::GenericFallback,  // fallback
+    #ifdef PROTOBUF_PREFETCH_PARSE_TABLE
+    ::_pbi::TcParser::GetTable<::battle::v1::PlayerPurchasedShopItemsSnapshot>(),  // to_prefetch
+    #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
+  }, {{
+    // repeated uint32 item_ids = 2;
+    {::_pbi::TcParser::FastV32P1,
+     {18, 63, 0, PROTOBUF_FIELD_OFFSET(PlayerPurchasedShopItemsSnapshot, _impl_.item_ids_)}},
+    // int64 player_id = 1;
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint64_t, offsetof(PlayerPurchasedShopItemsSnapshot, _impl_.player_id_), 0>(),
+     {8, 0, 0, PROTOBUF_FIELD_OFFSET(PlayerPurchasedShopItemsSnapshot, _impl_.player_id_)}},
+  }}, {{
+    65535, 65535
+  }}, {{
+    // int64 player_id = 1;
+    {PROTOBUF_FIELD_OFFSET(PlayerPurchasedShopItemsSnapshot, _impl_.player_id_), _Internal::kHasBitsOffset + 0, 0,
+    (0 | ::_fl::kFcOptional | ::_fl::kInt64)},
+    // repeated uint32 item_ids = 2;
+    {PROTOBUF_FIELD_OFFSET(PlayerPurchasedShopItemsSnapshot, _impl_.item_ids_), -1, 0,
+    (0 | ::_fl::kFcRepeated | ::_fl::kPackedUInt32)},
+  }},
+  // no aux_entries
+  {{
+  }},
+};
+PROTOBUF_NOINLINE void PlayerPurchasedShopItemsSnapshot::Clear() {
+// @@protoc_insertion_point(message_clear_start:battle.v1.PlayerPurchasedShopItemsSnapshot)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  ::uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  _impl_.item_ids_.Clear();
+  _impl_.player_id_ = ::int64_t{0};
+  _impl_._has_bits_.Clear();
+  _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
+}
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+::uint8_t* PROTOBUF_NONNULL PlayerPurchasedShopItemsSnapshot::_InternalSerialize(
+    const ::google::protobuf::MessageLite& base, ::uint8_t* PROTOBUF_NONNULL target,
+    ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) {
+  const PlayerPurchasedShopItemsSnapshot& this_ = static_cast<const PlayerPurchasedShopItemsSnapshot&>(base);
+#else   // PROTOBUF_CUSTOM_VTABLE
+::uint8_t* PROTOBUF_NONNULL PlayerPurchasedShopItemsSnapshot::_InternalSerialize(
+    ::uint8_t* PROTOBUF_NONNULL target,
+    ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+  const PlayerPurchasedShopItemsSnapshot& this_ = *this;
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  // @@protoc_insertion_point(serialize_to_array_start:battle.v1.PlayerPurchasedShopItemsSnapshot)
+  ::uint32_t cached_has_bits = 0;
+  (void)cached_has_bits;
+
+  // int64 player_id = 1;
+  if ((this_._impl_._has_bits_[0] & 0x00000001u) != 0) {
+    if (this_._internal_player_id() != 0) {
+      target =
+          ::google::protobuf::internal::WireFormatLite::WriteInt64ToArrayWithField<1>(
+              stream, this_._internal_player_id(), target);
+    }
+  }
+
+  // repeated uint32 item_ids = 2;
+  {
+    int byte_size = this_._impl_._item_ids_cached_byte_size_.Get();
+    if (byte_size > 0) {
+      target = stream->WriteUInt32Packed(
+          2, this_._internal_item_ids(), byte_size, target);
+    }
+  }
+
+  if (ABSL_PREDICT_FALSE(this_._internal_metadata_.have_unknown_fields())) {
+    target =
+        ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+            this_._internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:battle.v1.PlayerPurchasedShopItemsSnapshot)
+  return target;
+}
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+::size_t PlayerPurchasedShopItemsSnapshot::ByteSizeLong(const MessageLite& base) {
+  const PlayerPurchasedShopItemsSnapshot& this_ = static_cast<const PlayerPurchasedShopItemsSnapshot&>(base);
+#else   // PROTOBUF_CUSTOM_VTABLE
+::size_t PlayerPurchasedShopItemsSnapshot::ByteSizeLong() const {
+  const PlayerPurchasedShopItemsSnapshot& this_ = *this;
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  // @@protoc_insertion_point(message_byte_size_start:battle.v1.PlayerPurchasedShopItemsSnapshot)
+  ::size_t total_size = 0;
+
+  ::uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void)cached_has_bits;
+
+  ::_pbi::Prefetch5LinesFrom7Lines(&this_);
+   {
+    // repeated uint32 item_ids = 2;
+    {
+      total_size +=
+          ::_pbi::WireFormatLite::UInt32SizeWithPackedTagSize(
+              this_._internal_item_ids(), 1,
+              this_._impl_._item_ids_cached_byte_size_);
+    }
+  }
+   {
+    // int64 player_id = 1;
+    cached_has_bits = this_._impl_._has_bits_[0];
+    if ((cached_has_bits & 0x00000001u) != 0) {
+      if (this_._internal_player_id() != 0) {
+        total_size += ::_pbi::WireFormatLite::Int64SizePlusOne(
+            this_._internal_player_id());
+      }
+    }
+  }
+  return this_.MaybeComputeUnknownFieldsSize(total_size,
+                                             &this_._impl_._cached_size_);
+}
+
+void PlayerPurchasedShopItemsSnapshot::MergeImpl(::google::protobuf::MessageLite& to_msg, const ::google::protobuf::MessageLite& from_msg) {
+  auto* const _this = static_cast<PlayerPurchasedShopItemsSnapshot*>(&to_msg);
+  auto& from = static_cast<const PlayerPurchasedShopItemsSnapshot&>(from_msg);
+  // @@protoc_insertion_point(class_specific_merge_from_start:battle.v1.PlayerPurchasedShopItemsSnapshot)
+  ABSL_DCHECK_NE(&from, _this);
+  ::uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  _this->_internal_mutable_item_ids()->MergeFrom(from._internal_item_ids());
+  cached_has_bits = from._impl_._has_bits_[0];
+  if ((cached_has_bits & 0x00000001u) != 0) {
+    if (from._internal_player_id() != 0) {
+      _this->_impl_.player_id_ = from._impl_.player_id_;
+    }
+  }
+  _this->_impl_._has_bits_[0] |= cached_has_bits;
+  _this->_internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(from._internal_metadata_);
+}
+
+void PlayerPurchasedShopItemsSnapshot::CopyFrom(const PlayerPurchasedShopItemsSnapshot& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:battle.v1.PlayerPurchasedShopItemsSnapshot)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+
+void PlayerPurchasedShopItemsSnapshot::InternalSwap(PlayerPurchasedShopItemsSnapshot* PROTOBUF_RESTRICT PROTOBUF_NONNULL other) {
+  using ::std::swap;
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  swap(_impl_._has_bits_[0], other->_impl_._has_bits_[0]);
+  _impl_.item_ids_.InternalSwap(&other->_impl_.item_ids_);
+  swap(_impl_.player_id_, other->_impl_.player_id_);
+}
+
+::google::protobuf::Metadata PlayerPurchasedShopItemsSnapshot::GetMetadata() const {
   return ::google::protobuf::Message::GetMetadataImpl(GetClassData()->full());
 }
 // @@protoc_insertion_point(namespace_scope)

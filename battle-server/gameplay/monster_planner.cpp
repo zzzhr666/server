@@ -19,6 +19,7 @@ battle::MonsterDefinition battle::monster_definition(MonsterKind kind) {
                 .movement_multiplier = gameplay_config::monster::melee::AttackMovementMultiplier,
                 .projectile_speed = 0.0f,
             },
+        .soul_reward = gameplay_config::monster::melee::SoulReward,
         };
 
         case MonsterKind::Ranged:
@@ -39,7 +40,8 @@ battle::MonsterDefinition battle::monster_definition(MonsterKind kind) {
             },
             .kiting_ai = ecs::KitingAI{
                 .retreat_distance = gameplay_config::monster::ranged::RetreatDistance,
-            }
+            },
+            .soul_reward = gameplay_config::monster::ranged::SoulReward,
         };
     default:
         return {};

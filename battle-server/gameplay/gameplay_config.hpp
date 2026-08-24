@@ -87,6 +87,7 @@ namespace battle::gameplay_config {
             inline constexpr ecs::DeltaTime AttackActive{0.1f};
             inline constexpr ecs::DeltaTime AttackRecovery{1.05f};
             inline constexpr float AttackMovementMultiplier = 0.0f;
+            inline constexpr int SoulReward = 10;
         }
 
         namespace ranged {
@@ -101,6 +102,7 @@ namespace battle::gameplay_config {
             inline constexpr float AttackMovementMultiplier = 0.0f;
             inline constexpr float ProjectileSpeed = 11.0f;
             inline constexpr float RetreatDistance = 7.0f;
+            inline constexpr int SoulReward = 5;
         }
     }
 
@@ -177,6 +179,7 @@ namespace battle::gameplay_config {
             inline constexpr ecs::DeltaTime Duration{3.0f};
             inline constexpr ecs::DeltaTime TickInterval{0.5f};
             inline constexpr float CostMultiplier = 1.8f;
+            inline constexpr int ArmorDecrease = 5;
         }
 
         namespace swamp {
@@ -186,4 +189,9 @@ namespace battle::gameplay_config {
         }
     }
 
+    namespace reward {
+        inline constexpr int HealthRecoverPercent = 50;
+        inline constexpr int AttackIncrease = 20;
+        inline constexpr int ArmorIncrease = 20;
+    }
 }

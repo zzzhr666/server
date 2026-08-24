@@ -10,6 +10,7 @@ namespace battle {
         float base_move_speed{};
         ecs::AttackDefinition base_attack{};
         std::optional<ecs::KitingAI> kiting_ai;
+        int soul_reward{};
     };
 
     MonsterDefinition monster_definition(MonsterKind kind);

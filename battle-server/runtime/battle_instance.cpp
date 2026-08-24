@@ -4,10 +4,12 @@
 #include <array>
 #include <chrono>
 #include <cmath>
+#include <limits>
 #include <random>
 #include <ranges>
 #include <utility>
 
+#include "gameplay/monster_planner.hpp"
 #include "gameplay/room_encounter_validator.hpp"
 #include "gameplay/room_graph_validator.hpp"
 #include "gameplay/room_layout_catalog_validator.hpp"
@@ -64,6 +66,103 @@ namespace {
         }
         return result;
     }
+
+    bool valid_free_reward_kind(battle::FreeRewardKind kind) noexcept {
+        return kind == battle::FreeRewardKind::Heal || kind == battle::FreeRewardKind::Attack ||
+            kind == battle::FreeRewardKind::DamageReduction || kind == battle::FreeRewardKind::Blessing ||
+            kind == battle::FreeRewardKind::Skip;
+    }
+}
+
+bool battle::BattleInstance::choose_free_reward(std::int64_t player_id, FreeRewardKind kind) {
+    if (ended()) {
+        return false;
+    }
+    if (room_state() != RoomFlowState::Rewarding) {
+        return false;
+    }
+    if (player_id <= 0) {
+        return false;
+    }
+    if (const auto it = player_entities_.find(player_id);
+        it == player_entities_.end() || !world_.is_living_player(player_entities_[player_id])) {
+        return false;
+    }
+    const auto it = free_reward_states_.find(player_id);
+    if (it == free_reward_states_.end() || it->second.completed) {
+        return false;
+    }
+    if (!valid_free_reward_kind(kind)) {
+        return false;
+    }
+
+    if (!handle_selection_(kind, player_id)) {
+        return false;
+    }
+
+    it->second.completed = true;
+    it->second.selected_kind = kind;
+    if (all_free_reward_choices_completed_()) {
+        if (!room_runtime_.begin_exit_selection()) {
+            it->second.completed = false;
+            it->second.selected_kind.reset();
+            return false;
+        }
+    }
+    return true;
+}
+
+bool battle::BattleInstance::purchase_shop_item(std::int64_t player_id, std::uint32_t item_id) {
+    if (ended() || !is_current_reward_room_() ||
+        (room_state() != RoomFlowState::Rewarding && room_state() != RoomFlowState::ChoosingExit)) {
+        return false;
+    }
+    const auto player_it = player_entities_.find(player_id);
+    if (player_it == player_entities_.end() || !world_.is_living_player(player_it->second) || item_id == 0) {
+        return false;
+    }
+    auto item_it = std::ranges::find_if(shop_offers_, [item_id](const ShopOffer& offer) {
+        return offer.item_id == item_id;
+    });
+    if (item_it == shop_offers_.end()) {
+        return false;
+    }
+
+    const auto definition_it = std::ranges::find_if(shop_item_definitions_, [item_id](const ShopItemDefinition& item) {
+        return item.item_id == item_id;
+    });
+    if (definition_it == shop_item_definitions_.end()) {
+        return false;
+    }
+
+    auto purchased_it = purchased_shop_items_.find(player_id);
+    if (purchased_it == purchased_shop_items_.end() || purchased_it->second.contains(item_id)) {
+        return false;
+    }
+
+    if (item_it->price < 0) {
+        return false;
+    }
+
+    const auto soul_it = player_souls_.find(player_id);
+    if (soul_it == player_souls_.end()) {
+        return false;
+    }
+    int& souls_remaining = soul_it->second;
+    if (souls_remaining < item_it->price) {
+        return false;
+    }
+    if (!apply_shop_item_(player_it->second, *definition_it)) {
+        return false;
+    }
+    souls_remaining -= item_it->price;
+    purchased_it->second.insert(item_id);
+    return true;
+}
+
+bool battle::BattleInstance::is_current_reward_room_() const {
+    const auto* current_room = dungeon_room_graph_.find_room(current_room_id());
+    return current_room != nullptr && current_room->kind == DungeonRoomKind::Reward;
 }
 
 battle::BattleInstance::BattleInstance(BattleInstanceConfig config)
@@ -80,7 +179,9 @@ battle::BattleInstance::BattleInstance(BattleInstanceConfig config)
       tick_rate_(config.tick_rate == 0 ? DefaultBattleTickRate : config.tick_rate),
       dungeon_room_graph_(std::move(config.dungeon_room_graph)),
       room_layout_catalog_(std::move(config.room_layout_catalog)),
-      room_runtime_(dungeon_room_graph_, room_layout_catalog_) {
+      room_runtime_(dungeon_room_graph_, room_layout_catalog_),
+      shop_offers_(std::move(config.shop_offers)),
+      shop_item_definitions_(std::move(config.shop_item_definitions)) {
     // 创建玩家时将局外 loadout 固化为 ECS 基础属性。之后每个 tick 只使用内存世界，
     // 避免局外数据在同一场战斗中变化而破坏对局一致性。
     for (std::size_t i = 0; i < config.player_ids.size(); ++i) {
@@ -117,6 +218,8 @@ battle::BattleInstance::BattleInstance(BattleInstanceConfig config)
         entity_players_.emplace(entity, config.player_ids[i]);
         player_battle_stats_.try_emplace(config.player_ids[i]);
         player_blessings_.emplace(config.player_ids[i], PlayerBlessingState{.player_id = config.player_ids[i]});
+        player_souls_.try_emplace(config.player_ids[i], 0);
+        purchased_shop_items_.try_emplace(config.player_ids[i]);
     }
 }
 
@@ -126,6 +229,9 @@ void battle::BattleInstance::tick(ecs::DeltaTime delta_time) {
     }
     ++server_tick_;
     discard_expired_combat_events_();
+    if (room_state() == RoomFlowState::Rewarding) {
+        return;
+    }
 
     if (room_state() == RoomFlowState::ChoosingBlessing) {
         tick_blessing_selection_(delta_time);
@@ -164,7 +270,9 @@ battle::BattleWorldSnapshot battle::BattleInstance::snapshot() const {
     auto world_snapshot = world_.snapshot();
 
     BattleWorldSnapshot battle_world_snapshot;
-    battle_world_snapshot.reward_selection_remaining = reward_selection_.remaining_seconds;
+    if (room_state() == RoomFlowState::ChoosingBlessing) {
+        battle_world_snapshot.reward_selection_remaining = reward_selection_.remaining_seconds;
+    }
     battle_world_snapshot.server_tick = server_tick_;
     battle_world_snapshot.current_room_id = current_room_id();
     battle_world_snapshot.room_state = room_state();
@@ -220,15 +328,32 @@ battle::BattleWorldSnapshot battle::BattleInstance::snapshot() const {
     for (auto& event : pending_battle_events_) {
         battle_world_snapshot.events.emplace_back(event.event);
     }
-    std::ranges::sort(battle_world_snapshot.player_progress,
-                      [](const PlayerProgressSnapshot& lhs, const PlayerProgressSnapshot& rhs) {
-                          return lhs.player_id < rhs.player_id;
-                      });
+    if (room_state() == RoomFlowState::Rewarding) {
+        for (auto& free_reward_state : free_reward_states_ | std::views::values) {
+            battle_world_snapshot.free_reward_states.emplace_back(free_reward_state);
+        }
+        std::ranges::sort(battle_world_snapshot.free_reward_states, {},
+                          &PlayerFreeRewardState::player_id);
+    }
+    if (is_current_reward_room_() &&
+        (room_state() == RoomFlowState::Rewarding || room_state() == RoomFlowState::ChoosingExit)) {
+        battle_world_snapshot.shop_offers = shop_offers_;
+        battle_world_snapshot.shop_item_definitions = shop_item_definitions_;
+        for (const auto& [id,souls] : player_souls_) {
+            battle_world_snapshot.player_souls.emplace_back(id, souls);
+        }
+        for (const auto& [id, purchased_items] : purchased_shop_items_) {
+            auto& snapshot_items = battle_world_snapshot.purchased_shop_items[id];
+            snapshot_items.assign(purchased_items.begin(), purchased_items.end());
+            std::ranges::sort(snapshot_items);
+        }
+        std::ranges::sort(battle_world_snapshot.player_souls, {}, &PlayerSoulSnapshot::player_id);
+    }
 
-    std::ranges::sort(battle_world_snapshot.player_blessings,
-                      [](const PlayerBlessingState& lhs, const PlayerBlessingState& rhs) {
-                          return lhs.player_id < rhs.player_id;
-                      });
+
+    std::ranges::sort(battle_world_snapshot.player_progress, {}, &PlayerProgressSnapshot::player_id);
+
+    std::ranges::sort(battle_world_snapshot.player_blessings, {}, &PlayerBlessingState::player_id);
     battle_world_snapshot.tick_rate = tick_rate_;
     return battle_world_snapshot;
 }
@@ -333,14 +458,22 @@ bool battle::BattleInstance::select_room_exit(std::int64_t player_id, DungeonRoo
         current_room->next_room_ids.end()) {
         return false;
     }
-
+    if (connected_player_ids_.empty()) {
+        return false;
+    }
     room_exit_choices_[player_id] = next_room_id;
-    for (const auto& [living_player_id, entity] : player_entities_) {
-        if (!world_.is_living_player(entity)) {
+
+    for (const auto& living_player_id : connected_player_ids_) {
+        const auto it = player_entities_.find(living_player_id);
+        if (it == player_entities_.end()) {
             continue;
         }
-        const auto choice_it = room_exit_choices_.find(living_player_id);
-        if (choice_it == room_exit_choices_.end() || choice_it->second != next_room_id) {
+
+        if (!world_.is_living_player(it->second)) {
+            continue;
+        }
+        if (const auto choice_it = room_exit_choices_.find(living_player_id);
+            choice_it == room_exit_choices_.end() || choice_it->second != next_room_id) {
             return true;
         }
     }
@@ -446,6 +579,8 @@ void battle::BattleInstance::consume_kill_events_() {
         auto& stats = player_battle_stats_[player_id];
         stats.total_kills++;
         stats.kills_by_kind[event.monster_kind]++;
+        const auto definition = monster_definition(event.monster_kind);
+        player_souls_[player_id] += definition.soul_reward;
     }
     world_.clear_kill_events();
 }
@@ -491,8 +626,8 @@ void battle::BattleInstance::start_reward_selection_() {
 
 void battle::BattleInstance::apply_default_upgrade_choices_() {
     std::vector<std::int64_t> player_ids;
-    player_ids.reserve(player_blessings_.size());
-    for (const auto& player_id : player_blessings_ | std::views::keys) {
+    player_ids.reserve(connected_player_ids_.size());
+    for (const auto player_id : connected_player_ids_) {
         player_ids.emplace_back(player_id);
     }
     for (const auto player_id : player_ids) {
@@ -606,9 +741,25 @@ void battle::BattleInstance::add_or_level_up_blessing_(ecs::Entity player_entity
 }
 
 bool battle::BattleInstance::all_reward_choices_completed_() const {
-    return std::ranges::none_of(player_entities_, [this](const auto& p) {
-        const auto* progress = world_.registry().try_get<ecs::PlayerProgress>(p.second);
+    if (connected_player_ids_.empty()) {
+        return false;
+    }
+    return std::ranges::none_of(connected_player_ids_, [this](const auto& p) {
+        const auto& it = player_entities_.find(p);
+        if (it == player_entities_.end()) {
+            return true;
+        }
+        const auto* progress = world_.registry().try_get<ecs::PlayerProgress>(it->second);
         return progress && progress->pending_upgrade_choices > 0;
+    });
+}
+
+bool battle::BattleInstance::all_free_reward_choices_completed_() const {
+    if (free_reward_states_.empty()) {
+        return false;
+    }
+    return std::ranges::all_of(free_reward_states_, [](const auto& entry) {
+        return entry.second.completed;
     });
 }
 
@@ -710,6 +861,7 @@ bool battle::BattleInstance::enter_current_room_() {
             active_traps_.emplace_back(entity);
         }
     }
+
     if (!relocate_players_for_current_room_(relocated_players)) {
         revert();
         return false;
@@ -725,6 +877,13 @@ bool battle::BattleInstance::enter_current_room_() {
     if (!room_runtime_.start_current_room()) {
         revert();
         return false;
+    }
+    if (room_state() == RoomFlowState::Rewarding) {
+        free_reward_states_.clear();
+        for (const auto& player_id : player_entities_ | std::views::keys) {
+            free_reward_states_[player_id] =
+                PlayerFreeRewardState{.player_id = player_id, .completed = false};
+        }
     }
     room_exit_choices_.clear();
     pending_battle_events_.emplace_back(PendingBattleEvent{
@@ -816,5 +975,132 @@ bool battle::BattleInstance::relocate_players_for_current_room_(
         }
         relocated_players.emplace_back(entity, old_position);
     }
+    return true;
+}
+
+bool battle::BattleInstance::handle_selection_(FreeRewardKind kind, std::int64_t player_id) {
+    ecs::Entity entity = player_entities_[player_id];
+    switch (kind) {
+    case FreeRewardKind::Heal: {
+        auto* health = world_.registry().try_get<ecs::Health>(entity);
+        if (health == nullptr) {
+            return false;
+        }
+        const int recover_health = static_cast<int>(
+            (static_cast<std::int64_t>(health->max_health) * gameplay_config::reward::HealthRecoverPercent) / 100);
+        health->current_health = std::clamp(health->current_health + recover_health, 0, health->max_health);
+        return true;
+    }
+    case FreeRewardKind::Attack: {
+        auto attack = world_.registry().try_get<ecs::AttackDefinition>(entity);
+        if (attack == nullptr) {
+            return false;
+        }
+        attack->damage += gameplay_config::reward::AttackIncrease;
+        return true;
+    }
+    case FreeRewardKind::DamageReduction: {
+        auto* stats = world_.registry().try_get<ecs::CharacterStats>(entity);
+        if (stats == nullptr) {
+            return false;
+        }
+        stats->armor += gameplay_config::reward::ArmorIncrease;
+        return true;
+    }
+    case FreeRewardKind::Blessing: {
+        auto candidates = AllBlessingIDs;
+        std::ranges::shuffle(candidates, reward_random_engine_);
+        auto blessing_it = player_blessings_.find(player_id);
+        if (blessing_it == player_blessings_.end()) {
+            return false;
+        }
+        add_or_level_up_blessing_(entity, blessing_it->second, candidates.front());
+        return true;
+    }
+    case FreeRewardKind::Skip:
+        return true;
+    }
+    return false;
+}
+
+bool battle::BattleInstance::apply_shop_item_(ecs::Entity entity, const ShopItemDefinition& definition) {
+    auto* attack_ptr = world_.registry().try_get<ecs::AttackDefinition>(entity);
+    auto* health_ptr = world_.registry().try_get<ecs::Health>(entity);
+    auto* stats_ptr = world_.registry().try_get<ecs::CharacterStats>(entity);
+    if (attack_ptr == nullptr || health_ptr == nullptr || stats_ptr == nullptr) {
+        return false;
+    }
+    auto attack = *attack_ptr;
+    auto health = *health_ptr;
+    auto stats = *stats_ptr;
+
+    const auto integer_value = [](float value) -> std::optional<int> {
+        const auto numeric_value = static_cast<double>(value);
+        if (!std::isfinite(value) || std::trunc(value) != value ||
+            numeric_value < static_cast<double>(std::numeric_limits<int>::min()) ||
+            numeric_value > static_cast<double>(std::numeric_limits<int>::max())) {
+            return std::nullopt;
+        }
+        return static_cast<int>(value);
+    };
+
+    for (const auto& buff : definition.buffs) {
+        switch (buff.kind) {
+        case ShopBuffKind::AttackDamage: {
+            const auto delta = integer_value(buff.value);
+            if (!delta.has_value()) {
+                return false;
+            }
+            const auto next_damage = static_cast<std::int64_t>(attack.damage) + delta.value();
+            if (next_damage <= 0 || next_damage > std::numeric_limits<int>::max()) {
+                return false;
+            }
+            attack.damage = static_cast<int>(next_damage);
+            break;
+        }
+        case ShopBuffKind::MaxHealth: {
+            const auto delta = integer_value(buff.value);
+            if (!delta.has_value()) {
+                return false;
+            }
+            const auto next_max_health = static_cast<std::int64_t>(health.max_health) + delta.value();
+            if (next_max_health <= 0 || next_max_health > std::numeric_limits<int>::max()) {
+                return false;
+            }
+            health.max_health = static_cast<int>(next_max_health);
+            health.current_health = std::min(health.current_health, health.max_health);
+            break;
+        }
+        case ShopBuffKind::Armor: {
+            const auto delta = integer_value(buff.value);
+            if (!delta.has_value()) {
+                return false;
+            }
+            const auto next_armor = static_cast<std::int64_t>(stats.armor) + delta.value();
+            if (next_armor < -99 || next_armor > std::numeric_limits<int>::max()) {
+                return false;
+            }
+            stats.armor = static_cast<int>(next_armor);
+            break;
+        }
+        case ShopBuffKind::MoveSpeed: {
+            if (!std::isfinite(buff.value)) {
+                return false;
+            }
+            const auto next_move_speed = stats.move_speed + buff.value;
+            if (!std::isfinite(next_move_speed) || next_move_speed <= 0.0f) {
+                return false;
+            }
+            stats.move_speed = next_move_speed;
+            break;
+        }
+        default:
+            return false;
+        }
+    }
+
+    *attack_ptr = attack;
+    *stats_ptr = stats;
+    *health_ptr = health;
     return true;
 }

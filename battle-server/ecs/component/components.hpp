@@ -75,6 +75,7 @@ namespace battle::ecs {
     /// @brief 角色的基础移动属性。
     struct CharacterStats {
         float move_speed;
+        int armor;
     };
 
     /// @brief 实体当前和最大生命值。
@@ -248,6 +249,7 @@ namespace battle::ecs {
         DeltaTime tick_interval_seconds{};
         DeltaTime tick_timer_seconds{};
         int damage_per_tick{};
+        bool armor_decreased{false};
     };
 
     /// @brief 沼泽施加的短时移动倍率；影响普通移动和怪物 AI，不影响冲刺。

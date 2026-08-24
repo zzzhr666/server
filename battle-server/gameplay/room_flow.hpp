@@ -11,6 +11,7 @@ namespace battle {
         EnteringRoom,
         Fighting,
         RoomCleared,
+        Rewarding,
         ChoosingBlessing,
         ChoosingExit,
         Transitioning,

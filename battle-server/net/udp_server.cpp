@@ -107,6 +107,16 @@ void battle::UdpServer::run_loop_() {
             handle_choose_blessing_(packet.value(), remote_addr, len);
             break;
         }
+        case v1::ClientPacket::kChooseFreeReward: {
+            metrics_.observe_udp_packet("received", true);
+            handle_choose_free_reward_(packet.value(), remote_addr, len);
+            break;
+        }
+        case v1::ClientPacket::kPurchaseShopItem: {
+            metrics_.observe_udp_packet("received", true);
+            handle_purchase_shop_item_(packet.value(), remote_addr, len);
+            break;
+        }
         case v1::ClientPacket::kHeartbeat: {
             metrics_.observe_udp_packet("received", true);
             handle_heartbeat_(packet.value(),remote_addr,len);
@@ -259,6 +269,50 @@ void battle::UdpServer::handle_choose_blessing_(const v1::ClientPacket& packet, 
     if (!battle_runtime_->choose_blessing(choose_blessing.room_name(), choose_blessing.player_id(),
                                           choose_blessing.option_id())) {
         send_packet_(make_error("internal_error", "unable to choose blessing"), remote_addr, remote_addr_len);
+    }
+}
+
+void battle::UdpServer::handle_choose_free_reward_(const v1::ClientPacket& packet, const sockaddr_in& remote_addr,
+                                                   socklen_t remote_addr_len) const {
+    const auto& request = packet.choose_free_reward();
+    if (request.room_name().empty() || request.player_id() <= 0 ||
+        request.kind() < v1::FREE_REWARD_KIND_HEAL || request.kind() > v1::FREE_REWARD_KIND_SKIP) {
+        send_packet_(make_error("invalid_request", "invalid free reward choice"), remote_addr, remote_addr_len);
+        return;
+    }
+    if (!session_manager_.touch(request.room_name(), request.player_id(), {remote_addr})) {
+        send_packet_(make_error("invalid_session", "session is not active"), remote_addr, remote_addr_len);
+        return;
+    }
+    if (!battle_runtime_) {
+        send_packet_(make_error("runtime_unavailable", "battle runtime is not attached"), remote_addr,
+                     remote_addr_len);
+        return;
+    }
+    if (!battle_runtime_->choose_free_reward(request.room_name(), request.player_id(),
+                                             static_cast<FreeRewardKind>(request.kind() - 1))) {
+        send_packet_(make_error("internal_error", "unable to choose free reward"), remote_addr, remote_addr_len);
+    }
+}
+
+void battle::UdpServer::handle_purchase_shop_item_(const v1::ClientPacket& packet, const sockaddr_in& remote_addr,
+                                                   socklen_t remote_addr_len) const {
+    const auto& request = packet.purchase_shop_item();
+    if (request.room_name().empty() || request.player_id() <= 0 || request.item_id() == 0) {
+        send_packet_(make_error("invalid_request", "invalid shop purchase"), remote_addr, remote_addr_len);
+        return;
+    }
+    if (!session_manager_.touch(request.room_name(), request.player_id(), {remote_addr})) {
+        send_packet_(make_error("invalid_session", "session is not active"), remote_addr, remote_addr_len);
+        return;
+    }
+    if (!battle_runtime_) {
+        send_packet_(make_error("runtime_unavailable", "battle runtime is not attached"), remote_addr,
+                     remote_addr_len);
+        return;
+    }
+    if (!battle_runtime_->purchase_shop_item(request.room_name(), request.player_id(), request.item_id())) {
+        send_packet_(make_error("internal_error", "unable to purchase shop item"), remote_addr, remote_addr_len);
     }
 }
 

@@ -49,7 +49,7 @@ namespace battle {
         BattleRuntime(RoomManager& room_manager, SessionManager& session_manager, BattleMetrics& metrics,
                       SendPacketCallback send_packet_callback, BattleInstanceFactory factory = {},
                       FinishMatchCallback finish_match_callback = {}, int tick_rate = 60,
-                      std::chrono::seconds session_idle_timeout_seconds = std::chrono::seconds{15},
+                      std::chrono::seconds session_idle_timeout_seconds = std::chrono::seconds{5},
                       std::chrono::seconds all_players_disconnected_timeout_seconds = std::chrono::seconds{90});
         ~BattleRuntime();
 
@@ -64,6 +64,10 @@ namespace battle {
 
         /// @brief 将奖励选择操作转交到其房间的战斗实例。
         bool choose_blessing(const std::string& room_name, std::int64_t player_id, int option_id);
+
+        bool choose_free_reward(const std::string& room_name, std::int64_t player_id, FreeRewardKind kind);
+
+        bool purchase_shop_item(const std::string& room_name, std::int64_t player_id, std::uint32_t item_id);
 
         bool select_room_exit(const std::string& room_name, std::int64_t player_id, DungeonRoomID next_room_id);
 

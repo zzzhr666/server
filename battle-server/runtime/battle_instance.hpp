@@ -5,6 +5,7 @@
 #include <random>
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
 #include <utility>
 #include <vector>
 
@@ -78,6 +79,15 @@ namespace battle {
 
         bool select_room_exit(std::int64_t player_id, DungeonRoomID next_room_id);
 
+        void update_connected_players(const std::unordered_set<std::int64_t>& player_ids) {
+            connected_player_ids_ = player_ids;
+        }
+
+
+        bool choose_free_reward(std::int64_t player_id, FreeRewardKind kind);
+
+        bool purchase_shop_item(std::int64_t player_id, std::uint32_t item_id);
+
     private:
         explicit BattleInstance(BattleInstanceConfig config);
 
@@ -124,6 +134,8 @@ namespace battle {
 
         [[nodiscard]] bool all_reward_choices_completed_() const;
 
+        [[nodiscard]] bool all_free_reward_choices_completed_() const;
+
         /// @brief 将阶段时长向上换算为权威模拟 tick 数，零或负时长不占用 tick。
         [[nodiscard]] std::uint64_t duration_to_ticks_(ecs::DeltaTime duration) const;
 
@@ -135,6 +147,11 @@ namespace battle {
 
         bool relocate_players_for_current_room_(std::vector<std::pair<ecs::Entity, ecs::Position>>& relocated_players);
 
+        bool handle_selection_(FreeRewardKind kind, std::int64_t player_id);
+
+        [[nodiscard]] bool is_current_reward_room_() const;
+
+        bool apply_shop_item_(ecs::Entity entity, const ShopItemDefinition& definition);
     private:
         std::string room_name_;
         ecs::World world_;
@@ -173,5 +190,13 @@ namespace battle {
         std::vector<ecs::Entity> active_traps_;
 
         bool initialization_failed_{false};
+
+        std::unordered_set<std::int64_t> connected_player_ids_;
+        std::unordered_map<std::int64_t, PlayerFreeRewardState> free_reward_states_;
+        std::vector<ShopOffer> shop_offers_;
+        std::vector<ShopItemDefinition> shop_item_definitions_;
+
+        std::unordered_map<std::int64_t, int> player_souls_;
+        std::unordered_map<std::int64_t, std::unordered_set<std::uint32_t>> purchased_shop_items_;
     };
 }

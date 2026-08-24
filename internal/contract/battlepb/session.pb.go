@@ -89,6 +89,7 @@ const (
 	RoomFlowState_ROOM_FLOW_STATE_CHOOSING_BLESSING RoomFlowState = 4
 	RoomFlowState_ROOM_FLOW_STATE_CHOOSING_EXIT     RoomFlowState = 5
 	RoomFlowState_ROOM_FLOW_STATE_TRANSITIONING     RoomFlowState = 6
+	RoomFlowState_ROOM_FLOW_STATE_REWARDING         RoomFlowState = 7
 )
 
 // Enum value maps for RoomFlowState.
@@ -101,6 +102,7 @@ var (
 		4: "ROOM_FLOW_STATE_CHOOSING_BLESSING",
 		5: "ROOM_FLOW_STATE_CHOOSING_EXIT",
 		6: "ROOM_FLOW_STATE_TRANSITIONING",
+		7: "ROOM_FLOW_STATE_REWARDING",
 	}
 	RoomFlowState_value = map[string]int32{
 		"ROOM_FLOW_STATE_UNSPECIFIED":       0,
@@ -110,6 +112,7 @@ var (
 		"ROOM_FLOW_STATE_CHOOSING_BLESSING": 4,
 		"ROOM_FLOW_STATE_CHOOSING_EXIT":     5,
 		"ROOM_FLOW_STATE_TRANSITIONING":     6,
+		"ROOM_FLOW_STATE_REWARDING":         7,
 	}
 )
 
@@ -245,6 +248,119 @@ func (x AttackKind) Number() protoreflect.EnumNumber {
 // Deprecated: Use AttackKind.Descriptor instead.
 func (AttackKind) EnumDescriptor() ([]byte, []int) {
 	return file_proto_battle_v1_session_proto_rawDescGZIP(), []int{3}
+}
+
+type FreeRewardKind int32
+
+const (
+	FreeRewardKind_FREE_REWARD_KIND_UNSPECIFIED      FreeRewardKind = 0
+	FreeRewardKind_FREE_REWARD_KIND_HEAL             FreeRewardKind = 1
+	FreeRewardKind_FREE_REWARD_KIND_ATTACK           FreeRewardKind = 2
+	FreeRewardKind_FREE_REWARD_KIND_DAMAGE_REDUCTION FreeRewardKind = 3
+	FreeRewardKind_FREE_REWARD_KIND_BLESSING         FreeRewardKind = 4
+	FreeRewardKind_FREE_REWARD_KIND_SKIP             FreeRewardKind = 5
+)
+
+// Enum value maps for FreeRewardKind.
+var (
+	FreeRewardKind_name = map[int32]string{
+		0: "FREE_REWARD_KIND_UNSPECIFIED",
+		1: "FREE_REWARD_KIND_HEAL",
+		2: "FREE_REWARD_KIND_ATTACK",
+		3: "FREE_REWARD_KIND_DAMAGE_REDUCTION",
+		4: "FREE_REWARD_KIND_BLESSING",
+		5: "FREE_REWARD_KIND_SKIP",
+	}
+	FreeRewardKind_value = map[string]int32{
+		"FREE_REWARD_KIND_UNSPECIFIED":      0,
+		"FREE_REWARD_KIND_HEAL":             1,
+		"FREE_REWARD_KIND_ATTACK":           2,
+		"FREE_REWARD_KIND_DAMAGE_REDUCTION": 3,
+		"FREE_REWARD_KIND_BLESSING":         4,
+		"FREE_REWARD_KIND_SKIP":             5,
+	}
+)
+
+func (x FreeRewardKind) Enum() *FreeRewardKind {
+	p := new(FreeRewardKind)
+	*p = x
+	return p
+}
+
+func (x FreeRewardKind) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (FreeRewardKind) Descriptor() protoreflect.EnumDescriptor {
+	return file_proto_battle_v1_session_proto_enumTypes[4].Descriptor()
+}
+
+func (FreeRewardKind) Type() protoreflect.EnumType {
+	return &file_proto_battle_v1_session_proto_enumTypes[4]
+}
+
+func (x FreeRewardKind) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use FreeRewardKind.Descriptor instead.
+func (FreeRewardKind) EnumDescriptor() ([]byte, []int) {
+	return file_proto_battle_v1_session_proto_rawDescGZIP(), []int{4}
+}
+
+type ShopBuffKind int32
+
+const (
+	ShopBuffKind_SHOP_BUFF_KIND_UNSPECIFIED   ShopBuffKind = 0
+	ShopBuffKind_SHOP_BUFF_KIND_ATTACK_DAMAGE ShopBuffKind = 1
+	ShopBuffKind_SHOP_BUFF_KIND_MAX_HEALTH    ShopBuffKind = 2
+	ShopBuffKind_SHOP_BUFF_KIND_ARMOR         ShopBuffKind = 3
+	ShopBuffKind_SHOP_BUFF_KIND_MOVE_SPEED    ShopBuffKind = 4
+)
+
+// Enum value maps for ShopBuffKind.
+var (
+	ShopBuffKind_name = map[int32]string{
+		0: "SHOP_BUFF_KIND_UNSPECIFIED",
+		1: "SHOP_BUFF_KIND_ATTACK_DAMAGE",
+		2: "SHOP_BUFF_KIND_MAX_HEALTH",
+		3: "SHOP_BUFF_KIND_ARMOR",
+		4: "SHOP_BUFF_KIND_MOVE_SPEED",
+	}
+	ShopBuffKind_value = map[string]int32{
+		"SHOP_BUFF_KIND_UNSPECIFIED":   0,
+		"SHOP_BUFF_KIND_ATTACK_DAMAGE": 1,
+		"SHOP_BUFF_KIND_MAX_HEALTH":    2,
+		"SHOP_BUFF_KIND_ARMOR":         3,
+		"SHOP_BUFF_KIND_MOVE_SPEED":    4,
+	}
+)
+
+func (x ShopBuffKind) Enum() *ShopBuffKind {
+	p := new(ShopBuffKind)
+	*p = x
+	return p
+}
+
+func (x ShopBuffKind) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (ShopBuffKind) Descriptor() protoreflect.EnumDescriptor {
+	return file_proto_battle_v1_session_proto_enumTypes[5].Descriptor()
+}
+
+func (ShopBuffKind) Type() protoreflect.EnumType {
+	return &file_proto_battle_v1_session_proto_enumTypes[5]
+}
+
+func (x ShopBuffKind) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use ShopBuffKind.Descriptor instead.
+func (ShopBuffKind) EnumDescriptor() ([]byte, []int) {
+	return file_proto_battle_v1_session_proto_rawDescGZIP(), []int{5}
 }
 
 type ClientHello struct {
@@ -472,6 +588,8 @@ type ClientPacket struct {
 	//	*ClientPacket_ChooseBlessing
 	//	*ClientPacket_Heartbeat
 	//	*ClientPacket_SelectRoomExit
+	//	*ClientPacket_ChooseFreeReward
+	//	*ClientPacket_PurchaseShopItem
 	Payload       isClientPacket_Payload `protobuf_oneof:"payload"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -559,6 +677,24 @@ func (x *ClientPacket) GetSelectRoomExit() *SelectRoomExit {
 	return nil
 }
 
+func (x *ClientPacket) GetChooseFreeReward() *ChooseFreeReward {
+	if x != nil {
+		if x, ok := x.Payload.(*ClientPacket_ChooseFreeReward); ok {
+			return x.ChooseFreeReward
+		}
+	}
+	return nil
+}
+
+func (x *ClientPacket) GetPurchaseShopItem() *PurchaseShopItem {
+	if x != nil {
+		if x, ok := x.Payload.(*ClientPacket_PurchaseShopItem); ok {
+			return x.PurchaseShopItem
+		}
+	}
+	return nil
+}
+
 type isClientPacket_Payload interface {
 	isClientPacket_Payload()
 }
@@ -583,6 +719,14 @@ type ClientPacket_SelectRoomExit struct {
 	SelectRoomExit *SelectRoomExit `protobuf:"bytes,5,opt,name=select_room_exit,json=selectRoomExit,proto3,oneof"`
 }
 
+type ClientPacket_ChooseFreeReward struct {
+	ChooseFreeReward *ChooseFreeReward `protobuf:"bytes,7,opt,name=choose_free_reward,json=chooseFreeReward,proto3,oneof"`
+}
+
+type ClientPacket_PurchaseShopItem struct {
+	PurchaseShopItem *PurchaseShopItem `protobuf:"bytes,8,opt,name=purchase_shop_item,json=purchaseShopItem,proto3,oneof"`
+}
+
 func (*ClientPacket_Hello) isClientPacket_Payload() {}
 
 func (*ClientPacket_Input) isClientPacket_Payload() {}
@@ -592,6 +736,10 @@ func (*ClientPacket_ChooseBlessing) isClientPacket_Payload() {}
 func (*ClientPacket_Heartbeat) isClientPacket_Payload() {}
 
 func (*ClientPacket_SelectRoomExit) isClientPacket_Payload() {}
+
+func (*ClientPacket_ChooseFreeReward) isClientPacket_Payload() {}
+
+func (*ClientPacket_PurchaseShopItem) isClientPacket_Payload() {}
 
 type ServerPacket struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -1806,20 +1954,25 @@ func (x *PlayerRoomExitChoiceSnapshot) GetRoomExitId() uint32 {
 }
 
 type WorldSnapshot struct {
-	state                           protoimpl.MessageState          `protogen:"open.v1"`
-	RoomName                        string                          `protobuf:"bytes,1,opt,name=room_name,json=roomName,proto3" json:"room_name,omitempty"`
-	Entities                        []*EntitySnapshot               `protobuf:"bytes,2,rep,name=entities,proto3" json:"entities,omitempty"`
-	RewardSelectionRemainingSeconds float32                         `protobuf:"fixed32,5,opt,name=reward_selection_remaining_seconds,json=rewardSelectionRemainingSeconds,proto3" json:"reward_selection_remaining_seconds,omitempty"`
-	PlayerProgress                  []*PlayerProgressSnapshot       `protobuf:"bytes,6,rep,name=player_progress,json=playerProgress,proto3" json:"player_progress,omitempty"`
-	PlayerBlessings                 []*PlayerBlessingStateSnapshot  `protobuf:"bytes,7,rep,name=player_blessings,json=playerBlessings,proto3" json:"player_blessings,omitempty"`
-	ServerTick                      uint64                          `protobuf:"varint,8,opt,name=server_tick,json=serverTick,proto3" json:"server_tick,omitempty"`
-	Events                          []*BattleEvent                  `protobuf:"bytes,9,rep,name=events,proto3" json:"events,omitempty"`
-	TickRate                        uint32                          `protobuf:"varint,10,opt,name=tick_rate,json=tickRate,proto3" json:"tick_rate,omitempty"`
-	CurrentRoomId                   uint32                          `protobuf:"varint,11,opt,name=current_room_id,json=currentRoomId,proto3" json:"current_room_id,omitempty"`
-	RoomState                       RoomFlowState                   `protobuf:"varint,12,opt,name=room_state,json=roomState,proto3,enum=battle.v1.RoomFlowState" json:"room_state,omitempty"`
-	AvailableRoomExitIds            []uint32                        `protobuf:"varint,13,rep,packed,name=available_room_exit_ids,json=availableRoomExitIds,proto3" json:"available_room_exit_ids,omitempty"`
-	PlayerRoomExitChoices           []*PlayerRoomExitChoiceSnapshot `protobuf:"bytes,14,rep,name=player_room_exit_choices,json=playerRoomExitChoices,proto3" json:"player_room_exit_choices,omitempty"`
-	CurrentRoomLayoutId             string                          `protobuf:"bytes,15,opt,name=current_room_layout_id,json=currentRoomLayoutId,proto3" json:"current_room_layout_id,omitempty"`
+	state                           protoimpl.MessageState              `protogen:"open.v1"`
+	RoomName                        string                              `protobuf:"bytes,1,opt,name=room_name,json=roomName,proto3" json:"room_name,omitempty"`
+	Entities                        []*EntitySnapshot                   `protobuf:"bytes,2,rep,name=entities,proto3" json:"entities,omitempty"`
+	RewardSelectionRemainingSeconds float32                             `protobuf:"fixed32,5,opt,name=reward_selection_remaining_seconds,json=rewardSelectionRemainingSeconds,proto3" json:"reward_selection_remaining_seconds,omitempty"`
+	PlayerProgress                  []*PlayerProgressSnapshot           `protobuf:"bytes,6,rep,name=player_progress,json=playerProgress,proto3" json:"player_progress,omitempty"`
+	PlayerBlessings                 []*PlayerBlessingStateSnapshot      `protobuf:"bytes,7,rep,name=player_blessings,json=playerBlessings,proto3" json:"player_blessings,omitempty"`
+	ServerTick                      uint64                              `protobuf:"varint,8,opt,name=server_tick,json=serverTick,proto3" json:"server_tick,omitempty"`
+	Events                          []*BattleEvent                      `protobuf:"bytes,9,rep,name=events,proto3" json:"events,omitempty"`
+	TickRate                        uint32                              `protobuf:"varint,10,opt,name=tick_rate,json=tickRate,proto3" json:"tick_rate,omitempty"`
+	CurrentRoomId                   uint32                              `protobuf:"varint,11,opt,name=current_room_id,json=currentRoomId,proto3" json:"current_room_id,omitempty"`
+	RoomState                       RoomFlowState                       `protobuf:"varint,12,opt,name=room_state,json=roomState,proto3,enum=battle.v1.RoomFlowState" json:"room_state,omitempty"`
+	AvailableRoomExitIds            []uint32                            `protobuf:"varint,13,rep,packed,name=available_room_exit_ids,json=availableRoomExitIds,proto3" json:"available_room_exit_ids,omitempty"`
+	PlayerRoomExitChoices           []*PlayerRoomExitChoiceSnapshot     `protobuf:"bytes,14,rep,name=player_room_exit_choices,json=playerRoomExitChoices,proto3" json:"player_room_exit_choices,omitempty"`
+	CurrentRoomLayoutId             string                              `protobuf:"bytes,15,opt,name=current_room_layout_id,json=currentRoomLayoutId,proto3" json:"current_room_layout_id,omitempty"`
+	FreeRewardStates                []*PlayerFreeRewardState            `protobuf:"bytes,16,rep,name=free_reward_states,json=freeRewardStates,proto3" json:"free_reward_states,omitempty"`
+	ShopOffers                      []*ShopOffer                        `protobuf:"bytes,17,rep,name=shop_offers,json=shopOffers,proto3" json:"shop_offers,omitempty"`
+	PlayerSouls                     []*PlayerSoulSnapshot               `protobuf:"bytes,18,rep,name=player_souls,json=playerSouls,proto3" json:"player_souls,omitempty"`
+	ShopItemDefinitions             []*ShopItemDefinition               `protobuf:"bytes,19,rep,name=shop_item_definitions,json=shopItemDefinitions,proto3" json:"shop_item_definitions,omitempty"`
+	PurchasedShopItems              []*PlayerPurchasedShopItemsSnapshot `protobuf:"bytes,20,rep,name=purchased_shop_items,json=purchasedShopItems,proto3" json:"purchased_shop_items,omitempty"`
 	unknownFields                   protoimpl.UnknownFields
 	sizeCache                       protoimpl.SizeCache
 }
@@ -1943,6 +2096,41 @@ func (x *WorldSnapshot) GetCurrentRoomLayoutId() string {
 		return x.CurrentRoomLayoutId
 	}
 	return ""
+}
+
+func (x *WorldSnapshot) GetFreeRewardStates() []*PlayerFreeRewardState {
+	if x != nil {
+		return x.FreeRewardStates
+	}
+	return nil
+}
+
+func (x *WorldSnapshot) GetShopOffers() []*ShopOffer {
+	if x != nil {
+		return x.ShopOffers
+	}
+	return nil
+}
+
+func (x *WorldSnapshot) GetPlayerSouls() []*PlayerSoulSnapshot {
+	if x != nil {
+		return x.PlayerSouls
+	}
+	return nil
+}
+
+func (x *WorldSnapshot) GetShopItemDefinitions() []*ShopItemDefinition {
+	if x != nil {
+		return x.ShopItemDefinitions
+	}
+	return nil
+}
+
+func (x *WorldSnapshot) GetPurchasedShopItems() []*PlayerPurchasedShopItemsSnapshot {
+	if x != nil {
+		return x.PurchasedShopItems
+	}
+	return nil
 }
 
 type ChooseBlessing struct {
@@ -2213,6 +2401,454 @@ func (x *RoomEnteredEvent) GetLayoutId() string {
 	return ""
 }
 
+type PlayerFreeRewardState struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	PlayerId      int64                  `protobuf:"varint,1,opt,name=player_id,json=playerId,proto3" json:"player_id,omitempty"`
+	Completed     bool                   `protobuf:"varint,2,opt,name=completed,proto3" json:"completed,omitempty"`
+	SelectedKind  FreeRewardKind         `protobuf:"varint,3,opt,name=selected_kind,json=selectedKind,proto3,enum=battle.v1.FreeRewardKind" json:"selected_kind,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PlayerFreeRewardState) Reset() {
+	*x = PlayerFreeRewardState{}
+	mi := &file_proto_battle_v1_session_proto_msgTypes[27]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PlayerFreeRewardState) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PlayerFreeRewardState) ProtoMessage() {}
+
+func (x *PlayerFreeRewardState) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_battle_v1_session_proto_msgTypes[27]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PlayerFreeRewardState.ProtoReflect.Descriptor instead.
+func (*PlayerFreeRewardState) Descriptor() ([]byte, []int) {
+	return file_proto_battle_v1_session_proto_rawDescGZIP(), []int{27}
+}
+
+func (x *PlayerFreeRewardState) GetPlayerId() int64 {
+	if x != nil {
+		return x.PlayerId
+	}
+	return 0
+}
+
+func (x *PlayerFreeRewardState) GetCompleted() bool {
+	if x != nil {
+		return x.Completed
+	}
+	return false
+}
+
+func (x *PlayerFreeRewardState) GetSelectedKind() FreeRewardKind {
+	if x != nil {
+		return x.SelectedKind
+	}
+	return FreeRewardKind_FREE_REWARD_KIND_UNSPECIFIED
+}
+
+type ChooseFreeReward struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	RoomName      string                 `protobuf:"bytes,1,opt,name=room_name,json=roomName,proto3" json:"room_name,omitempty"`
+	PlayerId      int64                  `protobuf:"varint,2,opt,name=player_id,json=playerId,proto3" json:"player_id,omitempty"`
+	Kind          FreeRewardKind         `protobuf:"varint,3,opt,name=kind,proto3,enum=battle.v1.FreeRewardKind" json:"kind,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ChooseFreeReward) Reset() {
+	*x = ChooseFreeReward{}
+	mi := &file_proto_battle_v1_session_proto_msgTypes[28]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ChooseFreeReward) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ChooseFreeReward) ProtoMessage() {}
+
+func (x *ChooseFreeReward) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_battle_v1_session_proto_msgTypes[28]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ChooseFreeReward.ProtoReflect.Descriptor instead.
+func (*ChooseFreeReward) Descriptor() ([]byte, []int) {
+	return file_proto_battle_v1_session_proto_rawDescGZIP(), []int{28}
+}
+
+func (x *ChooseFreeReward) GetRoomName() string {
+	if x != nil {
+		return x.RoomName
+	}
+	return ""
+}
+
+func (x *ChooseFreeReward) GetPlayerId() int64 {
+	if x != nil {
+		return x.PlayerId
+	}
+	return 0
+}
+
+func (x *ChooseFreeReward) GetKind() FreeRewardKind {
+	if x != nil {
+		return x.Kind
+	}
+	return FreeRewardKind_FREE_REWARD_KIND_UNSPECIFIED
+}
+
+type PurchaseShopItem struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	RoomName      string                 `protobuf:"bytes,1,opt,name=room_name,json=roomName,proto3" json:"room_name,omitempty"`
+	PlayerId      int64                  `protobuf:"varint,2,opt,name=player_id,json=playerId,proto3" json:"player_id,omitempty"`
+	ItemId        uint32                 `protobuf:"varint,3,opt,name=item_id,json=itemId,proto3" json:"item_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PurchaseShopItem) Reset() {
+	*x = PurchaseShopItem{}
+	mi := &file_proto_battle_v1_session_proto_msgTypes[29]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PurchaseShopItem) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PurchaseShopItem) ProtoMessage() {}
+
+func (x *PurchaseShopItem) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_battle_v1_session_proto_msgTypes[29]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PurchaseShopItem.ProtoReflect.Descriptor instead.
+func (*PurchaseShopItem) Descriptor() ([]byte, []int) {
+	return file_proto_battle_v1_session_proto_rawDescGZIP(), []int{29}
+}
+
+func (x *PurchaseShopItem) GetRoomName() string {
+	if x != nil {
+		return x.RoomName
+	}
+	return ""
+}
+
+func (x *PurchaseShopItem) GetPlayerId() int64 {
+	if x != nil {
+		return x.PlayerId
+	}
+	return 0
+}
+
+func (x *PurchaseShopItem) GetItemId() uint32 {
+	if x != nil {
+		return x.ItemId
+	}
+	return 0
+}
+
+type ShopOffer struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ItemId        uint32                 `protobuf:"varint,1,opt,name=item_id,json=itemId,proto3" json:"item_id,omitempty"`
+	Price         int32                  `protobuf:"varint,2,opt,name=price,proto3" json:"price,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ShopOffer) Reset() {
+	*x = ShopOffer{}
+	mi := &file_proto_battle_v1_session_proto_msgTypes[30]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ShopOffer) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ShopOffer) ProtoMessage() {}
+
+func (x *ShopOffer) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_battle_v1_session_proto_msgTypes[30]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ShopOffer.ProtoReflect.Descriptor instead.
+func (*ShopOffer) Descriptor() ([]byte, []int) {
+	return file_proto_battle_v1_session_proto_rawDescGZIP(), []int{30}
+}
+
+func (x *ShopOffer) GetItemId() uint32 {
+	if x != nil {
+		return x.ItemId
+	}
+	return 0
+}
+
+func (x *ShopOffer) GetPrice() int32 {
+	if x != nil {
+		return x.Price
+	}
+	return 0
+}
+
+type PlayerSoulSnapshot struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	PlayerId      int64                  `protobuf:"varint,1,opt,name=player_id,json=playerId,proto3" json:"player_id,omitempty"`
+	Souls         int32                  `protobuf:"varint,2,opt,name=souls,proto3" json:"souls,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PlayerSoulSnapshot) Reset() {
+	*x = PlayerSoulSnapshot{}
+	mi := &file_proto_battle_v1_session_proto_msgTypes[31]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PlayerSoulSnapshot) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PlayerSoulSnapshot) ProtoMessage() {}
+
+func (x *PlayerSoulSnapshot) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_battle_v1_session_proto_msgTypes[31]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PlayerSoulSnapshot.ProtoReflect.Descriptor instead.
+func (*PlayerSoulSnapshot) Descriptor() ([]byte, []int) {
+	return file_proto_battle_v1_session_proto_rawDescGZIP(), []int{31}
+}
+
+func (x *PlayerSoulSnapshot) GetPlayerId() int64 {
+	if x != nil {
+		return x.PlayerId
+	}
+	return 0
+}
+
+func (x *PlayerSoulSnapshot) GetSouls() int32 {
+	if x != nil {
+		return x.Souls
+	}
+	return 0
+}
+
+type ShopBuff struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Kind          ShopBuffKind           `protobuf:"varint,1,opt,name=kind,proto3,enum=battle.v1.ShopBuffKind" json:"kind,omitempty"`
+	Value         float32                `protobuf:"fixed32,2,opt,name=value,proto3" json:"value,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ShopBuff) Reset() {
+	*x = ShopBuff{}
+	mi := &file_proto_battle_v1_session_proto_msgTypes[32]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ShopBuff) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ShopBuff) ProtoMessage() {}
+
+func (x *ShopBuff) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_battle_v1_session_proto_msgTypes[32]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ShopBuff.ProtoReflect.Descriptor instead.
+func (*ShopBuff) Descriptor() ([]byte, []int) {
+	return file_proto_battle_v1_session_proto_rawDescGZIP(), []int{32}
+}
+
+func (x *ShopBuff) GetKind() ShopBuffKind {
+	if x != nil {
+		return x.Kind
+	}
+	return ShopBuffKind_SHOP_BUFF_KIND_UNSPECIFIED
+}
+
+func (x *ShopBuff) GetValue() float32 {
+	if x != nil {
+		return x.Value
+	}
+	return 0
+}
+
+type ShopItemDefinition struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ItemId        uint32                 `protobuf:"varint,1,opt,name=item_id,json=itemId,proto3" json:"item_id,omitempty"`
+	ItemName      string                 `protobuf:"bytes,2,opt,name=item_name,json=itemName,proto3" json:"item_name,omitempty"`
+	Buffs         []*ShopBuff            `protobuf:"bytes,3,rep,name=buffs,proto3" json:"buffs,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ShopItemDefinition) Reset() {
+	*x = ShopItemDefinition{}
+	mi := &file_proto_battle_v1_session_proto_msgTypes[33]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ShopItemDefinition) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ShopItemDefinition) ProtoMessage() {}
+
+func (x *ShopItemDefinition) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_battle_v1_session_proto_msgTypes[33]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ShopItemDefinition.ProtoReflect.Descriptor instead.
+func (*ShopItemDefinition) Descriptor() ([]byte, []int) {
+	return file_proto_battle_v1_session_proto_rawDescGZIP(), []int{33}
+}
+
+func (x *ShopItemDefinition) GetItemId() uint32 {
+	if x != nil {
+		return x.ItemId
+	}
+	return 0
+}
+
+func (x *ShopItemDefinition) GetItemName() string {
+	if x != nil {
+		return x.ItemName
+	}
+	return ""
+}
+
+func (x *ShopItemDefinition) GetBuffs() []*ShopBuff {
+	if x != nil {
+		return x.Buffs
+	}
+	return nil
+}
+
+type PlayerPurchasedShopItemsSnapshot struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	PlayerId      int64                  `protobuf:"varint,1,opt,name=player_id,json=playerId,proto3" json:"player_id,omitempty"`
+	ItemIds       []uint32               `protobuf:"varint,2,rep,packed,name=item_ids,json=itemIds,proto3" json:"item_ids,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PlayerPurchasedShopItemsSnapshot) Reset() {
+	*x = PlayerPurchasedShopItemsSnapshot{}
+	mi := &file_proto_battle_v1_session_proto_msgTypes[34]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PlayerPurchasedShopItemsSnapshot) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PlayerPurchasedShopItemsSnapshot) ProtoMessage() {}
+
+func (x *PlayerPurchasedShopItemsSnapshot) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_battle_v1_session_proto_msgTypes[34]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PlayerPurchasedShopItemsSnapshot.ProtoReflect.Descriptor instead.
+func (*PlayerPurchasedShopItemsSnapshot) Descriptor() ([]byte, []int) {
+	return file_proto_battle_v1_session_proto_rawDescGZIP(), []int{34}
+}
+
+func (x *PlayerPurchasedShopItemsSnapshot) GetPlayerId() int64 {
+	if x != nil {
+		return x.PlayerId
+	}
+	return 0
+}
+
+func (x *PlayerPurchasedShopItemsSnapshot) GetItemIds() []uint32 {
+	if x != nil {
+		return x.ItemIds
+	}
+	return nil
+}
+
 var File_proto_battle_v1_session_proto protoreflect.FileDescriptor
 
 const file_proto_battle_v1_session_proto_rawDesc = "" +
@@ -2231,14 +2867,16 @@ const file_proto_battle_v1_session_proto_rawDesc = "" +
 	"player_ids\x18\x02 \x03(\x03R\tplayerIds\"5\n" +
 	"\x05Error\x12\x12\n" +
 	"\x04code\x18\x01 \x01(\tR\x04code\x12\x18\n" +
-	"\amessage\x18\x02 \x01(\tR\amessage\"\xc2\x02\n" +
+	"\amessage\x18\x02 \x01(\tR\amessage\"\xe2\x03\n" +
 	"\fClientPacket\x12.\n" +
 	"\x05hello\x18\x01 \x01(\v2\x16.battle.v1.ClientHelloH\x00R\x05hello\x12.\n" +
 	"\x05input\x18\x02 \x01(\v2\x16.battle.v1.ClientInputH\x00R\x05input\x12D\n" +
 	"\x0fchoose_blessing\x18\x03 \x01(\v2\x19.battle.v1.ChooseBlessingH\x00R\x0echooseBlessing\x12:\n" +
 	"\theartbeat\x18\x04 \x01(\v2\x1a.battle.v1.ClientHeartbeatH\x00R\theartbeat\x12E\n" +
-	"\x10select_room_exit\x18\x05 \x01(\v2\x19.battle.v1.SelectRoomExitH\x00R\x0eselectRoomExitB\t\n" +
-	"\apayload\"\x96\x02\n" +
+	"\x10select_room_exit\x18\x05 \x01(\v2\x19.battle.v1.SelectRoomExitH\x00R\x0eselectRoomExit\x12K\n" +
+	"\x12choose_free_reward\x18\a \x01(\v2\x1b.battle.v1.ChooseFreeRewardH\x00R\x10chooseFreeReward\x12K\n" +
+	"\x12purchase_shop_item\x18\b \x01(\v2\x1b.battle.v1.PurchaseShopItemH\x00R\x10purchaseShopItemB\t\n" +
+	"\apayloadJ\x04\b\x06\x10\a\"\x96\x02\n" +
 	"\fServerPacket\x12.\n" +
 	"\x05hello\x18\x01 \x01(\v2\x16.battle.v1.ServerHelloH\x00R\x05hello\x125\n" +
 	"\n" +
@@ -2337,7 +2975,7 @@ const file_proto_battle_v1_session_proto_rawDesc = "" +
 	"\x1cPlayerRoomExitChoiceSnapshot\x12\x1b\n" +
 	"\tplayer_id\x18\x01 \x01(\x03R\bplayerId\x12 \n" +
 	"\froom_exit_id\x18\x02 \x01(\rR\n" +
-	"roomExitId\"\xf8\x05\n" +
+	"roomExitId\"\xf3\b\n" +
 	"\rWorldSnapshot\x12\x1b\n" +
 	"\troom_name\x18\x01 \x01(\tR\broomName\x125\n" +
 	"\bentities\x18\x02 \x03(\v2\x19.battle.v1.EntitySnapshotR\bentities\x12K\n" +
@@ -2354,7 +2992,13 @@ const file_proto_battle_v1_session_proto_rawDesc = "" +
 	"room_state\x18\f \x01(\x0e2\x18.battle.v1.RoomFlowStateR\troomState\x125\n" +
 	"\x17available_room_exit_ids\x18\r \x03(\rR\x14availableRoomExitIds\x12`\n" +
 	"\x18player_room_exit_choices\x18\x0e \x03(\v2'.battle.v1.PlayerRoomExitChoiceSnapshotR\x15playerRoomExitChoices\x123\n" +
-	"\x16current_room_layout_id\x18\x0f \x01(\tR\x13currentRoomLayoutIdJ\x04\b\x03\x10\x04J\x04\b\x04\x10\x05\"g\n" +
+	"\x16current_room_layout_id\x18\x0f \x01(\tR\x13currentRoomLayoutId\x12N\n" +
+	"\x12free_reward_states\x18\x10 \x03(\v2 .battle.v1.PlayerFreeRewardStateR\x10freeRewardStates\x125\n" +
+	"\vshop_offers\x18\x11 \x03(\v2\x14.battle.v1.ShopOfferR\n" +
+	"shopOffers\x12@\n" +
+	"\fplayer_souls\x18\x12 \x03(\v2\x1d.battle.v1.PlayerSoulSnapshotR\vplayerSouls\x12Q\n" +
+	"\x15shop_item_definitions\x18\x13 \x03(\v2\x1d.battle.v1.ShopItemDefinitionR\x13shopItemDefinitions\x12]\n" +
+	"\x14purchased_shop_items\x18\x14 \x03(\v2+.battle.v1.PlayerPurchasedShopItemsSnapshotR\x12purchasedShopItemsJ\x04\b\x03\x10\x04J\x04\b\x04\x10\x05\"g\n" +
 	"\x0eChooseBlessing\x12\x1b\n" +
 	"\troom_name\x18\x01 \x01(\tR\broomName\x12\x1b\n" +
 	"\tplayer_id\x18\x02 \x01(\x03R\bplayerId\x12\x1b\n" +
@@ -2371,7 +3015,35 @@ const file_proto_battle_v1_session_proto_rawDesc = "" +
 	"\aroom_id\x18\x01 \x01(\rR\x06roomId\"H\n" +
 	"\x10RoomEnteredEvent\x12\x17\n" +
 	"\aroom_id\x18\x01 \x01(\rR\x06roomId\x12\x1b\n" +
-	"\tlayout_id\x18\x02 \x01(\tR\blayoutId*\xa6\x01\n" +
+	"\tlayout_id\x18\x02 \x01(\tR\blayoutId\"\x92\x01\n" +
+	"\x15PlayerFreeRewardState\x12\x1b\n" +
+	"\tplayer_id\x18\x01 \x01(\x03R\bplayerId\x12\x1c\n" +
+	"\tcompleted\x18\x02 \x01(\bR\tcompleted\x12>\n" +
+	"\rselected_kind\x18\x03 \x01(\x0e2\x19.battle.v1.FreeRewardKindR\fselectedKind\"{\n" +
+	"\x10ChooseFreeReward\x12\x1b\n" +
+	"\troom_name\x18\x01 \x01(\tR\broomName\x12\x1b\n" +
+	"\tplayer_id\x18\x02 \x01(\x03R\bplayerId\x12-\n" +
+	"\x04kind\x18\x03 \x01(\x0e2\x19.battle.v1.FreeRewardKindR\x04kind\"e\n" +
+	"\x10PurchaseShopItem\x12\x1b\n" +
+	"\troom_name\x18\x01 \x01(\tR\broomName\x12\x1b\n" +
+	"\tplayer_id\x18\x02 \x01(\x03R\bplayerId\x12\x17\n" +
+	"\aitem_id\x18\x03 \x01(\rR\x06itemId\":\n" +
+	"\tShopOffer\x12\x17\n" +
+	"\aitem_id\x18\x01 \x01(\rR\x06itemId\x12\x14\n" +
+	"\x05price\x18\x02 \x01(\x05R\x05price\"G\n" +
+	"\x12PlayerSoulSnapshot\x12\x1b\n" +
+	"\tplayer_id\x18\x01 \x01(\x03R\bplayerId\x12\x14\n" +
+	"\x05souls\x18\x02 \x01(\x05R\x05souls\"M\n" +
+	"\bShopBuff\x12+\n" +
+	"\x04kind\x18\x01 \x01(\x0e2\x17.battle.v1.ShopBuffKindR\x04kind\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\x02R\x05value\"u\n" +
+	"\x12ShopItemDefinition\x12\x17\n" +
+	"\aitem_id\x18\x01 \x01(\rR\x06itemId\x12\x1b\n" +
+	"\titem_name\x18\x02 \x01(\tR\bitemName\x12)\n" +
+	"\x05buffs\x18\x03 \x03(\v2\x13.battle.v1.ShopBuffR\x05buffs\"Z\n" +
+	" PlayerPurchasedShopItemsSnapshot\x12\x1b\n" +
+	"\tplayer_id\x18\x01 \x01(\x03R\bplayerId\x12\x19\n" +
+	"\bitem_ids\x18\x02 \x03(\rR\aitemIds*\xa6\x01\n" +
 	"\n" +
 	"EntityKind\x12\x1b\n" +
 	"\x17ENTITY_KIND_UNSPECIFIED\x10\x00\x12\x16\n" +
@@ -2379,7 +3051,7 @@ const file_proto_battle_v1_session_proto_rawDesc = "" +
 	"\x13ENTITY_KIND_MONSTER\x10\x02\x12\x1a\n" +
 	"\x16ENTITY_KIND_PROJECTILE\x10\x03\x12\x18\n" +
 	"\x14ENTITY_KIND_OBSTACLE\x10\x04\x12\x14\n" +
-	"\x10ENTITY_KIND_TRAP\x10\x05*\x80\x02\n" +
+	"\x10ENTITY_KIND_TRAP\x10\x05*\x9f\x02\n" +
 	"\rRoomFlowState\x12\x1f\n" +
 	"\x1bROOM_FLOW_STATE_UNSPECIFIED\x10\x00\x12!\n" +
 	"\x1dROOM_FLOW_STATE_ENTERING_ROOM\x10\x01\x12\x1c\n" +
@@ -2387,7 +3059,8 @@ const file_proto_battle_v1_session_proto_rawDesc = "" +
 	"\x1cROOM_FLOW_STATE_ROOM_CLEARED\x10\x03\x12%\n" +
 	"!ROOM_FLOW_STATE_CHOOSING_BLESSING\x10\x04\x12!\n" +
 	"\x1dROOM_FLOW_STATE_CHOOSING_EXIT\x10\x05\x12!\n" +
-	"\x1dROOM_FLOW_STATE_TRANSITIONING\x10\x06*\xc3\x01\n" +
+	"\x1dROOM_FLOW_STATE_TRANSITIONING\x10\x06\x12\x1d\n" +
+	"\x19ROOM_FLOW_STATE_REWARDING\x10\a*\xc3\x01\n" +
 	"\n" +
 	"BlessingId\x12\x1b\n" +
 	"\x17BLESSING_ID_UNSPECIFIED\x10\x00\x12\x1b\n" +
@@ -2400,7 +3073,20 @@ const file_proto_battle_v1_session_proto_rawDesc = "" +
 	"AttackKind\x12\x1b\n" +
 	"\x17ATTACK_KIND_UNSPECIFIED\x10\x00\x12\x15\n" +
 	"\x11ATTACK_KIND_MELEE\x10\x01\x12\x1a\n" +
-	"\x16ATTACK_KIND_PROJECTILE\x10\x02B,Z*server/internal/contract/battlepb;battlepbb\x06proto3"
+	"\x16ATTACK_KIND_PROJECTILE\x10\x02*\xcb\x01\n" +
+	"\x0eFreeRewardKind\x12 \n" +
+	"\x1cFREE_REWARD_KIND_UNSPECIFIED\x10\x00\x12\x19\n" +
+	"\x15FREE_REWARD_KIND_HEAL\x10\x01\x12\x1b\n" +
+	"\x17FREE_REWARD_KIND_ATTACK\x10\x02\x12%\n" +
+	"!FREE_REWARD_KIND_DAMAGE_REDUCTION\x10\x03\x12\x1d\n" +
+	"\x19FREE_REWARD_KIND_BLESSING\x10\x04\x12\x19\n" +
+	"\x15FREE_REWARD_KIND_SKIP\x10\x05*\xa8\x01\n" +
+	"\fShopBuffKind\x12\x1e\n" +
+	"\x1aSHOP_BUFF_KIND_UNSPECIFIED\x10\x00\x12 \n" +
+	"\x1cSHOP_BUFF_KIND_ATTACK_DAMAGE\x10\x01\x12\x1d\n" +
+	"\x19SHOP_BUFF_KIND_MAX_HEALTH\x10\x02\x12\x18\n" +
+	"\x14SHOP_BUFF_KIND_ARMOR\x10\x03\x12\x1d\n" +
+	"\x19SHOP_BUFF_KIND_MOVE_SPEED\x10\x04B,Z*server/internal/contract/battlepb;battlepbb\x06proto3"
 
 var (
 	file_proto_battle_v1_session_proto_rawDescOnce sync.Once
@@ -2414,82 +3100,103 @@ func file_proto_battle_v1_session_proto_rawDescGZIP() []byte {
 	return file_proto_battle_v1_session_proto_rawDescData
 }
 
-var file_proto_battle_v1_session_proto_enumTypes = make([]protoimpl.EnumInfo, 4)
-var file_proto_battle_v1_session_proto_msgTypes = make([]protoimpl.MessageInfo, 27)
+var file_proto_battle_v1_session_proto_enumTypes = make([]protoimpl.EnumInfo, 6)
+var file_proto_battle_v1_session_proto_msgTypes = make([]protoimpl.MessageInfo, 35)
 var file_proto_battle_v1_session_proto_goTypes = []any{
-	(EntityKind)(0),                      // 0: battle.v1.EntityKind
-	(RoomFlowState)(0),                   // 1: battle.v1.RoomFlowState
-	(BlessingId)(0),                      // 2: battle.v1.BlessingId
-	(AttackKind)(0),                      // 3: battle.v1.AttackKind
-	(*ClientHello)(nil),                  // 4: battle.v1.ClientHello
-	(*ServerHello)(nil),                  // 5: battle.v1.ServerHello
-	(*GameStart)(nil),                    // 6: battle.v1.GameStart
-	(*Error)(nil),                        // 7: battle.v1.Error
-	(*ClientPacket)(nil),                 // 8: battle.v1.ClientPacket
-	(*ServerPacket)(nil),                 // 9: battle.v1.ServerPacket
-	(*GameOver)(nil),                     // 10: battle.v1.GameOver
-	(*PlayerBattleStats)(nil),            // 11: battle.v1.PlayerBattleStats
-	(*MonsterKillCount)(nil),             // 12: battle.v1.MonsterKillCount
-	(*ClientInput)(nil),                  // 13: battle.v1.ClientInput
-	(*Position)(nil),                     // 14: battle.v1.Position
-	(*Direction)(nil),                    // 15: battle.v1.Direction
-	(*EntitySnapshot)(nil),               // 16: battle.v1.EntitySnapshot
-	(*PlayerProgressSnapshot)(nil),       // 17: battle.v1.PlayerProgressSnapshot
-	(*BlessingOptionSnapshot)(nil),       // 18: battle.v1.BlessingOptionSnapshot
-	(*PlayerBlessingSnapshot)(nil),       // 19: battle.v1.PlayerBlessingSnapshot
-	(*PlayerBlessingStateSnapshot)(nil),  // 20: battle.v1.PlayerBlessingStateSnapshot
-	(*AttackEvent)(nil),                  // 21: battle.v1.AttackEvent
-	(*DeathEvent)(nil),                   // 22: battle.v1.DeathEvent
-	(*BattleEvent)(nil),                  // 23: battle.v1.BattleEvent
-	(*PlayerRoomExitChoiceSnapshot)(nil), // 24: battle.v1.PlayerRoomExitChoiceSnapshot
-	(*WorldSnapshot)(nil),                // 25: battle.v1.WorldSnapshot
-	(*ChooseBlessing)(nil),               // 26: battle.v1.ChooseBlessing
-	(*ClientHeartbeat)(nil),              // 27: battle.v1.ClientHeartbeat
-	(*SelectRoomExit)(nil),               // 28: battle.v1.SelectRoomExit
-	(*RoomClearedEvent)(nil),             // 29: battle.v1.RoomClearedEvent
-	(*RoomEnteredEvent)(nil),             // 30: battle.v1.RoomEnteredEvent
+	(EntityKind)(0),                          // 0: battle.v1.EntityKind
+	(RoomFlowState)(0),                       // 1: battle.v1.RoomFlowState
+	(BlessingId)(0),                          // 2: battle.v1.BlessingId
+	(AttackKind)(0),                          // 3: battle.v1.AttackKind
+	(FreeRewardKind)(0),                      // 4: battle.v1.FreeRewardKind
+	(ShopBuffKind)(0),                        // 5: battle.v1.ShopBuffKind
+	(*ClientHello)(nil),                      // 6: battle.v1.ClientHello
+	(*ServerHello)(nil),                      // 7: battle.v1.ServerHello
+	(*GameStart)(nil),                        // 8: battle.v1.GameStart
+	(*Error)(nil),                            // 9: battle.v1.Error
+	(*ClientPacket)(nil),                     // 10: battle.v1.ClientPacket
+	(*ServerPacket)(nil),                     // 11: battle.v1.ServerPacket
+	(*GameOver)(nil),                         // 12: battle.v1.GameOver
+	(*PlayerBattleStats)(nil),                // 13: battle.v1.PlayerBattleStats
+	(*MonsterKillCount)(nil),                 // 14: battle.v1.MonsterKillCount
+	(*ClientInput)(nil),                      // 15: battle.v1.ClientInput
+	(*Position)(nil),                         // 16: battle.v1.Position
+	(*Direction)(nil),                        // 17: battle.v1.Direction
+	(*EntitySnapshot)(nil),                   // 18: battle.v1.EntitySnapshot
+	(*PlayerProgressSnapshot)(nil),           // 19: battle.v1.PlayerProgressSnapshot
+	(*BlessingOptionSnapshot)(nil),           // 20: battle.v1.BlessingOptionSnapshot
+	(*PlayerBlessingSnapshot)(nil),           // 21: battle.v1.PlayerBlessingSnapshot
+	(*PlayerBlessingStateSnapshot)(nil),      // 22: battle.v1.PlayerBlessingStateSnapshot
+	(*AttackEvent)(nil),                      // 23: battle.v1.AttackEvent
+	(*DeathEvent)(nil),                       // 24: battle.v1.DeathEvent
+	(*BattleEvent)(nil),                      // 25: battle.v1.BattleEvent
+	(*PlayerRoomExitChoiceSnapshot)(nil),     // 26: battle.v1.PlayerRoomExitChoiceSnapshot
+	(*WorldSnapshot)(nil),                    // 27: battle.v1.WorldSnapshot
+	(*ChooseBlessing)(nil),                   // 28: battle.v1.ChooseBlessing
+	(*ClientHeartbeat)(nil),                  // 29: battle.v1.ClientHeartbeat
+	(*SelectRoomExit)(nil),                   // 30: battle.v1.SelectRoomExit
+	(*RoomClearedEvent)(nil),                 // 31: battle.v1.RoomClearedEvent
+	(*RoomEnteredEvent)(nil),                 // 32: battle.v1.RoomEnteredEvent
+	(*PlayerFreeRewardState)(nil),            // 33: battle.v1.PlayerFreeRewardState
+	(*ChooseFreeReward)(nil),                 // 34: battle.v1.ChooseFreeReward
+	(*PurchaseShopItem)(nil),                 // 35: battle.v1.PurchaseShopItem
+	(*ShopOffer)(nil),                        // 36: battle.v1.ShopOffer
+	(*PlayerSoulSnapshot)(nil),               // 37: battle.v1.PlayerSoulSnapshot
+	(*ShopBuff)(nil),                         // 38: battle.v1.ShopBuff
+	(*ShopItemDefinition)(nil),               // 39: battle.v1.ShopItemDefinition
+	(*PlayerPurchasedShopItemsSnapshot)(nil), // 40: battle.v1.PlayerPurchasedShopItemsSnapshot
 }
 var file_proto_battle_v1_session_proto_depIdxs = []int32{
-	4,  // 0: battle.v1.ClientPacket.hello:type_name -> battle.v1.ClientHello
-	13, // 1: battle.v1.ClientPacket.input:type_name -> battle.v1.ClientInput
-	26, // 2: battle.v1.ClientPacket.choose_blessing:type_name -> battle.v1.ChooseBlessing
-	27, // 3: battle.v1.ClientPacket.heartbeat:type_name -> battle.v1.ClientHeartbeat
-	28, // 4: battle.v1.ClientPacket.select_room_exit:type_name -> battle.v1.SelectRoomExit
-	5,  // 5: battle.v1.ServerPacket.hello:type_name -> battle.v1.ServerHello
-	6,  // 6: battle.v1.ServerPacket.game_start:type_name -> battle.v1.GameStart
-	7,  // 7: battle.v1.ServerPacket.error:type_name -> battle.v1.Error
-	10, // 8: battle.v1.ServerPacket.game_over:type_name -> battle.v1.GameOver
-	25, // 9: battle.v1.ServerPacket.snapshot:type_name -> battle.v1.WorldSnapshot
-	11, // 10: battle.v1.GameOver.player_stats:type_name -> battle.v1.PlayerBattleStats
-	12, // 11: battle.v1.PlayerBattleStats.kills:type_name -> battle.v1.MonsterKillCount
-	15, // 12: battle.v1.ClientInput.movement:type_name -> battle.v1.Direction
-	14, // 13: battle.v1.EntitySnapshot.position:type_name -> battle.v1.Position
-	15, // 14: battle.v1.EntitySnapshot.direction:type_name -> battle.v1.Direction
-	0,  // 15: battle.v1.EntitySnapshot.kind:type_name -> battle.v1.EntityKind
-	2,  // 16: battle.v1.BlessingOptionSnapshot.blessing_id:type_name -> battle.v1.BlessingId
-	2,  // 17: battle.v1.PlayerBlessingSnapshot.blessing_id:type_name -> battle.v1.BlessingId
-	19, // 18: battle.v1.PlayerBlessingStateSnapshot.blessings:type_name -> battle.v1.PlayerBlessingSnapshot
-	18, // 19: battle.v1.PlayerBlessingStateSnapshot.current_options:type_name -> battle.v1.BlessingOptionSnapshot
-	3,  // 20: battle.v1.AttackEvent.attack_kind:type_name -> battle.v1.AttackKind
-	15, // 21: battle.v1.AttackEvent.direction:type_name -> battle.v1.Direction
-	0,  // 22: battle.v1.DeathEvent.victim_kind:type_name -> battle.v1.EntityKind
-	14, // 23: battle.v1.DeathEvent.position:type_name -> battle.v1.Position
-	15, // 24: battle.v1.DeathEvent.direction:type_name -> battle.v1.Direction
-	21, // 25: battle.v1.BattleEvent.attack:type_name -> battle.v1.AttackEvent
-	22, // 26: battle.v1.BattleEvent.death:type_name -> battle.v1.DeathEvent
-	29, // 27: battle.v1.BattleEvent.room_cleared:type_name -> battle.v1.RoomClearedEvent
-	30, // 28: battle.v1.BattleEvent.room_entered:type_name -> battle.v1.RoomEnteredEvent
-	16, // 29: battle.v1.WorldSnapshot.entities:type_name -> battle.v1.EntitySnapshot
-	17, // 30: battle.v1.WorldSnapshot.player_progress:type_name -> battle.v1.PlayerProgressSnapshot
-	20, // 31: battle.v1.WorldSnapshot.player_blessings:type_name -> battle.v1.PlayerBlessingStateSnapshot
-	23, // 32: battle.v1.WorldSnapshot.events:type_name -> battle.v1.BattleEvent
-	1,  // 33: battle.v1.WorldSnapshot.room_state:type_name -> battle.v1.RoomFlowState
-	24, // 34: battle.v1.WorldSnapshot.player_room_exit_choices:type_name -> battle.v1.PlayerRoomExitChoiceSnapshot
-	35, // [35:35] is the sub-list for method output_type
-	35, // [35:35] is the sub-list for method input_type
-	35, // [35:35] is the sub-list for extension type_name
-	35, // [35:35] is the sub-list for extension extendee
-	0,  // [0:35] is the sub-list for field type_name
+	6,  // 0: battle.v1.ClientPacket.hello:type_name -> battle.v1.ClientHello
+	15, // 1: battle.v1.ClientPacket.input:type_name -> battle.v1.ClientInput
+	28, // 2: battle.v1.ClientPacket.choose_blessing:type_name -> battle.v1.ChooseBlessing
+	29, // 3: battle.v1.ClientPacket.heartbeat:type_name -> battle.v1.ClientHeartbeat
+	30, // 4: battle.v1.ClientPacket.select_room_exit:type_name -> battle.v1.SelectRoomExit
+	34, // 5: battle.v1.ClientPacket.choose_free_reward:type_name -> battle.v1.ChooseFreeReward
+	35, // 6: battle.v1.ClientPacket.purchase_shop_item:type_name -> battle.v1.PurchaseShopItem
+	7,  // 7: battle.v1.ServerPacket.hello:type_name -> battle.v1.ServerHello
+	8,  // 8: battle.v1.ServerPacket.game_start:type_name -> battle.v1.GameStart
+	9,  // 9: battle.v1.ServerPacket.error:type_name -> battle.v1.Error
+	12, // 10: battle.v1.ServerPacket.game_over:type_name -> battle.v1.GameOver
+	27, // 11: battle.v1.ServerPacket.snapshot:type_name -> battle.v1.WorldSnapshot
+	13, // 12: battle.v1.GameOver.player_stats:type_name -> battle.v1.PlayerBattleStats
+	14, // 13: battle.v1.PlayerBattleStats.kills:type_name -> battle.v1.MonsterKillCount
+	17, // 14: battle.v1.ClientInput.movement:type_name -> battle.v1.Direction
+	16, // 15: battle.v1.EntitySnapshot.position:type_name -> battle.v1.Position
+	17, // 16: battle.v1.EntitySnapshot.direction:type_name -> battle.v1.Direction
+	0,  // 17: battle.v1.EntitySnapshot.kind:type_name -> battle.v1.EntityKind
+	2,  // 18: battle.v1.BlessingOptionSnapshot.blessing_id:type_name -> battle.v1.BlessingId
+	2,  // 19: battle.v1.PlayerBlessingSnapshot.blessing_id:type_name -> battle.v1.BlessingId
+	21, // 20: battle.v1.PlayerBlessingStateSnapshot.blessings:type_name -> battle.v1.PlayerBlessingSnapshot
+	20, // 21: battle.v1.PlayerBlessingStateSnapshot.current_options:type_name -> battle.v1.BlessingOptionSnapshot
+	3,  // 22: battle.v1.AttackEvent.attack_kind:type_name -> battle.v1.AttackKind
+	17, // 23: battle.v1.AttackEvent.direction:type_name -> battle.v1.Direction
+	0,  // 24: battle.v1.DeathEvent.victim_kind:type_name -> battle.v1.EntityKind
+	16, // 25: battle.v1.DeathEvent.position:type_name -> battle.v1.Position
+	17, // 26: battle.v1.DeathEvent.direction:type_name -> battle.v1.Direction
+	23, // 27: battle.v1.BattleEvent.attack:type_name -> battle.v1.AttackEvent
+	24, // 28: battle.v1.BattleEvent.death:type_name -> battle.v1.DeathEvent
+	31, // 29: battle.v1.BattleEvent.room_cleared:type_name -> battle.v1.RoomClearedEvent
+	32, // 30: battle.v1.BattleEvent.room_entered:type_name -> battle.v1.RoomEnteredEvent
+	18, // 31: battle.v1.WorldSnapshot.entities:type_name -> battle.v1.EntitySnapshot
+	19, // 32: battle.v1.WorldSnapshot.player_progress:type_name -> battle.v1.PlayerProgressSnapshot
+	22, // 33: battle.v1.WorldSnapshot.player_blessings:type_name -> battle.v1.PlayerBlessingStateSnapshot
+	25, // 34: battle.v1.WorldSnapshot.events:type_name -> battle.v1.BattleEvent
+	1,  // 35: battle.v1.WorldSnapshot.room_state:type_name -> battle.v1.RoomFlowState
+	26, // 36: battle.v1.WorldSnapshot.player_room_exit_choices:type_name -> battle.v1.PlayerRoomExitChoiceSnapshot
+	33, // 37: battle.v1.WorldSnapshot.free_reward_states:type_name -> battle.v1.PlayerFreeRewardState
+	36, // 38: battle.v1.WorldSnapshot.shop_offers:type_name -> battle.v1.ShopOffer
+	37, // 39: battle.v1.WorldSnapshot.player_souls:type_name -> battle.v1.PlayerSoulSnapshot
+	39, // 40: battle.v1.WorldSnapshot.shop_item_definitions:type_name -> battle.v1.ShopItemDefinition
+	40, // 41: battle.v1.WorldSnapshot.purchased_shop_items:type_name -> battle.v1.PlayerPurchasedShopItemsSnapshot
+	4,  // 42: battle.v1.PlayerFreeRewardState.selected_kind:type_name -> battle.v1.FreeRewardKind
+	4,  // 43: battle.v1.ChooseFreeReward.kind:type_name -> battle.v1.FreeRewardKind
+	5,  // 44: battle.v1.ShopBuff.kind:type_name -> battle.v1.ShopBuffKind
+	38, // 45: battle.v1.ShopItemDefinition.buffs:type_name -> battle.v1.ShopBuff
+	46, // [46:46] is the sub-list for method output_type
+	46, // [46:46] is the sub-list for method input_type
+	46, // [46:46] is the sub-list for extension type_name
+	46, // [46:46] is the sub-list for extension extendee
+	0,  // [0:46] is the sub-list for field type_name
 }
 
 func init() { file_proto_battle_v1_session_proto_init() }
@@ -2503,6 +3210,8 @@ func file_proto_battle_v1_session_proto_init() {
 		(*ClientPacket_ChooseBlessing)(nil),
 		(*ClientPacket_Heartbeat)(nil),
 		(*ClientPacket_SelectRoomExit)(nil),
+		(*ClientPacket_ChooseFreeReward)(nil),
+		(*ClientPacket_PurchaseShopItem)(nil),
 	}
 	file_proto_battle_v1_session_proto_msgTypes[5].OneofWrappers = []any{
 		(*ServerPacket_Hello)(nil),
@@ -2522,8 +3231,8 @@ func file_proto_battle_v1_session_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_battle_v1_session_proto_rawDesc), len(file_proto_battle_v1_session_proto_rawDesc)),
-			NumEnums:      4,
-			NumMessages:   27,
+			NumEnums:      6,
+			NumMessages:   35,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

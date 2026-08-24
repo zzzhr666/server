@@ -26,12 +26,15 @@ message Error {
 }
 
 message ClientPacket {
+  reserved 6;
   oneof payload {
     ClientHello hello = 1;
     ClientInput input = 2;
     ChooseBlessing choose_blessing = 3;
     ClientHeartbeat heartbeat = 4;
     SelectRoomExit select_room_exit = 5;
+    ChooseFreeReward choose_free_reward = 7;
+    PurchaseShopItem purchase_shop_item = 8;
   }
 }
 
@@ -114,6 +117,7 @@ enum RoomFlowState {
   ROOM_FLOW_STATE_CHOOSING_BLESSING = 4;
   ROOM_FLOW_STATE_CHOOSING_EXIT = 5;
   ROOM_FLOW_STATE_TRANSITIONING = 6;
+  ROOM_FLOW_STATE_REWARDING = 7;
 }
 
 enum BlessingId {
@@ -207,6 +211,11 @@ message WorldSnapshot {
   repeated uint32 available_room_exit_ids = 13;
   repeated PlayerRoomExitChoiceSnapshot player_room_exit_choices = 14;
   string current_room_layout_id = 15;
+  repeated PlayerFreeRewardState free_reward_states = 16;
+  repeated ShopOffer shop_offers = 17;
+  repeated PlayerSoulSnapshot player_souls = 18;
+  repeated ShopItemDefinition shop_item_definitions = 19;
+  repeated PlayerPurchasedShopItemsSnapshot purchased_shop_items = 20;
 }
 
 message ChooseBlessing {
@@ -234,4 +243,65 @@ message RoomClearedEvent {
 message RoomEnteredEvent {
   uint32 room_id = 1;
   string layout_id = 2;
+}
+
+message PlayerFreeRewardState {
+  int64 player_id = 1;
+  bool completed = 2;
+  FreeRewardKind selected_kind = 3;
+}
+
+enum FreeRewardKind {
+  FREE_REWARD_KIND_UNSPECIFIED = 0;
+  FREE_REWARD_KIND_HEAL = 1;
+  FREE_REWARD_KIND_ATTACK = 2;
+  FREE_REWARD_KIND_DAMAGE_REDUCTION = 3;
+  FREE_REWARD_KIND_BLESSING = 4;
+  FREE_REWARD_KIND_SKIP = 5;
+}
+
+message ChooseFreeReward {
+  string room_name = 1;
+  int64 player_id = 2;
+  FreeRewardKind kind = 3;
+}
+
+message PurchaseShopItem {
+  string room_name = 1;
+  int64 player_id = 2;
+  uint32 item_id = 3;
+}
+
+message ShopOffer {
+  uint32 item_id = 1;
+  int32 price = 2;
+}
+
+message PlayerSoulSnapshot {
+  int64 player_id = 1;
+  int32 souls = 2;
+}
+
+enum ShopBuffKind {
+  SHOP_BUFF_KIND_UNSPECIFIED = 0;
+  SHOP_BUFF_KIND_ATTACK_DAMAGE = 1;
+  SHOP_BUFF_KIND_MAX_HEALTH = 2;
+  SHOP_BUFF_KIND_ARMOR = 3;
+  SHOP_BUFF_KIND_MOVE_SPEED = 4;
+}
+
+message ShopBuff {
+  ShopBuffKind kind = 1;
+  float value = 2;
+}
+
+message ShopItemDefinition {
+  uint32 item_id = 1;
+  string item_name = 2;
+  repeated ShopBuff buffs = 3;
+}
+
+message PlayerPurchasedShopItemsSnapshot {
+  int64 player_id = 1;
+  repeated uint32 item_ids = 2;
 }

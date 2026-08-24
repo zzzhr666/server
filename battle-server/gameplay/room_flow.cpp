@@ -32,7 +32,8 @@ bool battle::RoomFlow::transition_to(const RoomFlowState new_state) noexcept {
         break;
     }
     case RoomFlowState::ChoosingExit: {
-        if (state_ != RoomFlowState::RoomCleared && state_ != RoomFlowState::ChoosingBlessing) {
+        if (state_ != RoomFlowState::RoomCleared && state_ != RoomFlowState::ChoosingBlessing &&
+            state_ != RoomFlowState::Rewarding) {
             return false;
         }
         break;
@@ -41,6 +42,11 @@ bool battle::RoomFlow::transition_to(const RoomFlowState new_state) noexcept {
         // 只能由 select_exit() 在验证出口后进入切换阶段。
         return false;
     }
+    case RoomFlowState::Rewarding:
+        if (state_ != RoomFlowState::EnteringRoom) {
+            return false;
+        }
+        break;
     }
     state_ = new_state;
     return true;

@@ -16,6 +16,8 @@
 #include "gameplay/room_graph.hpp"
 #include "gameplay/room_graph_presets.hpp"
 #include "gameplay/room_layout_catalog.hpp"
+#include "gameplay/shop_item.hpp"
+#include "gameplay/shop_item_catalog.hpp"
 
 namespace battle {
     struct ProgressionConfig {
@@ -36,6 +38,25 @@ namespace battle {
         std::vector<BlessingOption> current_options;
     };
 
+    enum class FreeRewardKind : std::uint8_t {
+        Heal,
+        Attack,
+        DamageReduction,
+        Blessing,
+        Skip,
+    };
+
+    struct PlayerFreeRewardState {
+        std::int64_t player_id{};
+        bool completed = false;
+        std::optional<FreeRewardKind> selected_kind;
+    };
+
+    struct PlayerSoulSnapshot {
+        std::int64_t player_id{};
+        int souls{};
+    };
+
     constexpr std::uint32_t DefaultBattleTickRate = 60;
 
     struct BattleInstanceConfig {
@@ -44,6 +65,8 @@ namespace battle {
         std::unordered_map<std::int64_t, std::pair<HeroKind, GrowthLevels>> player_loadouts;
         std::optional<ecs::CreatePlayerConfig> player_config_override;
         std::optional<std::uint32_t> reward_random_seed;
+        std::vector<ShopOffer> shop_offers = default_shop_offers();
+        std::vector<ShopItemDefinition> shop_item_definitions = default_shop_item_definitions();
         ecs::WorldBounds world_bounds = ecs::WorldBounds{
             .min_x = gameplay_config::room::MinCoordinate,
             .max_x = gameplay_config::room::MaxCoordinate,
@@ -169,5 +192,10 @@ namespace battle {
         std::vector<DungeonRoomID> available_room_exit_ids;
         std::vector<PlayerRoomExitChoiceSnapshot> player_room_exit_choices;
         std::string current_room_layout_id;
+        std::vector<PlayerFreeRewardState> free_reward_states;
+        std::vector<ShopOffer> shop_offers;
+        std::vector<PlayerSoulSnapshot> player_souls;
+        std::vector<ShopItemDefinition> shop_item_definitions;
+        std::unordered_map<std::int64_t, std::vector<std::uint32_t>> purchased_shop_items;
     };
 }

@@ -37,7 +37,16 @@ bool battle::RoomRuntime::prepare_current_room() {
 }
 
 bool battle::RoomRuntime::start_current_room() {
-    return flow_.transition_to(RoomFlowState::Fighting);
+    auto* room = graph_.find_room(current_room_id());
+    if (room == nullptr) {
+        return false;
+    }
+    switch (room->kind) {
+    case DungeonRoomKind::Reward:
+        return flow_.transition_to(RoomFlowState::Rewarding);
+    default:
+        return flow_.transition_to(RoomFlowState::Fighting);
+    }
 }
 
 bool battle::RoomRuntime::update_living_monster_count(std::size_t living_monster_count) {

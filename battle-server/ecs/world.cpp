@@ -116,7 +116,7 @@ battle::ecs::Entity battle::ecs::World::create_player(CreatePlayerConfig config)
     registry_.emplace<DashRequest>(entity, false);
     registry_.emplace<MoveIntent>(entity, 0.0f, 0.0f);
     registry_.emplace<Health>(entity, config.max_health, config.max_health);
-    registry_.emplace<CharacterStats>(entity, config.move_speed);
+    registry_.emplace<CharacterStats>(entity, config.move_speed, 0);
     registry_.emplace<PlayerController>(entity);
     registry_.emplace<Dash>(entity, gameplay_config::player::DashCooldown,
                             gameplay_config::player::DashSpeedMultiplier);
@@ -150,7 +150,7 @@ battle::ecs::Entity battle::ecs::World::create_monster(CreateMonsterConfig confi
     registry_.emplace<Transform>(entity, position.value(), Direction{.x = 0.0f, .y = 1.0f});
     registry_.emplace<Velocity>(entity, 0.0f, 0.0f);
     registry_.emplace<Health>(entity, config.max_health, config.max_health);
-    registry_.emplace<CharacterStats>(entity, config.move_speed);
+    registry_.emplace<CharacterStats>(entity, config.move_speed, 0);
     registry_.emplace<MonsterController>(entity);
     registry_.emplace<AttackRequest>(entity, false);
     registry_.emplace<AttackDefinition>(entity, config.attack);

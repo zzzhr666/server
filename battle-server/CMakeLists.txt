@@ -83,6 +83,7 @@ add_library(battle_gameplay
         gameplay/room_encounter_validator.cpp
         gameplay/room_encounter_planner.cpp
         gameplay/room_runtime.cpp
+        gameplay/shop_item_catalog.cpp
 )
 add_library(battle_session
         session/battle_session.cpp

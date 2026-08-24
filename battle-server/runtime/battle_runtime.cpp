@@ -93,6 +93,9 @@ namespace {
         case battle::RoomFlowState::Transitioning: {
             return battle::v1::ROOM_FLOW_STATE_TRANSITIONING;
         }
+        case battle::RoomFlowState::Rewarding: {
+            return battle::v1::ROOM_FLOW_STATE_REWARDING;
+        }
         default: {
             return battle::v1::ROOM_FLOW_STATE_UNSPECIFIED;
         }
@@ -120,6 +123,36 @@ namespace {
             return battle::v1::BLESSING_ID_UNSPECIFIED;
         }
         }
+    }
+
+    battle::v1::FreeRewardKind to_proto_free_reward_kind(battle::FreeRewardKind kind) {
+        switch (kind) {
+        case battle::FreeRewardKind::Heal:
+            return battle::v1::FREE_REWARD_KIND_HEAL;
+        case battle::FreeRewardKind::Attack:
+            return battle::v1::FREE_REWARD_KIND_ATTACK;
+        case battle::FreeRewardKind::DamageReduction:
+            return battle::v1::FREE_REWARD_KIND_DAMAGE_REDUCTION;
+        case battle::FreeRewardKind::Blessing:
+            return battle::v1::FREE_REWARD_KIND_BLESSING;
+        case battle::FreeRewardKind::Skip:
+            return battle::v1::FREE_REWARD_KIND_SKIP;
+        }
+        return battle::v1::FREE_REWARD_KIND_UNSPECIFIED;
+    }
+
+    battle::v1::ShopBuffKind to_proto_shop_buff_kind(battle::ShopBuffKind kind) {
+        switch (kind) {
+        case battle::ShopBuffKind::AttackDamage:
+            return battle::v1::SHOP_BUFF_KIND_ATTACK_DAMAGE;
+        case battle::ShopBuffKind::MaxHealth:
+            return battle::v1::SHOP_BUFF_KIND_MAX_HEALTH;
+        case battle::ShopBuffKind::Armor:
+            return battle::v1::SHOP_BUFF_KIND_ARMOR;
+        case battle::ShopBuffKind::MoveSpeed:
+            return battle::v1::SHOP_BUFF_KIND_MOVE_SPEED;
+        }
+        return battle::v1::SHOP_BUFF_KIND_UNSPECIFIED;
     }
 
     battle::v1::AttackKind to_proto_attack_kind(battle::ecs::AttackKind kind) {
@@ -244,6 +277,41 @@ namespace {
             auto* proto_choice = send_pkg->add_player_room_exit_choices();
             proto_choice->set_player_id(choice.player_id);
             proto_choice->set_room_exit_id(choice.room_exit_id);
+        }
+        for (const auto& free_reward : snapshot.free_reward_states) {
+            auto* proto_free_reward = send_pkg->add_free_reward_states();
+            proto_free_reward->set_player_id(free_reward.player_id);
+            proto_free_reward->set_completed(free_reward.completed);
+            if (free_reward.selected_kind.has_value()) {
+                proto_free_reward->set_selected_kind(to_proto_free_reward_kind(free_reward.selected_kind.value()));
+            }
+        }
+        for (const auto& offer : snapshot.shop_offers) {
+            auto* proto_offer = send_pkg->add_shop_offers();
+            proto_offer->set_item_id(offer.item_id);
+            proto_offer->set_price(offer.price);
+        }
+        for (const auto& player_soul : snapshot.player_souls) {
+            auto* proto_player_soul = send_pkg->add_player_souls();
+            proto_player_soul->set_player_id(player_soul.player_id);
+            proto_player_soul->set_souls(player_soul.souls);
+        }
+        for (const auto& definition : snapshot.shop_item_definitions) {
+            auto* proto_definition = send_pkg->add_shop_item_definitions();
+            proto_definition->set_item_id(definition.item_id);
+            proto_definition->set_item_name(definition.item_name);
+            for (const auto& buff : definition.buffs) {
+                auto* proto_buff = proto_definition->add_buffs();
+                proto_buff->set_kind(to_proto_shop_buff_kind(buff.kind));
+                proto_buff->set_value(buff.value);
+            }
+        }
+        for (const auto& [player_id, item_ids] : snapshot.purchased_shop_items) {
+            auto* proto_purchased_items = send_pkg->add_purchased_shop_items();
+            proto_purchased_items->set_player_id(player_id);
+            for (const auto item_id : item_ids) {
+                proto_purchased_items->add_item_ids(item_id);
+            }
         }
         return packet;
     }
@@ -374,8 +442,13 @@ void battle::BattleRuntime::tick(ecs::DeltaTime delta_time) {
     {
         std::lock_guard<std::mutex> lock(mutex_);
         for (auto& [room_name, instance] : instances_) {
-            instance->tick(delta_time);
             auto connected_sessions = session_manager_.connected_sessions_in_room(room_name);
+            std::unordered_set<std::int64_t> online_players;
+            for (const auto& session : connected_sessions) {
+                online_players.insert(session->player_id());
+            }
+            instance->update_connected_players(online_players);
+            instance->tick(delta_time);
             auto snapshot = instance->snapshot();
             const auto packet = make_snapshot(room_name, snapshot);
             for (const auto& session : connected_sessions) {
@@ -436,6 +509,20 @@ bool battle::BattleRuntime::choose_blessing(const std::string& room_name, std::i
     std::lock_guard<std::mutex> lock(mutex_);
     auto it = instances_.find(room_name);
     return it == instances_.end() ? false : it->second->choose_blessing(player_id, option_id);
+}
+
+bool battle::BattleRuntime::choose_free_reward(const std::string& room_name, std::int64_t player_id,
+                                               FreeRewardKind kind) {
+    std::lock_guard<std::mutex> lock(mutex_);
+    auto it = instances_.find(room_name);
+    return it == instances_.end() ? false : it->second->choose_free_reward(player_id, kind);
+}
+
+bool battle::BattleRuntime::purchase_shop_item(const std::string& room_name, std::int64_t player_id,
+                                               std::uint32_t item_id) {
+    std::lock_guard<std::mutex> lock(mutex_);
+    auto it = instances_.find(room_name);
+    return it == instances_.end() ? false : it->second->purchase_shop_item(player_id, item_id);
 }
 
 bool battle::BattleRuntime::select_room_exit(const std::string& room_name, std::int64_t player_id,

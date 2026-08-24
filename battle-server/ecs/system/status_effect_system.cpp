@@ -37,7 +37,12 @@ namespace {
     void resolve_poison(battle::ecs::World& world, battle::ecs::Entity entity,
                         std::optional<battle::ecs::PoisonStatus>& poison_status,
                         battle::ecs::DeltaTime delta_seconds) {
+        auto* character_stats = world.registry().try_get<battle::ecs::CharacterStats>(entity);
         auto& status = poison_status.value();
+        if (character_stats && !status.armor_decreased) {
+            character_stats->armor -= battle::gameplay_config::trap::poison_pool::ArmorDecrease;
+            status.armor_decreased = true;
+        }
         status.remaining_seconds -= delta_seconds;
         status.tick_timer_seconds += delta_seconds;
         while (status.tick_timer_seconds >= status.tick_interval_seconds) {
@@ -51,7 +56,11 @@ namespace {
             status.tick_timer_seconds -= status.tick_interval_seconds;
         }
         if (status.remaining_seconds <= battle::ecs::DeltaTime{0.0f}) {
+            const bool armor_decreased = status.armor_decreased;
             poison_status.reset();
+            if (character_stats && armor_decreased) {
+                character_stats->armor += battle::gameplay_config::trap::poison_pool::ArmorDecrease;
+            }
         }
     }
 

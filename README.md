@@ -42,7 +42,7 @@
 
 ```bash
 cp .env.example .env
-./scripts/compose_up.sh
+./scripts/run.sh
 ```
 
 之后修改业务代码时仍然执行同一条命令。脚本使用 `Dockerfile.battle-deps` 的内容哈希标识依赖镜像：对应镜像存在时，Compose 的默认构建图不会包含 `battle-deps`；修改依赖 Dockerfile 或删除依赖镜像后，脚本才会先重新构建 gRPC/Protobuf。业务源码变化不会改变依赖哈希。
