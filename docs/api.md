@@ -142,9 +142,17 @@ UDP payload 使用 `proto/battle/v1/session.proto` 的 `ClientPacket` 与 `Serve
 2. 收到 `ServerHello` 后保存服务器分配的 conversation，开始接收快照。
 3. 每 5 秒发送 `ClientHeartbeat`，并按输入状态发送 `ClientInput`。
 4. 在 `BATTLE_PHASE_REWARD_SELECTION` 时，使用 snapshot 中的 `current_options` 发送 `ChooseBlessing`。
+5. 在奖励房的 `ROOM_FLOW_STATE_REWARDING` 阶段，每名玩家使用 `ChooseFreeReward` 完成一次免费奖励选择；可选回血、攻击、护甲、随机祝福或 `SKIP`。所有玩家完成后进入 `ROOM_FLOW_STATE_CHOOSING_EXIT`。
+6. 奖励房处于 `REWARDING` 或 `CHOOSING_EXIT` 时可发送 `PurchaseShopItem`。商品库存不在玩家间共享，但同一玩家对同一 `item_id` 只能购买一次。
 
 `WorldSnapshot.entities` 中的每个玩家实体都通过 `EntitySnapshot.hero` 携带初始英雄值。客户端在协议边界解析该字段，并在展示层使用 Fire、Ice、Rock、Nature；同一房间内所有客户端收到相同值，断线重连后也保持不变。怪物和投射物的该字段为空。
 
-`EntitySnapshot.collision_radius` 是服务端权威碰撞半径，`kind` 区分玩家、怪物、投射物、障碍物和陷阱。`scene_object_kind` 对静态场景实体给出具体类型：障碍物使用其布局类型，陷阱使用 `spikes`、`poison_pool` 或 `swamp`。客户端应直接使用这些字段进行渲染和碰撞表现，不应从坐标或半径反推实体类型。
+`EntitySnapshot.collision_radius` 是服务端权威碰撞半径，`kind` 区分玩家、怪物、投射物、障碍物和陷阱。`scene_object_kind` 对静态场景实体给出具体类型：普通障碍物为 `obstacle`，奖励房水泉和商店分别为 `reward_fountain`、`shop`，陷阱使用 `spikes`、`poison_pool` 或 `swamp`。客户端应直接使用这些字段进行渲染和交互表现，不应从坐标或半径反推实体类型。
+
+`WorldSnapshot.player_souls` 在所有房间和阶段发送当局灵魂。`player_combat_stats` 同步每名玩家的攻击伤害、移速、攻击间隔秒数和护甲；客户端显示每秒攻击次数时可使用 `1 / attack_cooldown_seconds`。`player_blessings[].blessings` 是已持有祝福及等级，`current_options` 仅表示当前祝福选择候选。
+
+奖励房快照在 `REWARDING` 阶段发送 `free_reward_states`，并在 `REWARDING`、`CHOOSING_EXIT` 阶段发送 `shop_offers`、`shop_item_definitions` 和 `purchased_shop_items`。协议枚举 `FREE_REWARD_KIND_DAMAGE_REDUCTION` 当前对应实际护甲 `+20`，保留该名称用于协议兼容。免费回血恢复最大生命的 50%，攻击奖励增加 20 点攻击，祝福奖励随机获得或升级一个祝福。
+
+默认商店装备为：重甲（最大生命 `+120`、护甲 `+20`、移速 `-1.5`，30 灵魂）、飞鞋（护甲 `-5`、移速 `+5`，25 灵魂）、护手（攻击 `+10`、最大生命 `+20`，30 灵魂）。近战怪物掉落 10 灵魂，远程怪物掉落 5 灵魂。
 
 默认超时：有效 UDP 输入或心跳缺失 15 秒时 session 断开；房间内所有 session 都断开 90 秒后，服务器以 `all_players_disconnected` 结束房间。完整字段和枚举以 [session.proto](../proto/battle/v1/session.proto) 为准。

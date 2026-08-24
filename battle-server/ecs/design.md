@@ -117,19 +117,24 @@ AttackState / Projectile
 
 ## 房间、升级与祝福
 
-当前阶段已经打通战斗房的局内流程：玩家进入房间后完成战斗、获得经验并处理祝福选择，随后选择出口进入下一房间；最终房间清空后进入胜利，所有玩家死亡后进入失败。奖励房和永久属性增益尚未纳入当前阶段，后续实现路径见项目根目录的玩法路线图。
+当前阶段已经打通战斗房和奖励房的局内流程。战斗房完成战斗、经验升级和祝福选择后选择出口；奖励房使用独立免费奖励与商店流程，然后进入出口选择。最终房间清空后进入胜利，所有玩家死亡后进入失败。
 
 `DungeonRoomGraph` 定义房间连接和起始房间，`RoomLayoutCatalog` 定义玩家出生点、怪物出生点、障碍物和陷阱。`RoomRuntime` 按以下阶段推进：
 
 ```text
-EnteringRoom -> Fighting -> RoomCleared -> ChoosingBlessing -> ChoosingExit -> Transitioning
+战斗房：EnteringRoom -> Fighting -> RoomCleared -> ChoosingBlessing -> ChoosingExit -> Transitioning
+奖励房：EnteringRoom -> Rewarding -> ChoosingExit -> Transitioning
 ```
 
-进入房间时，`BattleInstance` 根据布局创建怪物、障碍物和陷阱；切房时先销毁旧房间的静态实体，再按新布局重建。重建过程失败会恢复旧地图、静态实体和玩家位置，避免房间状态只更新了一半。`BattleInstance` 仅在 `Fighting` 阶段推进 World 并消费 kill events；击杀按怪物种类授予经验。升级会增加待选择次数，清空房间后进入祝福选择：
+进入房间时，`BattleInstance` 根据布局创建怪物、障碍物和陷阱；切房时先销毁旧房间的静态实体，再按新布局重建。重建过程失败会恢复旧地图、静态实体和玩家位置，避免房间状态只更新了一半。战斗房击杀按怪物种类授予经验和灵魂，升级会增加待选择次数，清空房间后进入祝福选择：
 
 ![奖励选择状态](../../docs/diagrams/reward-selection-state.svg)
 
 每名需要选择的玩家会得到 3 个不同祝福候选。候选被选择后，`BlessingInventory` 中对应祝福新增或升一级。祝福状态与候选会被写入 `WorldSnapshot`，客户端据此显示数值说明和选择 UI。
+
+奖励房不生成怪物，每名存活玩家只能完成一次免费奖励：恢复 50% 最大生命、攻击 `+20`、护甲 `+20`、随机获得或升级一个祝福，或者跳过。所有人完成后进入出口选择。`Rewarding` 和 `ChoosingExit` 均推进 World，因而仍接受移动、攻击和冲刺；布局中的水泉、商店分别通过 `reward_fountain`、`shop` 场景对象类型同步。
+
+近战和远程怪物分别产出 10 和 5 灵魂。灵魂仅在当局使用，并在所有房间阶段写入快照。奖励房商店可在 `Rewarding` 和 `ChoosingExit` 购买装备；每名玩家对每件装备限购一次，不同玩家可各自购买相同商品。
 
 局内基础数值集中在 `gameplay/gameplay_config.hpp`。`ecs/system/blessing_config.hpp` 只负责根据等级计算最终祝福效果，其基础数值引用统一配置：
 
@@ -143,7 +148,7 @@ EnteringRoom -> Fighting -> RoomCleared -> ChoosingBlessing -> ChoosingExit -> T
 
 ## Snapshot 与客户端同步
 
-`WorldSnapshot` 包含实体位置、方向、生命、权威碰撞半径、实体类型、场景对象类型、房间流程、奖励选择剩余时间、玩家经验、祝福状态和战斗事件。`scene_object_kind` 明确区分障碍物布局类型以及 `spikes`、`poison_pool`、`swamp`，客户端不需要从位置或半径推断类型。`BattleInstance` 为攻击和死亡事件保留 60 个 server tick，避免客户端因单个 UDP 快照丢失而完全错过表现事件。
+`WorldSnapshot` 包含实体位置、方向、生命、权威碰撞半径、实体类型、场景对象类型、房间流程、奖励选择剩余时间、玩家经验、祝福状态、灵魂、商店状态、玩家战斗属性和战斗事件。玩家战斗属性同步攻击伤害、移速、攻击间隔和护甲；`scene_object_kind` 明确区分 `obstacle`、`reward_fountain`、`shop` 以及 `spikes`、`poison_pool`、`swamp`，客户端不需要从位置或半径推断类型。`BattleInstance` 为攻击和死亡事件保留 60 个 server tick，避免客户端因单个 UDP 快照丢失而完全错过表现事件。
 
 快照不是指令日志，客户端应把服务器快照作为权威状态；本地输入预测或插值不得改变服务器结算结果。
 
