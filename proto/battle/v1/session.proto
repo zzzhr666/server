@@ -107,6 +107,11 @@ message EntitySnapshot{
   string hero = 11;
   float collision_radius = 12;
   string scene_object_kind = 13;
+  string boss_phase = 14;
+  string boss_ability = 15;
+  string boss_action_phase = 16;
+  float boss_ability_remaining_seconds = 17;
+  uint32 boss_sequence_index = 18;
 }
 
 enum RoomFlowState {

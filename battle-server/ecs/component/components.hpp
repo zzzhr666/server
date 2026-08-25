@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstdint>
 #include <optional>
 #include <vector>
 
@@ -277,6 +278,34 @@ namespace battle::ecs {
     /// @brief 远程怪物保持安全距离的 AI 配置。
     struct KitingAI {
         float retreat_distance;
+    };
+
+    enum class BossAbilityKind {
+        None,
+        TripleDash,
+        RadialProjectile,
+        Tornado,
+    };
+
+    enum class BossPhase {
+        One,
+        Two,
+    };
+
+    struct BossAbilityState {
+        BossPhase phase{BossPhase::One};
+        BossAbilityKind kind{BossAbilityKind::None};
+        AttackPhase action_phase{AttackPhase::Idle};
+        DeltaTime remaining_seconds{};
+        DeltaTime cooldown_remaining_seconds{};
+        std::uint32_t sequence_index{};
+        Entity target{NullEntity};
+        Position locked_target_position{};
+        CombatEffectID ability_id{InvalidEffectID};
+        std::vector<Entity> hit_targets{};
+        bool invulnerable{false};
+        float travelled_distance{};
+        BossAbilityKind next_kind{BossAbilityKind::TripleDash};
     };
 
     struct PathFollowing {

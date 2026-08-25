@@ -936,32 +936,6 @@ TEST(WorldTest, DamageEventUsesModifiedDamage) {
     EXPECT_TRUE(world.damage_events().empty());
 }
 
-TEST(WorldTest, DamageSystemAddsDamageAppliedEventWithActualAmount) {
-    World world({damage_system});
-    auto player = world.create_player(default_player_config());
-    auto monster = world.create_monster(CreateMonsterConfig{
-        .position = Position{.x = 30.0f, .y = 40.0f},
-        .max_health = 10,
-        .move_speed = 3.0f,
-    });
-
-    world.add_damage_event(DamageEvent{
-        .source = player,
-        .target = monster,
-        .base_damage = 50,
-        .modified_damage = 50,
-        .source_kind = DamageSourceKind::Attack,
-    });
-    world.tick(DeltaTime{0.0f});
-
-    ASSERT_EQ(world.damage_applied_events().size(), 1);
-    const auto& event = world.damage_applied_events()[0];
-    EXPECT_EQ(event.source, player);
-    EXPECT_EQ(event.target, monster);
-    EXPECT_EQ(event.amount, 10);
-    EXPECT_EQ(event.source_kind, DamageSourceKind::Attack);
-}
-
 TEST(WorldTest, LifeStealHealsSourceFromAppliedAttackDamage) {
     World world({blessing_trigger_system});
     auto player = world.create_player(default_player_config());

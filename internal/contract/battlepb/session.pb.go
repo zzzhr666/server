@@ -1232,20 +1232,25 @@ func (x *Direction) GetY() float32 {
 }
 
 type EntitySnapshot struct {
-	state           protoimpl.MessageState `protogen:"open.v1"`
-	Entity          uint64                 `protobuf:"varint,1,opt,name=entity,proto3" json:"entity,omitempty"`
-	Position        *Position              `protobuf:"bytes,2,opt,name=position,proto3" json:"position,omitempty"`
-	Direction       *Direction             `protobuf:"bytes,3,opt,name=direction,proto3" json:"direction,omitempty"`
-	CurrentHealth   int32                  `protobuf:"varint,6,opt,name=current_health,json=currentHealth,proto3" json:"current_health,omitempty"`
-	MaxHealth       int32                  `protobuf:"varint,7,opt,name=max_health,json=maxHealth,proto3" json:"max_health,omitempty"`
-	Kind            EntityKind             `protobuf:"varint,8,opt,name=kind,proto3,enum=battle.v1.EntityKind" json:"kind,omitempty"`
-	PlayerId        int64                  `protobuf:"varint,9,opt,name=player_id,json=playerId,proto3" json:"player_id,omitempty"`
-	MonsterKind     string                 `protobuf:"bytes,10,opt,name=monster_kind,json=monsterKind,proto3" json:"monster_kind,omitempty"`
-	Hero            string                 `protobuf:"bytes,11,opt,name=hero,proto3" json:"hero,omitempty"`
-	CollisionRadius float32                `protobuf:"fixed32,12,opt,name=collision_radius,json=collisionRadius,proto3" json:"collision_radius,omitempty"`
-	SceneObjectKind string                 `protobuf:"bytes,13,opt,name=scene_object_kind,json=sceneObjectKind,proto3" json:"scene_object_kind,omitempty"`
-	unknownFields   protoimpl.UnknownFields
-	sizeCache       protoimpl.SizeCache
+	state                       protoimpl.MessageState `protogen:"open.v1"`
+	Entity                      uint64                 `protobuf:"varint,1,opt,name=entity,proto3" json:"entity,omitempty"`
+	Position                    *Position              `protobuf:"bytes,2,opt,name=position,proto3" json:"position,omitempty"`
+	Direction                   *Direction             `protobuf:"bytes,3,opt,name=direction,proto3" json:"direction,omitempty"`
+	CurrentHealth               int32                  `protobuf:"varint,6,opt,name=current_health,json=currentHealth,proto3" json:"current_health,omitempty"`
+	MaxHealth                   int32                  `protobuf:"varint,7,opt,name=max_health,json=maxHealth,proto3" json:"max_health,omitempty"`
+	Kind                        EntityKind             `protobuf:"varint,8,opt,name=kind,proto3,enum=battle.v1.EntityKind" json:"kind,omitempty"`
+	PlayerId                    int64                  `protobuf:"varint,9,opt,name=player_id,json=playerId,proto3" json:"player_id,omitempty"`
+	MonsterKind                 string                 `protobuf:"bytes,10,opt,name=monster_kind,json=monsterKind,proto3" json:"monster_kind,omitempty"`
+	Hero                        string                 `protobuf:"bytes,11,opt,name=hero,proto3" json:"hero,omitempty"`
+	CollisionRadius             float32                `protobuf:"fixed32,12,opt,name=collision_radius,json=collisionRadius,proto3" json:"collision_radius,omitempty"`
+	SceneObjectKind             string                 `protobuf:"bytes,13,opt,name=scene_object_kind,json=sceneObjectKind,proto3" json:"scene_object_kind,omitempty"`
+	BossPhase                   string                 `protobuf:"bytes,14,opt,name=boss_phase,json=bossPhase,proto3" json:"boss_phase,omitempty"`
+	BossAbility                 string                 `protobuf:"bytes,15,opt,name=boss_ability,json=bossAbility,proto3" json:"boss_ability,omitempty"`
+	BossActionPhase             string                 `protobuf:"bytes,16,opt,name=boss_action_phase,json=bossActionPhase,proto3" json:"boss_action_phase,omitempty"`
+	BossAbilityRemainingSeconds float32                `protobuf:"fixed32,17,opt,name=boss_ability_remaining_seconds,json=bossAbilityRemainingSeconds,proto3" json:"boss_ability_remaining_seconds,omitempty"`
+	BossSequenceIndex           uint32                 `protobuf:"varint,18,opt,name=boss_sequence_index,json=bossSequenceIndex,proto3" json:"boss_sequence_index,omitempty"`
+	unknownFields               protoimpl.UnknownFields
+	sizeCache                   protoimpl.SizeCache
 }
 
 func (x *EntitySnapshot) Reset() {
@@ -1353,6 +1358,41 @@ func (x *EntitySnapshot) GetSceneObjectKind() string {
 		return x.SceneObjectKind
 	}
 	return ""
+}
+
+func (x *EntitySnapshot) GetBossPhase() string {
+	if x != nil {
+		return x.BossPhase
+	}
+	return ""
+}
+
+func (x *EntitySnapshot) GetBossAbility() string {
+	if x != nil {
+		return x.BossAbility
+	}
+	return ""
+}
+
+func (x *EntitySnapshot) GetBossActionPhase() string {
+	if x != nil {
+		return x.BossActionPhase
+	}
+	return ""
+}
+
+func (x *EntitySnapshot) GetBossAbilityRemainingSeconds() float32 {
+	if x != nil {
+		return x.BossAbilityRemainingSeconds
+	}
+	return 0
+}
+
+func (x *EntitySnapshot) GetBossSequenceIndex() uint32 {
+	if x != nil {
+		return x.BossSequenceIndex
+	}
+	return 0
 }
 
 type PlayerProgressSnapshot struct {
@@ -2994,7 +3034,7 @@ const file_proto_battle_v1_session_proto_rawDesc = "" +
 	"\x01y\x18\x02 \x01(\x02R\x01y\"'\n" +
 	"\tDirection\x12\f\n" +
 	"\x01x\x18\x01 \x01(\x02R\x01x\x12\f\n" +
-	"\x01y\x18\x02 \x01(\x02R\x01y\"\xb5\x03\n" +
+	"\x01y\x18\x02 \x01(\x02R\x01y\"\x98\x05\n" +
 	"\x0eEntitySnapshot\x12\x16\n" +
 	"\x06entity\x18\x01 \x01(\x04R\x06entity\x12/\n" +
 	"\bposition\x18\x02 \x01(\v2\x13.battle.v1.PositionR\bposition\x122\n" +
@@ -3008,7 +3048,13 @@ const file_proto_battle_v1_session_proto_rawDesc = "" +
 	" \x01(\tR\vmonsterKind\x12\x12\n" +
 	"\x04hero\x18\v \x01(\tR\x04hero\x12)\n" +
 	"\x10collision_radius\x18\f \x01(\x02R\x0fcollisionRadius\x12*\n" +
-	"\x11scene_object_kind\x18\r \x01(\tR\x0fsceneObjectKindJ\x04\b\x04\x10\x05J\x04\b\x05\x10\x06\"\xdc\x01\n" +
+	"\x11scene_object_kind\x18\r \x01(\tR\x0fsceneObjectKind\x12\x1d\n" +
+	"\n" +
+	"boss_phase\x18\x0e \x01(\tR\tbossPhase\x12!\n" +
+	"\fboss_ability\x18\x0f \x01(\tR\vbossAbility\x12*\n" +
+	"\x11boss_action_phase\x18\x10 \x01(\tR\x0fbossActionPhase\x12C\n" +
+	"\x1eboss_ability_remaining_seconds\x18\x11 \x01(\x02R\x1bbossAbilityRemainingSeconds\x12.\n" +
+	"\x13boss_sequence_index\x18\x12 \x01(\rR\x11bossSequenceIndexJ\x04\b\x04\x10\x05J\x04\b\x05\x10\x06\"\xdc\x01\n" +
 	"\x16PlayerProgressSnapshot\x12\x1b\n" +
 	"\tplayer_id\x18\x01 \x01(\x03R\bplayerId\x12\x14\n" +
 	"\x05level\x18\x02 \x01(\x05R\x05level\x12\x1e\n" +

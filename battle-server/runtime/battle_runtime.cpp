@@ -35,6 +35,44 @@ namespace {
         }
     }
 
+    std::string boss_phase_to_string(battle::ecs::BossPhase phase) {
+        switch (phase) {
+        case battle::ecs::BossPhase::One:
+            return "one";
+        case battle::ecs::BossPhase::Two:
+            return "two";
+        }
+        return "unknown";
+    }
+
+    std::string boss_ability_kind_to_string(battle::ecs::BossAbilityKind kind) {
+        switch (kind) {
+        case battle::ecs::BossAbilityKind::None:
+            return "none";
+        case battle::ecs::BossAbilityKind::TripleDash:
+            return "triple_dash";
+        case battle::ecs::BossAbilityKind::RadialProjectile:
+            return "radial_projectile";
+        case battle::ecs::BossAbilityKind::Tornado:
+            return "tornado";
+        }
+        return "unknown";
+    }
+
+    std::string attack_phase_to_string(battle::ecs::AttackPhase phase) {
+        switch (phase) {
+        case battle::ecs::AttackPhase::Idle:
+            return "idle";
+        case battle::ecs::AttackPhase::Windup:
+            return "windup";
+        case battle::ecs::AttackPhase::Active:
+            return "active";
+        case battle::ecs::AttackPhase::Recovery:
+            return "recovery";
+        }
+        return "unknown";
+    }
+
 
     std::string battle_end_reason_to_string(battle::BattleEndReason reason) {
         switch (reason) {
@@ -209,6 +247,17 @@ namespace {
             if (entity.monster_kind.has_value()) {
                 entity_snapshot->set_monster_kind(battle::monster_kind_to_string(entity.monster_kind.value()));
             }
+            if (entity.boss_phase.has_value()) {
+                entity_snapshot->set_boss_phase(boss_phase_to_string(entity.boss_phase.value()));
+            }
+            if (entity.boss_ability.has_value()) {
+                entity_snapshot->set_boss_ability(boss_ability_kind_to_string(entity.boss_ability.value()));
+            }
+            if (entity.boss_action_phase.has_value()) {
+                entity_snapshot->set_boss_action_phase(attack_phase_to_string(entity.boss_action_phase.value()));
+            }
+            entity_snapshot->set_boss_ability_remaining_seconds(entity.boss_ability_remaining_seconds);
+            entity_snapshot->set_boss_sequence_index(entity.boss_sequence_index);
         }
 
         for (const auto& progress : snapshot.player_progress) {

@@ -18,6 +18,7 @@ std::vector<battle::ecs::CreateMonsterConfig> battle::RoomEncounterPlanner::plan
                 .max_health = definition.base_health,
                 .move_speed = definition.base_move_speed,
                 .attack = definition.base_attack,
+                .collision_radius = definition.collision_radius,
                 .kiting_ai = definition.kiting_ai,
             });
             monster_index++;

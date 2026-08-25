@@ -6,6 +6,7 @@
 
 #include "system/attack_resolve_system.hpp"
 #include "system/blessing_trigger_system.hpp"
+#include "system/boss_ability_system.hpp"
 #include "system/damage_modify_system.hpp"
 #include "system/damage_system.hpp"
 #include "system/dash_resolve_system.hpp"
@@ -58,6 +59,7 @@ battle::ecs::World::World(MapConfig map_config, std::uint32_t random_seed)
     system_scheduler_.add_system(move_resolve_system);
     system_scheduler_.add_system(status_effect_system);
     system_scheduler_.add_system(monster_ai_system);
+    system_scheduler_.add_system(boss_ability_system);
     system_scheduler_.add_system(dash_resolve_system);
     system_scheduler_.add_system(dash_system);
     system_scheduler_.add_system(move_system);
@@ -167,6 +169,9 @@ battle::ecs::Entity battle::ecs::World::create_monster(CreateMonsterConfig confi
     const auto* transform = registry_.try_get<Transform>(entity);
     if (const auto* collider = registry_.try_get<Collider>(entity); transform && collider) {
         spatial_index_.insert(entity, transform->position, collider->radius);
+    }
+    if (config.kind == MonsterKind::Boss) {
+        registry_.emplace<BossAbilityState>(entity);
     }
     return entity;
 }
@@ -399,6 +404,11 @@ battle::ecs::WorldSnapshot battle::ecs::World::snapshot() const {
         auto kind = EntityKind::Unknown;
         std::optional<MonsterKind> monster_kind = std::nullopt;
         std::string scene_object_kind;
+        std::optional<BossPhase> boss_phase;
+        std::optional<BossAbilityKind> boss_ability;
+        std::optional<AttackPhase> boss_action_phase;
+        float boss_ability_remaining_seconds{};
+        std::uint32_t boss_sequence_index{};
 
         if (registry_.has<PlayerController>(entity)) {
             kind = EntityKind::Player;
@@ -409,6 +419,14 @@ battle::ecs::WorldSnapshot battle::ecs::World::snapshot() const {
             }
             kind = EntityKind::Monster;
             monster_kind = std::make_optional(monster_identity->kind);
+            if (const auto* ability = registry_.try_get<BossAbilityState>(entity);
+                ability && monster_kind == MonsterKind::Boss) {
+                boss_phase = std::make_optional(ability->phase);
+                boss_ability = std::make_optional(ability->kind);
+                boss_action_phase = std::make_optional(ability->action_phase);
+                boss_ability_remaining_seconds = ability->remaining_seconds.count();
+                boss_sequence_index = ability->sequence_index;
+            }
         } else if (registry_.has<Projectile>(entity)) {
             kind = EntityKind::Projectile;
         } else if (collider != nullptr && collider->category == CollisionCategory::Obstacle) {
@@ -449,7 +467,9 @@ battle::ecs::WorldSnapshot battle::ecs::World::snapshot() const {
         snap_shot.entities.emplace_back(entity, kind, transform->position, transform->direction,
                                         health != nullptr ? health->current_health : 0,
                                         health != nullptr ? health->max_health : 0, monster_kind,
-                                        collider != nullptr ? collider->radius : 0.0f, std::move(scene_object_kind));
+                                        collider != nullptr ? collider->radius : 0.0f, std::move(scene_object_kind),
+                                        boss_phase, boss_ability, boss_action_phase, boss_ability_remaining_seconds,
+                                        boss_sequence_index);
     }
     return snap_shot;
 }

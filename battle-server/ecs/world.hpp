@@ -7,7 +7,6 @@
 #include "entity/entity.hpp"
 #include "component/components.hpp"
 #include "registry.hpp"
-#include "grid_geometry.hpp"
 #include "map_config.hpp"
 #include "navigation.hpp"
 #include "spatial_index.hpp"
@@ -100,6 +99,11 @@ namespace battle::ecs {
         std::optional<MonsterKind> monster_kind;
         float collision_radius{};
         std::string scene_object_kind;
+        std::optional<BossPhase> boss_phase;
+        std::optional<BossAbilityKind> boss_ability;
+        std::optional<AttackPhase> boss_action_phase;
+        float boss_ability_remaining_seconds{};
+        std::uint32_t boss_sequence_index{};
     };
 
     /// @brief 单次 tick 后供外部读取的世界快照。
@@ -159,7 +163,8 @@ namespace battle::ecs {
         AttackState,
         Collider,
         Obstacle,
-        Trap
+        Trap,
+        BossAbilityState
     >;
 
     /// @brief World 管理 ECS 实体、事件缓冲与固定顺序的战斗系统调度。

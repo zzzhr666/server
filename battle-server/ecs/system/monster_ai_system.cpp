@@ -11,15 +11,24 @@ void battle::ecs::monster_ai_system(World& world, DeltaTime) {
         auto* transform = world.registry().try_get<Transform>(entity);
         auto* velocity = world.registry().try_get<Velocity>(entity);
         const auto* stats = world.registry().try_get<CharacterStats>(entity);
+        const auto* identity = world.registry().try_get<MonsterIdentity>(entity);
         const auto* attack = world.registry().try_get<AttackDefinition>(entity);
         auto* attack_request = world.registry().try_get<AttackRequest>(entity);
         const auto* collider = world.registry().try_get<Collider>(entity);
         auto* path_following = world.registry().try_get<PathFollowing>(entity);
-        if (!transform || !velocity || !stats || !collider || !path_following) {
+        if (!transform || !velocity || !stats || !identity || !collider || !path_following) {
             continue;
         }
         if (attack_request) {
             attack_request->requested = false;
+        }
+        if (identity->kind == MonsterKind::Boss) {
+            velocity->x = 0.0f;
+            velocity->y = 0.0f;
+            path_following->target = NullEntity;
+            path_following->waypoints.clear();
+            path_following->current_waypoint = 0;
+            continue;
         }
         float movement_multiplier = 1.0f;
 

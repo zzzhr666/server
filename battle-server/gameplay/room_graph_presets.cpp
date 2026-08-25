@@ -44,8 +44,8 @@ battle::DungeonRoomGraph battle::default_dungeon_room_graph() {
                 .encounter = RoomEncounter{
                     .monster_groups = {
                         RoomMonsterGroup{
-                            .kind = MonsterKind::Melee,
-                            .count = gameplay_config::room::BossMeleeMonsterCount,
+                            .kind = MonsterKind::Boss,
+                            .count = gameplay_config::room::BossMonsterCount,
                         },
                     },
                 },

@@ -25,6 +25,7 @@ namespace battle {
         int experience_to_next_level_growth = gameplay_config::progression::ExperienceToNextLevelGrowth;
         int melee_experience = gameplay_config::progression::MeleeMonsterExperience;
         int ranged_experience = gameplay_config::progression::RangedMonsterExperience;
+        int boss_experience = gameplay_config::progression::BossMonsterExperience;
     };
 
     struct BlessingOption {
@@ -136,6 +137,11 @@ namespace battle {
         int current_health{};
         int max_health{};
         std::optional<MonsterKind> monster_kind{};
+        std::optional<ecs::BossPhase> boss_phase{};
+        std::optional<ecs::BossAbilityKind> boss_ability{};
+        std::optional<ecs::AttackPhase> boss_action_phase{};
+        float boss_ability_remaining_seconds{};
+        std::uint32_t boss_sequence_index{};
         float collision_radius{};
         std::string scene_object_kind;
     };

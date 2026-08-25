@@ -62,6 +62,7 @@ add_library(battle_ecs
         ecs/spatial_index.cpp
         ecs/system/trap_system.cpp
         ecs/navigation.cpp
+        ecs/system/boss_ability_system.cpp
 )
 add_library(battle_game
         game/room.cpp
@@ -210,6 +211,7 @@ target_link_libraries(battle_server PRIVATE
 add_executable(battle_ecs_tests
         ecs/tests/world_test.cpp
         ecs/tests/navigation_test.cpp
+        ecs/tests/boss_ability_system_test.cpp
 )
 
 target_link_libraries(battle_ecs_tests PRIVATE

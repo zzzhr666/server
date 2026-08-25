@@ -1,5 +1,6 @@
 #include "gameplay/room_graph.hpp"
 #include "gameplay/room_graph_presets.hpp"
+#include "gameplay/gameplay_config.hpp"
 #include "gameplay/room_graph_validator.hpp"
 #include "gameplay/room_flow.hpp"
 #include "gameplay/room_encounter_validator.hpp"
@@ -79,7 +80,11 @@ TEST(DungeonRoomGraphPresetTest, CreatesValidLinearGraph) {
     ASSERT_EQ(graph.rooms[1].encounter->monster_groups.size(), 2);
     ASSERT_TRUE(graph.rooms[3].encounter.has_value());
     ASSERT_EQ(graph.rooms[3].encounter->monster_groups.size(), 1);
+    ASSERT_EQ(graph.rooms[3].kind, DungeonRoomKind::Boss);
+    ASSERT_EQ(graph.rooms[3].encounter->monster_groups[0].kind, MonsterKind::Boss);
+    ASSERT_EQ(graph.rooms[3].encounter->monster_groups[0].count, gameplay_config::room::BossMonsterCount);
     EXPECT_TRUE(validate_room_graph(graph).empty());
+    EXPECT_TRUE(validate_room_encounters(graph).empty());
 }
 
 TEST(RoomEncounterValidatorTest, AcceptsDefaultRoomEncounters) {
@@ -422,7 +427,7 @@ TEST(RoomRuntimeTest, CompletesTransitionAndEntersNextRoom) {
 
     ASSERT_TRUE(runtime.prepare_current_room());
     EXPECT_TRUE(runtime.start_current_room());
-    EXPECT_EQ(runtime.state(), RoomFlowState::Fighting);
+    EXPECT_EQ(runtime.state(), RoomFlowState::Rewarding);
     EXPECT_TRUE(runtime.monster_configs().empty());
 }
 

@@ -11,6 +11,7 @@ namespace battle {
         ecs::AttackDefinition base_attack{};
         std::optional<ecs::KitingAI> kiting_ai;
         int soul_reward{};
+        float collision_radius{};
     };
 
     MonsterDefinition monster_definition(MonsterKind kind);

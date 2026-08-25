@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstdint>
 #include <cstddef>
 
 #include "ecs/time.hpp"
@@ -104,6 +105,81 @@ namespace battle::gameplay_config {
             inline constexpr float RetreatDistance = 7.0f;
             inline constexpr int SoulReward = 5;
         }
+
+        namespace boss {
+            inline constexpr int Health = 1500;
+            inline constexpr float MoveSpeed = 2.5f;
+            inline constexpr float CollisionRadius = 1.2f;
+            inline constexpr int SoulReward = 100;
+
+            namespace triple_dash {
+                namespace phase_one {
+                    inline constexpr ecs::DeltaTime Windup{0.5f};
+                    inline constexpr float Speed = 18.0f;
+                    inline constexpr float Distance = 3.0f;
+                    inline constexpr ecs::DeltaTime Recovery{0.4f};
+                    inline constexpr ecs::DeltaTime Cooldown{1.0f};
+                    inline constexpr int Damage = 100;
+                    inline constexpr float HitRadius = 10.0f;
+                    inline constexpr std::uint32_t DashCount = 3;
+                }
+                namespace phase_two {
+                    inline constexpr ecs::DeltaTime Windup{0.5f};
+                    inline constexpr float Speed = 18.0f;
+                    inline constexpr float Distance = 3.0f;
+                    inline constexpr ecs::DeltaTime Recovery{0.4f};
+                    inline constexpr ecs::DeltaTime Cooldown{0.75f};
+                    inline constexpr int Damage = 100;
+                    inline constexpr float HitRadius = 10.0f;
+                    inline constexpr std::uint32_t DashCount = 5;
+                }
+            }
+
+            namespace radial_projectile {
+                namespace phase_one {
+                    inline constexpr ecs::DeltaTime Windup{0.5f};
+                    inline constexpr ecs::DeltaTime Interval{0.2f};
+                    inline constexpr ecs::DeltaTime Recovery{0.4f};
+                    inline constexpr ecs::DeltaTime Cooldown{5.0f};
+                    inline constexpr std::size_t VolleyCount = 4;
+                    inline constexpr float Speed = 3.0f;
+                    inline constexpr float Range = 15.0f;
+                    inline constexpr int Damage = 50;
+                    inline constexpr float HitRadius = 2.0f;
+                }
+                namespace phase_two {
+                    inline constexpr ecs::DeltaTime Windup{0.5f};
+                    inline constexpr ecs::DeltaTime Interval{0.2f};
+                    inline constexpr ecs::DeltaTime Recovery{0.4f};
+                    inline constexpr ecs::DeltaTime Cooldown{4.0f};
+                    inline constexpr std::size_t VolleyCount = 5;
+                    inline constexpr float Speed = 3.0f;
+                    inline constexpr float Range = 15.0f;
+                    inline constexpr int Damage = 50;
+                    inline constexpr float HitRadius = 2.0f;
+                }
+            }
+
+            namespace tornado {
+                namespace phase_one {
+                    inline constexpr ecs::DeltaTime Windup{0.6f};
+                    inline constexpr ecs::DeltaTime Active{1.0f};
+                    inline constexpr ecs::DeltaTime Recovery{0.5f};
+                    inline constexpr ecs::DeltaTime Cooldown{2.0f};
+                    inline constexpr float Radius = 10.0f;
+                    inline constexpr int Damage = 50;
+                }
+
+                namespace phase_two {
+                    inline constexpr ecs::DeltaTime Windup{0.6f};
+                    inline constexpr ecs::DeltaTime Active{1.0f};
+                    inline constexpr ecs::DeltaTime Recovery{0.5f};
+                    inline constexpr ecs::DeltaTime Cooldown{1.5f};
+                    inline constexpr float Radius = 13.0f;
+                    inline constexpr int Damage = 50;
+                }
+            }
+        }
     }
 
     namespace blessing {
@@ -148,6 +224,7 @@ namespace battle::gameplay_config {
         inline constexpr int ExperienceToNextLevelGrowth = 50;
         inline constexpr int MeleeMonsterExperience = 35;
         inline constexpr int RangedMonsterExperience = 45;
+        inline constexpr int BossMonsterExperience = 300;
         inline constexpr std::size_t RewardOptionCount = 3;
         inline constexpr ecs::DeltaTime RewardSelectionTime{15.0f};
     }
@@ -165,7 +242,7 @@ namespace battle::gameplay_config {
         inline constexpr float MonsterSpawnX = 8.0f;
         inline constexpr int CombatMeleeMonsterCount = 5;
         inline constexpr int CombatRangedMonsterCount = 2;
-        inline constexpr int BossMeleeMonsterCount = 1;
+        inline constexpr int BossMonsterCount = 1;
     }
 
     namespace trap {

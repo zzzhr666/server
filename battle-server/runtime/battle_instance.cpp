@@ -304,7 +304,9 @@ battle::BattleWorldSnapshot battle::BattleInstance::snapshot() const {
         battle_world_snapshot.entities.emplace_back(snapshot.entity, snapshot.kind, player_id, hero,
                                                     snapshot.position, snapshot.direction,
                                                     snapshot.current_health, snapshot.max_health,
-                                                    snapshot.monster_kind, snapshot.collision_radius,
+                                                    snapshot.monster_kind, snapshot.boss_phase, snapshot.boss_ability,
+                                                    snapshot.boss_action_phase, snapshot.boss_ability_remaining_seconds,
+                                                    snapshot.boss_sequence_index, snapshot.collision_radius,
                                                     std::move(snapshot.scene_object_kind));
     }
     for (auto [player_id, player_entity] : player_entities_) {
@@ -679,6 +681,8 @@ int battle::BattleInstance::experience_for_monster_kind_(MonsterKind kind) const
         return progression_config_.melee_experience;
     case MonsterKind::Ranged:
         return progression_config_.ranged_experience;
+    case MonsterKind::Boss:
+        return progression_config_.boss_experience;
     }
 
     return 0;

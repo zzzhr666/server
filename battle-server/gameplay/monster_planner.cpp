@@ -19,7 +19,8 @@ battle::MonsterDefinition battle::monster_definition(MonsterKind kind) {
                 .movement_multiplier = gameplay_config::monster::melee::AttackMovementMultiplier,
                 .projectile_speed = 0.0f,
             },
-        .soul_reward = gameplay_config::monster::melee::SoulReward,
+            .soul_reward = gameplay_config::monster::melee::SoulReward,
+            .collision_radius = gameplay_config::combat::MonsterCollisionRadius,
         };
 
         case MonsterKind::Ranged:
@@ -42,6 +43,16 @@ battle::MonsterDefinition battle::monster_definition(MonsterKind kind) {
                 .retreat_distance = gameplay_config::monster::ranged::RetreatDistance,
             },
             .soul_reward = gameplay_config::monster::ranged::SoulReward,
+            .collision_radius = gameplay_config::combat::MonsterCollisionRadius,
+        };
+    case MonsterKind::Boss:
+        return {
+            .kind = MonsterKind::Boss,
+            .base_health = gameplay_config::monster::boss::Health,
+            .base_move_speed = gameplay_config::monster::boss::MoveSpeed,
+            .base_attack = {},
+            .soul_reward = gameplay_config::monster::boss::SoulReward,
+            .collision_radius = gameplay_config::monster::boss::CollisionRadius,
         };
     default:
         return {};
