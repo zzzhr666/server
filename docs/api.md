@@ -155,4 +155,4 @@ UDP payload 使用 `proto/battle/v1/session.proto` 的 `ClientPacket` 与 `Serve
 
 默认商店装备为：重甲（最大生命 `+120`、护甲 `+20`、移速 `-1.5`，30 灵魂）、飞鞋（护甲 `-5`、移速 `+5`，25 灵魂）、护手（攻击 `+10`、最大生命 `+20`，30 灵魂）。近战怪物掉落 10 灵魂，远程怪物掉落 5 灵魂。
 
-默认超时：有效 UDP 输入或心跳缺失 15 秒时 session 断开；房间内所有 session 都断开 90 秒后，服务器以 `all_players_disconnected` 结束房间。完整字段和枚举以 [session.proto](../proto/battle/v1/session.proto) 为准。
+默认超时：有效 UDP 输入或心跳缺失 10 秒时 session 断开；房间内所有 session 都断开 90 秒后，服务器以 `all_players_disconnected` 结束房间。完整字段和枚举以 [session.proto](../proto/battle/v1/session.proto) 为准。
