@@ -2,13 +2,13 @@ digraph combat_pipeline {
     rankdir=LR;
     node [shape=box, style=rounded];
     input [label="移动 / 攻击 / 冲刺请求"];
-    intent [label="移动、AI、冲刺、攻击意图"];
+    actions [label="请求解析、AI 与动作状态"];
     hit [label="投射物与近战命中"];
     modify [label="暴击与闪电链修正"];
     apply [label="伤害应用"];
     trigger [label="吸血、燃烧、冰冻"];
     death [label="死亡与击杀事件"];
     status [label="状态效果 tick"];
-    input -> intent -> hit -> modify -> apply -> trigger -> death;
-    status -> intent;
+    input -> actions -> hit -> modify -> apply -> trigger -> death;
+    status -> actions;
 }

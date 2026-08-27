@@ -50,6 +50,9 @@ func CalculateCoinReward(stat PlayerBattleStats, reason string, rule RewardRule)
 		reward, ok := rule.MonsterKillReward[killCount.MonsterKind]
 		if !ok {
 			reward = DefaultMonsterKillReward
+			if killCount.MonsterKind == "boss" {
+				reward = BossMonsterKillReward
+			}
 		}
 		finalReward += reward * int64(killCount.Count)
 	}
@@ -61,6 +64,8 @@ const (
 	BattleFinishReasonVictory string = "victory"
 	// DefaultMonsterKillReward 是未知怪物类型的默认单次击杀奖励。
 	DefaultMonsterKillReward int64 = 2
+	// BossMonsterKillReward 是 Boss 每次击杀的金币奖励。
+	BossMonsterKillReward int64 = 100
 )
 
 // DefaultRewardRule 返回本地默认的战斗金币奖励规则。
@@ -71,6 +76,7 @@ func DefaultRewardRule() RewardRule {
 		MonsterKillReward: map[string]int64{
 			"melee":  2,
 			"ranged": 3,
+			"boss":   BossMonsterKillReward,
 		},
 	}
 }
