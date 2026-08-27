@@ -857,9 +857,13 @@ bool battle::BattleInstance::all_reward_choices_completed_() const {
         return false;
     }
     return std::ranges::none_of(connected_player_ids_, [this](const auto& p) {
-        const auto& it = player_entities_.find(p);
+        const auto it = player_entities_.find(p);
         if (it == player_entities_.end()) {
-            return true;
+            return false;
+        }
+        // 死亡玩家无法再选择祝福，视为已完成，避免拖慢存活玩家的切房流程。
+        if (!world_.is_living_player(it->second)) {
+            return false;
         }
         const auto* progress = world_.registry().try_get<ecs::PlayerProgress>(it->second);
         return progress && progress->pending_upgrade_choices > 0;
@@ -870,8 +874,12 @@ bool battle::BattleInstance::all_free_reward_choices_completed_() const {
     if (free_reward_states_.empty()) {
         return false;
     }
-    return std::ranges::all_of(free_reward_states_, [](const auto& entry) {
-        return entry.second.completed;
+    return std::ranges::all_of(free_reward_states_, [this](const auto& entry) {
+        if (entry.second.completed) {
+            return true;
+        }
+        const auto it = player_entities_.find(entry.first);
+        return it == player_entities_.end() || !world_.is_living_player(it->second);
     });
 }
 
@@ -993,9 +1001,11 @@ bool battle::BattleInstance::enter_current_room_() {
     if (room_state() == RoomFlowState::Rewarding) {
         shop_offers_ = current_room_id() < 8 ? early_reward_shop_offers() : late_reward_shop_offers();
         free_reward_states_.clear();
-        for (const auto& player_id : player_entities_ | std::views::keys) {
-            free_reward_states_[player_id] =
-                PlayerFreeRewardState{.player_id = player_id, .completed = false};
+        for (const auto& [player_id,entity] : player_entities_) {
+            if (world_.is_living_player(entity)) {
+                free_reward_states_[player_id] =
+                    PlayerFreeRewardState{.player_id = player_id, .completed = false};
+            }
         }
     }
     room_exit_choices_.clear();
@@ -1035,7 +1045,11 @@ bool battle::BattleInstance::update_room_completion_() {
         return true;
     }
     bool has_pending_choice = false;
-    for (const auto player_id : player_entities_ | std::views::keys) {
+    for (const auto& [player_id, entity] : player_entities_) {
+        // 死亡玩家的待选升级次数不再阻止存活玩家切房，避免空等选择超时。
+        if (!world_.is_living_player(entity)) {
+            continue;
+        }
         auto progress = player_progress(player_id);
         if (progress.has_value() && progress.value().pending_upgrade_choices > 0) {
             has_pending_choice = true;
