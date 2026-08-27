@@ -42,6 +42,7 @@ func Default() Config {
 	}
 }
 
+// DefaultLogConfig 返回由环境变量覆盖的默认日志配置。
 func DefaultLogConfig() LogConfig {
 	return LogConfig{
 		LogLevel: envOrDefault("LOG_LEVEL", "info"),

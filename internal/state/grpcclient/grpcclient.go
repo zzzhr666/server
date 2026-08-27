@@ -41,6 +41,7 @@ func (c *Client) SettleMatchRewards(ctx context.Context, input state.SettleMatch
 	return &state.SettleMatchRewardsResult{Applied: res.GetApplied()}, nil
 }
 
+// GetGrowth 通过 state gRPC 读取玩家成长数据。
 func (c *Client) GetGrowth(ctx context.Context, playerID int64) (*state.Growth, error) {
 	res, err := c.grpc.GetGrowth(ctx, &statepb.GetGrowthRequest{
 		PlayerId: playerID,
@@ -51,6 +52,7 @@ func (c *Client) GetGrowth(ctx context.Context, playerID int64) (*state.Growth, 
 	return stateproto.FromProtoGrowth(res.GetGrowth()), nil
 }
 
+// UpgradeGrowth 通过 state gRPC 原子执行玩家成长升级。
 func (c *Client) UpgradeGrowth(ctx context.Context, input state.UpgradeGrowthInput) (*state.UpgradeGrowthResult, error) {
 	res, err := c.grpc.UpgradeGrowth(ctx, &statepb.UpgradeGrowthRequest{
 		PlayerId:     input.PlayerID,
@@ -184,6 +186,7 @@ func (c *Client) RefreshPresence(ctx context.Context, playerID int64, serverName
 	return mapGRPCError(err)
 }
 
+// SendFriendRequest 通过 state gRPC 创建好友申请。
 func (c *Client) SendFriendRequest(ctx context.Context, fromPlayerID, toPlayerID int64) error {
 	_, err := c.grpc.SendFriendRequest(ctx, &statepb.SendFriendRequestRequest{
 		FromPlayerId: fromPlayerID,
@@ -192,6 +195,7 @@ func (c *Client) SendFriendRequest(ctx context.Context, fromPlayerID, toPlayerID
 	return mapGRPCError(err)
 }
 
+// ListIncomingFriendRequests 通过 state gRPC 读取玩家收到的好友申请。
 func (c *Client) ListIncomingFriendRequests(ctx context.Context, playerID int64) ([]*state.FriendRequest, error) {
 	res, err := c.grpc.ListIncomingRequest(ctx, &statepb.ListFriendRequestRequest{PlayerId: playerID})
 	if err != nil {
@@ -204,6 +208,7 @@ func (c *Client) ListIncomingFriendRequests(ctx context.Context, playerID int64)
 	return requests, nil
 }
 
+// ListOutgoingFriendRequests 通过 state gRPC 读取玩家发出的好友申请。
 func (c *Client) ListOutgoingFriendRequests(ctx context.Context, playerID int64) ([]*state.FriendRequest, error) {
 	res, err := c.grpc.ListOutgoingRequest(ctx, &statepb.ListFriendRequestRequest{PlayerId: playerID})
 	if err != nil {
@@ -216,6 +221,7 @@ func (c *Client) ListOutgoingFriendRequests(ctx context.Context, playerID int64)
 	return requests, nil
 }
 
+// AcceptFriendRequest 通过 state gRPC 接受好友申请。
 func (c *Client) AcceptFriendRequest(ctx context.Context, fromPlayerID, toPlayerID int64) error {
 	_, err := c.grpc.AcceptFriendRequest(ctx, &statepb.HandleFriendRequestRequest{
 		FromPlayerId: fromPlayerID,
@@ -224,6 +230,7 @@ func (c *Client) AcceptFriendRequest(ctx context.Context, fromPlayerID, toPlayer
 	return mapGRPCError(err)
 }
 
+// RejectFriendRequest 通过 state gRPC 拒绝好友申请。
 func (c *Client) RejectFriendRequest(ctx context.Context, fromPlayerID, toPlayerID int64) error {
 	_, err := c.grpc.RejectFriendRequest(ctx, &statepb.HandleFriendRequestRequest{
 		FromPlayerId: fromPlayerID,
@@ -232,6 +239,7 @@ func (c *Client) RejectFriendRequest(ctx context.Context, fromPlayerID, toPlayer
 	return mapGRPCError(err)
 }
 
+// ListFriendIDs 通过 state gRPC 读取玩家的好友 ID。
 func (c *Client) ListFriendIDs(ctx context.Context, fromPlayerID int64) ([]int64, error) {
 	res, err := c.grpc.ListFriendIDs(ctx, &statepb.ListFriendIDsRequest{
 		PlayerId: fromPlayerID,
@@ -242,6 +250,7 @@ func (c *Client) ListFriendIDs(ctx context.Context, fromPlayerID int64) ([]int64
 	return res.GetFriendPlayerIds(), nil
 }
 
+// DeleteFriend 通过 state gRPC 删除双方好友关系。
 func (c *Client) DeleteFriend(ctx context.Context, playerID, friendPlayerID int64) error {
 	_, err := c.grpc.DeleteFriend(ctx, &statepb.DeleteFriendRequest{
 		PlayerId:       playerID,
@@ -250,6 +259,7 @@ func (c *Client) DeleteFriend(ctx context.Context, playerID, friendPlayerID int6
 	return mapGRPCError(err)
 }
 
+// PublishRealtime 通过 state gRPC 发布一条带路由的实时投递。
 func (c *Client) PublishRealtime(ctx context.Context, delivery *state.RealtimeDelivery) error {
 	_, err := c.grpc.PublishRealtime(ctx, &statepb.PublishRealtimeRequest{
 		Delivery: stateproto.ToProtoRealtimeDelivery(delivery),
@@ -257,6 +267,7 @@ func (c *Client) PublishRealtime(ctx context.Context, delivery *state.RealtimeDe
 	return mapGRPCError(err)
 }
 
+// SubscribeRealtime 通过 state gRPC 订阅指定路由的实时投递流。
 func (c *Client) SubscribeRealtime(ctx context.Context, route state.RealtimeRoute) (<-chan *state.RealtimeDelivery, error) {
 	stream, err := c.grpc.SubscribeRealtime(ctx, &statepb.SubscribeRealtimeRequest{
 		ServerName: route.ServerName,
@@ -283,6 +294,7 @@ func (c *Client) SubscribeRealtime(ctx context.Context, route state.RealtimeRout
 	return deliveries, nil
 }
 
+// SaveChatMessage 通过 state gRPC 持久化聊天消息。
 func (c *Client) SaveChatMessage(ctx context.Context, input state.SaveChatMessageInput) (*state.ChatMessage, error) {
 	res, err := c.grpc.SaveChatMessage(ctx, &statepb.SaveChatMessageRequest{
 		ChannelType:      string(input.ChannelType),
@@ -302,6 +314,7 @@ func (c *Client) SaveChatMessage(ctx context.Context, input state.SaveChatMessag
 	return stateproto.FromProtoChatMessage(res.GetMessage()), nil
 }
 
+// ListChatMessages 通过 state gRPC 分页读取聊天历史。
 func (c *Client) ListChatMessages(ctx context.Context, input state.ListChatMessagesInput) ([]*state.ChatMessage, error) {
 	res, err := c.grpc.ListChatMessages(ctx, &statepb.ListChatMessagesRequest{
 		ChannelType:      string(input.ChannelType),

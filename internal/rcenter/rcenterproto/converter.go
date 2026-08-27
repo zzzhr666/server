@@ -44,6 +44,7 @@ func ToProtoMatchResult(result *rcenter.MatchResult) *rcenterpb.MatchResult {
 	for _, loadout := range result.PlayerLoadouts {
 		protoResult.PlayerLoadouts = append(protoResult.PlayerLoadouts, &rcenterpb.PlayerLoadout{
 			PlayerId: loadout.PlayerID,
+			Nickname: loadout.Nickname,
 			Hero:     loadout.Hero,
 		})
 	}
@@ -64,12 +65,14 @@ func FromProtoMatchResult(result *rcenterpb.MatchResult) *rcenter.MatchResult {
 	for _, loadout := range result.GetPlayerLoadouts() {
 		matchResult.PlayerLoadouts = append(matchResult.PlayerLoadouts, rcenter.PlayerLoadout{
 			PlayerID: loadout.GetPlayerId(),
+			Nickname: loadout.GetNickname(),
 			Hero:     loadout.GetHero(),
 		})
 	}
 	return matchResult
 }
 
+// FromProtoPlayerBattleStats 将 protobuf 玩家战斗统计转换为 rcenter 领域模型。
 func FromProtoPlayerBattleStats(stat *rcenterpb.PlayerBattleStats) rcenter.PlayerBattleStats {
 	res := rcenter.PlayerBattleStats{
 		PlayerID:   stat.GetPlayerId(),
@@ -81,6 +84,7 @@ func FromProtoPlayerBattleStats(stat *rcenterpb.PlayerBattleStats) rcenter.Playe
 	return res
 }
 
+// ToProtoPlayerBattleStats 将 rcenter 玩家战斗统计转换为 protobuf 消息。
 func ToProtoPlayerBattleStats(stat rcenter.PlayerBattleStats) *rcenterpb.PlayerBattleStats {
 	res := &rcenterpb.PlayerBattleStats{
 		PlayerId:   stat.PlayerID,
@@ -92,6 +96,7 @@ func ToProtoPlayerBattleStats(stat rcenter.PlayerBattleStats) *rcenterpb.PlayerB
 	return res
 }
 
+// FromProtoMonsterKillCount 将 protobuf 怪物击杀统计转换为 rcenter 领域模型。
 func FromProtoMonsterKillCount(kill *rcenterpb.MonsterKillCount) rcenter.MonsterKillCount {
 	return rcenter.MonsterKillCount{
 		MonsterKind: kill.GetMonsterKind(),
@@ -100,6 +105,7 @@ func FromProtoMonsterKillCount(kill *rcenterpb.MonsterKillCount) rcenter.Monster
 
 }
 
+// ToProtoMonsterKillCount 将 rcenter 怪物击杀统计转换为 protobuf 消息。
 func ToProtoMonsterKillCount(kill rcenter.MonsterKillCount) *rcenterpb.MonsterKillCount {
 	return &rcenterpb.MonsterKillCount{
 		MonsterKind: kill.MonsterKind,

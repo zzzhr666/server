@@ -5,6 +5,7 @@
 #include "blessing_config.hpp"
 #include "blessing_helpers.hpp"
 #include "ecs/world.hpp"
+#include "gameplay/gameplay_config.hpp"
 namespace {
     void handle_life_steal(battle::ecs::World& world, const battle::ecs::DamageAppliedEvent& event) {
         auto health = world.registry().try_get<battle::ecs::Health>(event.source);
@@ -32,7 +33,7 @@ namespace {
         status_effect->burns.emplace_back(battle::ecs::BurnStatus{
             .source = event.source,
             .remaining_seconds = battle::ecs::burn_duration_seconds(blessing->level),
-            .tick_interval_seconds = battle::ecs::BurnOnHitConfig::TickIntervalSeconds,
+            .tick_interval_seconds = battle::gameplay_config::blessing::burn_on_hit::TickInterval,
             .tick_timer_seconds = battle::ecs::DeltaTime{0.0f},
             .damage_per_tick = battle::ecs::burn_damage_per_tick(blessing->level),
         });
@@ -51,10 +52,19 @@ namespace {
             return;
         }
         const auto duration = battle::ecs::freeze_duration_seconds(blessing->level);
-        if (!status_effect->freeze || status_effect->freeze->remaining_seconds < duration) {
+        const auto damage_per_tick = battle::ecs::freeze_damage_per_tick(blessing->level);
+        if (!status_effect->freeze) {
             status_effect->freeze = battle::ecs::FreezeStatus{
                 .remaining_seconds = duration,
+                .tick_interval_seconds = battle::gameplay_config::blessing::freeze_on_hit::TickInterval,
+                .tick_timer_seconds = battle::ecs::DeltaTime{0.0f},
+                .damage_per_tick = damage_per_tick,
+                .source = event.source,
             };
+        } else {
+            status_effect->freeze->remaining_seconds = std::max(status_effect->freeze->remaining_seconds, duration);
+            status_effect->freeze->damage_per_tick = damage_per_tick;
+            status_effect->freeze->source = event.source;
         }
     }
 }
@@ -63,10 +73,14 @@ namespace battle::ecs {
 
 void blessing_trigger_system(World& world, DeltaTime) {
     for (const auto& event : world.damage_applied_events()) {
-        if (event.source_kind != DamageSourceKind::Attack || event.amount <= 0) {
+        if (event.amount <= 0) {
             continue;
         }
         handle_life_steal(world, event);
+
+        if (event.source_kind != DamageSourceKind::Attack) {
+            continue;
+        }
         handle_burn_on_hit(world, event);
         handle_freeze_on_hit(world, event);
     }

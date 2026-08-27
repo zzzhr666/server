@@ -2,9 +2,37 @@
 
 #include <algorithm>
 
-#include "combat_tageting.hpp"
+#include "blessing_config.hpp"
+#include "blessing_helpers.hpp"
 #include "ecs/world.hpp"
 
+
+namespace {
+    void handle_armor_break_status(battle::ecs::World& world, battle::ecs::Entity attacker_entity,
+                                   battle::ecs::Entity target_entity) {
+        const auto* blessing = battle::ecs::find_blessing(world, attacker_entity, battle::BlessingID::ArmorBreak);
+        auto* effect = world.registry().try_get<battle::ecs::StatusEffects>(target_entity);
+        if (blessing && effect) {
+            const int armor_break_num = battle::ecs::armor_break_armors(blessing->level);
+            if (effect->armor_break.has_value()) {
+                auto& status = effect->armor_break.value();
+                if (status.armor_decreased) {
+                    if (auto* stats = world.registry().try_get<battle::ecs::CharacterStats>(target_entity)) {
+                        stats->armor += status.armor_break_number - armor_break_num;
+                    }
+                }
+                status.armor_break_number = armor_break_num;
+                status.remaining_seconds = battle::gameplay_config::blessing::armor_break::Duration;
+            } else {
+                effect->armor_break = std::make_optional(battle::ecs::ArmorBreakStatus{
+                    .remaining_seconds = battle::gameplay_config::blessing::armor_break::Duration,
+                    .armor_break_number = armor_break_num,
+                    .armor_decreased = false,
+                });
+            }
+        }
+    }
+}
 
 void battle::ecs::hit_resolve_system(World& world, DeltaTime) {
     for (auto attacker_entity : world.registry().pool<AttackState>().entities()) {
@@ -18,26 +46,29 @@ void battle::ecs::hit_resolve_system(World& world, DeltaTime) {
         if (state->phase != AttackPhase::Active || attack->kind != AttackKind::Melee) {
             continue;
         }
-        for (auto target_entity : world.registry().pool<Health>().entities()) {
-            if (attacker_entity == target_entity) {
+        const auto attacker_collider = world.registry().try_get<Collider>(attacker_entity);
+        if (!attacker_collider) {
+            continue;
+        }
+        const float attack_query_radius = attacker_collider->radius + attack->range;
+        for (auto target_entity : world.spatial_index().query_circle(transform->position, attack_query_radius)) {
+            if (!world.registry().valid(target_entity) || attacker_entity == target_entity) {
                 continue;
             }
-            if (!is_enemy(world, attacker_entity, target_entity)) {
-                continue;
-            }
-            if (std::find(state->hit_targets.begin(), state->hit_targets.end(), target_entity) !=
-                state->hit_targets.end()) {
+            if (std::ranges::find(state->hit_targets, target_entity) != state->hit_targets.end()) {
                 continue;
             }
             auto target_transform = world.registry().try_get<Transform>(target_entity);
             auto target_health = world.registry().try_get<Health>(target_entity);
-            if (!target_transform || !target_health) {
+            auto target_collider = world.registry().try_get<Collider>(target_entity);
+            if (!target_transform || !target_health || !target_collider ||
+                !are_opposing_characters(*attacker_collider, *target_collider)) {
                 continue;
             }
-            float delta_x = transform->position.x - target_transform->position.x;
-            float delta_y = transform->position.y - target_transform->position.y;
-            float distance = delta_x * delta_x + delta_y * delta_y;
-            if (distance > attack->range * attack->range) {
+            const float distance_squared = battle::ecs::distance_squared(
+                transform->position, target_transform->position);
+            const float hit_distance = attacker_collider->radius + attack->range + target_collider->radius;
+            if (distance_squared > hit_distance * hit_distance) {
                 continue;
             }
             const float to_target_x = target_transform->position.x - transform->position.x;
@@ -47,6 +78,7 @@ void battle::ecs::hit_resolve_system(World& world, DeltaTime) {
             if (facing_dot_target < 0.0f) {
                 continue;
             }
+            handle_armor_break_status(world, attacker_entity, target_entity);
             world.add_damage_event(DamageEvent{
                 .source = attacker_entity,
                 .target = target_entity,

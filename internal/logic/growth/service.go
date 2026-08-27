@@ -5,13 +5,18 @@ import (
 )
 
 type Service interface {
+	// Upgrade 提升玩家指定成长属性。
 	Upgrade(ctx context.Context, playerID int64, upgradeType UpgradeType) (*UpgradeResult, error)
+	// Get 返回玩家当前成长数据。
 	Get(ctx context.Context, playerID int64) (*Growth, error)
+	// UpgradeOptions 返回全部成长属性的当前升级选项。
 	UpgradeOptions(growth *Growth) ([]UpgradeOption, error)
 }
 
 type Repository interface {
+	// Get 从状态层读取玩家成长数据。
 	Get(ctx context.Context, playerID int64) (*Growth, error)
+	// Upgrade 在状态层原子执行扣费与等级更新。
 	Upgrade(ctx context.Context, input UpgradePersistInput) (*UpgradePersistResult, error)
 }
 
@@ -20,6 +25,7 @@ type GameGrowthService struct {
 	rules map[UpgradeType]UpgradeRule
 }
 
+// NewService 使用成长仓储与升级规则创建局外成长服务。
 func NewService(repo Repository, rules []UpgradeRule) *GameGrowthService {
 	ruleMap := make(map[UpgradeType]UpgradeRule, len(rules))
 
@@ -32,6 +38,8 @@ func NewService(repo Repository, rules []UpgradeRule) *GameGrowthService {
 	}
 
 }
+
+// Upgrade 校验升级规则并原子扣除货币、提升指定成长属性。
 func (g *GameGrowthService) Upgrade(ctx context.Context, playerID int64, upgradeType UpgradeType) (*UpgradeResult, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, err
@@ -77,6 +85,7 @@ func (g *GameGrowthService) Upgrade(ctx context.Context, playerID int64, upgrade
 	}, nil
 }
 
+// Get 返回玩家当前的局外成长数据。
 func (g *GameGrowthService) Get(ctx context.Context, playerID int64) (*Growth, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, err

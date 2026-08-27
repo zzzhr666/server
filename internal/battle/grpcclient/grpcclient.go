@@ -16,6 +16,7 @@ type CreateRoomInput struct {
 // PlayerLoadout 携带一名玩家选择的战斗配置。
 type PlayerLoadout struct {
 	PlayerID         int64
+	Nickname         string
 	Hero             string
 	AttackLevel      int32
 	AttackSpeedLevel int32
@@ -94,6 +95,7 @@ func (c *Client) CreateRoom(ctx context.Context, input CreateRoomInput) (*Create
 	for _, loadout := range input.PlayerLoadouts {
 		req.PlayerLoadouts = append(req.PlayerLoadouts, &battlepb.PlayerLoadout{
 			PlayerId:         loadout.PlayerID,
+			Nickname:         loadout.Nickname,
 			Hero:             loadout.Hero,
 			AttackLevel:      loadout.AttackLevel,
 			AttackSpeedLevel: loadout.AttackSpeedLevel,

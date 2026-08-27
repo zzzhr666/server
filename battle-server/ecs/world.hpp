@@ -1,74 +1,82 @@
 #pragma once
 
 #include <random>
+#include <string>
 
 
 #include "entity/entity.hpp"
 #include "component/components.hpp"
 #include "registry.hpp"
+#include "map_config.hpp"
+#include "navigation.hpp"
+#include "spatial_index.hpp"
 #include "system/system_scheduler.hpp"
 #include "time.hpp"
+#include "gameplay/trap_kind.hpp"
+#include "gameplay/gameplay_config.hpp"
 
 
 namespace battle::ecs {
     /// @brief 伤害事件缓冲区的初始预留容量，避免战斗中频繁扩容。
     constexpr std::size_t InitialDamageEventCount = 256;
-    constexpr int DefaultPlayerMaxHealth = 1000;
-    constexpr float DefaultPlayerMoveSpeed = 11.0f;
-    constexpr int DefaultPlayerAttackDamage = 23;
-    constexpr float DefaultPlayerAttackRange = 3.0f;
-    constexpr DeltaTime DefaultPlayerAttackCooldown{0.24f};
-    constexpr float DefaultPlayerDashSpeedMultiplier = 25.0f;
-    constexpr DeltaTime DefaultPlayerDashCooldown{1.0f};
+
+    constexpr CollisionMask PlayerCollisionMask{
+        CollisionCategory::Player | CollisionCategory::Monster | CollisionCategory::MonsterProjectile |
+        CollisionCategory::Obstacle
+    };
+    constexpr CollisionMask MonsterCollisionMask{
+        CollisionCategory::Monster | CollisionCategory::PlayerProjectile
+        | CollisionCategory::Player | CollisionCategory::Obstacle
+    };
+    constexpr CollisionMask PlayerProjectileCollisionMask{
+        CollisionCategory::Monster | CollisionCategory::Obstacle
+    };
+    constexpr CollisionMask MonsterProjectileCollisionMask{
+        CollisionCategory::Player | CollisionCategory::Obstacle
+    };
+    constexpr CollisionMask ObstacleCollisionMask{
+        CollisionCategory::Player | CollisionCategory::Monster |
+        CollisionCategory::PlayerProjectile | CollisionCategory::MonsterProjectile
+    };
+
+    constexpr CollisionMask TrapCollisionMask{
+        static_cast<CollisionMask>(CollisionCategory::Player) | static_cast<CollisionMask>(CollisionCategory::Monster)
+    };
 
     /// @brief 创建玩家实体时写入的基础组件配置。
     struct CreatePlayerConfig {
         Position position{.x = 0.0f, .y = 0.0f};
-        int max_health = DefaultPlayerMaxHealth;
-        float move_speed = DefaultPlayerMoveSpeed;
+        int max_health = gameplay_config::player::MaxHealth;
+        float move_speed = gameplay_config::player::MoveSpeed;
         AttackDefinition attack{
             .kind = AttackKind::Melee,
-            .damage = DefaultPlayerAttackDamage,
-            .range = DefaultPlayerAttackRange,
-            .cooldown_seconds = DefaultPlayerAttackCooldown,
+            .damage = gameplay_config::player::AttackDamage,
+            .range = gameplay_config::player::AttackRange,
+            .cooldown_seconds = gameplay_config::player::AttackCooldown,
             .projectile_speed = 0.0f,
-            .projectile_hit_radius = DefaultProjectileHitRadius,
+            .projectile_hit_radius = gameplay_config::combat::DefaultProjectileHitRadius,
         };
+        float collision_radius = gameplay_config::combat::DefaultCharacterCollisionRadius;
     };
 
     /// @brief 创建怪物实体时写入的种类、属性和攻击配置。
     struct CreateMonsterConfig {
         MonsterKind kind = MonsterKind::Melee;
-        float x_position{};
-        float y_position{};
+        Position position{};
         int max_health{};
         float move_speed{};
         AttackDefinition attack{
             .kind = AttackKind::Melee,
-            .damage = 10,
-            .range = 1.0f,
-            .cooldown_seconds = DeltaTime{1.0f},
+            .damage = gameplay_config::monster::melee::AttackDamage,
+            .range = gameplay_config::monster::melee::AttackRange,
+            .cooldown_seconds = gameplay_config::monster::melee::AttackCooldown,
             .projectile_speed = 0.0f,
-            .projectile_hit_radius = DefaultProjectileHitRadius,
+            .projectile_hit_radius = gameplay_config::combat::DefaultProjectileHitRadius,
         };
+
+        float collision_radius = gameplay_config::combat::MonsterCollisionRadius;
         std::optional<KitingAI> kiting_ai;
     };
-
-    /// @brief World 中实体可活动的二维边界。
-    struct WorldBounds {
-        float min_x;
-        float max_x;
-        float min_y;
-        float max_y;
-    };
-
-    constexpr WorldBounds DefaultWorldBounds{
-        .min_x = -1000.0f,
-        .max_x = 1000.0f,
-        .min_y = -1000.0f,
-        .max_y = 1000.0f,
-    };
-
 
     /// @brief 快照中使用的实体类别。
     enum class EntityKind {
@@ -76,6 +84,8 @@ namespace battle::ecs {
         Player,
         Monster,
         Projectile,
+        Obstacle,
+        Trap,
     };
 
     /// @brief 供运行时序列化的单个实体权威状态。
@@ -87,6 +97,13 @@ namespace battle::ecs {
         int current_health{};
         int max_health{};
         std::optional<MonsterKind> monster_kind;
+        float collision_radius{};
+        std::string scene_object_kind;
+        std::optional<BossPhase> boss_phase;
+        std::optional<BossAbilityKind> boss_ability;
+        std::optional<AttackPhase> boss_action_phase;
+        float boss_ability_remaining_seconds{};
+        std::uint32_t boss_sequence_index{};
     };
 
     /// @brief 单次 tick 后供外部读取的世界快照。
@@ -101,8 +118,22 @@ namespace battle::ecs {
         float speed{};
         int damage{};
         float max_distance{};
-        float hit_radius{DefaultProjectileHitRadius};
+        float hit_radius{gameplay_config::combat::DefaultProjectileHitRadius};
         CombatContext context;
+    };
+
+    /// @brief 创建静态圆形障碍物所需的房间布局数据。
+    struct CreateObstacleConfig {
+        Position position{};
+        float radius{};
+        ObstacleKind kind{};
+    };
+
+    /// @brief 创建可通行圆形陷阱所需的房间布局数据。
+    struct CreateTrapConfig {
+        Position position{};
+        float radius{};
+        TrapKind kind{};
     };
 
     /// @brief World 注册的全部组件类型，组件池只能按此集合访问。
@@ -128,7 +159,12 @@ namespace battle::ecs {
         StatusEffects,
         Projectile,
         KitingAI,
-        AttackState
+        PathFollowing,
+        AttackState,
+        Collider,
+        Obstacle,
+        Trap,
+        BossAbilityState
     >;
 
     /// @brief World 管理 ECS 实体、事件缓冲与固定顺序的战斗系统调度。
@@ -136,10 +172,22 @@ namespace battle::ecs {
     /// 系统顺序定义玩法因果关系；调整顺序必须同步更新 ECS 回归测试。
     class World {
     public:
-        explicit World(WorldBounds bounds = DefaultWorldBounds, std::uint32_t random_seed = std::random_device{}());
+        /// @brief 使用默认系统链、地图配置和随机种子创建 ECS 世界。
+        explicit World(MapConfig map_config = DefaultMapConfig(),
+                       std::uint32_t random_seed = std::random_device{}());
 
-        World(std::initializer_list<sysFunc> functions, WorldBounds bounds = DefaultWorldBounds,
+        /// @brief 使用自定义系统链、地图配置和随机种子创建 ECS 世界。
+        World(std::initializer_list<sysFunc> functions,
+              MapConfig map_config = DefaultMapConfig(),
               std::uint32_t random_seed = std::random_device{}());
+
+        /// @brief 应用新地图配置并重建寻路网格与空间边界。
+        bool rebuild_navigation(const MapConfig& map_config);
+
+        /// @brief 返回当前地图配置。
+        [[nodiscard]] const MapConfig& map_config() const noexcept {
+            return map_config_;
+        }
 
         /// @brief 按配置创建玩家实体及其必需组件。
         Entity create_player(CreatePlayerConfig config);
@@ -150,11 +198,18 @@ namespace battle::ecs {
         /// @brief 创建继承攻击上下文的投射物实体。
         Entity create_projectile(CreateProjectileConfig config);
 
+        /// @brief 创建阻挡角色移动的静态障碍物实体。
+        Entity create_obstacle(CreateObstacleConfig config);
+
+        /// @brief 创建作用于玩家和怪物、但不阻挡移动的陷阱实体。
+        Entity create_trap(CreateTrapConfig config);
+
         /// @brief 返回闭区间 [1, 100] 的随机百分比，供可复现的随机玩法使用。
         int random_percent() {
             return percent_distribution_(random_engine_);
         }
 
+        /// @brief 返回实体是否仍存在于 World 注册表中。
         [[nodiscard]] bool has_entity(Entity entity) const;
 
         /// @brief 将网络输入转换为玩家实体的移动、攻击和冲刺请求。
@@ -169,38 +224,47 @@ namespace battle::ecs {
             return damage_events_;
         }
 
+        /// @brief 返回待结算的击杀事件缓冲区。
         std::vector<KillEvent>& kill_events() {
             return kill_events_;
         }
 
+        /// @brief 返回已落地伤害事件缓冲区，供后置效果消费。
         std::vector<DamageAppliedEvent>& damage_applied_events() {
             return damage_applied_events_;
         }
 
+        /// @brief 返回待同步的攻击表现事件缓冲区。
         std::vector<AttackEvent>& attack_events() {
             return attack_events_;
         }
 
+        /// @brief 返回待同步的死亡表现事件缓冲区。
         std::vector<DeathEvent>& death_events() {
             return death_events_;
         }
 
+        /// @brief 清空已消费的击杀事件。
         void clear_kill_events() {
             kill_events_.clear();
         }
 
+        /// @brief 清空已消费的伤害落地事件。
         void clear_damage_applied_events() {
             damage_applied_events_.clear();
         }
 
+        /// @brief 清空已消费的待处理伤害事件。
         void clear_damage_events() {
             damage_events_.clear();
         }
 
+        /// @brief 清空已同步的攻击表现事件。
         void clear_attack_events() {
             attack_events_.clear();
         }
 
+        /// @brief 清空已同步的死亡表现事件。
         void clear_death_events() {
             death_events_.clear();
         }
@@ -208,45 +272,83 @@ namespace battle::ecs {
         /// @brief 追加击杀事件，供 BattleInstance 统计经验和结算。
         void add_kill_event(KillEvent event);
 
+        /// @brief 追加待由伤害系统处理的伤害事件。
         void add_damage_event(DamageEvent event);
 
+        /// @brief 追加供后置祝福系统消费的伤害落地事件。
         void add_damage_applied_event(DamageAppliedEvent event);
 
+        /// @brief 追加供网络快照同步的攻击表现事件。
         void add_attack_event(AttackEvent event);
 
+        /// @brief 追加供网络快照同步的死亡表现事件。
         void add_death_event(DeathEvent event);
 
         /// @brief 收集可同步给客户端的实体快照。
         [[nodiscard]] WorldSnapshot snapshot() const;
 
+        /// @brief 从空间索引与 ECS 注册表中一致地销毁实体。
         bool destroy_entity(Entity entity);
 
+        /// @brief 返回当前世界可活动边界。
         [[nodiscard]] const WorldBounds& world_bounds() const {
             return bounds_;
         }
 
 
+        /// @brief 返回 ECS 注册表的可写引用。
         [[nodiscard]] WorldRegistry& registry() noexcept {
             return registry_;
         }
 
+        /// @brief 返回 ECS 注册表的只读引用。
         [[nodiscard]] const WorldRegistry& registry() const noexcept {
             return registry_;
         }
 
+        /// @brief 返回世界中是否仍有存活玩家实体。
         [[nodiscard]] bool has_living_players() const {
             return !registry_.pool<PlayerController>().empty();
         }
 
+        /// @brief 返回指定实体是否为存活玩家。
+        [[nodiscard]] bool is_living_player(Entity entity) const {
+            return registry_.has<PlayerController>(entity);
+        }
+
+        /// @brief 返回世界中是否仍有存活怪物实体。
         [[nodiscard]] bool has_living_monsters() const {
-            return !registry_.pool<MonsterController>().empty();
+            return living_monster_count() != 0;
+        }
+
+        /// @brief 返回当前仍持有怪物控制组件的实体数量。
+        [[nodiscard]] std::size_t living_monster_count() const {
+            return registry_.pool<MonsterController>().size();
         }
 
         /// @brief 分配一个攻击动作状态，确保同一动作的 proc 不重复触发。
-        std::shared_ptr<CombatActionState> crete_combat_action();
+        std::shared_ptr<CombatActionState> create_combat_action();
 
         /// @brief 分配一个独立的战斗效果标识。
         CombatEffectID create_combat_effect();
+
+        /// @brief 返回实体空间索引的可写引用。
+        [[nodiscard]] SpatialIndex& spatial_index() noexcept {
+            return spatial_index_;
+        }
+
+        /// @brief 返回实体空间索引的只读引用。
+        [[nodiscard]] const SpatialIndex& spatial_index() const noexcept {
+            return spatial_index_;
+        }
+
+        /// @brief 返回当前地图的只读寻路网格。
+        [[nodiscard]] const NavigationGrid& navigation_grid() const noexcept {
+            return grid_;
+        }
+
+        /// @brief 校验目标位置后同步更新角色位置与空间索引。
+        bool relocate_character(Entity entity, const Position& position);
 
     private:
         bool set_move_request_(Entity entity, float x, float y);
@@ -255,6 +357,10 @@ namespace battle::ecs {
 
         bool set_dash_request_(Entity entity, bool requested);
 
+        [[nodiscard]] bool can_place_character_(Position position, const Collider& collider) const;
+
+        [[nodiscard]] std::optional<Position> resolve_character_spawn_(Position position,
+                                                                       const Collider& collider) const;
 
         WorldRegistry registry_;
 
@@ -267,7 +373,11 @@ namespace battle::ecs {
 
         /// @brief 按固定顺序执行玩法系统的调度器。
         SystemScheduler system_scheduler_;
+        MapConfig map_config_;
         WorldBounds bounds_;
+        SpatialIndex spatial_index_;
+        NavigationGrid grid_;
+
         std::mt19937 random_engine_;
         std::uniform_int_distribution<int> percent_distribution_;
 

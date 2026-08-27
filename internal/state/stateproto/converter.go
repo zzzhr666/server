@@ -10,6 +10,7 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
+// ToProtoAccount 将账号领域模型转换为 protobuf 消息。
 func ToProtoAccount(account *state.Account) *statepb.Account {
 	if account == nil {
 		return nil
@@ -21,6 +22,7 @@ func ToProtoAccount(account *state.Account) *statepb.Account {
 	}
 }
 
+// FromProtoAccount 将 protobuf 账号消息转换为领域模型。
 func FromProtoAccount(account *statepb.Account) *state.Account {
 	if account == nil {
 		return nil
@@ -32,6 +34,7 @@ func FromProtoAccount(account *statepb.Account) *state.Account {
 	}
 }
 
+// FromProtoTime 将 protobuf 时间戳转换为 time.Time。
 func FromProtoTime(ts *timestamppb.Timestamp) time.Time {
 	if ts == nil {
 		return time.Time{}
@@ -39,6 +42,7 @@ func FromProtoTime(ts *timestamppb.Timestamp) time.Time {
 	return ts.AsTime()
 }
 
+// ToProtoTime 将 time.Time 转换为 protobuf 时间戳。
 func ToProtoTime(t time.Time) *timestamppb.Timestamp {
 	if t.IsZero() {
 		return nil
@@ -46,6 +50,7 @@ func ToProtoTime(t time.Time) *timestamppb.Timestamp {
 	return timestamppb.New(t)
 }
 
+// ToProtoPlayer 将玩家领域模型转换为 protobuf 消息。
 func ToProtoPlayer(player *state.Player) *statepb.Player {
 	if player == nil {
 		return nil
@@ -60,6 +65,7 @@ func ToProtoPlayer(player *state.Player) *statepb.Player {
 	}
 }
 
+// FromProtoPlayer 将 protobuf 玩家消息转换为领域模型。
 func FromProtoPlayer(player *statepb.Player) *state.Player {
 	if player == nil {
 		return nil
@@ -74,6 +80,7 @@ func FromProtoPlayer(player *statepb.Player) *state.Player {
 	}
 }
 
+// ToProtoSession 将会话领域模型转换为 protobuf 消息。
 func ToProtoSession(session *state.Session) *statepb.Session {
 	if session == nil {
 		return nil
@@ -85,6 +92,7 @@ func ToProtoSession(session *state.Session) *statepb.Session {
 	}
 }
 
+// FromProtoSession 将 protobuf 会话消息转换为领域模型。
 func FromProtoSession(session *statepb.Session) *state.Session {
 	if session == nil {
 		return nil
@@ -96,6 +104,7 @@ func FromProtoSession(session *statepb.Session) *state.Session {
 	}
 }
 
+// ToProtoDuration 将 time.Duration 转换为 protobuf 时长。
 func ToProtoDuration(d time.Duration) *durationpb.Duration {
 	if d <= 0 {
 		return nil
@@ -103,6 +112,7 @@ func ToProtoDuration(d time.Duration) *durationpb.Duration {
 	return durationpb.New(d)
 }
 
+// FromProtoDuration 将 protobuf 时长转换为 time.Duration。
 func FromProtoDuration(d *durationpb.Duration) time.Duration {
 	if d == nil {
 		return 0
@@ -110,6 +120,7 @@ func FromProtoDuration(d *durationpb.Duration) time.Duration {
 	return d.AsDuration()
 }
 
+// ToProtoPresence 将在线状态领域模型转换为 protobuf 消息。
 func ToProtoPresence(presence *state.Presence) *statepb.Presence {
 	if presence == nil {
 		return nil
@@ -122,6 +133,7 @@ func ToProtoPresence(presence *state.Presence) *statepb.Presence {
 	}
 }
 
+// FromProtoPresence 将 protobuf 在线状态消息转换为领域模型。
 func FromProtoPresence(presence *statepb.Presence) *state.Presence {
 	if presence == nil {
 		return nil
@@ -134,6 +146,7 @@ func FromProtoPresence(presence *statepb.Presence) *state.Presence {
 	}
 }
 
+// FromProtoFriendRequest 将 protobuf 好友申请转换为领域模型。
 func FromProtoFriendRequest(friendRequest *statepb.FriendRequest) *state.FriendRequest {
 	if friendRequest == nil {
 		return nil
@@ -145,6 +158,7 @@ func FromProtoFriendRequest(friendRequest *statepb.FriendRequest) *state.FriendR
 	}
 }
 
+// ToProtoFriendRequest 将好友申请领域模型转换为 protobuf 消息。
 func ToProtoFriendRequest(friendRequest *state.FriendRequest) *statepb.FriendRequest {
 	if friendRequest == nil {
 		return nil
@@ -156,6 +170,7 @@ func ToProtoFriendRequest(friendRequest *state.FriendRequest) *statepb.FriendReq
 	}
 }
 
+// ToProtoRealtimeEvent 将实时事件领域模型转换为 protobuf 消息。
 func ToProtoRealtimeEvent(event *state.RealtimeEvent) *statepb.RealtimeEvent {
 	if event == nil {
 		return nil
@@ -176,6 +191,7 @@ func ToProtoRealtimeEvent(event *state.RealtimeEvent) *statepb.RealtimeEvent {
 	}
 }
 
+// FromProtoRealtimeEvent 将 protobuf 实时事件转换为领域模型。
 func FromProtoRealtimeEvent(event *statepb.RealtimeEvent) *state.RealtimeEvent {
 	if event == nil {
 		return nil
@@ -196,6 +212,7 @@ func FromProtoRealtimeEvent(event *statepb.RealtimeEvent) *state.RealtimeEvent {
 	}
 }
 
+// ToProtoRealtimeDelivery 将带路由的实时投递转换为 protobuf 消息。
 func ToProtoRealtimeDelivery(delivery *state.RealtimeDelivery) *statepb.RealtimeDelivery {
 	if delivery == nil {
 		return nil
@@ -206,6 +223,7 @@ func ToProtoRealtimeDelivery(delivery *state.RealtimeDelivery) *statepb.Realtime
 	}
 }
 
+// FromProtoRealtimeDelivery 将 protobuf 实时投递转换为领域模型。
 func FromProtoRealtimeDelivery(delivery *statepb.RealtimeDelivery) *state.RealtimeDelivery {
 	if delivery == nil {
 		return nil
@@ -216,6 +234,7 @@ func FromProtoRealtimeDelivery(delivery *statepb.RealtimeDelivery) *state.Realti
 	}
 }
 
+// ToProtoRealtimeRoute 将实时投递路由转换为 protobuf 消息。
 func ToProtoRealtimeRoute(route state.RealtimeRoute) *statepb.RealtimeRoute {
 	return &statepb.RealtimeRoute{
 		Type:       toProtoRealtimeRouteType(route.Type),
@@ -223,6 +242,7 @@ func ToProtoRealtimeRoute(route state.RealtimeRoute) *statepb.RealtimeRoute {
 	}
 }
 
+// FromProtoRealtimeRoute 将 protobuf 实时投递路由转换为领域模型。
 func FromProtoRealtimeRoute(route *statepb.RealtimeRoute) state.RealtimeRoute {
 	if route == nil {
 		return state.RealtimeRoute{}
@@ -265,6 +285,7 @@ func FromProtoRealtimeRouteType(routeType statepb.RealtimeRouteType) state.Realt
 	return fromProtoRealtimeRouteType(routeType)
 }
 
+// ToProtoGrowth 将成长领域模型转换为 protobuf 消息。
 func ToProtoGrowth(growth *state.Growth) *statepb.Growth {
 	if growth == nil {
 		return nil
@@ -278,6 +299,7 @@ func ToProtoGrowth(growth *state.Growth) *statepb.Growth {
 	}
 }
 
+// FromProtoGrowth 将 protobuf 成长消息转换为领域模型。
 func FromProtoGrowth(growth *statepb.Growth) *state.Growth {
 	if growth == nil {
 		return nil
@@ -291,6 +313,7 @@ func FromProtoGrowth(growth *statepb.Growth) *state.Growth {
 	}
 }
 
+// ToProtoChatMessage 将聊天消息领域模型转换为持久化协议消息。
 func ToProtoChatMessage(message *state.ChatMessage) *statepb.ChatMessage {
 	if message == nil {
 		return nil
@@ -309,6 +332,7 @@ func ToProtoChatMessage(message *state.ChatMessage) *statepb.ChatMessage {
 	}
 }
 
+// FromProtoChatMessage 将持久化协议消息转换为聊天领域模型。
 func FromProtoChatMessage(message *statepb.ChatMessage) *state.ChatMessage {
 	if message == nil {
 		return nil
@@ -327,6 +351,7 @@ func FromProtoChatMessage(message *statepb.ChatMessage) *state.ChatMessage {
 	}
 }
 
+// ToProtoChatMessages 批量转换聊天领域消息。
 func ToProtoChatMessages(messages []*state.ChatMessage) []*statepb.ChatMessage {
 	var result = make([]*statepb.ChatMessage, 0, len(messages))
 	for _, message := range messages {
@@ -335,6 +360,7 @@ func ToProtoChatMessages(messages []*state.ChatMessage) []*statepb.ChatMessage {
 	return result
 }
 
+// ToProtoRealtimeChatMessage 将聊天领域消息转换为实时投递消息。
 func ToProtoRealtimeChatMessage(message *state.ChatMessage) *statepb.RealtimeChatMessage {
 	if message == nil {
 		return nil
@@ -353,6 +379,7 @@ func ToProtoRealtimeChatMessage(message *state.ChatMessage) *statepb.RealtimeCha
 	}
 }
 
+// FromProtoRealtimeChatMessage 将实时投递消息转换为聊天领域模型。
 func FromProtoRealtimeChatMessage(message *statepb.RealtimeChatMessage) *state.ChatMessage {
 	if message == nil {
 		return nil

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstdint>
 #include <optional>
 #include <vector>
 
@@ -7,14 +8,11 @@
 #include "ecs/time.hpp"
 #include "ecs/combat/combat.hpp"
 #include "gameplay/blessing.hpp"
+#include "gameplay/gameplay_config.hpp"
 #include "gameplay/monster_kind.hpp"
+#include "gameplay/trap_kind.hpp"
 
 namespace battle::ecs {
-    /// @brief 未指定攻击参数时使用的投射物命中半径。
-    constexpr float DefaultProjectileHitRadius = 0.5f;
-    /// @brief 未显式配置攻击时间轴时使用的默认生效窗口。
-    constexpr DeltaTime DefaultAttackActiveSeconds{0.05f};
-
     /// @brief 一帧网络输入转换后的玩家动作请求。
     struct PlayerCommand {
         float move_x;
@@ -78,6 +76,7 @@ namespace battle::ecs {
     /// @brief 角色的基础移动属性。
     struct CharacterStats {
         float move_speed;
+        int armor;
     };
 
     /// @brief 实体当前和最大生命值。
@@ -123,11 +122,11 @@ namespace battle::ecs {
         float range;
         DeltaTime cooldown_seconds;
         DeltaTime windup_seconds{};
-        DeltaTime active_seconds{DefaultAttackActiveSeconds};
+        DeltaTime active_seconds{gameplay_config::combat::DefaultAttackActiveSeconds};
         DeltaTime recovery_seconds{};
         float movement_multiplier{1.0f};
         float projectile_speed;
-        float projectile_hit_radius{DefaultProjectileHitRadius};
+        float projectile_hit_radius{gameplay_config::combat::DefaultProjectileHitRadius};
     };
 
     /// @brief 冲刺的冷却和速度倍率配置。
@@ -151,6 +150,8 @@ namespace battle::ecs {
         Attack,
         Burn,
         ChainLightning,
+        Trap,
+        Freeze,
     };
 
     /// @brief 在伤害修正与应用系统之间传递的伤害事件。
@@ -233,7 +234,7 @@ namespace battle::ecs {
     struct BurnStatus {
         Entity source{};
         DeltaTime remaining_seconds{0.0f};
-        DeltaTime tick_interval_seconds{1.0f};
+        DeltaTime tick_interval_seconds{gameplay_config::blessing::burn_on_hit::TickInterval};
         DeltaTime tick_timer_seconds{0.0f};
         int damage_per_tick{};
     };
@@ -241,12 +242,47 @@ namespace battle::ecs {
     /// @brief 冻结控制状态的剩余时间。
     struct FreezeStatus {
         DeltaTime remaining_seconds{0.0f};
+        DeltaTime tick_interval_seconds{gameplay_config::blessing::freeze_on_hit::TickInterval};
+        DeltaTime tick_timer_seconds{0.0f};
+        int damage_per_tick{};
+        Entity source{};
+    };
+
+    /// @brief 毒池施加的单实例持续伤害；重复进入只刷新持续时间，不重置 tick 计时。
+    struct PoisonStatus {
+        Entity source{};
+        DeltaTime remaining_seconds{};
+        DeltaTime tick_interval_seconds{};
+        DeltaTime tick_timer_seconds{};
+        int damage_per_tick{};
+        bool armor_decreased{false};
+    };
+
+    /// @brief 沼泽施加的短时移动倍率；影响普通移动和怪物 AI，不影响冲刺。
+    struct SwampStatus {
+        DeltaTime remaining_seconds{};
+        float movement_multiplier{1.0f};
+    };
+
+    struct ArmorBreakStatus {
+        DeltaTime remaining_seconds{};
+        int armor_break_number{};
+        bool armor_decreased{false};
+    };
+
+    struct SoulHarvestStatus {
+        DeltaTime remaining_seconds{};
+        float move_speed_bonus{};
     };
 
     /// @brief 实体当前承受的持续状态集合。
     struct StatusEffects {
         std::vector<BurnStatus> burns;
         std::optional<FreezeStatus> freeze;
+        std::optional<PoisonStatus> poison;
+        std::optional<SwampStatus> swamp;
+        std::optional<ArmorBreakStatus> armor_break;
+        std::optional<SoulHarvestStatus> soul_harvest;
     };
 
     /// @brief 投射物的飞行距离、伤害和攻击归属。
@@ -254,7 +290,6 @@ namespace battle::ecs {
         int damage{};
         float current_distance{};
         float max_distance{};
-        float hit_radius{DefaultProjectileHitRadius};
         CombatContext context;
     };
 
@@ -262,4 +297,113 @@ namespace battle::ecs {
     struct KitingAI {
         float retreat_distance;
     };
+
+    enum class BossAbilityKind {
+        None,
+        TripleDash,
+        RadialProjectile,
+        Tornado,
+    };
+
+    enum class BossPhase {
+        One,
+        Two,
+    };
+
+    struct BossAbilityState {
+        BossPhase phase{BossPhase::One};
+        BossAbilityKind kind{BossAbilityKind::None};
+        AttackPhase action_phase{AttackPhase::Idle};
+        DeltaTime remaining_seconds{};
+        DeltaTime cooldown_remaining_seconds{};
+        std::uint32_t sequence_index{};
+        Entity target{NullEntity};
+        Position locked_target_position{};
+        CombatEffectID ability_id{InvalidEffectID};
+        std::vector<Entity> hit_targets{};
+        bool invulnerable{false};
+        float travelled_distance{};
+        BossAbilityKind next_kind{BossAbilityKind::TripleDash};
+    };
+
+    struct PathFollowing {
+        Entity target{};
+        std::vector<Position> waypoints;
+        std::size_t current_waypoint{};
+        Position target_position{};
+    };
+
+    /// @brief 陷阱类型及上一 tick 的范围内目标，用于区分尖刺进入与持续停留。
+    struct Trap {
+        TrapKind kind{};
+        std::vector<Entity> active_targets{};
+    };
+
+    enum class ObstacleKind {
+        Generic,
+        RewardFountain,
+        Shop,
+    };
+
+    struct Obstacle {
+        ObstacleKind kind{};
+    };
+
+    enum class CollisionShape {
+        Circle,
+    };
+
+    enum class CollisionCategory : std::uint32_t {
+        Player = 1u << 0,
+        Monster = 1u << 1,
+        PlayerProjectile = 1u << 2,
+        MonsterProjectile = 1u << 3,
+        Obstacle = 1u << 4,
+        Trap = 1u << 5,
+    };
+
+    using CollisionMask = std::uint32_t;
+
+    /// @brief 合并两个碰撞类别为碰撞掩码。
+    constexpr CollisionMask operator|(CollisionCategory lhs, CollisionCategory rhs) {
+        return static_cast<CollisionMask>(lhs) | static_cast<CollisionMask>(rhs);
+    }
+
+    /// @brief 将碰撞类别加入已有碰撞掩码。
+    constexpr CollisionMask operator|(CollisionMask lhs, CollisionCategory rhs) {
+        return lhs | static_cast<CollisionMask>(rhs);
+    }
+
+    /// @brief 将碰撞类别加入已有碰撞掩码。
+    constexpr CollisionMask operator|(CollisionCategory lhs, CollisionMask rhs) {
+        return static_cast<CollisionMask>(lhs) | rhs;
+    }
+
+    /// @brief 返回两个碰撞类别的交集掩码。
+    constexpr CollisionMask operator&(CollisionCategory lhs, CollisionCategory rhs) {
+        return static_cast<CollisionMask>(lhs) & static_cast<CollisionMask>(rhs);
+    }
+
+    /// @brief 返回碰撞掩码与类别的交集。
+    constexpr CollisionMask operator&(CollisionMask lhs, CollisionCategory rhs) {
+        return lhs & static_cast<CollisionMask>(rhs);
+    }
+
+    /// @brief 返回碰撞类别与掩码的交集。
+    constexpr CollisionMask operator&(CollisionCategory lhs, CollisionMask rhs) {
+        return static_cast<CollisionMask>(lhs) & rhs;
+    }
+
+    struct Collider {
+        CollisionShape shape;
+        float radius;
+        CollisionCategory category;
+        CollisionMask collision_mask;
+    };
+
+    /// @brief 返回两个碰撞体是否分别属于玩家与怪物阵营。
+    constexpr bool are_opposing_characters(const Collider& lhs, const Collider& rhs) {
+        return (lhs.category == CollisionCategory::Player && rhs.category == CollisionCategory::Monster) ||
+            (lhs.category == CollisionCategory::Monster && rhs.category == CollisionCategory::Player);
+    }
 }

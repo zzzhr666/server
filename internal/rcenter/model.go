@@ -46,6 +46,7 @@ type CreateBattleRoomInput struct {
 // PlayerLoadout 描述一名玩家冻结到本局中的英雄和局外成长等级。
 type PlayerLoadout struct {
 	PlayerID         int64
+	Nickname         string
 	Hero             string
 	AttackLevel      int32
 	AttackSpeedLevel int32

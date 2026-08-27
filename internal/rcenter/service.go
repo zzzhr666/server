@@ -19,12 +19,15 @@ const (
 
 // BattleNodeController 通过控制面协调已注册的战斗节点。
 type BattleNodeController interface {
+	// CreateRoom 请求指定战斗节点预留房间。
 	CreateRoom(ctx context.Context, nodeName string, input CreateBattleRoomInput) error
+	// RegisterNode 记录或刷新战斗节点信息。
 	RegisterNode(ctx context.Context, node BattleNode) error
 }
 
 type waitingPlayer struct {
 	playerID int64
+	nickname string
 	hero     string
 }
 
@@ -140,7 +143,7 @@ func (g *GameCenterService) ListBattleNodes() []BattleNode {
 }
 
 // StartMatch 为单人模式立即创建房间，或将双人模式玩家加入 FIFO 匹配。
-func (g *GameCenterService) StartMatch(ctx context.Context, playerID int64, hero string, solo bool) (*MatchResult, error) {
+func (g *GameCenterService) StartMatch(ctx context.Context, playerID int64, nickname, hero string, solo bool) (*MatchResult, error) {
 	if err := ctx.Err(); err != nil {
 		g.observeMatchOperation("start", "error")
 		return nil, err
@@ -178,6 +181,7 @@ func (g *GameCenterService) StartMatch(ctx context.Context, playerID int64, hero
 	}
 	currentPlayer := waitingPlayer{
 		playerID: playerID,
+		nickname: nickname,
 		hero:     hero,
 	}
 	players := []waitingPlayer{currentPlayer}
@@ -186,6 +190,7 @@ func (g *GameCenterService) StartMatch(ctx context.Context, playerID int64, hero
 			// 首位玩家仅入 FIFO 队列，不创建房间也不占用 battle 节点容量。
 			g.waitingPlayers = append(g.waitingPlayers, waitingPlayer{
 				playerID: playerID,
+				nickname: nickname,
 				hero:     hero,
 			})
 			if g.metrics != nil {
@@ -236,6 +241,7 @@ func (g *GameCenterService) StartMatch(ctx context.Context, playerID int64, hero
 
 		playerLoadouts = append(playerLoadouts, PlayerLoadout{
 			PlayerID:         player.playerID,
+			Nickname:         player.nickname,
 			Hero:             player.hero,
 			AttackLevel:      growth.AttackLevel,
 			AttackSpeedLevel: growth.AttackSpeedLevel,

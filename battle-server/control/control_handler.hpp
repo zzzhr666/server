@@ -8,6 +8,7 @@ namespace battle {
     /// @brief ControlHandler 是外部控制协议调用战斗领域逻辑的应用边界。
     class ControlHandler {
     public:
+        /// @brief 使用房间、运行时和指标依赖创建控制面处理器。
         ControlHandler(RoomManager& room_manager, BattleRuntime& battle_runtime, BattleMetrics& metrics);
 
         /// @brief 处理控制面预留房间请求。

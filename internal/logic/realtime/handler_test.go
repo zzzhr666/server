@@ -1000,7 +1000,7 @@ func (f *fakeHandlerFriend) DeleteFriend(context.Context, int64, int64) error {
 	return errors.New("unexpected DeleteFriend call")
 }
 
-func (f *fakeHandlerMatch) Start(ctx context.Context, playerID int64, hero string, solo bool) (*rcenter.MatchResult, error) {
+func (f *fakeHandlerMatch) Start(ctx context.Context, playerID int64, nickname string, hero string, solo bool) (*rcenter.MatchResult, error) {
 	f.startPlayerID = playerID
 	f.startHero = hero
 	f.startSolo = solo

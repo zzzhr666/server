@@ -46,6 +46,7 @@ namespace battle {
     /// @brief SessionManager 按玩家、conversation 与房间索引 UDP 会话，并维护三者一致性。
     class SessionManager {
     public:
+        /// @brief 使用房间管理器与指标收集器创建会话管理器。
         SessionManager(RoomManager& room_manager, BattleMetrics& metrics);
 
         /// @brief 校验房间准入后创建会话，或对已有玩家执行重绑。

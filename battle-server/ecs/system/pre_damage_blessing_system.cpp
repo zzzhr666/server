@@ -5,8 +5,8 @@
 
 #include "blessing_config.hpp"
 #include "blessing_helpers.hpp"
-#include "combat_tageting.hpp"
 #include "ecs/world.hpp"
+#include "gameplay/gameplay_config.hpp"
 
 namespace {
     std::vector<battle::ecs::Entity> find_chain_lightning_targets(const battle::ecs::World& world,
@@ -18,6 +18,10 @@ namespace {
         }
         std::vector<battle::ecs::Entity> targets;
         targets.reserve(static_cast<std::size_t>(max_target_count));
+        const auto owner_collider = world.registry().try_get<battle::ecs::Collider>(owner);
+        if (!owner_collider) {
+            return {};
+        }
         battle::ecs::Entity anchor = primary_target;
         const float max_distance_squared = jump_radius * jump_radius;
         for (int jump_index = 0; jump_index < max_target_count; ++jump_index) {
@@ -28,24 +32,22 @@ namespace {
             battle::ecs::Entity next_target{};
             float best_distance_squared = 0.0f;
 
-            for (const auto candidate : world.registry().pool<battle::ecs::Health>().entities()) {
+            for (const auto candidate : world.spatial_index().query_circle(anchor_transform->position, jump_radius)) {
                 if (candidate == owner || candidate == primary_target) {
                     continue;
                 }
                 if (std::ranges::find(targets, candidate) != targets.end()) {
                     continue;
                 }
-                if (!battle::ecs::is_enemy(world, owner, candidate)) {
-                    continue;
-                }
                 const auto health = world.registry().try_get<battle::ecs::Health>(candidate);
                 const auto transform = world.registry().try_get<battle::ecs::Transform>(candidate);
-                if (!transform || !health || health->current_health <= 0) {
+                const auto candidate_collider = world.registry().try_get<battle::ecs::Collider>(candidate);
+                if (!transform || !health || !candidate_collider || health->current_health <= 0 ||
+                    !battle::ecs::are_opposing_characters(*owner_collider, *candidate_collider)) {
                     continue;
                 }
-                const float delta_x = transform->position.x - anchor_transform->position.x;
-                const float delta_y = transform->position.y - anchor_transform->position.y;
-                const float distance_squared = delta_x * delta_x + delta_y * delta_y;
+                const float distance_squared = battle::ecs::distance_squared(
+                    transform->position, anchor_transform->position);
                 if (distance_squared > max_distance_squared) {
                     continue;
                 }
@@ -66,7 +68,7 @@ namespace {
     }
 }
 
-void battle::ecs::pre_damage_blessing_system(World& world, DeltaTime delta_seconds) {
+void battle::ecs::pre_damage_blessing_system(World& world, DeltaTime) {
     std::vector<DamageEvent> chain_events;
     for (const auto& event : world.damage_events()) {
         if (event.source_kind != DamageSourceKind::Attack ||
@@ -74,14 +76,16 @@ void battle::ecs::pre_damage_blessing_system(World& world, DeltaTime delta_secon
             !event.context.action_state) {
             continue;
         }
-        auto blessing = find_blessing(world,event.context.owner,BlessingID::ChainLightning);
+        auto blessing = find_blessing(world, event.context.owner, BlessingID::ChainLightning);
         if (!blessing) {
             continue;
         }
         if (event.context.action_state->has_triggered(CombatProc::ChainLightning)) {
             continue;
         }
-        const auto targets = find_chain_lightning_targets(world,event.context.owner,event.target,chain_lightning_target_count(blessing->level),ChainLightningConfig::JumpRadius);
+        const auto targets = find_chain_lightning_targets(world, event.context.owner, event.target,
+                                                          chain_lightning_target_count(blessing->level),
+                                                          gameplay_config::blessing::chain_lightning::JumpRadius);
         if (targets.empty()) {
             continue;
         }
@@ -102,7 +106,7 @@ void battle::ecs::pre_damage_blessing_system(World& world, DeltaTime delta_secon
                 .source = event.context.owner,
                 .target = target,
                 .base_damage = chain_damage,
-                .modified_damage =  chain_damage,
+                .modified_damage = chain_damage,
                 .source_kind = DamageSourceKind::ChainLightning,
                 .context = std::move(context),
             });

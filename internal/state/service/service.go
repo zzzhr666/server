@@ -95,6 +95,7 @@ func (s *Service) UpdatePlayerAvatar(ctx context.Context, playerID int64, avatar
 	return s.players.UpdatePlayerAvatar(ctx, playerID, avatar)
 }
 
+// SaveChatMessage 将聊天消息写入持久化存储。
 func (s *Service) SaveChatMessage(ctx context.Context, input state.SaveChatMessageInput) (*state.ChatMessage, error) {
 	message, err := s.chats.SaveChatMessage(ctx, input)
 	if err != nil {
@@ -105,6 +106,7 @@ func (s *Service) SaveChatMessage(ctx context.Context, input state.SaveChatMessa
 	return message, nil
 }
 
+// ListChatMessages 从持久化存储读取聊天历史。
 func (s *Service) ListChatMessages(ctx context.Context, input state.ListChatMessagesInput) ([]*state.ChatMessage, error) {
 	messages, err := s.chats.ListChatMessages(ctx, input)
 	if err != nil {
@@ -229,38 +231,47 @@ func (s *Service) RegisterAccount(ctx context.Context, input state.RegisterAccou
 	return s.registrations.RegisterAccount(ctx, input)
 }
 
+// SendFriendRequest 创建一条待处理好友申请。
 func (s *Service) SendFriendRequest(ctx context.Context, fromPlayerID, toPlayerID int64) error {
 	return s.friends.SendFriendRequest(ctx, fromPlayerID, toPlayerID)
 }
 
+// ListIncomingFriendRequests 返回玩家收到的好友申请。
 func (s *Service) ListIncomingFriendRequests(ctx context.Context, playerID int64) ([]*state.FriendRequest, error) {
 	return s.friends.ListIncomingFriendRequests(ctx, playerID)
 }
 
+// ListOutgoingFriendRequests 返回玩家发出的好友申请。
 func (s *Service) ListOutgoingFriendRequests(ctx context.Context, playerID int64) ([]*state.FriendRequest, error) {
 	return s.friends.ListOutgoingFriendRequests(ctx, playerID)
 }
 
+// AcceptFriendRequest 接受好友申请并建立双向好友关系。
 func (s *Service) AcceptFriendRequest(ctx context.Context, fromPlayerID, toPlayerID int64) error {
 	return s.friends.AcceptFriendRequest(ctx, fromPlayerID, toPlayerID)
 }
 
+// RejectFriendRequest 拒绝并删除待处理好友申请。
 func (s *Service) RejectFriendRequest(ctx context.Context, fromPlayerID, toPlayerID int64) error {
 	return s.friends.RejectFriendRequest(ctx, fromPlayerID, toPlayerID)
 }
 
+// ListFriendIDs 返回玩家的好友 ID 列表。
 func (s *Service) ListFriendIDs(ctx context.Context, playerID int64) ([]int64, error) {
 	return s.friends.ListFriendIDs(ctx, playerID)
 }
 
+// DeleteFriend 删除双方好友关系。
 func (s *Service) DeleteFriend(ctx context.Context, playerID, friendPlayerID int64) error {
 	return s.friends.DeleteFriend(ctx, playerID, friendPlayerID)
 }
 
+// GetGrowth 返回玩家当前成长数据。
 func (s *Service) GetGrowth(ctx context.Context, playerID int64) (*state.Growth, error) {
 	return s.growth.GetGrowth(ctx, playerID)
 }
 
+// UpgradeGrowth 原子扣除货币并提升玩家成长属性。
 func (s *Service) UpgradeGrowth(ctx context.Context, input state.UpgradeGrowthInput) (*state.UpgradeGrowthResult, error) {
 	return s.growth.UpgradeGrowth(ctx, input)
 }

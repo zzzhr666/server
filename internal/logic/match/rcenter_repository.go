@@ -6,7 +6,7 @@ import (
 )
 
 type rCenterClient interface {
-	StartMatch(ctx context.Context, playerID int64, hero string, solo bool) (*rcenter.MatchResult, error)
+	StartMatch(ctx context.Context, playerID int64, nickname, hero string, solo bool) (*rcenter.MatchResult, error)
 	CancelMatch(ctx context.Context, playerID int64) error
 	ResumeMatch(ctx context.Context, playerID int64) (*rcenter.MatchResult, error)
 }
@@ -22,8 +22,8 @@ func NewRCenterRepository(client rCenterClient) *RCenterRepository {
 }
 
 // StartMatch 将单人或双人开始匹配请求转发给 rcenter。
-func (r *RCenterRepository) StartMatch(ctx context.Context, playerID int64, hero string, solo bool) (*rcenter.MatchResult, error) {
-	return r.client.StartMatch(ctx, playerID, hero, solo)
+func (r *RCenterRepository) StartMatch(ctx context.Context, playerID int64, nickname, hero string, solo bool) (*rcenter.MatchResult, error) {
+	return r.client.StartMatch(ctx, playerID, nickname, hero, solo)
 }
 
 // CancelMatch 将取消匹配请求转发给 rcenter。

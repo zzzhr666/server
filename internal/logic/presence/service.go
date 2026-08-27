@@ -8,17 +8,25 @@ import (
 
 // Service 定义 HTTP 和 TCP 层使用的在线状态操作。
 type Service interface {
+	// MarkOnline 将玩家标记为连接到指定 logic-server。
 	MarkOnline(ctx context.Context, playerID int64, serverName string) error
+	// Get 返回玩家当前在线状态。
 	Get(ctx context.Context, playerID int64) (*Presence, error)
+	// MarkOffline 仅在服务所有权匹配时清除在线状态。
 	MarkOffline(ctx context.Context, playerID int64, serverName string) error
+	// Refresh 续期指定 logic-server 持有的在线状态。
 	Refresh(ctx context.Context, playerID int64, serverName string) error
 }
 
 // Repository 在状态服务中存储和清理在线记录。
 type Repository interface {
+	// SetPresence 持久化带 TTL 的在线状态。
 	SetPresence(ctx context.Context, presence *Presence, ttl time.Duration) error
+	// GetPresence 读取玩家在线状态。
 	GetPresence(ctx context.Context, playerID int64) (*Presence, error)
+	// ClearPresence 仅在服务所有权匹配时删除在线状态。
 	ClearPresence(ctx context.Context, playerID int64, serverName string) error
+	// RefreshPresence 仅在服务所有权匹配时刷新在线状态 TTL。
 	RefreshPresence(ctx context.Context, playerID int64, serverName string, updatedAt time.Time, ttl time.Duration) error
 }
 

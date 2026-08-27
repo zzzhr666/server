@@ -9,7 +9,7 @@
  * - **会话**：\ref battle::SessionManager 与 \ref battle::BattleSession 管理 UDP endpoint、conversation、重绑和断线状态。
  * - **运行时**：\ref battle::BattleRuntime 与 \ref battle::BattleInstance 推进 tick、快照、结算和无人房间清理。
  * - **ECS**：\ref battle::ecs::World 管理实体、组件和固定顺序的战斗系统；详细规则见 \ref md__home_zhanghaoran1_server_battle_server_ecs_design 。
- * - **玩法**：\ref battle::WavePlanner 、\ref battle::SpawnPlanner 和 \ref battle::HeroDefinition 定义波次、出生点和英雄。
+ * - **玩法**：\ref battle::DungeonRoomGraph、\ref battle::RoomLayoutCatalog、\ref battle::SpawnPlanner 和 \ref battle::HeroDefinition 定义房间连接、场景布局、遭遇与英雄；局内基础数值统一配置在 `gameplay/gameplay_config.hpp`。
  * - **网络**：\ref battle::UdpServer 解析 UDP 协议并将输入转交会话与运行时。
  * - **注册与结算**：\ref battle::NodeRegistrar 和 \ref battle::RCenterClient 定期注册节点并回传战斗结束结果。
  * - **可观测性**：\ref battle::MetricsServer 暴露 Prometheus 端点，\ref battle::BattleMetrics 记录房间、会话、UDP、控制面和 Tick 指标。

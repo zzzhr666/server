@@ -102,7 +102,7 @@ battle::Config battle::DefaultConfig() {
         .rcenter_addr = "127.0.0.1:9002",
         .rcenter_register_timeout_seconds = std::chrono::seconds{15},
         .rcenter_finish_timeout_seconds = std::chrono::seconds{3},
-        .session_idle_timeout_seconds = std::chrono::seconds{15},
+        .session_idle_timeout_seconds = std::chrono::seconds{10},
         .all_players_disconnected_timeout = std::chrono::seconds{90},
         .log_level = getenv_string("LOG_LEVEL").value_or("info"),
         .log_mode = getenv_string("LOG_MODE").value_or("debug"),

@@ -8,7 +8,7 @@ digraph reconnect_state {
     fighting [label="Fighting"];
     waiting [label="WaitingForReconnect"];
     start -> connected [label="UDP hello / rebind"];
-    connected -> disconnected [label="15 秒无有效输入或心跳"];
+    connected -> disconnected [label="10 秒无有效输入或心跳"];
     disconnected -> connected [label="同玩家 hello，新 conv/endpoint"];
     connected -> fighting [label="房间启动"];
     fighting -> waiting [label="全部 session 断开"];

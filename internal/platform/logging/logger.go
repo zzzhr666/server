@@ -20,6 +20,7 @@ type LoggerConfig struct {
 	Sinks     []Sink
 }
 
+// DefaultLoggerConfig 返回默认日志级别与格式化器配置。
 func DefaultLoggerConfig() *LoggerConfig {
 	return &LoggerConfig{
 		MinLevel:  InfoLevel,
@@ -28,6 +29,7 @@ func DefaultLoggerConfig() *LoggerConfig {
 	}
 }
 
+// NewLogger 使用指定配置创建 Logger。
 func NewLogger(config LoggerConfig) *Logger {
 	return &Logger{
 		minLevel:  config.MinLevel,
@@ -37,22 +39,27 @@ func NewLogger(config LoggerConfig) *Logger {
 	}
 }
 
+// Trace 记录 Trace 级别日志。
 func (l *Logger) Trace(fmt string, args ...any) {
 	l.log(TraceLevel, fmt, args...)
 }
 
+// Debug 记录 Debug 级别日志。
 func (l *Logger) Debug(fmt string, args ...any) {
 	l.log(DebugLevel, fmt, args...)
 }
 
+// Info 记录 Info 级别日志。
 func (l *Logger) Info(fmt string, args ...any) {
 	l.log(InfoLevel, fmt, args...)
 }
 
+// Warn 记录 Warn 级别日志。
 func (l *Logger) Warn(fmt string, args ...any) {
 	l.log(WarnLevel, fmt, args...)
 }
 
+// Error 记录 Error 级别日志。
 func (l *Logger) Error(fmt string, args ...any) {
 	l.log(ErrorLevel, fmt, args...)
 }

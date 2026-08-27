@@ -1,87 +1,110 @@
 #pragma once
 
 #include "ecs/time.hpp"
+#include "gameplay/gameplay_config.hpp"
 
 namespace battle::ecs {
+    /// @brief 将祝福等级限制为至少一级，供数值公式统一使用。
     constexpr int normalized_blessing_level(int level) {
         return level < 1 ? 1 : level;
     }
 
-    struct CriticalStrikeConfig {
-        static constexpr int BasePercent = 15;
-        static constexpr int PercentPerLevel = 4;
-        static constexpr int BaseDamagePercent = 175;
-        static constexpr int DamagePercentPerLevel = 15;
-    };
-
+    /// @brief 返回指定等级暴击祝福的触发概率。
     constexpr int critical_strike_percent(int level) {
-        return CriticalStrikeConfig::BasePercent + (normalized_blessing_level(level) - 1) *
-            CriticalStrikeConfig::PercentPerLevel;
+        return gameplay_config::blessing::critical_strike::BasePercent + (normalized_blessing_level(level) - 1) *
+            gameplay_config::blessing::critical_strike::PercentPerLevel;
     }
 
+    /// @brief 返回指定等级暴击祝福的伤害倍率百分比。
     constexpr int critical_strike_damage_percent(int level) {
-        return CriticalStrikeConfig::BaseDamagePercent + (normalized_blessing_level(level) - 1) *
-            CriticalStrikeConfig::DamagePercentPerLevel;
+        return gameplay_config::blessing::critical_strike::BaseDamagePercent +
+            (normalized_blessing_level(level) - 1) *
+            gameplay_config::blessing::critical_strike::DamagePercentPerLevel;
     }
 
-    struct LifeStealConfig {
-        static constexpr int BasePercent = 8;
-        static constexpr int PercentPerLevel = 2;
-    };
-
+    /// @brief 返回指定等级吸血祝福的伤害转化比例。
     constexpr int life_steal_percent(int level) {
-        return LifeStealConfig::BasePercent + (normalized_blessing_level(level) - 1) * LifeStealConfig::PercentPerLevel;
+        return gameplay_config::blessing::life_steal::BasePercent + (normalized_blessing_level(level) - 1) *
+            gameplay_config::blessing::life_steal::PercentPerLevel;
     }
 
-    struct BurnOnHitConfig {
-        static constexpr int BaseDamagePerTick = 6;
-        static constexpr int DamagePerTickPerLevel = 2;
-        static constexpr DeltaTime BaseDurationSeconds = DeltaTime{2.5f};
-        static constexpr DeltaTime DurationSecondsPerLevel = DeltaTime{0.5f};
-        static constexpr DeltaTime TickIntervalSeconds = DeltaTime{1.0f};
-    };
-
-    struct ChainLightningConfig {
-        static constexpr int BaseDamagePercent = 50;
-        static constexpr int DamagePercentPerLevel = 10;
-        static constexpr int BaseSecondaryTargets = 1;
-        static constexpr int LevelsPerExtraTarget = 1;
-        static constexpr float JumpRadius = 9.0f;
-    };
-
+    /// @brief 返回指定等级燃烧祝福的每跳伤害。
     constexpr int burn_damage_per_tick(int level) {
-        return BurnOnHitConfig::BaseDamagePerTick +
-            (normalized_blessing_level(level) - 1) * BurnOnHitConfig::DamagePerTickPerLevel;
+        return gameplay_config::blessing::burn_on_hit::BaseDamagePerTick +
+            (normalized_blessing_level(level) - 1) *
+            gameplay_config::blessing::burn_on_hit::DamagePerTickPerLevel;
     }
 
+    /// @brief 返回指定等级燃烧祝福的持续时间。
     constexpr DeltaTime burn_duration_seconds(int level) {
-        return BurnOnHitConfig::BaseDurationSeconds +
-            BurnOnHitConfig::DurationSecondsPerLevel * static_cast<float>(normalized_blessing_level(level) - 1);
+        return gameplay_config::blessing::burn_on_hit::BaseDuration +
+            gameplay_config::blessing::burn_on_hit::DurationPerLevel *
+            static_cast<float>(normalized_blessing_level(level) - 1);
     }
 
-    struct FreezeOnHitConfig {
-        static constexpr int BasePercent = 15;
-        static constexpr int PercentPerLevel = 4;
-        static constexpr DeltaTime BaseDurationSeconds = DeltaTime{1.0f};
-        static constexpr DeltaTime DurationSecondsPerLevel = DeltaTime{0.15f};
-    };
-
+    /// @brief 返回指定等级冰冻祝福的触发概率。
     constexpr int freeze_percent(int level) {
-        return FreezeOnHitConfig::BasePercent +
-            (normalized_blessing_level(level) - 1) * FreezeOnHitConfig::PercentPerLevel;
+        return gameplay_config::blessing::freeze_on_hit::BasePercent +
+            (normalized_blessing_level(level) - 1) * gameplay_config::blessing::freeze_on_hit::PercentPerLevel;
     }
 
+    /// @brief 返回指定等级冰冻祝福的持续时间。
     constexpr DeltaTime freeze_duration_seconds(int level) {
-        return FreezeOnHitConfig::BaseDurationSeconds +
-            FreezeOnHitConfig::DurationSecondsPerLevel * static_cast<float>(normalized_blessing_level(level) - 1);
+        return gameplay_config::blessing::freeze_on_hit::BaseDuration +
+            gameplay_config::blessing::freeze_on_hit::DurationPerLevel *
+            static_cast<float>(normalized_blessing_level(level) - 1);
     }
 
+    constexpr int freeze_damage_per_tick(int level) {
+        return gameplay_config::blessing::freeze_on_hit::BaseDamagePerTick +
+            (normalized_blessing_level(level) - 1) *
+            gameplay_config::blessing::freeze_on_hit::DamagePerTickPerLevel;
+    }
+
+    /// @brief 返回指定等级连锁闪电的伤害比例。
     constexpr int chain_lightning_damage_percent(int level) {
-        return ChainLightningConfig::BaseDamagePercent + ChainLightningConfig::DamagePercentPerLevel * (
-            normalized_blessing_level(level) - 1);
+        return gameplay_config::blessing::chain_lightning::BaseDamagePercent +
+            gameplay_config::blessing::chain_lightning::DamagePercentPerLevel *
+            (normalized_blessing_level(level) - 1);
     }
 
+    /// @brief 返回指定等级连锁闪电的最大目标数量。
     constexpr int chain_lightning_target_count(int level) {
-        return ChainLightningConfig::BaseSecondaryTargets + (level - 1) / ChainLightningConfig::LevelsPerExtraTarget;
+        return gameplay_config::blessing::chain_lightning::BaseSecondaryTargets +
+            (normalized_blessing_level(level) - 1) / gameplay_config::blessing::chain_lightning::LevelsPerExtraTarget;
+    }
+
+    constexpr int frenzy_cooldown_reduction_percent(int level) {
+        return gameplay_config::blessing::frenzy::CooldownReductionPercentPerLevel * normalized_blessing_level(level);
+    }
+
+    constexpr float swift_move_speed_increase(int level) {
+        return gameplay_config::blessing::swift::MoveSpeedIncreasePerLevel * static_cast<float>(
+            normalized_blessing_level(level));
+    }
+
+    constexpr int toughness_armor_increase(int level) {
+        return gameplay_config::blessing::toughness::ArmorIncreasePerLevel * normalized_blessing_level(level);
+    }
+
+    constexpr int heavy_strike_extra_damage_percent(int level) {
+        return gameplay_config::blessing::heavy_strike::ExtraDamageBasePercent + (normalized_blessing_level(level) - 1)
+            * gameplay_config::blessing::heavy_strike::PercentPerLevel;
+    }
+
+    constexpr int revenge_extra_damage_percent(int level) {
+        return gameplay_config::blessing::revenge::ExtraDamageBasePercent + (normalized_blessing_level(level) - 1) *
+            gameplay_config::blessing::revenge::PercentPerLevel;
+    }
+
+    constexpr int armor_break_armors(int level) {
+        return gameplay_config::blessing::armor_break::BaseArmorBreak + (normalized_blessing_level(level) - 1) *
+            gameplay_config::blessing::armor_break::ArmorBreakPerLevel;
+    }
+
+    constexpr int soul_harvest_move_speed_increase_percent(int level) {
+        return gameplay_config::blessing::soul_harvest::BaseMoveSpeedIncreasePercent +
+            (normalized_blessing_level(level) - 1) *
+            gameplay_config::blessing::soul_harvest::MoveSpeedIncreasePercentPerLevel;
     }
 }

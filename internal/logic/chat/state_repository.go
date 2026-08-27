@@ -10,6 +10,7 @@ type StateRepository struct {
 	stateClient state.ChatClient
 }
 
+// SaveMessage 通过 state-server 持久化聊天消息并转换为领域模型。
 func (s *StateRepository) SaveMessage(ctx context.Context, input SaveMessageInput) (*Message, error) {
 	message, err := s.stateClient.SaveChatMessage(ctx, state.SaveChatMessageInput{
 		ChannelType:      toStateChannelType(input.ChannelType),
@@ -30,6 +31,7 @@ func (s *StateRepository) SaveMessage(ctx context.Context, input SaveMessageInpu
 	return fromStateMessage(message), nil
 }
 
+// ListMessages 从 state-server 读取聊天历史并转换为领域模型。
 func (s *StateRepository) ListMessages(ctx context.Context, input ListMessagesInput) ([]*Message, error) {
 	messages, err := s.stateClient.ListChatMessages(ctx, state.ListChatMessagesInput{
 		ChannelType:      toStateChannelType(input.ChannelType),
@@ -47,6 +49,7 @@ func (s *StateRepository) ListMessages(ctx context.Context, input ListMessagesIn
 	return result, nil
 }
 
+// NewStateRepository 使用 state-server 聊天客户端创建仓储。
 func NewStateRepository(client state.ChatClient) *StateRepository {
 	return &StateRepository{
 		stateClient: client,

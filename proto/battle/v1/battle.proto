@@ -77,4 +77,5 @@ message PlayerLoadout {
   int32 attack_speed_level = 4;
   int32 health_level = 5;
   int32 move_speed_level = 6;
+  string nickname = 7;
 }

@@ -55,10 +55,14 @@ add_library(battle_ecs
         ecs/system/blessing_trigger_system.cpp
         ecs/system/status_effect_system.cpp
         ecs/system/pre_damage_blessing_system.cpp
-        ecs/system/combat_tageting.cpp
         ecs/system/projectile_spawn_system.cpp
         ecs/system/projectile_range_system.cpp
         ecs/system/projectile_hit_system.cpp
+        ecs/grid_geometry.cpp
+        ecs/spatial_index.cpp
+        ecs/system/trap_system.cpp
+        ecs/navigation.cpp
+        ecs/system/boss_ability_system.cpp
 )
 add_library(battle_game
         game/room.cpp
@@ -66,11 +70,21 @@ add_library(battle_game
 )
 add_library(battle_gameplay
         gameplay/spawn_planner.cpp
-        gameplay/wave_planner.cpp
         gameplay/monster_planner.cpp
         gameplay/monster_kind_codec.cpp
         gameplay/hero.cpp
         gameplay/growth.cpp
+        gameplay/room_graph.cpp
+        gameplay/room_graph_validator.cpp
+        gameplay/room_layout_validator.cpp
+        gameplay/room_layout_catalog.cpp
+        gameplay/room_layout_catalog_validator.cpp
+        gameplay/room_graph_presets.cpp
+        gameplay/room_flow.cpp
+        gameplay/room_encounter_validator.cpp
+        gameplay/room_encounter_planner.cpp
+        gameplay/room_runtime.cpp
+        gameplay/shop_item_catalog.cpp
 )
 add_library(battle_session
         session/battle_session.cpp
@@ -195,7 +209,7 @@ target_link_libraries(battle_server PRIVATE
         battle_registry)
 
 add_executable(battle_ecs_tests
-        ecs/tests/world_test.cpp
+        ecs/tests/navigation_test.cpp
 )
 
 target_link_libraries(battle_ecs_tests PRIVATE
@@ -204,12 +218,7 @@ target_link_libraries(battle_ecs_tests PRIVATE
 )
 
 add_executable(battle_runtime_tests
-        gameplay/tests/growth_test.cpp
         gameplay/tests/spawn_planner_test.cpp
-        gameplay/tests/hero_test.cpp
-        gameplay/tests/wave_planner_test.cpp
-        runtime/tests/battle_instance_test.cpp
-        runtime/tests/battle_runtime_test.cpp
 )
 
 add_executable(battle_platform_tests

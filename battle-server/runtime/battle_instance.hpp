@@ -1,22 +1,36 @@
 #pragma once
 
-#include <string>
-#include <random>
-#include <unordered_map>
+#include <memory>
 #include <optional>
+#include <random>
+#include <string>
+#include <unordered_map>
+#include <unordered_set>
+#include <utility>
+#include <vector>
 
 #include "battle_instance_types.hpp"
 #include "player_input.hpp"
 #include "ecs/world.hpp"
 #include "gameplay/spawn_planner.hpp"
-#include "gameplay/wave_planner.hpp"
 #include "gameplay/monster_kind.hpp"
+#include "gameplay/room_runtime.hpp"
 
 namespace battle {
-    /// @brief BattleInstance 持有单局 World、波次、经验、祝福选择和战斗结算状态。
+    /// @brief BattleInstance 持有单局 World、房间流程、经验、祝福选择和战斗结算状态。
     class BattleInstance {
     public:
-        explicit BattleInstance(BattleInstanceConfig config);
+        /// @brief 创建并进入初始房间；配置无法进入初始房间时返回 nullptr。
+        [[nodiscard]] static std::unique_ptr<BattleInstance> create(BattleInstanceConfig config);
+
+        /// @brief BattleInstance 独占单局状态，不允许复制。
+        BattleInstance(const BattleInstance&) = delete;
+        /// @brief BattleInstance 独占单局状态，不允许复制赋值。
+        BattleInstance& operator=(const BattleInstance&) = delete;
+        /// @brief BattleInstance 的内部引用保持稳定，不允许移动。
+        BattleInstance(BattleInstance&&) = delete;
+        /// @brief BattleInstance 的内部引用保持稳定，不允许移动赋值。
+        BattleInstance& operator=(BattleInstance&&) = delete;
 
         /// @brief 根据当前阶段推进战斗或奖励选择，并维护结束状态。
         void tick(ecs::DeltaTime delta_time);
@@ -24,25 +38,25 @@ namespace battle {
         /// @brief 校验玩家归属后将输入写入其 ECS 实体。
         bool receive_input(std::int64_t player_id, PlayerInput input);
 
-        /// @brief 组合 World、波次、进度和短期战斗事件为网络快照。
+        /// @brief 组合 World、房间、进度和短期战斗事件为网络快照。
         [[nodiscard]] BattleWorldSnapshot snapshot() const;
 
-        [[nodiscard]] std::size_t current_wave() const {
-            return current_wave_;
-        }
-
+        /// @brief 返回当前战斗生命周期状态。
         [[nodiscard]] BattleState state() const {
             return state_;
         }
 
+        /// @brief 返回战斗结束原因，未结束时为默认值。
         [[nodiscard]] BattleEndReason end_reason() const {
             return end_reason_;
         }
 
+        /// @brief 返回战斗是否已进入终止状态。
         [[nodiscard]] bool ended() const {
             return state_ == BattleState::Ended;
         }
 
+        /// @brief 返回按玩家 ID 聚合的实时战斗统计。
         [[nodiscard]] const std::unordered_map<std::int64_t, PlayerBattleStats>& player_battle_stats() const {
             return player_battle_stats_;
         }
@@ -50,22 +64,47 @@ namespace battle {
         /// @brief 返回当前累积的玩家击杀统计和结束原因。
         [[nodiscard]] BattleSettlement settlement() const;
 
-        [[nodiscard]] BattlePhase phase() const {
-            return phase_;
+        /// @brief 返回当前房间生命周期阶段。
+        [[nodiscard]] RoomFlowState room_state() const {
+            return room_runtime_.state();
         }
 
+        /// @brief 返回当前房间图节点 ID。
+        [[nodiscard]] DungeonRoomID current_room_id() const {
+            return room_runtime_.current_room_id();
+        }
+
+        /// @brief 返回当前奖励选择阶段的剩余时间。
         [[nodiscard]] ecs::DeltaTime reward_selection_remaining() const {
             return reward_selection_.remaining_seconds;
         }
 
+        /// @brief 返回指定玩家的等级与经验进度，玩家不存在时返回空值。
         [[nodiscard]] std::optional<ecs::PlayerProgress> player_progress(std::int64_t player_id) const;
 
+        /// @brief 返回指定玩家的祝福选择状态，玩家不存在时返回空值。
         [[nodiscard]] std::optional<PlayerBlessingState> player_blessing_state(std::int64_t player_id) const;
 
         /// @brief 在奖励选择阶段为玩家应用指定候选祝福。
         bool choose_blessing(std::int64_t player_id, int option_id);
 
+        /// @brief 校验玩家和流程状态后选择下一房间出口。
+        bool select_room_exit(std::int64_t player_id, DungeonRoomID next_room_id);
+
+        /// @brief 用当前在线玩家集合更新断线相关的战斗状态。
+        void update_connected_players(const std::unordered_set<std::int64_t>& player_ids) {
+            connected_player_ids_ = player_ids;
+        }
+
+
+        /// @brief 在免费奖励阶段为玩家应用指定奖励。
+        bool choose_free_reward(std::int64_t player_id, FreeRewardKind kind);
+
+        /// @brief 在商店奖励阶段校验货币并购买指定商品。
+        bool purchase_shop_item(std::int64_t player_id, std::uint32_t item_id);
+
     private:
+        explicit BattleInstance(BattleInstanceConfig config);
 
         /// @brief 保留至指定 server tick 的表现事件，降低 UDP 丢包的影响。
         struct PendingBattleEvent {
@@ -80,29 +119,22 @@ namespace battle {
         void collect_combat_events_();
 
         void discard_expired_combat_events_();
-
-
-        /// @brief 根据波次规划生成下一批怪物。
-        void spawn_next_wave_();
-
         /// @brief 将战斗转为终止状态并记录权威结束原因。
         void end_battle_(BattleEndReason reason);
 
         /// @brief 消费击杀事件，归属统计并授予玩家经验。
         void consume_kill_events_();
 
+        void tick_blessing_selection_(ecs::DeltaTime delta_time);
+
         void tick_fighting_(ecs::DeltaTime delta_time);
 
-        /// @brief 推进暂停战斗的祝福选择计时，超时自动选择默认候选。
-        void tick_reward_selection_(ecs::DeltaTime delta_time);
 
         /// @brief 为有待选次数的玩家生成候选，并进入奖励选择阶段。
         void start_reward_selection_();
 
         void apply_default_upgrade_choices_();
 
-        /// @brief 在当前波结束后决定生成下一波还是以胜利结束战斗。
-        void start_next_wave_or_end_();
 
         void grant_experience_(std::int64_t player_id, int experience);
 
@@ -117,9 +149,24 @@ namespace battle {
 
         [[nodiscard]] bool all_reward_choices_completed_() const;
 
+        [[nodiscard]] bool all_free_reward_choices_completed_() const;
+
         /// @brief 将阶段时长向上换算为权威模拟 tick 数，零或负时长不占用 tick。
         [[nodiscard]] std::uint64_t duration_to_ticks_(ecs::DeltaTime duration) const;
 
+        /// @brief 进入当前房间，并将规划出的怪物配置实例化到 World。
+        bool enter_current_room_();
+
+        /// @brief 根据 World 的存活怪物数将已清空房间推进到出口选择阶段。
+        bool update_room_completion_();
+
+        bool relocate_players_for_current_room_(std::vector<std::pair<ecs::Entity, ecs::Position>>& relocated_players);
+
+        bool handle_selection_(FreeRewardKind kind, std::int64_t player_id);
+
+        [[nodiscard]] bool is_current_reward_room_() const;
+
+        bool apply_shop_item_(ecs::Entity entity, const ShopItemDefinition& definition);
     private:
         std::string room_name_;
         ecs::World world_;
@@ -129,15 +176,12 @@ namespace battle {
         std::unordered_map<ecs::Entity, std::int64_t> entity_players_;
         /// @brief 每位玩家开局时冻结的英雄，用于向所有客户端同步角色外观。
         std::unordered_map<std::int64_t, HeroKind> player_heroes_;
+        std::unordered_map<std::int64_t, std::string> player_nicknames_;
         std::unordered_map<std::int64_t, PlayerBattleStats> player_battle_stats_;
         /// @brief 单局生命周期状态和最终结束原因。
         BattleState state_;
         BattleEndReason end_reason_;
-        std::size_t current_wave_;
-        WaveConfig wave_config_;
-        WavePlanner wave_planner_;
         /// @brief Fighting 与 RewardSelection 两阶段的当前状态。
-        BattlePhase phase_;
         RewardSelectionState reward_selection_;
         ProgressionConfig progression_config_;
         /// @brief 每位玩家已持有祝福和当前可选候选。
@@ -148,8 +192,27 @@ namespace battle {
         std::uint32_t tick_rate_{DefaultBattleTickRate};
         std::uint64_t server_tick_{};
         std::uint64_t next_event_id_{1};
-        std::vector<PendingBattleEvent>pending_battle_events_;
+        std::vector<PendingBattleEvent> pending_battle_events_;
 
         ecs::DeltaTime combat_elapsed_time_{0.0f};
+
+        /// @brief 单局冻结的房间配置，其生命周期覆盖引用它们的 room_runtime_。
+        DungeonRoomGraph dungeon_room_graph_;
+        RoomLayoutCatalog room_layout_catalog_;
+        RoomRuntime room_runtime_;
+        std::unordered_map<std::int64_t, DungeonRoomID> room_exit_choices_;
+        /// @brief 当前房间拥有的静态实体；切房时统一销毁并按新布局重建。
+        std::vector<ecs::Entity> active_obstacles_;
+        std::vector<ecs::Entity> active_traps_;
+
+        bool initialization_failed_{false};
+
+        std::unordered_set<std::int64_t> connected_player_ids_;
+        std::unordered_map<std::int64_t, PlayerFreeRewardState> free_reward_states_;
+        std::vector<ShopOffer> shop_offers_;
+        std::vector<ShopItemDefinition> shop_item_definitions_;
+
+        std::unordered_map<std::int64_t, int> player_souls_;
+        std::unordered_map<std::int64_t, std::unordered_set<std::uint32_t>> purchased_shop_items_;
     };
 }

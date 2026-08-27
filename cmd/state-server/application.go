@@ -112,6 +112,7 @@ func newApplication(ctx context.Context, cfg config.Config) (*application, error
 	}, nil
 }
 
+// Run 启动 state-server 的 gRPC 服务并阻塞至服务退出。
 func (app *application) Run(ctx context.Context) error {
 	services := lifecycle.NewGroup(ctx, 2)
 	services.Go("metrics server", func(context.Context) error {
@@ -155,6 +156,7 @@ func (app *application) shutdownServers(ctx context.Context) error {
 	return errors.Join(grpcErr, <-metricsErr)
 }
 
+// Close 在给定 Context 内关闭 state-server 及其存储连接。
 func (app *application) Close(ctx context.Context) error {
 	app.grpcServer.Stop()
 	listenerErr := app.grpcListener.Close()

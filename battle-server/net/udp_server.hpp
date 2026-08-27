@@ -16,6 +16,7 @@ namespace battle {
     /// @brief UdpServer 负责 UDP 包收发、协议分发和会话入口，不包含玩法规则。
     class UdpServer {
     public:
+        /// @brief 使用监听地址、会话管理器和指标收集器创建 UDP 服务。
         UdpServer(std::string listen_addr, SessionManager& session_manager, BattleMetrics& metrics);
 
         /// @brief 注入处理输入、快照和房间生命周期的运行时。
@@ -37,7 +38,8 @@ namespace battle {
             return next_conv_.fetch_add(1);
         }
 
-        void send_packet_(const v1::ServerPacket& packet, const sockaddr_in& remote_addr, socklen_t remote_addr_len) const;
+        void send_packet_(const v1::ServerPacket& packet, const sockaddr_in& remote_addr,
+                          socklen_t remote_addr_len) const;
 
         bool parse_listen_addr_(sockaddr_in& out) const;
 
@@ -51,6 +53,15 @@ namespace battle {
         /// @brief 验证端点归属后向 BattleRuntime 转交祝福选择。
         void handle_choose_blessing_(const v1::ClientPacket& packet, const sockaddr_in& remote_addr,
                                      socklen_t remote_addr_len) const;
+
+        void handle_choose_free_reward_(const v1::ClientPacket& packet, const sockaddr_in& remote_addr,
+                                        socklen_t remote_addr_len) const;
+
+        void handle_purchase_shop_item_(const v1::ClientPacket& packet, const sockaddr_in& remote_addr,
+                                        socklen_t remote_addr_len) const;
+
+        void handle_select_room_exit_(const v1::ClientPacket& packet, const sockaddr_in& remote_addr,
+                                      socklen_t remote_addr_len) const;
 
         /// @brief 刷新匹配会话的活跃时间，避免被断线清理。
         void handle_heartbeat_(const v1::ClientPacket& packet, const sockaddr_in& remote_addr,

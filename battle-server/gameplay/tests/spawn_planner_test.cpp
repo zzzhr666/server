@@ -2,6 +2,8 @@
 
 #include <gtest/gtest.h>
 
+#include "gameplay/gameplay_config.hpp"
+
 namespace battle {
 namespace {
 
@@ -40,10 +42,10 @@ TEST(SpawnPlannerTest, PlayerSpawnUsesTunedStatsWithoutReducingHealth) {
 
     auto spawn = planner.player_spawn(0);
 
-    EXPECT_EQ(spawn.max_health, 1000);
-    EXPECT_FLOAT_EQ(spawn.move_speed, 11.0f);
-    EXPECT_EQ(spawn.attack.damage, 23);
-    EXPECT_FLOAT_EQ(spawn.attack.cooldown_seconds.count(), 0.34f);
+    EXPECT_EQ(spawn.max_health, gameplay_config::player::MaxHealth);
+    EXPECT_FLOAT_EQ(spawn.move_speed, gameplay_config::player::MoveSpeed);
+    EXPECT_EQ(spawn.attack.damage, gameplay_config::hero::fire::AttackDamage);
+    EXPECT_EQ(spawn.attack.cooldown_seconds, gameplay_config::hero::fire::AttackCooldown);
 }
 
 TEST(SpawnPlannerTest, MonsterSpawnPlacesMonstersOnCircle) {
@@ -54,17 +56,17 @@ TEST(SpawnPlannerTest, MonsterSpawnPlacesMonstersOnCircle) {
     auto third = planner.monster_spawn(2, 4);
     auto fourth = planner.monster_spawn(3, 4);
 
-    EXPECT_NEAR(first.x_position, 8.0f, 0.001f);
-    EXPECT_NEAR(first.y_position, 0.0f, 0.001f);
+    EXPECT_NEAR(first.position.x, 8.0f, 0.001f);
+    EXPECT_NEAR(first.position.y, 0.0f, 0.001f);
 
-    EXPECT_NEAR(second.x_position, 0.0f, 0.001f);
-    EXPECT_NEAR(second.y_position, 8.0f, 0.001f);
+    EXPECT_NEAR(second.position.x, 0.0f, 0.001f);
+    EXPECT_NEAR(second.position.y, 8.0f, 0.001f);
 
-    EXPECT_NEAR(third.x_position, -8.0f, 0.001f);
-    EXPECT_NEAR(third.y_position, 0.0f, 0.001f);
+    EXPECT_NEAR(third.position.x, -8.0f, 0.001f);
+    EXPECT_NEAR(third.position.y, 0.0f, 0.001f);
 
-    EXPECT_NEAR(fourth.x_position, 0.0f, 0.001f);
-    EXPECT_NEAR(fourth.y_position, -8.0f, 0.001f);
+    EXPECT_NEAR(fourth.position.x, 0.0f, 0.001f);
+    EXPECT_NEAR(fourth.position.y, -8.0f, 0.001f);
 }
 
 TEST(SpawnPlannerTest, MonsterSpawnTreatsZeroCountAsOne) {
@@ -72,8 +74,8 @@ TEST(SpawnPlannerTest, MonsterSpawnTreatsZeroCountAsOne) {
 
     auto spawn = planner.monster_spawn(0, 0);
 
-    EXPECT_NEAR(spawn.x_position, 8.0f, 0.001f);
-    EXPECT_NEAR(spawn.y_position, 0.0f, 0.001f);
+    EXPECT_NEAR(spawn.position.x, 8.0f, 0.001f);
+    EXPECT_NEAR(spawn.position.y, 0.0f, 0.001f);
 }
 
 }  // namespace

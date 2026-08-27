@@ -11,6 +11,7 @@ namespace battle {
     struct PlayerLoadout {
         /// @brief 配置所属的玩家 ID。
         std::int64_t player_id;
+        std::string nickname;
         /// @brief 初始英雄名称。
         std::string hero;
         /// @brief 攻击、攻速、生命和移速的局外等级。
@@ -90,6 +91,7 @@ namespace battle {
     /// @brief Room 保存不可变的准入信息以及当前已加入的玩家。
     class Room {
     public:
+        /// @brief 根据控制面创建请求冻结房间令牌、玩家名单与负载配置。
         explicit Room(CreateRoomRequest request);
 
         /// @brief 返回房间的全局唯一名称。

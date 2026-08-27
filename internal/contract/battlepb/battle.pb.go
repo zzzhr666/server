@@ -539,6 +539,7 @@ type PlayerLoadout struct {
 	AttackSpeedLevel int32                  `protobuf:"varint,4,opt,name=attack_speed_level,json=attackSpeedLevel,proto3" json:"attack_speed_level,omitempty"`
 	HealthLevel      int32                  `protobuf:"varint,5,opt,name=health_level,json=healthLevel,proto3" json:"health_level,omitempty"`
 	MoveSpeedLevel   int32                  `protobuf:"varint,6,opt,name=move_speed_level,json=moveSpeedLevel,proto3" json:"move_speed_level,omitempty"`
+	Nickname         string                 `protobuf:"bytes,7,opt,name=nickname,proto3" json:"nickname,omitempty"`
 	unknownFields    protoimpl.UnknownFields
 	sizeCache        protoimpl.SizeCache
 }
@@ -615,6 +616,13 @@ func (x *PlayerLoadout) GetMoveSpeedLevel() int32 {
 	return 0
 }
 
+func (x *PlayerLoadout) GetNickname() string {
+	if x != nil {
+		return x.Nickname
+	}
+	return ""
+}
+
 var File_proto_battle_v1_battle_proto protoreflect.FileDescriptor
 
 const file_proto_battle_v1_battle_proto_rawDesc = "" +
@@ -641,14 +649,15 @@ const file_proto_battle_v1_battle_proto_rawDesc = "" +
 	"\x06reason\x18\x02 \x01(\tR\x06reason\"]\n" +
 	"\x0fEndRoomResponse\x120\n" +
 	"\x06status\x18\x01 \x01(\x0e2\x18.battle.v1.EndRoomStatusR\x06status\x12\x18\n" +
-	"\amessage\x18\x02 \x01(\tR\amessage\"\xde\x01\n" +
+	"\amessage\x18\x02 \x01(\tR\amessage\"\xfa\x01\n" +
 	"\rPlayerLoadout\x12\x1b\n" +
 	"\tplayer_id\x18\x01 \x01(\x03R\bplayerId\x12\x12\n" +
 	"\x04hero\x18\x02 \x01(\tR\x04hero\x12!\n" +
 	"\fattack_level\x18\x03 \x01(\x05R\vattackLevel\x12,\n" +
 	"\x12attack_speed_level\x18\x04 \x01(\x05R\x10attackSpeedLevel\x12!\n" +
 	"\fhealth_level\x18\x05 \x01(\x05R\vhealthLevel\x12(\n" +
-	"\x10move_speed_level\x18\x06 \x01(\x05R\x0emoveSpeedLevel*\xc7\x01\n" +
+	"\x10move_speed_level\x18\x06 \x01(\x05R\x0emoveSpeedLevel\x12\x1a\n" +
+	"\bnickname\x18\a \x01(\tR\bnickname*\xc7\x01\n" +
 	"\x10CreateRoomStatus\x12\"\n" +
 	"\x1eCREATE_ROOM_STATUS_UNSPECIFIED\x10\x00\x12\x19\n" +
 	"\x15CREATE_ROOM_STATUS_OK\x10\x01\x12&\n" +

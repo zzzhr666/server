@@ -26,9 +26,51 @@ namespace {
             return battle::v1::ENTITY_KIND_MONSTER;
         case battle::ecs::EntityKind::Projectile:
             return battle::v1::ENTITY_KIND_PROJECTILE;
+        case battle::ecs::EntityKind::Obstacle:
+            return battle::v1::ENTITY_KIND_OBSTACLE;
+        case battle::ecs::EntityKind::Trap:
+            return battle::v1::ENTITY_KIND_TRAP;
         default:
             return battle::v1::ENTITY_KIND_UNSPECIFIED;
         }
+    }
+
+    std::string boss_phase_to_string(battle::ecs::BossPhase phase) {
+        switch (phase) {
+        case battle::ecs::BossPhase::One:
+            return "one";
+        case battle::ecs::BossPhase::Two:
+            return "two";
+        }
+        return "unknown";
+    }
+
+    std::string boss_ability_kind_to_string(battle::ecs::BossAbilityKind kind) {
+        switch (kind) {
+        case battle::ecs::BossAbilityKind::None:
+            return "none";
+        case battle::ecs::BossAbilityKind::TripleDash:
+            return "triple_dash";
+        case battle::ecs::BossAbilityKind::RadialProjectile:
+            return "radial_projectile";
+        case battle::ecs::BossAbilityKind::Tornado:
+            return "tornado";
+        }
+        return "unknown";
+    }
+
+    std::string attack_phase_to_string(battle::ecs::AttackPhase phase) {
+        switch (phase) {
+        case battle::ecs::AttackPhase::Idle:
+            return "idle";
+        case battle::ecs::AttackPhase::Windup:
+            return "windup";
+        case battle::ecs::AttackPhase::Active:
+            return "active";
+        case battle::ecs::AttackPhase::Recovery:
+            return "recovery";
+        }
+        return "unknown";
     }
 
 
@@ -39,6 +81,9 @@ namespace {
         }
         case battle::BattleEndReason::Victory: {
             return "victory";
+        }
+        case battle::BattleEndReason::InternalError: {
+            return "internal_error";
         }
         default: {
             return "unknown";
@@ -52,6 +97,7 @@ namespace {
         for (const auto& player : settlement.players) {
             battle::PacketPlayerBattleStats player_stat{
                 .player_id = player.player_id,
+                .nickname = player.nickname,
                 .total_kills = player.total_kills,
             };
             player_stat.kills.reserve(player.kills.size());
@@ -66,16 +112,31 @@ namespace {
         return result;
     }
 
-    battle::v1::BattlePhase to_proto_battle_phase(battle::BattlePhase phase) {
-        switch (phase) {
-        case battle::BattlePhase::Fighting: {
-            return battle::v1::BattlePhase::BATTLE_PHASE_FIGHTING;
+    battle::v1::RoomFlowState to_proto_room_flow_state(battle::RoomFlowState state) {
+        switch (state) {
+        case battle::RoomFlowState::EnteringRoom: {
+            return battle::v1::ROOM_FLOW_STATE_ENTERING_ROOM;
         }
-        case battle::BattlePhase::RewardSelection: {
-            return battle::v1::BattlePhase::BATTLE_PHASE_REWARD_SELECTION;
+        case battle::RoomFlowState::Fighting: {
+            return battle::v1::ROOM_FLOW_STATE_FIGHTING;
+        }
+        case battle::RoomFlowState::RoomCleared: {
+            return battle::v1::ROOM_FLOW_STATE_ROOM_CLEARED;
+        }
+        case battle::RoomFlowState::ChoosingBlessing: {
+            return battle::v1::ROOM_FLOW_STATE_CHOOSING_BLESSING;
+        }
+        case battle::RoomFlowState::ChoosingExit: {
+            return battle::v1::ROOM_FLOW_STATE_CHOOSING_EXIT;
+        }
+        case battle::RoomFlowState::Transitioning: {
+            return battle::v1::ROOM_FLOW_STATE_TRANSITIONING;
+        }
+        case battle::RoomFlowState::Rewarding: {
+            return battle::v1::ROOM_FLOW_STATE_REWARDING;
         }
         default: {
-            return battle::v1::BattlePhase::BATTLE_PHASE_UNSPECIFIED;
+            return battle::v1::ROOM_FLOW_STATE_UNSPECIFIED;
         }
         }
     }
@@ -97,10 +158,61 @@ namespace {
         case battle::BlessingID::ChainLightning: {
             return battle::v1::BLESSING_ID_CHAIN_LIGHTNING;
         }
+        case battle::BlessingID::Frenzy: {
+            return battle::v1::BLESSING_ID_FRENZY;
+        }
+        case battle::BlessingID::Swift: {
+            return battle::v1::BLESSING_ID_SWIFT;
+        }
+        case battle::BlessingID::Toughness: {
+            return battle::v1::BLESSING_ID_TOUGHNESS;
+        }
+        case battle::BlessingID::HeavyStrike: {
+            return battle::v1::BLESSING_ID_HEAVY_STRIKE;
+        }
+        case battle::BlessingID::ArmorBreak: {
+            return battle::v1::BLESSING_ID_ARMOR_BREAK;
+        }
+        case battle::BlessingID::Revenge: {
+            return battle::v1::BLESSING_ID_REVENGE;
+        }
+        case battle::BlessingID::SoulHarvest: {
+            return battle::v1::BLESSING_ID_SOUL_HARVEST;
+        }
         default: {
             return battle::v1::BLESSING_ID_UNSPECIFIED;
         }
         }
+    }
+
+    battle::v1::FreeRewardKind to_proto_free_reward_kind(battle::FreeRewardKind kind) {
+        switch (kind) {
+        case battle::FreeRewardKind::Heal:
+            return battle::v1::FREE_REWARD_KIND_HEAL;
+        case battle::FreeRewardKind::Attack:
+            return battle::v1::FREE_REWARD_KIND_ATTACK;
+        case battle::FreeRewardKind::DamageReduction:
+            return battle::v1::FREE_REWARD_KIND_DAMAGE_REDUCTION;
+        case battle::FreeRewardKind::Blessing:
+            return battle::v1::FREE_REWARD_KIND_BLESSING;
+        case battle::FreeRewardKind::Skip:
+            return battle::v1::FREE_REWARD_KIND_SKIP;
+        }
+        return battle::v1::FREE_REWARD_KIND_UNSPECIFIED;
+    }
+
+    battle::v1::ShopBuffKind to_proto_shop_buff_kind(battle::ShopBuffKind kind) {
+        switch (kind) {
+        case battle::ShopBuffKind::AttackDamage:
+            return battle::v1::SHOP_BUFF_KIND_ATTACK_DAMAGE;
+        case battle::ShopBuffKind::MaxHealth:
+            return battle::v1::SHOP_BUFF_KIND_MAX_HEALTH;
+        case battle::ShopBuffKind::Armor:
+            return battle::v1::SHOP_BUFF_KIND_ARMOR;
+        case battle::ShopBuffKind::MoveSpeed:
+            return battle::v1::SHOP_BUFF_KIND_MOVE_SPEED;
+        }
+        return battle::v1::SHOP_BUFF_KIND_UNSPECIFIED;
     }
 
     battle::v1::AttackKind to_proto_attack_kind(battle::ecs::AttackKind kind) {
@@ -128,22 +240,33 @@ namespace {
         battle::v1::ServerPacket packet;
         auto send_pkg = packet.mutable_snapshot();
         send_pkg->set_room_name(room_name);
-        send_pkg->set_current_wave(static_cast<std::int32_t>(snapshot.current_wave));
-        send_pkg->set_phase(to_proto_battle_phase(snapshot.phase));
         send_pkg->set_reward_selection_remaining_seconds(snapshot.reward_selection_remaining.count());
         send_pkg->set_server_tick(snapshot.server_tick);
         send_pkg->set_tick_rate(snapshot.tick_rate);
+        send_pkg->set_current_room_id(snapshot.current_room_id);
+        send_pkg->set_room_state(to_proto_room_flow_state(snapshot.room_state));
+        send_pkg->set_current_room_layout_id(snapshot.current_room_layout_id);
+        send_pkg->mutable_world_bounds()->set_min_x(snapshot.world_bounds.min_x);
+        send_pkg->mutable_world_bounds()->set_max_x(snapshot.world_bounds.max_x);
+        send_pkg->mutable_world_bounds()->set_min_y(snapshot.world_bounds.min_y);
+        send_pkg->mutable_world_bounds()->set_max_y(snapshot.world_bounds.max_y);
+        for (const auto exit_id : snapshot.available_room_exit_ids) {
+            send_pkg->add_available_room_exit_ids(exit_id);
+        }
         for (const auto& entity : snapshot.entities) {
             auto entity_snapshot = send_pkg->add_entities();
             entity_snapshot->set_entity(entity.entity.packed());
             entity_snapshot->set_kind(to_proto_entity_kind(entity.kind));
             entity_snapshot->set_player_id(entity.player_id);
-            entity_snapshot->set_x_position(entity.position.x);
-            entity_snapshot->set_y_position(entity.position.y);
-            entity_snapshot->set_x_direction(entity.direction.x);
-            entity_snapshot->set_y_direction(entity.direction.y);
+            entity_snapshot->set_nickname(entity.nickname);
+            entity_snapshot->mutable_position()->set_x(entity.position.x);
+            entity_snapshot->mutable_position()->set_y(entity.position.y);
+            entity_snapshot->mutable_direction()->set_x(entity.direction.x);
+            entity_snapshot->mutable_direction()->set_y(entity.direction.y);
             entity_snapshot->set_current_health(entity.current_health);
             entity_snapshot->set_max_health(entity.max_health);
+            entity_snapshot->set_collision_radius(entity.collision_radius);
+            entity_snapshot->set_scene_object_kind(entity.scene_object_kind);
 
             if (entity.hero.has_value()) {
                 entity_snapshot->set_hero(battle::hero_kind_to_string(entity.hero.value()));
@@ -151,6 +274,17 @@ namespace {
             if (entity.monster_kind.has_value()) {
                 entity_snapshot->set_monster_kind(battle::monster_kind_to_string(entity.monster_kind.value()));
             }
+            if (entity.boss_phase.has_value()) {
+                entity_snapshot->set_boss_phase(boss_phase_to_string(entity.boss_phase.value()));
+            }
+            if (entity.boss_ability.has_value()) {
+                entity_snapshot->set_boss_ability(boss_ability_kind_to_string(entity.boss_ability.value()));
+            }
+            if (entity.boss_action_phase.has_value()) {
+                entity_snapshot->set_boss_action_phase(attack_phase_to_string(entity.boss_action_phase.value()));
+            }
+            entity_snapshot->set_boss_ability_remaining_seconds(entity.boss_ability_remaining_seconds);
+            entity_snapshot->set_boss_sequence_index(entity.boss_sequence_index);
         }
 
         for (const auto& progress : snapshot.player_progress) {
@@ -187,8 +321,8 @@ namespace {
                     proto_attack->set_attacker_entity(payload.attacker.packed());
                     proto_attack->set_action_id(payload.action_id);
                     proto_attack->set_attack_kind(to_proto_attack_kind(payload.kind));
-                    proto_attack->set_x_direction(payload.direction.x);
-                    proto_attack->set_y_direction(payload.direction.y);
+                    proto_attack->mutable_direction()->set_x(payload.direction.x);
+                    proto_attack->mutable_direction()->set_y(payload.direction.y);
                     proto_attack->set_start_tick(payload.start_tick);
                     proto_attack->set_active_start_tick(payload.active_start_tick);
                     proto_attack->set_active_end_tick(payload.active_end_tick);
@@ -198,15 +332,70 @@ namespace {
                     proto_death->set_victim_entity(payload.victim.packed());
                     proto_death->set_killer_entity(payload.killer.packed());
                     proto_death->set_victim_kind(to_proto_death_entity_kind(payload.kind));
-                    proto_death->set_x_direction(payload.direction.x);
-                    proto_death->set_y_direction(payload.direction.y);
-                    proto_death->set_x_position(payload.position.x);
-                    proto_death->set_y_position(payload.position.y);
+                    proto_death->mutable_direction()->set_x(payload.direction.x);
+                    proto_death->mutable_direction()->set_y(payload.direction.y);
+                    proto_death->mutable_position()->set_x(payload.position.x);
+                    proto_death->mutable_position()->set_y(payload.position.y);
                     if (payload.monster_kind.has_value()) {
                         proto_death->set_monster_kind(battle::monster_kind_to_string(payload.monster_kind.value()));
                     }
+                } else if constexpr (std::is_same_v<Payload, battle::BattleRoomClearedEvent>) {
+                    auto proto_cleared = event->mutable_room_cleared();
+                    proto_cleared->set_room_id(payload.room_id);
+                } else if constexpr (std::is_same_v<Payload, battle::BattleRoomEnteredEvent>) {
+                    auto proto_entered = event->mutable_room_entered();
+                    proto_entered->set_room_id(payload.room_id);
+                    proto_entered->set_layout_id(payload.layout_id);
                 }
             }, battle_event.payload);
+        }
+        for (const auto& choice : snapshot.player_room_exit_choices) {
+            auto* proto_choice = send_pkg->add_player_room_exit_choices();
+            proto_choice->set_player_id(choice.player_id);
+            proto_choice->set_room_exit_id(choice.room_exit_id);
+        }
+        for (const auto& free_reward : snapshot.free_reward_states) {
+            auto* proto_free_reward = send_pkg->add_free_reward_states();
+            proto_free_reward->set_player_id(free_reward.player_id);
+            proto_free_reward->set_completed(free_reward.completed);
+            if (free_reward.selected_kind.has_value()) {
+                proto_free_reward->set_selected_kind(to_proto_free_reward_kind(free_reward.selected_kind.value()));
+            }
+        }
+        for (const auto& offer : snapshot.shop_offers) {
+            auto* proto_offer = send_pkg->add_shop_offers();
+            proto_offer->set_item_id(offer.item_id);
+            proto_offer->set_price(offer.price);
+        }
+        for (const auto& player_soul : snapshot.player_souls) {
+            auto* proto_player_soul = send_pkg->add_player_souls();
+            proto_player_soul->set_player_id(player_soul.player_id);
+            proto_player_soul->set_souls(player_soul.souls);
+        }
+        for (const auto& stats : snapshot.player_combat_stats) {
+            auto* proto_stats = send_pkg->add_player_combat_stats();
+            proto_stats->set_player_id(stats.player_id);
+            proto_stats->set_attack_damage(stats.attack_damage);
+            proto_stats->set_move_speed(stats.move_speed);
+            proto_stats->set_attack_cooldown_seconds(stats.attack_cooldown_seconds);
+            proto_stats->set_armor(stats.armor);
+        }
+        for (const auto& definition : snapshot.shop_item_definitions) {
+            auto* proto_definition = send_pkg->add_shop_item_definitions();
+            proto_definition->set_item_id(definition.item_id);
+            proto_definition->set_item_name(definition.item_name);
+            for (const auto& buff : definition.buffs) {
+                auto* proto_buff = proto_definition->add_buffs();
+                proto_buff->set_kind(to_proto_shop_buff_kind(buff.kind));
+                proto_buff->set_value(buff.value);
+            }
+        }
+        for (const auto& [player_id, item_ids] : snapshot.purchased_shop_items) {
+            auto* proto_purchased_items = send_pkg->add_purchased_shop_items();
+            proto_purchased_items->set_player_id(player_id);
+            for (const auto item_id : item_ids) {
+                proto_purchased_items->add_item_ids(item_id);
+            }
         }
         return packet;
     }
@@ -244,7 +433,7 @@ battle::BattleRuntime::BattleRuntime(RoomManager& room_manager, SessionManager& 
       all_players_disconnected_timeout_(all_players_disconnected_timeout_seconds) {
     if (!instance_factory_) {
         instance_factory_ = [](BattleInstanceConfig config) {
-            return std::make_unique<BattleInstance>(std::move(config));
+            return BattleInstance::create(std::move(config));
         };
     }
 }
@@ -276,10 +465,13 @@ void battle::BattleRuntime::start_room(const std::string& room_name) {
         player_ids.push_back(session->player_id());
     }
     std::unordered_map<std::int64_t, std::pair<HeroKind, GrowthLevels>> player_loadouts;
+    std::unordered_map<std::int64_t, std::string> player_nicknames;
     player_loadouts.reserve(configured_loadouts.size());
+    player_nicknames.reserve(configured_loadouts.size());
     // 英雄文本无效时保留 BattleInstance 的默认 Fire 配置，避免一个脏 loadout 阻止整个
     // 已匹配房间开始；局外成长在此冻结，战斗中不再读取 Redis 或 rcenter。
     for (const auto& loadout : configured_loadouts) {
+        player_nicknames.emplace(loadout.player_id, loadout.nickname);
         auto hero_kind = hero_kind_from_string(loadout.hero);
         if (!hero_kind.has_value()) {
             continue;
@@ -297,8 +489,16 @@ void battle::BattleRuntime::start_room(const std::string& room_name) {
         .room_name = room_name,
         .player_ids = player_ids,
         .player_loadouts = std::move(player_loadouts),
+        .player_nicknames = std::move(player_nicknames),
         .tick_rate = tick_rate_,
     });
+
+    if (!instance) {
+        std::lock_guard<std::mutex> lock(mutex_);
+        starting_rooms_.erase(room_name);
+        SPDLOG_ERROR("battle instance creation failed room={}", room_name);
+        return;
+    }
 
     SPDLOG_INFO("battle instance started room={} players={}", room_name, player_ids.size());
 
@@ -330,8 +530,13 @@ void battle::BattleRuntime::tick(ecs::DeltaTime delta_time) {
     {
         std::lock_guard<std::mutex> lock(mutex_);
         for (auto& [room_name, instance] : instances_) {
-            instance->tick(delta_time);
             auto connected_sessions = session_manager_.connected_sessions_in_room(room_name);
+            std::unordered_set<std::int64_t> online_players;
+            for (const auto& session : connected_sessions) {
+                online_players.insert(session->player_id());
+            }
+            instance->update_connected_players(online_players);
+            instance->tick(delta_time);
             auto snapshot = instance->snapshot();
             const auto packet = make_snapshot(room_name, snapshot);
             for (const auto& session : connected_sessions) {
@@ -392,6 +597,27 @@ bool battle::BattleRuntime::choose_blessing(const std::string& room_name, std::i
     std::lock_guard<std::mutex> lock(mutex_);
     auto it = instances_.find(room_name);
     return it == instances_.end() ? false : it->second->choose_blessing(player_id, option_id);
+}
+
+bool battle::BattleRuntime::choose_free_reward(const std::string& room_name, std::int64_t player_id,
+                                               FreeRewardKind kind) {
+    std::lock_guard<std::mutex> lock(mutex_);
+    auto it = instances_.find(room_name);
+    return it == instances_.end() ? false : it->second->choose_free_reward(player_id, kind);
+}
+
+bool battle::BattleRuntime::purchase_shop_item(const std::string& room_name, std::int64_t player_id,
+                                               std::uint32_t item_id) {
+    std::lock_guard<std::mutex> lock(mutex_);
+    auto it = instances_.find(room_name);
+    return it == instances_.end() ? false : it->second->purchase_shop_item(player_id, item_id);
+}
+
+bool battle::BattleRuntime::select_room_exit(const std::string& room_name, std::int64_t player_id,
+                                             DungeonRoomID next_room_id) {
+    std::lock_guard<std::mutex> lock(mutex_);
+    auto it = instances_.find(room_name);
+    return it == instances_.end() ? false : it->second->select_room_exit(player_id, next_room_id);
 }
 
 void battle::BattleRuntime::start() {

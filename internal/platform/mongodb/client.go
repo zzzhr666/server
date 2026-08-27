@@ -7,6 +7,7 @@ type Config struct {
 	Database string
 }
 
+// DefaultConfig 返回本地开发环境的 MongoDB 连接配置。
 func DefaultConfig() Config {
 	return Config{
 		URI:      "mongodb://localhost:27017",
@@ -14,6 +15,7 @@ func DefaultConfig() Config {
 	}
 }
 
+// ClientOptions 将应用配置转换为 MongoDB 客户端选项。
 func ClientOptions(config Config) *options.ClientOptions {
 	return options.Client().ApplyURI(config.URI)
 }

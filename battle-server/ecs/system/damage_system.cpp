@@ -4,13 +4,25 @@
 
 #include "ecs/world.hpp"
 
+namespace {
+    int get_final_damage(const battle::ecs::CharacterStats* stats,int base_damage) {
+        if (base_damage < 0) {
+            return 0;
+        }
+        const int armor = std::max(stats->armor, -99);
+        const auto scaled_damage = static_cast<std::int64_t>(base_damage) * 100;
+        return static_cast<int>(scaled_damage / (100 + armor));
+    }
+}
+
 void battle::ecs::damage_system(World& world, DeltaTime) {
     for (const auto& event : world.damage_events()) {
         auto* health = world.registry().try_get<Health>(event.target);
-        if (!health) {
+        const auto* character_stat = world.registry().try_get<CharacterStats>(event.target);
+        if (!health || !character_stat) {
             continue;
         }
-        const int final_damage = std::clamp(event.modified_damage, 0, health->current_health);
+        const int final_damage = get_final_damage(character_stat, event.modified_damage);
         const int before_health = health->current_health;
         health->current_health = std::clamp(health->current_health - final_damage, 0, health->max_health);
         if (final_damage > 0) {

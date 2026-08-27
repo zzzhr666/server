@@ -18,6 +18,7 @@ namespace battle {
     /// @brief BattleSession 将玩家、房间、UDP conversation 和端点绑定为可重连的会话。
     class BattleSession {
     public:
+        /// @brief 为房间玩家创建绑定 conversation 与 UDP 端点的会话。
         BattleSession(std::string room_name, std::int64_t player_id, std::uint32_t conv, UdpEndpoint endpoint);
 
         /// @brief 返回会话所属的房间名。

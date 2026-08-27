@@ -47,6 +47,7 @@ battle::v1::ServerPacket battle::make_game_over(std::string room_name, const std
     for (const auto& player_stat : player_stats) {
         auto proto_player_stat = game_over->add_player_stats();
         proto_player_stat->set_player_id(player_stat.player_id);
+        proto_player_stat->set_nickname(player_stat.nickname);
         proto_player_stat->set_total_kills(player_stat.total_kills);
         for (const auto& kill : player_stat.kills) {
             auto proto_kill = proto_player_stat->add_kills();

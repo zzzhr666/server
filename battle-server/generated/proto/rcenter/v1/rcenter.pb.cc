@@ -33,6 +33,9 @@ inline constexpr StartMatchRequest::Impl_::Impl_(
         hero_(
             &::google::protobuf::internal::fixed_address_empty_string,
             ::_pbi::ConstantInitialized()),
+        nickname_(
+            &::google::protobuf::internal::fixed_address_empty_string,
+            ::_pbi::ConstantInitialized()),
         player_id_{::int64_t{0}},
         solo_{false} {}
 
@@ -103,6 +106,9 @@ inline constexpr PlayerLoadout::Impl_::Impl_(
     ::_pbi::ConstantInitialized) noexcept
       : _cached_size_{0},
         hero_(
+            &::google::protobuf::internal::fixed_address_empty_string,
+            ::_pbi::ConstantInitialized()),
+        nickname_(
             &::google::protobuf::internal::fixed_address_empty_string,
             ::_pbi::ConstantInitialized()),
         player_id_{::int64_t{0}} {}
@@ -524,13 +530,15 @@ const ::uint32_t
         PROTOBUF_FIELD_OFFSET(::rcenter::v1::ListBattleNodesResponse, _impl_.nodes_),
         0x081, // bitmap
         PROTOBUF_FIELD_OFFSET(::rcenter::v1::StartMatchRequest, _impl_._has_bits_),
-        6, // hasbit index offset
+        7, // hasbit index offset
         PROTOBUF_FIELD_OFFSET(::rcenter::v1::StartMatchRequest, _impl_.player_id_),
         PROTOBUF_FIELD_OFFSET(::rcenter::v1::StartMatchRequest, _impl_.hero_),
         PROTOBUF_FIELD_OFFSET(::rcenter::v1::StartMatchRequest, _impl_.solo_),
-        1,
-        0,
+        PROTOBUF_FIELD_OFFSET(::rcenter::v1::StartMatchRequest, _impl_.nickname_),
         2,
+        0,
+        3,
+        1,
         0x081, // bitmap
         PROTOBUF_FIELD_OFFSET(::rcenter::v1::StartMatchResponse, _impl_._has_bits_),
         4, // hasbit index offset
@@ -574,11 +582,13 @@ const ::uint32_t
         0x000, // bitmap
         0x081, // bitmap
         PROTOBUF_FIELD_OFFSET(::rcenter::v1::PlayerLoadout, _impl_._has_bits_),
-        5, // hasbit index offset
+        6, // hasbit index offset
         PROTOBUF_FIELD_OFFSET(::rcenter::v1::PlayerLoadout, _impl_.player_id_),
         PROTOBUF_FIELD_OFFSET(::rcenter::v1::PlayerLoadout, _impl_.hero_),
-        1,
+        PROTOBUF_FIELD_OFFSET(::rcenter::v1::PlayerLoadout, _impl_.nickname_),
+        2,
         0,
+        1,
         0x081, // bitmap
         PROTOBUF_FIELD_OFFSET(::rcenter::v1::ResumeMatchRequest, _impl_._has_bits_),
         4, // hasbit index offset
@@ -600,16 +610,16 @@ static const ::_pbi::MigrationSchema
         {38, sizeof(::rcenter::v1::ListBattleNodesRequest)},
         {39, sizeof(::rcenter::v1::ListBattleNodesResponse)},
         {41, sizeof(::rcenter::v1::StartMatchRequest)},
-        {50, sizeof(::rcenter::v1::StartMatchResponse)},
-        {55, sizeof(::rcenter::v1::CancelMatchRequest)},
-        {60, sizeof(::rcenter::v1::CancelMatchResponse)},
-        {61, sizeof(::rcenter::v1::FinishMatchRequest)},
-        {74, sizeof(::rcenter::v1::PlayerBattleStats)},
-        {83, sizeof(::rcenter::v1::MonsterKillCount)},
-        {90, sizeof(::rcenter::v1::FinishMatchResponse)},
-        {91, sizeof(::rcenter::v1::PlayerLoadout)},
-        {98, sizeof(::rcenter::v1::ResumeMatchRequest)},
-        {103, sizeof(::rcenter::v1::ResumeMatchResponse)},
+        {52, sizeof(::rcenter::v1::StartMatchResponse)},
+        {57, sizeof(::rcenter::v1::CancelMatchRequest)},
+        {62, sizeof(::rcenter::v1::CancelMatchResponse)},
+        {63, sizeof(::rcenter::v1::FinishMatchRequest)},
+        {76, sizeof(::rcenter::v1::PlayerBattleStats)},
+        {85, sizeof(::rcenter::v1::MonsterKillCount)},
+        {92, sizeof(::rcenter::v1::FinishMatchResponse)},
+        {93, sizeof(::rcenter::v1::PlayerLoadout)},
+        {102, sizeof(::rcenter::v1::ResumeMatchRequest)},
+        {107, sizeof(::rcenter::v1::ResumeMatchResponse)},
 };
 static const ::_pb::Message* PROTOBUF_NONNULL const file_default_instances[] = {
     &::rcenter::v1::_BattleNode_default_instance_._instance,
@@ -646,44 +656,45 @@ const char descriptor_table_protodef_proto_2frcenter_2fv1_2frcenter_2eproto[] AB
     "\n\032RegisterBattleNodeResponse\"\030\n\026ListBatt"
     "leNodesRequest\"@\n\027ListBattleNodesRespons"
     "e\022%\n\005nodes\030\001 \003(\0132\026.rcenter.v1.BattleNode"
-    "\"B\n\021StartMatchRequest\022\021\n\tplayer_id\030\001 \001(\003"
-    "\022\014\n\004hero\030\002 \001(\t\022\014\n\004solo\030\003 \001(\010\"=\n\022StartMat"
+    "\"T\n\021StartMatchRequest\022\021\n\tplayer_id\030\001 \001(\003"
+    "\022\014\n\004hero\030\002 \001(\t\022\014\n\004solo\030\003 \001(\010\022\020\n\010nickname"
+    "\030\004 \001(\t\"=\n\022StartMatchResponse\022\'\n\006result\030\001"
+    " \001(\0132\027.rcenter.v1.MatchResult\"\'\n\022CancelM"
+    "atchRequest\022\021\n\tplayer_id\030\001 \001(\003\"\025\n\023Cancel"
+    "MatchResponse\"\234\001\n\022FinishMatchRequest\022\022\n\n"
+    "player_ids\030\001 \003(\003\022\016\n\006reason\030\002 \001(\t\0223\n\014play"
+    "er_stats\030\003 \003(\0132\035.rcenter.v1.PlayerBattle"
+    "Stats\022\021\n\troom_name\030\004 \001(\t\022\032\n\022combat_durat"
+    "ion_ms\030\005 \001(\003\"h\n\021PlayerBattleStats\022\021\n\tpla"
+    "yer_id\030\001 \001(\003\022\023\n\013total_kills\030\002 \001(\005\022+\n\005kil"
+    "ls\030\003 \003(\0132\034.rcenter.v1.MonsterKillCount\"7"
+    "\n\020MonsterKillCount\022\024\n\014monster_kind\030\001 \001(\t"
+    "\022\r\n\005count\030\002 \001(\005\"\025\n\023FinishMatchResponse\"B"
+    "\n\rPlayerLoadout\022\021\n\tplayer_id\030\001 \001(\003\022\014\n\004he"
+    "ro\030\002 \001(\t\022\020\n\010nickname\030\003 \001(\t\"\'\n\022ResumeMatc"
+    "hRequest\022\021\n\tplayer_id\030\001 \001(\003\">\n\023ResumeMat"
     "chResponse\022\'\n\006result\030\001 \001(\0132\027.rcenter.v1."
-    "MatchResult\"\'\n\022CancelMatchRequest\022\021\n\tpla"
-    "yer_id\030\001 \001(\003\"\025\n\023CancelMatchResponse\"\234\001\n\022"
-    "FinishMatchRequest\022\022\n\nplayer_ids\030\001 \003(\003\022\016"
-    "\n\006reason\030\002 \001(\t\0223\n\014player_stats\030\003 \003(\0132\035.r"
-    "center.v1.PlayerBattleStats\022\021\n\troom_name"
-    "\030\004 \001(\t\022\032\n\022combat_duration_ms\030\005 \001(\003\"h\n\021Pl"
-    "ayerBattleStats\022\021\n\tplayer_id\030\001 \001(\003\022\023\n\013to"
-    "tal_kills\030\002 \001(\005\022+\n\005kills\030\003 \003(\0132\034.rcenter"
-    ".v1.MonsterKillCount\"7\n\020MonsterKillCount"
-    "\022\024\n\014monster_kind\030\001 \001(\t\022\r\n\005count\030\002 \001(\005\"\025\n"
-    "\023FinishMatchResponse\"0\n\rPlayerLoadout\022\021\n"
-    "\tplayer_id\030\001 \001(\003\022\014\n\004hero\030\002 \001(\t\"\'\n\022Resume"
-    "MatchRequest\022\021\n\tplayer_id\030\001 \001(\003\">\n\023Resum"
-    "eMatchResponse\022\'\n\006result\030\001 \001(\0132\027.rcenter"
-    ".v1.MatchResult2\216\004\n\016RCenterService\022c\n\022Re"
-    "gisterBattleNode\022%.rcenter.v1.RegisterBa"
-    "ttleNodeRequest\032&.rcenter.v1.RegisterBat"
-    "tleNodeResponse\022Z\n\017ListBattleNodes\022\".rce"
-    "nter.v1.ListBattleNodesRequest\032#.rcenter"
-    ".v1.ListBattleNodesResponse\022K\n\nStartMatc"
-    "h\022\035.rcenter.v1.StartMatchRequest\032\036.rcent"
-    "er.v1.StartMatchResponse\022N\n\013CancelMatch\022"
-    "\036.rcenter.v1.CancelMatchRequest\032\037.rcente"
-    "r.v1.CancelMatchResponse\022N\n\013FinishMatch\022"
-    "\036.rcenter.v1.FinishMatchRequest\032\037.rcente"
-    "r.v1.FinishMatchResponse\022N\n\013ResumeMatch\022"
-    "\036.rcenter.v1.ResumeMatchRequest\032\037.rcente"
-    "r.v1.ResumeMatchResponseB.Z,server/inter"
-    "nal/contract/rcenterpb;rcenterpbb\006proto3"
+    "MatchResult2\216\004\n\016RCenterService\022c\n\022Regist"
+    "erBattleNode\022%.rcenter.v1.RegisterBattle"
+    "NodeRequest\032&.rcenter.v1.RegisterBattleN"
+    "odeResponse\022Z\n\017ListBattleNodes\022\".rcenter"
+    ".v1.ListBattleNodesRequest\032#.rcenter.v1."
+    "ListBattleNodesResponse\022K\n\nStartMatch\022\035."
+    "rcenter.v1.StartMatchRequest\032\036.rcenter.v"
+    "1.StartMatchResponse\022N\n\013CancelMatch\022\036.rc"
+    "enter.v1.CancelMatchRequest\032\037.rcenter.v1"
+    ".CancelMatchResponse\022N\n\013FinishMatch\022\036.rc"
+    "enter.v1.FinishMatchRequest\032\037.rcenter.v1"
+    ".FinishMatchResponse\022N\n\013ResumeMatch\022\036.rc"
+    "enter.v1.ResumeMatchRequest\032\037.rcenter.v1"
+    ".ResumeMatchResponseB.Z,server/internal/"
+    "contract/rcenterpb;rcenterpbb\006proto3"
 };
 static ::absl::once_flag descriptor_table_proto_2frcenter_2fv1_2frcenter_2eproto_once;
 PROTOBUF_CONSTINIT const ::_pbi::DescriptorTable descriptor_table_proto_2frcenter_2fv1_2frcenter_2eproto = {
     false,
     false,
-    1840,
+    1876,
     descriptor_table_protodef_proto_2frcenter_2fv1_2frcenter_2eproto,
     "proto/rcenter/v1/rcenter.proto",
     &descriptor_table_proto_2frcenter_2fv1_2frcenter_2eproto_once,
@@ -2413,7 +2424,8 @@ PROTOBUF_NDEBUG_INLINE StartMatchRequest::Impl_::Impl_(
     const ::rcenter::v1::StartMatchRequest& from_msg)
       : _has_bits_{from._has_bits_},
         _cached_size_{0},
-        hero_(arena, from.hero_) {}
+        hero_(arena, from.hero_),
+        nickname_(arena, from.nickname_) {}
 
 StartMatchRequest::StartMatchRequest(
     ::google::protobuf::Arena* PROTOBUF_NULLABLE arena,
@@ -2442,7 +2454,8 @@ PROTOBUF_NDEBUG_INLINE StartMatchRequest::Impl_::Impl_(
     ::google::protobuf::internal::InternalVisibility visibility,
     ::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
       : _cached_size_{0},
-        hero_(arena) {}
+        hero_(arena),
+        nickname_(arena) {}
 
 inline void StartMatchRequest::SharedCtor(::_pb::Arena* PROTOBUF_NULLABLE arena) {
   new (&_impl_) Impl_(internal_visibility(), arena);
@@ -2462,6 +2475,7 @@ inline void StartMatchRequest::SharedDtor(MessageLite& self) {
   this_._internal_metadata_.Delete<::google::protobuf::UnknownFieldSet>();
   ABSL_DCHECK(this_.GetArena() == nullptr);
   this_._impl_.hero_.Destroy();
+  this_._impl_.nickname_.Destroy();
   this_._impl_.~Impl_();
 }
 
@@ -2508,16 +2522,16 @@ StartMatchRequest::GetClassData() const {
   return StartMatchRequest_class_data_.base();
 }
 PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
-const ::_pbi::TcParseTable<2, 3, 0, 41, 2>
+const ::_pbi::TcParseTable<2, 4, 0, 49, 2>
 StartMatchRequest::_table_ = {
   {
     PROTOBUF_FIELD_OFFSET(StartMatchRequest, _impl_._has_bits_),
     0, // no _extensions_
-    3, 24,  // max_field_number, fast_idx_mask
+    4, 24, // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
-    4294967288,  // skipmap
+    4294967280, // skipmap
     offsetof(decltype(_table_), field_entries),
-    3,  // num_field_entries
+    4, // num_field_entries
     0,  // num_aux_entries
     offsetof(decltype(_table_), field_names),  // no aux_entries
     StartMatchRequest_class_data_.base(),
@@ -2527,34 +2541,50 @@ StartMatchRequest::_table_ = {
     ::_pbi::TcParser::GetTable<::rcenter::v1::StartMatchRequest>(),  // to_prefetch
     #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
   }, {{
-    {::_pbi::TcParser::MiniParse, {}},
+    // string nickname = 4;
+    {
+        ::_pbi::TcParser::FastUS1,
+        {34, 1, 0, PROTOBUF_FIELD_OFFSET(StartMatchRequest, _impl_.nickname_)}
+    },
     // int64 player_id = 1;
-    {::_pbi::TcParser::SingularVarintNoZag1<::uint64_t, offsetof(StartMatchRequest, _impl_.player_id_), 1>(),
-     {8, 1, 0, PROTOBUF_FIELD_OFFSET(StartMatchRequest, _impl_.player_id_)}},
+    {
+        ::_pbi::TcParser::SingularVarintNoZag1<::uint64_t, offsetof(StartMatchRequest, _impl_.player_id_), 2>(),
+        {8, 2, 0, PROTOBUF_FIELD_OFFSET(StartMatchRequest, _impl_.player_id_)}
+    },
     // string hero = 2;
     {::_pbi::TcParser::FastUS1,
      {18, 0, 0, PROTOBUF_FIELD_OFFSET(StartMatchRequest, _impl_.hero_)}},
     // bool solo = 3;
-    {::_pbi::TcParser::SingularVarintNoZag1<bool, offsetof(StartMatchRequest, _impl_.solo_), 2>(),
-     {24, 2, 0, PROTOBUF_FIELD_OFFSET(StartMatchRequest, _impl_.solo_)}},
-  }}, {{
+    {
+        ::_pbi::TcParser::SingularVarintNoZag1<bool, offsetof(StartMatchRequest, _impl_.solo_), 3>(),
+        {24, 3, 0, PROTOBUF_FIELD_OFFSET(StartMatchRequest, _impl_.solo_)}
+    },
+    }}, {{
     65535, 65535
   }}, {{
     // int64 player_id = 1;
-    {PROTOBUF_FIELD_OFFSET(StartMatchRequest, _impl_.player_id_), _Internal::kHasBitsOffset + 1, 0,
-    (0 | ::_fl::kFcOptional | ::_fl::kInt64)},
+    {
+        PROTOBUF_FIELD_OFFSET(StartMatchRequest, _impl_.player_id_), _Internal::kHasBitsOffset + 2, 0,
+        (0 | ::_fl::kFcOptional | ::_fl::kInt64)},
     // string hero = 2;
     {PROTOBUF_FIELD_OFFSET(StartMatchRequest, _impl_.hero_), _Internal::kHasBitsOffset + 0, 0,
     (0 | ::_fl::kFcOptional | ::_fl::kUtf8String | ::_fl::kRepAString)},
     // bool solo = 3;
-    {PROTOBUF_FIELD_OFFSET(StartMatchRequest, _impl_.solo_), _Internal::kHasBitsOffset + 2, 0,
-    (0 | ::_fl::kFcOptional | ::_fl::kBool)},
-  }},
+    {
+        PROTOBUF_FIELD_OFFSET(StartMatchRequest, _impl_.solo_), _Internal::kHasBitsOffset + 3, 0,
+        (0 | ::_fl::kFcOptional | ::_fl::kBool)},
+    // string nickname = 4;
+    {
+        PROTOBUF_FIELD_OFFSET(StartMatchRequest, _impl_.nickname_), _Internal::kHasBitsOffset + 1, 0,
+        (0 | ::_fl::kFcOptional | ::_fl::kUtf8String | ::_fl::kRepAString)
+    },
+    }},
   // no aux_entries
   {{
-    "\34\0\4\0\0\0\0\0"
+    "\34\0\4\0\10\0\0\0"
     "rcenter.v1.StartMatchRequest"
     "hero"
+    "nickname"
   }},
 };
 PROTOBUF_NOINLINE void StartMatchRequest::Clear() {
@@ -2565,10 +2595,15 @@ PROTOBUF_NOINLINE void StartMatchRequest::Clear() {
   (void) cached_has_bits;
 
   cached_has_bits = _impl_._has_bits_[0];
-  if ((cached_has_bits & 0x00000001u) != 0) {
-    _impl_.hero_.ClearNonDefaultToEmpty();
-  }
-  if ((cached_has_bits & 0x00000006u) != 0) {
+  if ((cached_has_bits & 0x00000003u) != 0) {
+    if ((cached_has_bits & 0x00000001u) != 0) {
+        _impl_.hero_.ClearNonDefaultToEmpty();
+    }
+    if ((cached_has_bits & 0x00000002u) != 0) {
+        _impl_.nickname_.ClearNonDefaultToEmpty();
+    }
+}
+if ((cached_has_bits & 0x0000000cu) != 0) {
     ::memset(&_impl_.player_id_, 0, static_cast<::size_t>(
         reinterpret_cast<char*>(&_impl_.solo_) -
         reinterpret_cast<char*>(&_impl_.player_id_)) + sizeof(_impl_.solo_));
@@ -2593,7 +2628,7 @@ PROTOBUF_NOINLINE void StartMatchRequest::Clear() {
   (void)cached_has_bits;
 
   // int64 player_id = 1;
-  if ((this_._impl_._has_bits_[0] & 0x00000002u) != 0) {
+  if ((this_._impl_._has_bits_[0] & 0x00000004u) != 0) {
     if (this_._internal_player_id() != 0) {
       target =
           ::google::protobuf::internal::WireFormatLite::WriteInt64ToArrayWithField<1>(
@@ -2612,11 +2647,21 @@ PROTOBUF_NOINLINE void StartMatchRequest::Clear() {
   }
 
   // bool solo = 3;
-  if ((this_._impl_._has_bits_[0] & 0x00000004u) != 0) {
+  if ((this_._impl_._has_bits_[0] & 0x00000008u) != 0) {
     if (this_._internal_solo() != 0) {
       target = stream->EnsureSpace(target);
       target = ::_pbi::WireFormatLite::WriteBoolToArray(
           3, this_._internal_solo(), target);
+    }
+  }
+
+  // string nickname = 4;
+  if ((this_._impl_._has_bits_[0] & 0x00000002u) != 0) {
+    if (!this_._internal_nickname().empty()) {
+      const ::std::string& _s = this_._internal_nickname();
+      ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+          _s.data(), static_cast<int>(_s.length()), ::google::protobuf::internal::WireFormatLite::SERIALIZE, "rcenter.v1.StartMatchRequest.nickname");
+      target = stream->WriteStringMaybeAliased(4, _s, target);
     }
   }
 
@@ -2645,24 +2690,31 @@ PROTOBUF_NOINLINE void StartMatchRequest::Clear() {
 
   ::_pbi::Prefetch5LinesFrom7Lines(&this_);
   cached_has_bits = this_._impl_._has_bits_[0];
-  if ((cached_has_bits & 0x00000007u) != 0) {
-    // string hero = 2;
+  if ((cached_has_bits & 0x0000000fu) != 0) {
+      // string hero = 2;
     if ((cached_has_bits & 0x00000001u) != 0) {
       if (!this_._internal_hero().empty()) {
         total_size += 1 + ::google::protobuf::internal::WireFormatLite::StringSize(
                                         this_._internal_hero());
       }
     }
-    // int64 player_id = 1;
-    if ((cached_has_bits & 0x00000002u) != 0) {
-      if (this_._internal_player_id() != 0) {
+    // string nickname = 4;
+      if ((cached_has_bits & 0x00000002u) != 0) {
+          if (!this_._internal_nickname().empty()) {
+              total_size += 1 + ::google::protobuf::internal::WireFormatLite::StringSize(
+                  this_._internal_nickname());
+          }
+      }
+      // int64 player_id = 1;
+    if ((cached_has_bits & 0x00000004u) != 0) {
+        if (this_._internal_player_id() != 0) {
         total_size += ::_pbi::WireFormatLite::Int64SizePlusOne(
             this_._internal_player_id());
       }
     }
     // bool solo = 3;
-    if ((cached_has_bits & 0x00000004u) != 0) {
-      if (this_._internal_solo() != 0) {
+    if ((cached_has_bits & 0x00000008u) != 0) {
+        if (this_._internal_solo() != 0) {
         total_size += 2;
       }
     }
@@ -2680,8 +2732,8 @@ void StartMatchRequest::MergeImpl(::google::protobuf::MessageLite& to_msg, const
   (void) cached_has_bits;
 
   cached_has_bits = from._impl_._has_bits_[0];
-  if ((cached_has_bits & 0x00000007u) != 0) {
-    if ((cached_has_bits & 0x00000001u) != 0) {
+  if ((cached_has_bits & 0x0000000fu) != 0) {
+      if ((cached_has_bits & 0x00000001u) != 0) {
       if (!from._internal_hero().empty()) {
         _this->_internal_set_hero(from._internal_hero());
       } else {
@@ -2691,12 +2743,21 @@ void StartMatchRequest::MergeImpl(::google::protobuf::MessageLite& to_msg, const
       }
     }
     if ((cached_has_bits & 0x00000002u) != 0) {
-      if (from._internal_player_id() != 0) {
+      if (!from._internal_nickname().empty()) {
+          _this->_internal_set_nickname(from._internal_nickname());
+      } else {
+          if (_this->_impl_.nickname_.IsDefault()) {
+              _this->_internal_set_nickname("");
+          }
+      }
+      }
+      if ((cached_has_bits & 0x00000004u) != 0) {
+          if (from._internal_player_id() != 0) {
         _this->_impl_.player_id_ = from._impl_.player_id_;
       }
     }
-    if ((cached_has_bits & 0x00000004u) != 0) {
-      if (from._internal_solo() != 0) {
+    if ((cached_has_bits & 0x00000008u) != 0) {
+        if (from._internal_solo() != 0) {
         _this->_impl_.solo_ = from._impl_.solo_;
       }
     }
@@ -2720,6 +2781,7 @@ void StartMatchRequest::InternalSwap(StartMatchRequest* PROTOBUF_RESTRICT PROTOB
   _internal_metadata_.InternalSwap(&other->_internal_metadata_);
   swap(_impl_._has_bits_[0], other->_impl_._has_bits_[0]);
   ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.hero_, &other->_impl_.hero_, arena);
+  ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.nickname_, &other->_impl_.nickname_, arena);
   ::google::protobuf::internal::memswap<
       PROTOBUF_FIELD_OFFSET(StartMatchRequest, _impl_.solo_)
       + sizeof(StartMatchRequest::_impl_.solo_)
@@ -4530,7 +4592,8 @@ PROTOBUF_NDEBUG_INLINE PlayerLoadout::Impl_::Impl_(
     const ::rcenter::v1::PlayerLoadout& from_msg)
       : _has_bits_{from._has_bits_},
         _cached_size_{0},
-        hero_(arena, from.hero_) {}
+        hero_(arena, from.hero_),
+        nickname_(arena, from.nickname_) {}
 
 PlayerLoadout::PlayerLoadout(
     ::google::protobuf::Arena* PROTOBUF_NULLABLE arena,
@@ -4553,7 +4616,8 @@ PROTOBUF_NDEBUG_INLINE PlayerLoadout::Impl_::Impl_(
     ::google::protobuf::internal::InternalVisibility visibility,
     ::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
       : _cached_size_{0},
-        hero_(arena) {}
+        hero_(arena),
+        nickname_(arena) {}
 
 inline void PlayerLoadout::SharedCtor(::_pb::Arena* PROTOBUF_NULLABLE arena) {
   new (&_impl_) Impl_(internal_visibility(), arena);
@@ -4568,6 +4632,7 @@ inline void PlayerLoadout::SharedDtor(MessageLite& self) {
   this_._internal_metadata_.Delete<::google::protobuf::UnknownFieldSet>();
   ABSL_DCHECK(this_.GetArena() == nullptr);
   this_._impl_.hero_.Destroy();
+  this_._impl_.nickname_.Destroy();
   this_._impl_.~Impl_();
 }
 
@@ -4614,16 +4679,16 @@ PlayerLoadout::GetClassData() const {
   return PlayerLoadout_class_data_.base();
 }
 PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
-const ::_pbi::TcParseTable<1, 2, 0, 37, 2>
+const ::_pbi::TcParseTable<2, 3, 0, 45, 2>
 PlayerLoadout::_table_ = {
   {
     PROTOBUF_FIELD_OFFSET(PlayerLoadout, _impl_._has_bits_),
     0, // no _extensions_
-    2, 8,  // max_field_number, fast_idx_mask
+    3, 24, // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
-    4294967292,  // skipmap
+    4294967288, // skipmap
     offsetof(decltype(_table_), field_entries),
-    2,  // num_field_entries
+    3, // num_field_entries
     0,  // num_aux_entries
     offsetof(decltype(_table_), field_names),  // no aux_entries
     PlayerLoadout_class_data_.base(),
@@ -4633,27 +4698,42 @@ PlayerLoadout::_table_ = {
     ::_pbi::TcParser::GetTable<::rcenter::v1::PlayerLoadout>(),  // to_prefetch
     #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
   }, {{
-    // string hero = 2;
+    {::_pbi::TcParser::MiniParse, {}},
+        // int64 player_id = 1;
+        {
+            ::_pbi::TcParser::SingularVarintNoZag1<::uint64_t, offsetof(PlayerLoadout, _impl_.player_id_), 2>(),
+            {8, 2, 0, PROTOBUF_FIELD_OFFSET(PlayerLoadout, _impl_.player_id_)}
+        },
+        // string hero = 2;
     {::_pbi::TcParser::FastUS1,
      {18, 0, 0, PROTOBUF_FIELD_OFFSET(PlayerLoadout, _impl_.hero_)}},
-    // int64 player_id = 1;
-    {::_pbi::TcParser::SingularVarintNoZag1<::uint64_t, offsetof(PlayerLoadout, _impl_.player_id_), 1>(),
-     {8, 1, 0, PROTOBUF_FIELD_OFFSET(PlayerLoadout, _impl_.player_id_)}},
-  }}, {{
+    // string nickname = 3;
+        {
+            ::_pbi::TcParser::FastUS1,
+            {26, 1, 0, PROTOBUF_FIELD_OFFSET(PlayerLoadout, _impl_.nickname_)}
+        },
+    }}, {{
     65535, 65535
   }}, {{
     // int64 player_id = 1;
-    {PROTOBUF_FIELD_OFFSET(PlayerLoadout, _impl_.player_id_), _Internal::kHasBitsOffset + 1, 0,
-    (0 | ::_fl::kFcOptional | ::_fl::kInt64)},
+    {
+        PROTOBUF_FIELD_OFFSET(PlayerLoadout, _impl_.player_id_), _Internal::kHasBitsOffset + 2, 0,
+        (0 | ::_fl::kFcOptional | ::_fl::kInt64)},
     // string hero = 2;
     {PROTOBUF_FIELD_OFFSET(PlayerLoadout, _impl_.hero_), _Internal::kHasBitsOffset + 0, 0,
     (0 | ::_fl::kFcOptional | ::_fl::kUtf8String | ::_fl::kRepAString)},
-  }},
+    // string nickname = 3;
+    {
+        PROTOBUF_FIELD_OFFSET(PlayerLoadout, _impl_.nickname_), _Internal::kHasBitsOffset + 1, 0,
+        (0 | ::_fl::kFcOptional | ::_fl::kUtf8String | ::_fl::kRepAString)
+    },
+    }},
   // no aux_entries
   {{
-    "\30\0\4\0\0\0\0\0"
+    "\30\0\4\10\0\0\0\0"
     "rcenter.v1.PlayerLoadout"
     "hero"
+    "nickname"
   }},
 };
 PROTOBUF_NOINLINE void PlayerLoadout::Clear() {
@@ -4664,8 +4744,13 @@ PROTOBUF_NOINLINE void PlayerLoadout::Clear() {
   (void) cached_has_bits;
 
   cached_has_bits = _impl_._has_bits_[0];
-  if ((cached_has_bits & 0x00000001u) != 0) {
-    _impl_.hero_.ClearNonDefaultToEmpty();
+  if ((cached_has_bits & 0x00000003u) != 0) {
+      if ((cached_has_bits & 0x00000001u) != 0) {
+          _impl_.hero_.ClearNonDefaultToEmpty();
+      }
+      if ((cached_has_bits & 0x00000002u) != 0) {
+          _impl_.nickname_.ClearNonDefaultToEmpty();
+      }
   }
   _impl_.player_id_ = ::int64_t{0};
   _impl_._has_bits_.Clear();
@@ -4688,7 +4773,7 @@ PROTOBUF_NOINLINE void PlayerLoadout::Clear() {
   (void)cached_has_bits;
 
   // int64 player_id = 1;
-  if ((this_._impl_._has_bits_[0] & 0x00000002u) != 0) {
+  if ((this_._impl_._has_bits_[0] & 0x00000004u) != 0) {
     if (this_._internal_player_id() != 0) {
       target =
           ::google::protobuf::internal::WireFormatLite::WriteInt64ToArrayWithField<1>(
@@ -4703,6 +4788,16 @@ PROTOBUF_NOINLINE void PlayerLoadout::Clear() {
       ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
           _s.data(), static_cast<int>(_s.length()), ::google::protobuf::internal::WireFormatLite::SERIALIZE, "rcenter.v1.PlayerLoadout.hero");
       target = stream->WriteStringMaybeAliased(2, _s, target);
+    }
+  }
+
+  // string nickname = 3;
+  if ((this_._impl_._has_bits_[0] & 0x00000002u) != 0) {
+    if (!this_._internal_nickname().empty()) {
+      const ::std::string& _s = this_._internal_nickname();
+      ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+          _s.data(), static_cast<int>(_s.length()), ::google::protobuf::internal::WireFormatLite::SERIALIZE, "rcenter.v1.PlayerLoadout.nickname");
+      target = stream->WriteStringMaybeAliased(3, _s, target);
     }
   }
 
@@ -4731,17 +4826,24 @@ PROTOBUF_NOINLINE void PlayerLoadout::Clear() {
 
   ::_pbi::Prefetch5LinesFrom7Lines(&this_);
   cached_has_bits = this_._impl_._has_bits_[0];
-  if ((cached_has_bits & 0x00000003u) != 0) {
-    // string hero = 2;
+  if ((cached_has_bits & 0x00000007u) != 0) {
+      // string hero = 2;
     if ((cached_has_bits & 0x00000001u) != 0) {
       if (!this_._internal_hero().empty()) {
         total_size += 1 + ::google::protobuf::internal::WireFormatLite::StringSize(
                                         this_._internal_hero());
       }
     }
-    // int64 player_id = 1;
-    if ((cached_has_bits & 0x00000002u) != 0) {
-      if (this_._internal_player_id() != 0) {
+    // string nickname = 3;
+      if ((cached_has_bits & 0x00000002u) != 0) {
+          if (!this_._internal_nickname().empty()) {
+              total_size += 1 + ::google::protobuf::internal::WireFormatLite::StringSize(
+                  this_._internal_nickname());
+          }
+      }
+      // int64 player_id = 1;
+    if ((cached_has_bits & 0x00000004u) != 0) {
+        if (this_._internal_player_id() != 0) {
         total_size += ::_pbi::WireFormatLite::Int64SizePlusOne(
             this_._internal_player_id());
       }
@@ -4760,8 +4862,8 @@ void PlayerLoadout::MergeImpl(::google::protobuf::MessageLite& to_msg, const ::g
   (void) cached_has_bits;
 
   cached_has_bits = from._impl_._has_bits_[0];
-  if ((cached_has_bits & 0x00000003u) != 0) {
-    if ((cached_has_bits & 0x00000001u) != 0) {
+  if ((cached_has_bits & 0x00000007u) != 0) {
+      if ((cached_has_bits & 0x00000001u) != 0) {
       if (!from._internal_hero().empty()) {
         _this->_internal_set_hero(from._internal_hero());
       } else {
@@ -4771,7 +4873,16 @@ void PlayerLoadout::MergeImpl(::google::protobuf::MessageLite& to_msg, const ::g
       }
     }
     if ((cached_has_bits & 0x00000002u) != 0) {
-      if (from._internal_player_id() != 0) {
+      if (!from._internal_nickname().empty()) {
+          _this->_internal_set_nickname(from._internal_nickname());
+      } else {
+          if (_this->_impl_.nickname_.IsDefault()) {
+              _this->_internal_set_nickname("");
+          }
+      }
+      }
+      if ((cached_has_bits & 0x00000004u) != 0) {
+          if (from._internal_player_id() != 0) {
         _this->_impl_.player_id_ = from._impl_.player_id_;
       }
     }
@@ -4795,6 +4906,7 @@ void PlayerLoadout::InternalSwap(PlayerLoadout* PROTOBUF_RESTRICT PROTOBUF_NONNU
   _internal_metadata_.InternalSwap(&other->_internal_metadata_);
   swap(_impl_._has_bits_[0], other->_impl_._has_bits_[0]);
   ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.hero_, &other->_impl_.hero_, arena);
+  ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.nickname_, &other->_impl_.nickname_, arena);
   swap(_impl_.player_id_, other->_impl_.player_id_);
 }
 

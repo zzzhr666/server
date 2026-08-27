@@ -4,5 +4,6 @@ namespace battle {
     enum class MonsterKind {
         Melee,
         Ranged,
+        Boss,
     };
 }

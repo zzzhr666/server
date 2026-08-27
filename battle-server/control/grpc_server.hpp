@@ -7,6 +7,7 @@ namespace battle {
     /// @brief BattleControlServiceImpl 将 protobuf 控制 RPC 适配为 ControlHandler 调用。
     class BattleControlServiceImpl final : public v1::BattleControlService::Service {
     public:
+        /// @brief 使用控制面处理器创建 BattleControl gRPC 服务。
         explicit BattleControlServiceImpl(ControlHandler& handler);
 
         /// @brief 将 CreateRoom RPC 转换为房间预留请求及 protobuf 响应。

@@ -12,6 +12,7 @@ namespace battle {
         /// @brief 返回主机字节序端口号。
         [[nodiscard]] std::uint16_t port() const;
 
+        /// @brief 按地址族、IPv4 地址和端口比较两个端点。
         bool operator==(const UdpEndpoint& other) const {
             return addr.sin_family == other.addr.sin_family &&
                 addr.sin_addr.s_addr == other.addr.sin_addr.s_addr &&

@@ -377,6 +377,7 @@ class PlayerLoadout final : public ::google::protobuf::Message
   // accessors -------------------------------------------------------
   enum : int {
     kHeroFieldNumber = 2,
+    kNicknameFieldNumber = 7,
     kPlayerIdFieldNumber = 1,
     kAttackLevelFieldNumber = 3,
     kAttackSpeedLevelFieldNumber = 4,
@@ -398,6 +399,21 @@ class PlayerLoadout final : public ::google::protobuf::Message
   ::std::string* PROTOBUF_NONNULL _internal_mutable_hero();
 
   public:
+  // string nickname = 7;
+  void clear_nickname();
+  const ::std::string& nickname() const;
+  template <typename Arg_ = const ::std::string&, typename... Args_>
+  void set_nickname(Arg_&& arg, Args_... args);
+  ::std::string* PROTOBUF_NONNULL mutable_nickname();
+  [[nodiscard]] ::std::string* PROTOBUF_NULLABLE release_nickname();
+  void set_allocated_nickname(::std::string* PROTOBUF_NULLABLE value);
+
+private:
+  const ::std::string& _internal_nickname() const;
+  PROTOBUF_ALWAYS_INLINE void _internal_set_nickname(const ::std::string& value);
+  ::std::string* PROTOBUF_NONNULL _internal_mutable_nickname();
+
+public:
   // int64 player_id = 1;
   void clear_player_id() ;
   ::int64_t player_id() const;
@@ -452,9 +468,9 @@ class PlayerLoadout final : public ::google::protobuf::Message
  private:
   class _Internal;
   friend class ::google::protobuf::internal::TcParser;
-  static const ::google::protobuf::internal::TcParseTable<3, 6,
-                                   0, 36,
-                                   2>
+  static const ::google::protobuf::internal::TcParseTable<3, 7,
+                                                          0, 44,
+                                                          2>
       _table_;
 
   friend class ::google::protobuf::MessageLite;
@@ -475,6 +491,7 @@ class PlayerLoadout final : public ::google::protobuf::Message
     ::google::protobuf::internal::HasBits<1> _has_bits_;
     ::google::protobuf::internal::CachedSize _cached_size_;
     ::google::protobuf::internal::ArenaStringPtr hero_;
+    ::google::protobuf::internal::ArenaStringPtr nickname_;
     ::int64_t player_id_;
     ::int32_t attack_level_;
     ::int32_t attack_speed_level_;
@@ -2624,7 +2641,7 @@ inline void EndRoomResponse::set_allocated_message(::std::string* PROTOBUF_NULLA
 inline void PlayerLoadout::clear_player_id() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.player_id_ = ::int64_t{0};
-  _impl_._has_bits_[0] &= ~0x00000002u;
+  _impl_._has_bits_[0] &= ~0x00000004u;
 }
 inline ::int64_t PlayerLoadout::player_id() const {
   // @@protoc_insertion_point(field_get:battle.v1.PlayerLoadout.player_id)
@@ -2632,7 +2649,7 @@ inline ::int64_t PlayerLoadout::player_id() const {
 }
 inline void PlayerLoadout::set_player_id(::int64_t value) {
   _internal_set_player_id(value);
-  _impl_._has_bits_[0] |= 0x00000002u;
+  _impl_._has_bits_[0] |= 0x00000004u;
   // @@protoc_insertion_point(field_set:battle.v1.PlayerLoadout.player_id)
 }
 inline ::int64_t PlayerLoadout::_internal_player_id() const {
@@ -2713,7 +2730,7 @@ inline void PlayerLoadout::set_allocated_hero(::std::string* PROTOBUF_NULLABLE v
 inline void PlayerLoadout::clear_attack_level() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.attack_level_ = 0;
-  _impl_._has_bits_[0] &= ~0x00000004u;
+  _impl_._has_bits_[0] &= ~0x00000008u;
 }
 inline ::int32_t PlayerLoadout::attack_level() const {
   // @@protoc_insertion_point(field_get:battle.v1.PlayerLoadout.attack_level)
@@ -2721,7 +2738,7 @@ inline ::int32_t PlayerLoadout::attack_level() const {
 }
 inline void PlayerLoadout::set_attack_level(::int32_t value) {
   _internal_set_attack_level(value);
-  _impl_._has_bits_[0] |= 0x00000004u;
+  _impl_._has_bits_[0] |= 0x00000008u;
   // @@protoc_insertion_point(field_set:battle.v1.PlayerLoadout.attack_level)
 }
 inline ::int32_t PlayerLoadout::_internal_attack_level() const {
@@ -2737,7 +2754,7 @@ inline void PlayerLoadout::_internal_set_attack_level(::int32_t value) {
 inline void PlayerLoadout::clear_attack_speed_level() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.attack_speed_level_ = 0;
-  _impl_._has_bits_[0] &= ~0x00000008u;
+  _impl_._has_bits_[0] &= ~0x00000010u;
 }
 inline ::int32_t PlayerLoadout::attack_speed_level() const {
   // @@protoc_insertion_point(field_get:battle.v1.PlayerLoadout.attack_speed_level)
@@ -2745,7 +2762,7 @@ inline ::int32_t PlayerLoadout::attack_speed_level() const {
 }
 inline void PlayerLoadout::set_attack_speed_level(::int32_t value) {
   _internal_set_attack_speed_level(value);
-  _impl_._has_bits_[0] |= 0x00000008u;
+  _impl_._has_bits_[0] |= 0x00000010u;
   // @@protoc_insertion_point(field_set:battle.v1.PlayerLoadout.attack_speed_level)
 }
 inline ::int32_t PlayerLoadout::_internal_attack_speed_level() const {
@@ -2761,7 +2778,7 @@ inline void PlayerLoadout::_internal_set_attack_speed_level(::int32_t value) {
 inline void PlayerLoadout::clear_health_level() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.health_level_ = 0;
-  _impl_._has_bits_[0] &= ~0x00000010u;
+  _impl_._has_bits_[0] &= ~0x00000020u;
 }
 inline ::int32_t PlayerLoadout::health_level() const {
   // @@protoc_insertion_point(field_get:battle.v1.PlayerLoadout.health_level)
@@ -2769,7 +2786,7 @@ inline ::int32_t PlayerLoadout::health_level() const {
 }
 inline void PlayerLoadout::set_health_level(::int32_t value) {
   _internal_set_health_level(value);
-  _impl_._has_bits_[0] |= 0x00000010u;
+  _impl_._has_bits_[0] |= 0x00000020u;
   // @@protoc_insertion_point(field_set:battle.v1.PlayerLoadout.health_level)
 }
 inline ::int32_t PlayerLoadout::_internal_health_level() const {
@@ -2785,7 +2802,7 @@ inline void PlayerLoadout::_internal_set_health_level(::int32_t value) {
 inline void PlayerLoadout::clear_move_speed_level() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.move_speed_level_ = 0;
-  _impl_._has_bits_[0] &= ~0x00000020u;
+  _impl_._has_bits_[0] &= ~0x00000040u;
 }
 inline ::int32_t PlayerLoadout::move_speed_level() const {
   // @@protoc_insertion_point(field_get:battle.v1.PlayerLoadout.move_speed_level)
@@ -2793,7 +2810,7 @@ inline ::int32_t PlayerLoadout::move_speed_level() const {
 }
 inline void PlayerLoadout::set_move_speed_level(::int32_t value) {
   _internal_set_move_speed_level(value);
-  _impl_._has_bits_[0] |= 0x00000020u;
+  _impl_._has_bits_[0] |= 0x00000040u;
   // @@protoc_insertion_point(field_set:battle.v1.PlayerLoadout.move_speed_level)
 }
 inline ::int32_t PlayerLoadout::_internal_move_speed_level() const {
@@ -2803,6 +2820,81 @@ inline ::int32_t PlayerLoadout::_internal_move_speed_level() const {
 inline void PlayerLoadout::_internal_set_move_speed_level(::int32_t value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.move_speed_level_ = value;
+}
+
+// string nickname = 7;
+inline void PlayerLoadout::clear_nickname() {
+    ::google::protobuf::internal::TSanWrite(&_impl_);
+    _impl_.nickname_.ClearToEmpty();
+    _impl_._has_bits_[0] &= ~0x00000002u;
+}
+
+inline const ::std::string& PlayerLoadout::nickname() const
+
+ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    // @@protoc_insertion_point(field_get:battle.v1.PlayerLoadout.nickname)
+    return _internal_nickname();
+}
+
+template <typename Arg_, typename... Args_>
+PROTOBUF_ALWAYS_INLINE void PlayerLoadout::set_nickname(Arg_&& arg, Args_... args) {
+    ::google::protobuf::internal::TSanWrite(&_impl_);
+    _impl_._has_bits_[0] |= 0x00000002u;
+    _impl_.nickname_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
+    // @@protoc_insertion_point(field_set:battle.v1.PlayerLoadout.nickname)
+}
+
+inline ::std::string* PROTOBUF_NONNULL PlayerLoadout::mutable_nickname()
+
+ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    ::std::string* _s = _internal_mutable_nickname();
+    // @@protoc_insertion_point(field_mutable:battle.v1.PlayerLoadout.nickname)
+    return _s;
+}
+
+inline const ::std::string& PlayerLoadout::_internal_nickname() const {
+    ::google::protobuf::internal::TSanRead(&_impl_);
+    return _impl_.nickname_.Get();
+}
+
+inline void PlayerLoadout::_internal_set_nickname(const ::std::string& value) {
+    ::google::protobuf::internal::TSanWrite(&_impl_);
+    _impl_._has_bits_[0] |= 0x00000002u;
+    _impl_.nickname_.Set(value, GetArena());
+}
+
+inline ::std::string* PROTOBUF_NONNULL PlayerLoadout::_internal_mutable_nickname() {
+    ::google::protobuf::internal::TSanWrite(&_impl_);
+    _impl_._has_bits_[0] |= 0x00000002u;
+    return _impl_.nickname_.Mutable(GetArena());
+}
+
+inline ::std::string* PROTOBUF_NULLABLE PlayerLoadout::release_nickname() {
+    ::google::protobuf::internal::TSanWrite(&_impl_);
+    // @@protoc_insertion_point(field_release:battle.v1.PlayerLoadout.nickname)
+    if ((_impl_._has_bits_[0] & 0x00000002u) == 0) {
+        return nullptr;
+    }
+    _impl_._has_bits_[0] &= ~0x00000002u;
+    auto* released = _impl_.nickname_.Release();
+    if (::google::protobuf::internal::DebugHardenForceCopyDefaultString()) {
+        _impl_.nickname_.Set("", GetArena());
+    }
+    return released;
+}
+
+inline void PlayerLoadout::set_allocated_nickname(::std::string * PROTOBUF_NULLABLE value) {
+    ::google::protobuf::internal::TSanWrite(&_impl_);
+    if (value != nullptr) {
+        _impl_._has_bits_[0] |= 0x00000002u;
+    } else {
+        _impl_._has_bits_[0] &= ~0x00000002u;
+    }
+    _impl_.nickname_.SetAllocated(value, GetArena());
+    if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.nickname_.IsDefault()) {
+        _impl_.nickname_.Set("", GetArena());
+    }
+    // @@protoc_insertion_point(field_set_allocated:battle.v1.PlayerLoadout.nickname)
 }
 
 #ifdef __GNUC__

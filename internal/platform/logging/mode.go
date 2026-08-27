@@ -12,6 +12,7 @@ const (
 	ReleaseMode
 )
 
+// String 返回日志运行模式的规范名称。
 func (m Mode) String() string {
 	switch m {
 	case DebugMode:

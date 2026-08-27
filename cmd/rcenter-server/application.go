@@ -70,6 +70,7 @@ func newApplication(cfg config.Config) (*application, error) {
 	}, nil
 }
 
+// Run 启动 rcenter-server 的 gRPC 服务并阻塞至服务退出。
 func (app *application) Run(ctx context.Context) error {
 	services := lifecycle.NewGroup(ctx, 2)
 	services.Go("metrics server", func(context.Context) error {
@@ -113,6 +114,7 @@ func (app *application) shutdownServers(ctx context.Context) error {
 	return errors.Join(grpcErr, <-metricsErr)
 }
 
+// Close 关闭 rcenter-server 持有的监听器与外部客户端。
 func (app *application) Close() error {
 	app.grpcServer.Stop()
 	listenerErr := app.grpcListener.Close()
