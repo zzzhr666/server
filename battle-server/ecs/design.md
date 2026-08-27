@@ -24,7 +24,7 @@
 | --- | --- | --- |
 | `Transform` | position、direction | 位置和朝向 |
 | `Velocity` | x、y | 当前移动速度 |
-| `MoveRequest`、`MoveIntent` | x、y | 客户端移动请求与归一化后的意图 |
+| `MoveRequest`、`MoveIntent` | x、y | 客户端移动请求与归一化后的移动向量 |
 | `CharacterStats` | move_speed | 移速 |
 | `PlayerController` | 标记组件 | 玩家实体身份 |
 | `MonsterController`、`MonsterIdentity` | kind | 怪物身份和种类 |
@@ -36,7 +36,7 @@
 | --- | --- | --- |
 | `Health` | current_health、max_health | 生命和死亡判定 |
 | `AttackDefinition` | kind、damage、range、cooldown、projectile 参数 | 英雄或怪物基础攻击 |
-| `AttackRequest`、`AttackState` | requested、阶段、攻击上下文、投射物首帧状态 | 输入、攻击时间轴与投射物生成 |
+| `AttackRequest`、`AttackState` | requested、阶段、攻击上下文、投射物首帧状态 | 输入、攻击时间轴与投射物生成；攻击不使用独立意图组件 |
 | `AttackCooldown` | remaining_seconds | 攻击冷却 |
 | `Dash`、`DashIntent`、`DashCooldown` | 倍率、剩余时间 | 冲刺规则 |
 | `Projectile` | damage、distance、hit_radius、context | 投射物状态 |
@@ -51,7 +51,7 @@
 
 障碍物使用圆形碰撞体阻挡玩家和怪物。陷阱也有圆形范围，但保持可通行，只用于检测进入或持续停留。
 
-攻击上下文携带 owner、emitter、action state 和 effect ID，用于保证一轮攻击内的闪电链等 proc 不重复触发。
+攻击请求由 `AttackRequest` 直接进入 `attack_resolve_system`，再由 `AttackState` 保存权威动作阶段；当前没有独立的 `AttackIntent` 组件。攻击上下文携带 owner、emitter、action state 和 effect ID，用于保证一轮攻击内的闪电链等 proc 不重复触发。
 
 ### 成长与祝福
 
