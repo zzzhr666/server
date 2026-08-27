@@ -157,6 +157,27 @@ namespace {
         case battle::BlessingID::ChainLightning: {
             return battle::v1::BLESSING_ID_CHAIN_LIGHTNING;
         }
+        case battle::BlessingID::Frenzy: {
+            return battle::v1::BLESSING_ID_FRENZY;
+        }
+        case battle::BlessingID::Swift: {
+            return battle::v1::BLESSING_ID_SWIFT;
+        }
+        case battle::BlessingID::Toughness: {
+            return battle::v1::BLESSING_ID_TOUGHNESS;
+        }
+        case battle::BlessingID::HeavyStrike: {
+            return battle::v1::BLESSING_ID_HEAVY_STRIKE;
+        }
+        case battle::BlessingID::ArmorBreak: {
+            return battle::v1::BLESSING_ID_ARMOR_BREAK;
+        }
+        case battle::BlessingID::Revenge: {
+            return battle::v1::BLESSING_ID_REVENGE;
+        }
+        case battle::BlessingID::SoulHarvest: {
+            return battle::v1::BLESSING_ID_SOUL_HARVEST;
+        }
         default: {
             return battle::v1::BLESSING_ID_UNSPECIFIED;
         }
@@ -224,6 +245,10 @@ namespace {
         send_pkg->set_current_room_id(snapshot.current_room_id);
         send_pkg->set_room_state(to_proto_room_flow_state(snapshot.room_state));
         send_pkg->set_current_room_layout_id(snapshot.current_room_layout_id);
+        send_pkg->mutable_world_bounds()->set_min_x(snapshot.world_bounds.min_x);
+        send_pkg->mutable_world_bounds()->set_max_x(snapshot.world_bounds.max_x);
+        send_pkg->mutable_world_bounds()->set_min_y(snapshot.world_bounds.min_y);
+        send_pkg->mutable_world_bounds()->set_max_y(snapshot.world_bounds.max_y);
         for (const auto exit_id : snapshot.available_room_exit_ids) {
             send_pkg->add_available_room_exit_ids(exit_id);
         }

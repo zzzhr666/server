@@ -90,6 +90,7 @@ namespace battle {
     /// @brief Room 保存不可变的准入信息以及当前已加入的玩家。
     class Room {
     public:
+        /// @brief 根据控制面创建请求冻结房间令牌、玩家名单与负载配置。
         explicit Room(CreateRoomRequest request);
 
         /// @brief 返回房间的全局唯一名称。

@@ -2,8 +2,37 @@
 
 #include <vector>
 
+#include "blessing_config.hpp"
+#include "blessing_helpers.hpp"
 #include "ecs/world.hpp"
 #include "ecs/entity/entity.hpp"
+
+namespace {
+    void apply_armor_break(battle::ecs::World& world, battle::ecs::Entity source, battle::ecs::Entity target) {
+        const auto* blessing = battle::ecs::find_blessing(world, source, battle::BlessingID::ArmorBreak);
+        auto* effects = world.registry().try_get<battle::ecs::StatusEffects>(target);
+        if (!blessing || !effects) {
+            return;
+        }
+        const int armor_break_num = battle::ecs::armor_break_armors(blessing->level);
+        if (effects->armor_break.has_value()) {
+            auto& status = effects->armor_break.value();
+            if (status.armor_decreased) {
+                if (auto* stats = world.registry().try_get<battle::ecs::CharacterStats>(target)) {
+                    stats->armor += status.armor_break_number - armor_break_num;
+                }
+            }
+            status.armor_break_number = armor_break_num;
+            status.remaining_seconds = battle::gameplay_config::blessing::armor_break::Duration;
+            return;
+        }
+        effects->armor_break = battle::ecs::ArmorBreakStatus{
+            .remaining_seconds = battle::gameplay_config::blessing::armor_break::Duration,
+            .armor_break_number = armor_break_num,
+            .armor_decreased = false,
+        };
+    }
+}
 
 void battle::ecs::projectile_hit_system(World& world, DeltaTime) {
     std::vector<Entity> entities_to_erase;
@@ -29,6 +58,7 @@ void battle::ecs::projectile_hit_system(World& world, DeltaTime) {
             const float radius_sum = collider->radius + target_collider->radius;
             if (distance_squared <= radius_sum * radius_sum) {
                 if (target_collider->category != CollisionCategory::Obstacle) {
+                    apply_armor_break(world, projectile->context.owner, target);
                     world.add_damage_event(DamageEvent{
                         .source = projectile->context.owner,
                         .target = target,

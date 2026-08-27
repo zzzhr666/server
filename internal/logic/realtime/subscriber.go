@@ -22,6 +22,7 @@ func newSubscriber(serverName string, client state.RealtimeClient, manager *conn
 	}
 }
 
+// Run 持续消费 state-server 的实时投递，直到 Context 取消或订阅失败。
 func (s *subscriber) Run(ctx context.Context) error {
 	serverRoute := state.RealtimeRoute{Type: state.RealtimeRouteServer, ServerName: s.serverName}
 	broadcastRoute := state.RealtimeRoute{Type: state.RealtimeRouteBroadcast}

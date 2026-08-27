@@ -37,5 +37,6 @@ namespace battle::ecs {
         std::vector<MapCostZone> cost_zones;
     };
 
+    /// @brief 返回 battle-server 的默认地图边界与网格配置。
     MapConfig DefaultMapConfig();
 }

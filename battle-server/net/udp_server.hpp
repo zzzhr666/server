@@ -16,6 +16,7 @@ namespace battle {
     /// @brief UdpServer 负责 UDP 包收发、协议分发和会话入口，不包含玩法规则。
     class UdpServer {
     public:
+        /// @brief 使用监听地址、会话管理器和指标收集器创建 UDP 服务。
         UdpServer(std::string listen_addr, SessionManager& session_manager, BattleMetrics& metrics);
 
         /// @brief 注入处理输入、快照和房间生命周期的运行时。

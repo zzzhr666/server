@@ -207,6 +207,10 @@ class ShopOffer;
 struct ShopOfferDefaultTypeInternal;
 extern ShopOfferDefaultTypeInternal _ShopOffer_default_instance_;
 extern const ::google::protobuf::internal::ClassDataFull ShopOffer_class_data_;
+class WorldBounds;
+struct WorldBoundsDefaultTypeInternal;
+extern WorldBoundsDefaultTypeInternal _WorldBounds_default_instance_;
+extern const ::google::protobuf::internal::ClassDataFull WorldBounds_class_data_;
 class WorldSnapshot;
 struct WorldSnapshotDefaultTypeInternal;
 extern WorldSnapshotDefaultTypeInternal _WorldSnapshot_default_instance_;
@@ -327,6 +331,13 @@ enum BlessingId : int {
   BLESSING_ID_FREEZE_ON_HIT = 3,
   BLESSING_ID_CRITICAL_STRIKE = 4,
   BLESSING_ID_CHAIN_LIGHTNING = 5,
+  BLESSING_ID_FRENZY = 6,
+  BLESSING_ID_SWIFT = 7,
+  BLESSING_ID_TOUGHNESS = 8,
+  BLESSING_ID_HEAVY_STRIKE = 9,
+  BLESSING_ID_ARMOR_BREAK = 10,
+  BLESSING_ID_REVENGE = 11,
+  BLESSING_ID_SOUL_HARVEST = 12,
   BlessingId_INT_MIN_SENTINEL_DO_NOT_USE_ =
       ::std::numeric_limits<::int32_t>::min(),
   BlessingId_INT_MAX_SENTINEL_DO_NOT_USE_ =
@@ -337,11 +348,12 @@ extern const uint32_t BlessingId_internal_data_[];
 inline constexpr BlessingId BlessingId_MIN =
     static_cast<BlessingId>(0);
 inline constexpr BlessingId BlessingId_MAX =
-    static_cast<BlessingId>(5);
+    static_cast<BlessingId>(12);
+
 inline bool BlessingId_IsValid(int value) {
-  return 0 <= value && value <= 5;
+  return 0 <= value && value <= 12;
 }
-inline constexpr int BlessingId_ARRAYSIZE = 5 + 1;
+inline constexpr int BlessingId_ARRAYSIZE = 12 + 1;
 const ::google::protobuf::EnumDescriptor* PROTOBUF_NONNULL BlessingId_descriptor();
 template <typename T>
 const ::std::string& BlessingId_Name(T value) {
@@ -352,7 +364,7 @@ const ::std::string& BlessingId_Name(T value) {
 }
 template <>
 inline const ::std::string& BlessingId_Name(BlessingId value) {
-  return ::google::protobuf::internal::NameOfDenseEnum<BlessingId_descriptor, 0, 5>(
+  return ::google::protobuf::internal::NameOfDenseEnum < BlessingId_descriptor, 0, 12 > (
       static_cast<int>(value));
 }
 inline bool BlessingId_Parse(
@@ -482,6 +494,270 @@ inline bool ShopBuffKind_Parse(
 
 // -------------------------------------------------------------------
 
+class WorldBounds final : public ::google::protobuf::Message
+    /* @@protoc_insertion_point(class_definition:battle.v1.WorldBounds) */ {
+public:
+    inline WorldBounds() : WorldBounds(nullptr) {}
+    ~WorldBounds() PROTOBUF_FINAL;
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    void operator delete(WorldBounds* PROTOBUF_NONNULL msg, std::destroying_delete_t) {
+        SharedDtor(*msg);
+        ::google::protobuf::internal::SizedDelete(msg, sizeof(WorldBounds));
+    }
+#endif
+
+    template <typename = void>
+    explicit PROTOBUF_CONSTEXPR WorldBounds(::google::protobuf::internal::ConstantInitialized);
+
+    inline WorldBounds(const WorldBounds& from) : WorldBounds(nullptr, from) {}
+
+    inline WorldBounds(WorldBounds&& from) noexcept
+        : WorldBounds(nullptr, ::std::move(from)) {}
+
+    inline WorldBounds& operator=(const WorldBounds& from) {
+        CopyFrom(from);
+        return *this;
+    }
+
+    inline WorldBounds& operator=(WorldBounds&& from) noexcept {
+        if (this == &from) return *this;
+        if (::google::protobuf::internal::CanMoveWithInternalSwap(GetArena(), from.GetArena())) {
+            InternalSwap(&from);
+        } else {
+            CopyFrom(from);
+        }
+        return *this;
+    }
+
+    inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const
+
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+        return _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(
+            ::google::protobuf::UnknownFieldSet::default_instance);
+    }
+
+    inline ::google::protobuf::UnknownFieldSet* PROTOBUF_NONNULL mutable_unknown_fields()
+
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+        return _internal_metadata_.mutable_unknown_fields<::google::protobuf::UnknownFieldSet>();
+    }
+
+    static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL descriptor() {
+        return GetDescriptor();
+    }
+
+    static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL GetDescriptor() {
+        return default_instance().GetMetadata().descriptor;
+    }
+
+    static const ::google::protobuf::Reflection* PROTOBUF_NONNULL GetReflection() {
+        return default_instance().GetMetadata().reflection;
+    }
+
+    static const WorldBounds& default_instance() {
+        return *reinterpret_cast<const WorldBounds*>(
+            &_WorldBounds_default_instance_);
+    }
+
+    static constexpr int kIndexInFileMessages = 11;
+
+    friend void swap(WorldBounds& a, WorldBounds& b) {
+        a.Swap(&b);
+    }
+
+    inline void Swap(WorldBounds* PROTOBUF_NONNULL other) {
+        if (other == this) return;
+        if (::google::protobuf::internal::CanUseInternalSwap(GetArena(), other->GetArena())) {
+            InternalSwap(other);
+        } else {
+            ::google::protobuf::internal::GenericSwap(this, other);
+        }
+    }
+
+    void UnsafeArenaSwap(WorldBounds* PROTOBUF_NONNULL other) {
+        if (other == this) return;
+        ABSL_DCHECK(GetArena() == other->GetArena());
+        InternalSwap(other);
+    }
+
+    // implements Message ----------------------------------------------
+
+    WorldBounds* PROTOBUF_NONNULL New(::google::protobuf::Arena* PROTOBUF_NULLABLE arena = nullptr) const {
+        return ::google::protobuf::Message::DefaultConstruct<WorldBounds>(arena);
+    }
+
+    using ::google::protobuf::Message::CopyFrom;
+    void CopyFrom(const WorldBounds& from);
+    using ::google::protobuf::Message::MergeFrom;
+
+    void MergeFrom(const WorldBounds& from) {
+        WorldBounds::MergeImpl(*this, from);
+    }
+
+private:
+    static void MergeImpl(::google::protobuf::MessageLite& to_msg,
+                          const ::google::protobuf::MessageLite& from_msg);
+
+public:
+    bool IsInitialized() const {
+        return true;
+    }
+
+  ABSL_ATTRIBUTE_REINITIALIZES void Clear() PROTOBUF_FINAL;
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+private:
+    static ::size_t ByteSizeLong(const ::google::protobuf::MessageLite& msg);
+    static ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+        const ::google::protobuf::MessageLite& msg, ::uint8_t* PROTOBUF_NONNULL target,
+        ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream);
+
+public:
+    ::size_t ByteSizeLong() const {
+        return ByteSizeLong(*this);
+    }
+    ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+        ::uint8_t* PROTOBUF_NONNULL target,
+        ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+        return _InternalSerialize(*this, target, stream);
+    }
+#else   // PROTOBUF_CUSTOM_VTABLE
+    ::size_t ByteSizeLong() const final;
+    ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+        ::uint8_t* PROTOBUF_NONNULL target,
+        ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const final;
+#endif  // PROTOBUF_CUSTOM_VTABLE
+    int GetCachedSize() const {
+        return _impl_._cached_size_.Get();
+    }
+
+private:
+    void SharedCtor(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+    static void SharedDtor(MessageLite& self);
+    void InternalSwap(WorldBounds* PROTOBUF_NONNULL other);
+
+private:
+    template <typename T>
+    friend ::absl::string_view (::google::protobuf::internal::GetAnyMessageName)();
+
+    static ::absl::string_view FullMessageName() {
+        return "battle.v1.WorldBounds";
+    }
+
+protected:
+    explicit WorldBounds(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+    WorldBounds(::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const WorldBounds& from);
+
+    WorldBounds(
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, WorldBounds&& from) noexcept
+        : WorldBounds(arena) {
+        *this = ::std::move(from);
+    }
+
+    const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL GetClassData() const PROTOBUF_FINAL;
+    static void* PROTOBUF_NONNULL PlacementNew_(
+        const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+    static constexpr auto InternalNewImpl_();
+
+public:
+    static constexpr auto InternalGenerateClassData_();
+
+    ::google::protobuf::Metadata GetMetadata() const;
+    // nested types ----------------------------------------------------
+
+    // accessors -------------------------------------------------------
+    enum : int {
+        kMinXFieldNumber = 1,
+        kMaxXFieldNumber = 2,
+        kMinYFieldNumber = 3,
+        kMaxYFieldNumber = 4,
+    };
+
+    // float min_x = 1;
+    void clear_min_x();
+    float min_x() const;
+    void set_min_x(float value);
+
+private:
+    float _internal_min_x() const;
+    void _internal_set_min_x(float value);
+
+public:
+    // float max_x = 2;
+    void clear_max_x();
+    float max_x() const;
+    void set_max_x(float value);
+
+private:
+    float _internal_max_x() const;
+    void _internal_set_max_x(float value);
+
+public:
+    // float min_y = 3;
+    void clear_min_y();
+    float min_y() const;
+    void set_min_y(float value);
+
+private:
+    float _internal_min_y() const;
+    void _internal_set_min_y(float value);
+
+public:
+    // float max_y = 4;
+    void clear_max_y();
+    float max_y() const;
+    void set_max_y(float value);
+
+private:
+    float _internal_max_y() const;
+    void _internal_set_max_y(float value);
+
+public:
+    // @@protoc_insertion_point(class_scope:battle.v1.WorldBounds)
+private:
+    class _Internal;
+    friend class ::google::protobuf::internal::TcParser;
+    static const ::google::protobuf::internal::TcParseTable<2, 4,
+                                                            0, 0,
+                                                            2>
+    _table_;
+
+    friend class ::google::protobuf::MessageLite;
+    friend class ::google::protobuf::Arena;
+    template <typename T>
+    friend class ::google::protobuf::Arena::InternalHelper;
+    using InternalArenaConstructable_ = void;
+    using DestructorSkippable_ = void;
+
+    struct Impl_ {
+        inline explicit constexpr Impl_(::google::protobuf::internal::ConstantInitialized) noexcept;
+        inline explicit Impl_(
+            ::google::protobuf::internal::InternalVisibility visibility,
+            ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+        inline explicit Impl_(
+            ::google::protobuf::internal::InternalVisibility visibility,
+            ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
+            const WorldBounds& from_msg);
+        ::google::protobuf::internal::HasBits<1> _has_bits_;
+        ::google::protobuf::internal::CachedSize _cached_size_;
+        float min_x_;
+        float max_x_;
+        float min_y_;
+        float max_y_;
+        PROTOBUF_TSAN_DECLARE_MEMBER
+    };
+
+    union {
+        Impl_ _impl_;
+    };
+
+    friend struct ::TableStruct_proto_2fbattle_2fv1_2fsession_2eproto;
+};
+
+extern const ::google::protobuf::internal::ClassDataFull WorldBounds_class_data_;
+// -------------------------------------------------------------------
+
 class ShopOffer final : public ::google::protobuf::Message
 /* @@protoc_insertion_point(class_definition:battle.v1.ShopOffer) */ {
  public:
@@ -537,7 +813,7 @@ class ShopOffer final : public ::google::protobuf::Message
     return *reinterpret_cast<const ShopOffer*>(
         &_ShopOffer_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 30;
+  static constexpr int kIndexInFileMessages = 31;
   friend void swap(ShopOffer& a, ShopOffer& b) { a.Swap(&b); }
   inline void Swap(ShopOffer* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -740,7 +1016,7 @@ class ShopBuff final : public ::google::protobuf::Message
     return *reinterpret_cast<const ShopBuff*>(
         &_ShopBuff_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 33;
+  static constexpr int kIndexInFileMessages = 34;
   friend void swap(ShopBuff& a, ShopBuff& b) { a.Swap(&b); }
   inline void Swap(ShopBuff* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -1151,7 +1427,7 @@ class SelectRoomExit final : public ::google::protobuf::Message
     return *reinterpret_cast<const SelectRoomExit*>(
         &_SelectRoomExit_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 24;
+  static constexpr int kIndexInFileMessages = 25;
   friend void swap(SelectRoomExit& a, SelectRoomExit& b) { a.Swap(&b); }
   inline void Swap(SelectRoomExit* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -1371,7 +1647,7 @@ class RoomEnteredEvent final : public ::google::protobuf::Message
     return *reinterpret_cast<const RoomEnteredEvent*>(
         &_RoomEnteredEvent_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 26;
+  static constexpr int kIndexInFileMessages = 27;
   friend void swap(RoomEnteredEvent& a, RoomEnteredEvent& b) { a.Swap(&b); }
   inline void Swap(RoomEnteredEvent* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -1579,7 +1855,7 @@ class RoomClearedEvent final : public ::google::protobuf::Message
     return *reinterpret_cast<const RoomClearedEvent*>(
         &_RoomClearedEvent_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 25;
+  static constexpr int kIndexInFileMessages = 26;
   friend void swap(RoomClearedEvent& a, RoomClearedEvent& b) { a.Swap(&b); }
   inline void Swap(RoomClearedEvent* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -1770,7 +2046,7 @@ class PurchaseShopItem final : public ::google::protobuf::Message
     return *reinterpret_cast<const PurchaseShopItem*>(
         &_PurchaseShopItem_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 29;
+  static constexpr int kIndexInFileMessages = 30;
   friend void swap(PurchaseShopItem& a, PurchaseShopItem& b) { a.Swap(&b); }
   inline void Swap(PurchaseShopItem* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -2193,7 +2469,7 @@ class PlayerSoulSnapshot final : public ::google::protobuf::Message
     return *reinterpret_cast<const PlayerSoulSnapshot*>(
         &_PlayerSoulSnapshot_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 31;
+  static constexpr int kIndexInFileMessages = 32;
   friend void swap(PlayerSoulSnapshot& a, PlayerSoulSnapshot& b) { a.Swap(&b); }
   inline void Swap(PlayerSoulSnapshot* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -2396,7 +2672,7 @@ class PlayerRoomExitChoiceSnapshot final : public ::google::protobuf::Message
     return *reinterpret_cast<const PlayerRoomExitChoiceSnapshot*>(
         &_PlayerRoomExitChoiceSnapshot_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 20;
+  static constexpr int kIndexInFileMessages = 21;
   friend void swap(PlayerRoomExitChoiceSnapshot& a, PlayerRoomExitChoiceSnapshot& b) { a.Swap(&b); }
   inline void Swap(PlayerRoomExitChoiceSnapshot* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -2599,7 +2875,7 @@ class PlayerPurchasedShopItemsSnapshot final : public ::google::protobuf::Messag
     return *reinterpret_cast<const PlayerPurchasedShopItemsSnapshot*>(
         &_PlayerPurchasedShopItemsSnapshot_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 35;
+  static constexpr int kIndexInFileMessages = 36;
   friend void swap(PlayerPurchasedShopItemsSnapshot& a, PlayerPurchasedShopItemsSnapshot& b) { a.Swap(&b); }
   inline void Swap(PlayerPurchasedShopItemsSnapshot* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -2811,7 +3087,7 @@ class PlayerProgressSnapshot final : public ::google::protobuf::Message
     return *reinterpret_cast<const PlayerProgressSnapshot*>(
         &_PlayerProgressSnapshot_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 13;
+  static constexpr int kIndexInFileMessages = 14;
   friend void swap(PlayerProgressSnapshot& a, PlayerProgressSnapshot& b) { a.Swap(&b); }
   inline void Swap(PlayerProgressSnapshot* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -3050,7 +3326,7 @@ class PlayerFreeRewardState final : public ::google::protobuf::Message
     return *reinterpret_cast<const PlayerFreeRewardState*>(
         &_PlayerFreeRewardState_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 27;
+  static constexpr int kIndexInFileMessages = 28;
   friend void swap(PlayerFreeRewardState& a, PlayerFreeRewardState& b) { a.Swap(&b); }
   inline void Swap(PlayerFreeRewardState* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -3265,7 +3541,7 @@ class PlayerCombatStatsSnapshot final : public ::google::protobuf::Message
     return *reinterpret_cast<const PlayerCombatStatsSnapshot*>(
         &_PlayerCombatStatsSnapshot_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 32;
+  static constexpr int kIndexInFileMessages = 33;
   friend void swap(PlayerCombatStatsSnapshot& a, PlayerCombatStatsSnapshot& b) { a.Swap(&b); }
   inline void Swap(PlayerCombatStatsSnapshot* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -3504,7 +3780,7 @@ class PlayerBlessingSnapshot final : public ::google::protobuf::Message
     return *reinterpret_cast<const PlayerBlessingSnapshot*>(
         &_PlayerBlessingSnapshot_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 15;
+  static constexpr int kIndexInFileMessages = 16;
   friend void swap(PlayerBlessingSnapshot& a, PlayerBlessingSnapshot& b) { a.Swap(&b); }
   inline void Swap(PlayerBlessingSnapshot* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -4345,7 +4621,7 @@ class Direction final : public ::google::protobuf::Message
     return *reinterpret_cast<const Direction*>(
         &_Direction_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 11;
+  static constexpr int kIndexInFileMessages = 12;
   friend void swap(Direction& a, Direction& b) { a.Swap(&b); }
   inline void Swap(Direction* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -4773,7 +5049,7 @@ class ClientHeartbeat final : public ::google::protobuf::Message
     return *reinterpret_cast<const ClientHeartbeat*>(
         &_ClientHeartbeat_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 23;
+  static constexpr int kIndexInFileMessages = 24;
   friend void swap(ClientHeartbeat& a, ClientHeartbeat& b) { a.Swap(&b); }
   inline void Swap(ClientHeartbeat* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -4981,7 +5257,7 @@ class ChooseFreeReward final : public ::google::protobuf::Message
     return *reinterpret_cast<const ChooseFreeReward*>(
         &_ChooseFreeReward_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 28;
+  static constexpr int kIndexInFileMessages = 29;
   friend void swap(ChooseFreeReward& a, ChooseFreeReward& b) { a.Swap(&b); }
   inline void Swap(ChooseFreeReward* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -5201,7 +5477,7 @@ class ChooseBlessing final : public ::google::protobuf::Message
     return *reinterpret_cast<const ChooseBlessing*>(
         &_ChooseBlessing_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 22;
+  static constexpr int kIndexInFileMessages = 23;
   friend void swap(ChooseBlessing& a, ChooseBlessing& b) { a.Swap(&b); }
   inline void Swap(ChooseBlessing* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -5421,7 +5697,7 @@ class BlessingOptionSnapshot final : public ::google::protobuf::Message
     return *reinterpret_cast<const BlessingOptionSnapshot*>(
         &_BlessingOptionSnapshot_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 14;
+  static constexpr int kIndexInFileMessages = 15;
   friend void swap(BlessingOptionSnapshot& a, BlessingOptionSnapshot& b) { a.Swap(&b); }
   inline void Swap(BlessingOptionSnapshot* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -5624,7 +5900,7 @@ class ShopItemDefinition final : public ::google::protobuf::Message
     return *reinterpret_cast<const ShopItemDefinition*>(
         &_ShopItemDefinition_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 34;
+  static constexpr int kIndexInFileMessages = 35;
   friend void swap(ShopItemDefinition& a, ShopItemDefinition& b) { a.Swap(&b); }
   inline void Swap(ShopItemDefinition* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -5851,7 +6127,7 @@ class PlayerBlessingStateSnapshot final : public ::google::protobuf::Message
     return *reinterpret_cast<const PlayerBlessingStateSnapshot*>(
         &_PlayerBlessingStateSnapshot_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 16;
+  static constexpr int kIndexInFileMessages = 17;
   friend void swap(PlayerBlessingStateSnapshot& a, PlayerBlessingStateSnapshot& b) { a.Swap(&b); }
   inline void Swap(PlayerBlessingStateSnapshot* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -6302,7 +6578,7 @@ class EntitySnapshot final : public ::google::protobuf::Message
     return *reinterpret_cast<const EntitySnapshot*>(
         &_EntitySnapshot_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 12;
+  static constexpr int kIndexInFileMessages = 13;
   friend void swap(EntitySnapshot& a, EntitySnapshot& b) { a.Swap(&b); }
   inline void Swap(EntitySnapshot* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -6713,7 +6989,7 @@ class DeathEvent final : public ::google::protobuf::Message
     return *reinterpret_cast<const DeathEvent*>(
         &_DeathEvent_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 18;
+  static constexpr int kIndexInFileMessages = 19;
   friend void swap(DeathEvent& a, DeathEvent& b) { a.Swap(&b); }
   inline void Swap(DeathEvent* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -7228,7 +7504,7 @@ class AttackEvent final : public ::google::protobuf::Message
     return *reinterpret_cast<const AttackEvent*>(
         &_AttackEvent_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 17;
+  static constexpr int kIndexInFileMessages = 18;
   friend void swap(AttackEvent& a, AttackEvent& b) { a.Swap(&b); }
   inline void Swap(AttackEvent* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -8119,7 +8395,7 @@ class BattleEvent final : public ::google::protobuf::Message
     kRoomEntered = 5,
     PAYLOAD_NOT_SET = 0,
   };
-  static constexpr int kIndexInFileMessages = 19;
+  static constexpr int kIndexInFileMessages = 20;
   friend void swap(BattleEvent& a, BattleEvent& b) { a.Swap(&b); }
   inline void Swap(BattleEvent* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -8407,7 +8683,7 @@ class WorldSnapshot final : public ::google::protobuf::Message
     return *reinterpret_cast<const WorldSnapshot*>(
         &_WorldSnapshot_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 21;
+  static constexpr int kIndexInFileMessages = 22;
   friend void swap(WorldSnapshot& a, WorldSnapshot& b) { a.Swap(&b); }
   inline void Swap(WorldSnapshot* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -8509,6 +8785,7 @@ class WorldSnapshot final : public ::google::protobuf::Message
     kPlayerCombatStatsFieldNumber = 21,
     kRoomNameFieldNumber = 1,
     kCurrentRoomLayoutIdFieldNumber = 15,
+    kWorldBoundsFieldNumber = 22,
     kRewardSelectionRemainingSecondsFieldNumber = 5,
     kTickRateFieldNumber = 10,
     kServerTickFieldNumber = 8,
@@ -8750,6 +9027,21 @@ class WorldSnapshot final : public ::google::protobuf::Message
   ::std::string* PROTOBUF_NONNULL _internal_mutable_current_room_layout_id();
 
   public:
+  // .battle.v1.WorldBounds world_bounds = 22;
+  bool has_world_bounds() const;
+  void clear_world_bounds();
+  const ::battle::v1::WorldBounds& world_bounds() const;
+  [[nodiscard]] ::battle::v1::WorldBounds* PROTOBUF_NULLABLE release_world_bounds();
+  ::battle::v1::WorldBounds* PROTOBUF_NONNULL mutable_world_bounds();
+  void set_allocated_world_bounds(::battle::v1::WorldBounds* PROTOBUF_NULLABLE value);
+  void unsafe_arena_set_allocated_world_bounds(::battle::v1::WorldBounds* PROTOBUF_NULLABLE value);
+  ::battle::v1::WorldBounds* PROTOBUF_NULLABLE unsafe_arena_release_world_bounds();
+
+private:
+  const ::battle::v1::WorldBounds& _internal_world_bounds() const;
+  ::battle::v1::WorldBounds* PROTOBUF_NONNULL _internal_mutable_world_bounds();
+
+public:
   // float reward_selection_remaining_seconds = 5;
   void clear_reward_selection_remaining_seconds() ;
   float reward_selection_remaining_seconds() const;
@@ -8804,9 +9096,9 @@ class WorldSnapshot final : public ::google::protobuf::Message
  private:
   class _Internal;
   friend class ::google::protobuf::internal::TcParser;
-  static const ::google::protobuf::internal::TcParseTable<5, 19,
-                                   11, 79,
-                                   2>
+  static const ::google::protobuf::internal::TcParseTable<5, 20,
+                                                          12, 79,
+                                                          2>
       _table_;
 
   friend class ::google::protobuf::MessageLite;
@@ -8841,6 +9133,7 @@ class WorldSnapshot final : public ::google::protobuf::Message
     ::google::protobuf::RepeatedPtrField< ::battle::v1::PlayerCombatStatsSnapshot > player_combat_stats_;
     ::google::protobuf::internal::ArenaStringPtr room_name_;
     ::google::protobuf::internal::ArenaStringPtr current_room_layout_id_;
+    ::battle::v1::WorldBounds* PROTOBUF_NULLABLE world_bounds_;
     float reward_selection_remaining_seconds_;
     ::uint32_t tick_rate_;
     ::uint64_t server_tick_;
@@ -11387,6 +11680,122 @@ inline void Position::_internal_set_y(float value) {
 
 // -------------------------------------------------------------------
 
+// WorldBounds
+
+// float min_x = 1;
+inline void WorldBounds::clear_min_x() {
+    ::google::protobuf::internal::TSanWrite(&_impl_);
+    _impl_.min_x_ = 0;
+    _impl_._has_bits_[0] &= ~0x00000001u;
+}
+
+inline float WorldBounds::min_x() const {
+    // @@protoc_insertion_point(field_get:battle.v1.WorldBounds.min_x)
+    return _internal_min_x();
+}
+
+inline void WorldBounds::set_min_x(float value) {
+    _internal_set_min_x(value);
+    _impl_._has_bits_[0] |= 0x00000001u;
+    // @@protoc_insertion_point(field_set:battle.v1.WorldBounds.min_x)
+}
+
+inline float WorldBounds::_internal_min_x() const {
+    ::google::protobuf::internal::TSanRead(&_impl_);
+    return _impl_.min_x_;
+}
+
+inline void WorldBounds::_internal_set_min_x(float value) {
+    ::google::protobuf::internal::TSanWrite(&_impl_);
+    _impl_.min_x_ = value;
+}
+
+// float max_x = 2;
+inline void WorldBounds::clear_max_x() {
+    ::google::protobuf::internal::TSanWrite(&_impl_);
+    _impl_.max_x_ = 0;
+    _impl_._has_bits_[0] &= ~0x00000002u;
+}
+
+inline float WorldBounds::max_x() const {
+    // @@protoc_insertion_point(field_get:battle.v1.WorldBounds.max_x)
+    return _internal_max_x();
+}
+
+inline void WorldBounds::set_max_x(float value) {
+    _internal_set_max_x(value);
+    _impl_._has_bits_[0] |= 0x00000002u;
+    // @@protoc_insertion_point(field_set:battle.v1.WorldBounds.max_x)
+}
+
+inline float WorldBounds::_internal_max_x() const {
+    ::google::protobuf::internal::TSanRead(&_impl_);
+    return _impl_.max_x_;
+}
+
+inline void WorldBounds::_internal_set_max_x(float value) {
+    ::google::protobuf::internal::TSanWrite(&_impl_);
+    _impl_.max_x_ = value;
+}
+
+// float min_y = 3;
+inline void WorldBounds::clear_min_y() {
+    ::google::protobuf::internal::TSanWrite(&_impl_);
+    _impl_.min_y_ = 0;
+    _impl_._has_bits_[0] &= ~0x00000004u;
+}
+
+inline float WorldBounds::min_y() const {
+    // @@protoc_insertion_point(field_get:battle.v1.WorldBounds.min_y)
+    return _internal_min_y();
+}
+
+inline void WorldBounds::set_min_y(float value) {
+    _internal_set_min_y(value);
+    _impl_._has_bits_[0] |= 0x00000004u;
+    // @@protoc_insertion_point(field_set:battle.v1.WorldBounds.min_y)
+}
+
+inline float WorldBounds::_internal_min_y() const {
+    ::google::protobuf::internal::TSanRead(&_impl_);
+    return _impl_.min_y_;
+}
+
+inline void WorldBounds::_internal_set_min_y(float value) {
+    ::google::protobuf::internal::TSanWrite(&_impl_);
+    _impl_.min_y_ = value;
+}
+
+// float max_y = 4;
+inline void WorldBounds::clear_max_y() {
+    ::google::protobuf::internal::TSanWrite(&_impl_);
+    _impl_.max_y_ = 0;
+    _impl_._has_bits_[0] &= ~0x00000008u;
+}
+
+inline float WorldBounds::max_y() const {
+    // @@protoc_insertion_point(field_get:battle.v1.WorldBounds.max_y)
+    return _internal_max_y();
+}
+
+inline void WorldBounds::set_max_y(float value) {
+    _internal_set_max_y(value);
+    _impl_._has_bits_[0] |= 0x00000008u;
+    // @@protoc_insertion_point(field_set:battle.v1.WorldBounds.max_y)
+}
+
+inline float WorldBounds::_internal_max_y() const {
+    ::google::protobuf::internal::TSanRead(&_impl_);
+    return _impl_.max_y_;
+}
+
+inline void WorldBounds::_internal_set_max_y(float value) {
+    ::google::protobuf::internal::TSanWrite(&_impl_);
+    _impl_.max_y_ = value;
+}
+
+// -------------------------------------------------------------------
+
 // Direction
 
 // float x = 1;
@@ -13718,7 +14127,7 @@ WorldSnapshot::_internal_mutable_entities() {
 inline void WorldSnapshot::clear_reward_selection_remaining_seconds() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.reward_selection_remaining_seconds_ = 0;
-  _impl_._has_bits_[0] &= ~0x00000004u;
+  _impl_._has_bits_[0] &= ~0x00000008u;
 }
 inline float WorldSnapshot::reward_selection_remaining_seconds() const {
   // @@protoc_insertion_point(field_get:battle.v1.WorldSnapshot.reward_selection_remaining_seconds)
@@ -13726,7 +14135,7 @@ inline float WorldSnapshot::reward_selection_remaining_seconds() const {
 }
 inline void WorldSnapshot::set_reward_selection_remaining_seconds(float value) {
   _internal_set_reward_selection_remaining_seconds(value);
-  _impl_._has_bits_[0] |= 0x00000004u;
+  _impl_._has_bits_[0] |= 0x00000008u;
   // @@protoc_insertion_point(field_set:battle.v1.WorldSnapshot.reward_selection_remaining_seconds)
 }
 inline float WorldSnapshot::_internal_reward_selection_remaining_seconds() const {
@@ -13842,7 +14251,7 @@ WorldSnapshot::_internal_mutable_player_blessings() {
 inline void WorldSnapshot::clear_server_tick() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.server_tick_ = ::uint64_t{0u};
-  _impl_._has_bits_[0] &= ~0x00000010u;
+  _impl_._has_bits_[0] &= ~0x00000020u;
 }
 inline ::uint64_t WorldSnapshot::server_tick() const {
   // @@protoc_insertion_point(field_get:battle.v1.WorldSnapshot.server_tick)
@@ -13850,7 +14259,7 @@ inline ::uint64_t WorldSnapshot::server_tick() const {
 }
 inline void WorldSnapshot::set_server_tick(::uint64_t value) {
   _internal_set_server_tick(value);
-  _impl_._has_bits_[0] |= 0x00000010u;
+  _impl_._has_bits_[0] |= 0x00000020u;
   // @@protoc_insertion_point(field_set:battle.v1.WorldSnapshot.server_tick)
 }
 inline ::uint64_t WorldSnapshot::_internal_server_tick() const {
@@ -13916,7 +14325,7 @@ WorldSnapshot::_internal_mutable_events() {
 inline void WorldSnapshot::clear_tick_rate() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.tick_rate_ = 0u;
-  _impl_._has_bits_[0] &= ~0x00000008u;
+  _impl_._has_bits_[0] &= ~0x00000010u;
 }
 inline ::uint32_t WorldSnapshot::tick_rate() const {
   // @@protoc_insertion_point(field_get:battle.v1.WorldSnapshot.tick_rate)
@@ -13924,7 +14333,7 @@ inline ::uint32_t WorldSnapshot::tick_rate() const {
 }
 inline void WorldSnapshot::set_tick_rate(::uint32_t value) {
   _internal_set_tick_rate(value);
-  _impl_._has_bits_[0] |= 0x00000008u;
+  _impl_._has_bits_[0] |= 0x00000010u;
   // @@protoc_insertion_point(field_set:battle.v1.WorldSnapshot.tick_rate)
 }
 inline ::uint32_t WorldSnapshot::_internal_tick_rate() const {
@@ -13940,7 +14349,7 @@ inline void WorldSnapshot::_internal_set_tick_rate(::uint32_t value) {
 inline void WorldSnapshot::clear_current_room_id() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.current_room_id_ = 0u;
-  _impl_._has_bits_[0] &= ~0x00000020u;
+  _impl_._has_bits_[0] &= ~0x00000040u;
 }
 inline ::uint32_t WorldSnapshot::current_room_id() const {
   // @@protoc_insertion_point(field_get:battle.v1.WorldSnapshot.current_room_id)
@@ -13948,7 +14357,7 @@ inline ::uint32_t WorldSnapshot::current_room_id() const {
 }
 inline void WorldSnapshot::set_current_room_id(::uint32_t value) {
   _internal_set_current_room_id(value);
-  _impl_._has_bits_[0] |= 0x00000020u;
+  _impl_._has_bits_[0] |= 0x00000040u;
   // @@protoc_insertion_point(field_set:battle.v1.WorldSnapshot.current_room_id)
 }
 inline ::uint32_t WorldSnapshot::_internal_current_room_id() const {
@@ -13964,7 +14373,7 @@ inline void WorldSnapshot::_internal_set_current_room_id(::uint32_t value) {
 inline void WorldSnapshot::clear_room_state() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.room_state_ = 0;
-  _impl_._has_bits_[0] &= ~0x00000040u;
+  _impl_._has_bits_[0] &= ~0x00000080u;
 }
 inline ::battle::v1::RoomFlowState WorldSnapshot::room_state() const {
   // @@protoc_insertion_point(field_get:battle.v1.WorldSnapshot.room_state)
@@ -13972,7 +14381,7 @@ inline ::battle::v1::RoomFlowState WorldSnapshot::room_state() const {
 }
 inline void WorldSnapshot::set_room_state(::battle::v1::RoomFlowState value) {
   _internal_set_room_state(value);
-  _impl_._has_bits_[0] |= 0x00000040u;
+  _impl_._has_bits_[0] |= 0x00000080u;
   // @@protoc_insertion_point(field_set:battle.v1.WorldSnapshot.room_state)
 }
 inline ::battle::v1::RoomFlowState WorldSnapshot::_internal_room_state() const {
@@ -14443,6 +14852,116 @@ inline ::google::protobuf::RepeatedPtrField<::battle::v1::PlayerCombatStatsSnaps
 WorldSnapshot::_internal_mutable_player_combat_stats() {
   ::google::protobuf::internal::TSanRead(&_impl_);
   return &_impl_.player_combat_stats_;
+}
+
+// .battle.v1.WorldBounds world_bounds = 22;
+inline bool WorldSnapshot::has_world_bounds() const {
+    bool value = (_impl_._has_bits_[0] & 0x00000004u) != 0;
+    PROTOBUF_ASSUME(!value || _impl_.world_bounds_ != nullptr);
+    return value;
+}
+
+inline void WorldSnapshot::clear_world_bounds() {
+    ::google::protobuf::internal::TSanWrite(&_impl_);
+    if (_impl_.world_bounds_ != nullptr) _impl_.world_bounds_->Clear();
+    _impl_._has_bits_[0] &= ~0x00000004u;
+}
+
+inline const ::battle::v1::WorldBounds& WorldSnapshot::_internal_world_bounds() const {
+    ::google::protobuf::internal::TSanRead(&_impl_);
+    const ::battle::v1::WorldBounds* p = _impl_.world_bounds_;
+    return p != nullptr
+               ? *p
+               : reinterpret_cast<const ::battle::v1::WorldBounds&>(::battle::v1::_WorldBounds_default_instance_);
+}
+
+inline const ::battle::v1::WorldBounds& WorldSnapshot::world_bounds() const ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    // @@protoc_insertion_point(field_get:battle.v1.WorldSnapshot.world_bounds)
+    return _internal_world_bounds();
+}
+
+inline void WorldSnapshot::unsafe_arena_set_allocated_world_bounds(
+    ::battle::v1::WorldBounds* PROTOBUF_NULLABLE value) {
+    ::google::protobuf::internal::TSanWrite(&_impl_);
+    if (GetArena() == nullptr) {
+        delete reinterpret_cast<::google::protobuf::MessageLite*>(_impl_.world_bounds_);
+    }
+    _impl_.world_bounds_ = reinterpret_cast<::battle::v1::WorldBounds*>(value);
+    if (value != nullptr) {
+        _impl_._has_bits_[0] |= 0x00000004u;
+    } else {
+        _impl_._has_bits_[0] &= ~0x00000004u;
+    }
+    // @@protoc_insertion_point(field_unsafe_arena_set_allocated:battle.v1.WorldSnapshot.world_bounds)
+}
+
+inline ::battle::v1::WorldBounds* PROTOBUF_NULLABLE WorldSnapshot::release_world_bounds() {
+    ::google::protobuf::internal::TSanWrite(&_impl_);
+
+    _impl_._has_bits_[0] &= ~0x00000004u;
+    ::battle::v1::WorldBounds* released = _impl_.world_bounds_;
+    _impl_.world_bounds_ = nullptr;
+    if (::google::protobuf::internal::DebugHardenForceCopyInRelease()) {
+        auto* old = reinterpret_cast<::google::protobuf::MessageLite*>(released);
+        released = ::google::protobuf::internal::DuplicateIfNonNull(released);
+        if (GetArena() == nullptr) {
+            delete old;
+        }
+    } else {
+        if (GetArena() != nullptr) {
+            released = ::google::protobuf::internal::DuplicateIfNonNull(released);
+        }
+    }
+    return released;
+}
+
+inline ::battle::v1::WorldBounds* PROTOBUF_NULLABLE WorldSnapshot::unsafe_arena_release_world_bounds() {
+    ::google::protobuf::internal::TSanWrite(&_impl_);
+    // @@protoc_insertion_point(field_release:battle.v1.WorldSnapshot.world_bounds)
+
+    _impl_._has_bits_[0] &= ~0x00000004u;
+    ::battle::v1::WorldBounds* temp = _impl_.world_bounds_;
+    _impl_.world_bounds_ = nullptr;
+    return temp;
+}
+
+inline ::battle::v1::WorldBounds* PROTOBUF_NONNULL WorldSnapshot::_internal_mutable_world_bounds() {
+    ::google::protobuf::internal::TSanWrite(&_impl_);
+    if (_impl_.world_bounds_ == nullptr) {
+        auto* p = ::google::protobuf::Message::DefaultConstruct<::battle::v1::WorldBounds>(GetArena());
+        _impl_.world_bounds_ = reinterpret_cast<::battle::v1::WorldBounds*>(p);
+    }
+    return _impl_.world_bounds_;
+}
+
+inline ::battle::v1::WorldBounds* PROTOBUF_NONNULL WorldSnapshot::mutable_world_bounds()
+
+ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    _impl_._has_bits_[0] |= 0x00000004u;
+    ::battle::v1::WorldBounds* _msg = _internal_mutable_world_bounds();
+    // @@protoc_insertion_point(field_mutable:battle.v1.WorldSnapshot.world_bounds)
+    return _msg;
+}
+
+inline void WorldSnapshot::set_allocated_world_bounds(::battle::v1::WorldBounds* PROTOBUF_NULLABLE value) {
+    ::google::protobuf::Arena* message_arena = GetArena();
+    ::google::protobuf::internal::TSanWrite(&_impl_);
+    if (message_arena == nullptr) {
+        delete reinterpret_cast<::google::protobuf::MessageLite*>(_impl_.world_bounds_);
+    }
+
+    if (value != nullptr) {
+        ::google::protobuf::Arena* submessage_arena = value->GetArena();
+        if (message_arena != submessage_arena) {
+            value = ::google::protobuf::internal::GetOwnedMessage(message_arena, value, submessage_arena);
+        }
+        _impl_._has_bits_[0] |= 0x00000004u;
+    } else {
+        _impl_._has_bits_[0] &= ~0x00000004u;
+    }
+
+    _impl_.world_bounds_ = reinterpret_cast<::battle::v1::WorldBounds*>(value);
+    // @@protoc_insertion_point(field_set_allocated:battle.v1.WorldSnapshot.world_bounds)
 }
 
 // -------------------------------------------------------------------

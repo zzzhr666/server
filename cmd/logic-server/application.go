@@ -125,6 +125,7 @@ func newApplication(cfg config.Config, serverName string) (*application, error) 
 	}, nil
 }
 
+// Run 启动 logic-server 的 HTTP、TCP 与后台订阅服务，并阻塞至服务退出。
 func (app *application) Run(ctx context.Context) error {
 	services := lifecycle.NewGroup(ctx, 4)
 	app.startServices(services)
@@ -192,6 +193,7 @@ func (app *application) shutdownServers(ctx context.Context) error {
 	return errors.Join(errs...)
 }
 
+// Close 关闭 logic-server 持有的监听器、连接与外部客户端。
 func (app *application) Close() error {
 	app.realtimeServer.Close()
 	return errors.Join(

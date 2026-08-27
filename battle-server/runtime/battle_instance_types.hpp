@@ -212,5 +212,6 @@ namespace battle {
         std::vector<PlayerSoulSnapshot> player_souls;
         std::vector<ShopItemDefinition> shop_item_definitions;
         std::unordered_map<std::int64_t, std::vector<std::uint32_t>> purchased_shop_items;
+        ecs::WorldBounds world_bounds{};
     };
 }

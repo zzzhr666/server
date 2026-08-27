@@ -141,25 +141,39 @@ type Presence struct {
 
 // Client 定义其他进程需要调用的 state-server 基础状态操作。
 type Client interface {
+	// CreateAccount 创建账号凭据。
 	CreateAccount(ctx context.Context, account *Account) error
+	// GetAccount 按用户名读取账号凭据。
 	GetAccount(ctx context.Context, username string) (*Account, error)
+	// RegisterAccount 原子创建账号、玩家、初始成长和首个会话。
 	RegisterAccount(ctx context.Context, input RegisterAccountInput) (*RegisterAccountResult, error)
 
+	// CreateSession 创建登录会话。
 	CreateSession(ctx context.Context, session *Session) error
+	// GetSession 按令牌读取未过期会话。
 	GetSession(ctx context.Context, token string) (*Session, error)
+	// DeleteSession 删除登录会话。
 	DeleteSession(ctx context.Context, token string) error
 
+	// CreatePlayer 创建玩家档案。
 	CreatePlayer(ctx context.Context, player *Player) error
+	// GetPlayer 按 ID 读取玩家档案。
 	GetPlayer(ctx context.Context, id int64) (*Player, error)
+	// NextPlayerID 分配下一个玩家 ID。
 	NextPlayerID(ctx context.Context) (int64, error)
+	// UpdatePlayerAvatar 更新玩家头像并返回最新档案。
 	UpdatePlayerAvatar(ctx context.Context, playerID int64, avatar string) (*Player, error)
 }
 
 // PresenceClient 定义 state-server 提供的玩家在线状态操作。
 type PresenceClient interface {
+	// SetPresence 写入带 TTL 的在线状态。
 	SetPresence(ctx context.Context, presence *Presence, ttl time.Duration) error
+	// GetPresence 读取玩家当前在线状态。
 	GetPresence(ctx context.Context, playerID int64) (*Presence, error)
+	// ClearPresence 仅在服务所有权匹配时删除在线状态。
 	ClearPresence(ctx context.Context, playerID int64, serverName string) error
+	// RefreshPresence 仅在服务所有权匹配时刷新在线状态 TTL。
 	RefreshPresence(ctx context.Context, playerID int64, serverName string, updatedAt time.Time, ttl time.Duration) error
 }
 
@@ -172,12 +186,19 @@ type FriendRequest struct {
 
 // FriendClient 定义 state-server 提供的好友关系操作。
 type FriendClient interface {
+	// SendFriendRequest 创建好友申请。
 	SendFriendRequest(ctx context.Context, fromPlayerID, toPlayerID int64) error
+	// ListIncomingFriendRequests 返回玩家收到的好友申请。
 	ListIncomingFriendRequests(ctx context.Context, playerID int64) ([]*FriendRequest, error)
+	// ListOutgoingFriendRequests 返回玩家发出的好友申请。
 	ListOutgoingFriendRequests(ctx context.Context, playerID int64) ([]*FriendRequest, error)
+	// AcceptFriendRequest 接受申请并建立双向好友关系。
 	AcceptFriendRequest(ctx context.Context, fromPlayerID, toPlayerID int64) error
+	// RejectFriendRequest 拒绝并删除好友申请。
 	RejectFriendRequest(ctx context.Context, fromPlayerID, toPlayerID int64) error
+	// ListFriendIDs 返回玩家的好友 ID。
 	ListFriendIDs(ctx context.Context, fromPlayerID int64) ([]int64, error)
+	// DeleteFriend 删除双方好友关系。
 	DeleteFriend(ctx context.Context, playerID, friendPlayerID int64) error
 }
 
@@ -218,7 +239,9 @@ const (
 
 // RealtimeClient 定义跨 logic-server 的实时投递发布与订阅操作。
 type RealtimeClient interface {
+	// PublishRealtime 发布一条带路由的实时投递。
 	PublishRealtime(ctx context.Context, delivery *RealtimeDelivery) error
+	// SubscribeRealtime 订阅指定路由的实时投递流。
 	SubscribeRealtime(ctx context.Context, route RealtimeRoute) (<-chan *RealtimeDelivery, error)
 }
 
@@ -243,12 +266,15 @@ type UpgradeGrowthResult struct {
 
 // GrowthClient 定义 state-server 提供的成长状态操作。
 type GrowthClient interface {
+	// GetGrowth 返回玩家当前成长数据。
 	GetGrowth(ctx context.Context, playerID int64) (*Growth, error)
+	// UpgradeGrowth 原子扣费并提升指定成长属性。
 	UpgradeGrowth(ctx context.Context, input UpgradeGrowthInput) (*UpgradeGrowthResult, error)
 }
 
 // CoinClient 定义 state-server 提供的对局奖励与排行榜结算操作。
 type CoinClient interface {
+	// SettleMatchRewards 幂等结算一场对局的多人奖励和排行榜数据。
 	SettleMatchRewards(ctx context.Context, input SettleMatchRewardsInput) (*SettleMatchRewardsResult, error)
 }
 
@@ -262,6 +288,7 @@ type ChatClient interface {
 
 // LeaderboardClient 定义 state-server 提供的排行榜读取操作。
 type LeaderboardClient interface {
+	// ListLeaderboard 按类型和范围读取排行榜。
 	ListLeaderboard(ctx context.Context, input ListLeaderboardInput) (*ListLeaderboardResult, error)
 }
 

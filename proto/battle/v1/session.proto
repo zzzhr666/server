@@ -80,6 +80,13 @@ message Position {
   float y = 2;
 }
 
+message WorldBounds {
+  float min_x = 1;
+  float max_x = 2;
+  float min_y = 3;
+  float max_y = 4;
+}
+
 message Direction {
   float x = 1;
   float y = 2;
@@ -132,6 +139,13 @@ enum BlessingId {
   BLESSING_ID_FREEZE_ON_HIT = 3;
   BLESSING_ID_CRITICAL_STRIKE = 4;
   BLESSING_ID_CHAIN_LIGHTNING = 5;
+  BLESSING_ID_FRENZY = 6;
+  BLESSING_ID_SWIFT = 7;
+  BLESSING_ID_TOUGHNESS = 8;
+  BLESSING_ID_HEAVY_STRIKE = 9;
+  BLESSING_ID_ARMOR_BREAK = 10;
+  BLESSING_ID_REVENGE = 11;
+  BLESSING_ID_SOUL_HARVEST = 12;
 }
 
 message PlayerProgressSnapshot {
@@ -222,6 +236,7 @@ message WorldSnapshot {
   repeated ShopItemDefinition shop_item_definitions = 19;
   repeated PlayerPurchasedShopItemsSnapshot purchased_shop_items = 20;
   repeated PlayerCombatStatsSnapshot player_combat_stats = 21;
+  WorldBounds world_bounds = 22;
 }
 
 message ChooseBlessing {

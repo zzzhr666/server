@@ -84,6 +84,7 @@ namespace {
     }
 
     void validate_traps(const std::vector<battle::RoomTrap>& traps,
+                        const std::vector<battle::RoomObstacle>& obstacles,
                         const battle::ecs::WorldBounds& world_bounds,
                         std::vector<battle::RoomLayoutIssue>& issues) {
         std::unordered_set<battle::RoomTrapID> seen_traps;
@@ -103,6 +104,19 @@ namespace {
                 issues.emplace_back(battle::RoomLayoutIssueKind::TrapOutsideBounds,
                                     std::nullopt, std::make_optional(index));
             }
+            for (const auto& obstacle : obstacles) {
+                if (!std::isfinite(obstacle.radius) || obstacle.radius <= 0.0f) {
+                    continue;
+                }
+                const float delta_x = trap.center.x - obstacle.center.x;
+                const float delta_y = trap.center.y - obstacle.center.y;
+                const float radius_sum = trap.radius + obstacle.radius;
+                if (delta_x * delta_x + delta_y * delta_y < radius_sum * radius_sum) {
+                    issues.emplace_back(battle::RoomLayoutIssueKind::TrapOverlapsObstacle,
+                                        std::nullopt, std::make_optional(index));
+                    break;
+                }
+            }
         }
     }
 }
@@ -116,6 +130,6 @@ std::vector<battle::RoomLayoutIssue> battle::validate_room_layout(const RoomLayo
     validate_spawn_points(layout.player_spawn_points, layout.bounds, true, issues);
     validate_spawn_points(layout.monster_spawn_points, layout.bounds, false, issues);
     validate_obstacles(layout.obstacles, layout.bounds, issues);
-    validate_traps(layout.traps, layout.bounds, issues);
+    validate_traps(layout.traps, layout.obstacles, layout.bounds, issues);
     return issues;
 }

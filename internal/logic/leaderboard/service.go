@@ -4,11 +4,13 @@ import "context"
 
 // Service 定义提供给局外协议层的排行榜查询操作。
 type Service interface {
+	// List 校验并返回指定排行榜。
 	List(ctx context.Context, input ListInput) (*Result, error)
 }
 
 // Repository 定义排行榜服务依赖的持久化查询操作。
 type Repository interface {
+	// List 从状态层读取指定排行榜。
 	List(ctx context.Context, input ListInput) (*Result, error)
 }
 

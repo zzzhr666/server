@@ -14,10 +14,13 @@ namespace battle::ecs {
     constexpr float DefaultPassingCost = 1.0f;
     class NavigationGrid {
     public:
+        /// @brief 根据地图配置构建可通行性网格。
         explicit NavigationGrid(MapConfig config);
 
+        /// @brief 返回地图配置是否可用于寻路。
         [[nodiscard]] bool valid() const noexcept;
 
+        /// @brief 为指定半径角色查找从起点到终点的可通行路径。
         [[nodiscard]] std::optional<std::vector<Position>>
         find_path(Position start, Position goal, float character_radius) const;
 

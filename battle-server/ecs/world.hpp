@@ -172,15 +172,19 @@ namespace battle::ecs {
     /// 系统顺序定义玩法因果关系；调整顺序必须同步更新 ECS 回归测试。
     class World {
     public:
+        /// @brief 使用默认系统链、地图配置和随机种子创建 ECS 世界。
         explicit World(MapConfig map_config = DefaultMapConfig(),
                        std::uint32_t random_seed = std::random_device{}());
 
+        /// @brief 使用自定义系统链、地图配置和随机种子创建 ECS 世界。
         World(std::initializer_list<sysFunc> functions,
               MapConfig map_config = DefaultMapConfig(),
               std::uint32_t random_seed = std::random_device{}());
 
+        /// @brief 应用新地图配置并重建寻路网格与空间边界。
         bool rebuild_navigation(const MapConfig& map_config);
 
+        /// @brief 返回当前地图配置。
         [[nodiscard]] const MapConfig& map_config() const noexcept {
             return map_config_;
         }
@@ -205,6 +209,7 @@ namespace battle::ecs {
             return percent_distribution_(random_engine_);
         }
 
+        /// @brief 返回实体是否仍存在于 World 注册表中。
         [[nodiscard]] bool has_entity(Entity entity) const;
 
         /// @brief 将网络输入转换为玩家实体的移动、攻击和冲刺请求。
@@ -219,38 +224,47 @@ namespace battle::ecs {
             return damage_events_;
         }
 
+        /// @brief 返回待结算的击杀事件缓冲区。
         std::vector<KillEvent>& kill_events() {
             return kill_events_;
         }
 
+        /// @brief 返回已落地伤害事件缓冲区，供后置效果消费。
         std::vector<DamageAppliedEvent>& damage_applied_events() {
             return damage_applied_events_;
         }
 
+        /// @brief 返回待同步的攻击表现事件缓冲区。
         std::vector<AttackEvent>& attack_events() {
             return attack_events_;
         }
 
+        /// @brief 返回待同步的死亡表现事件缓冲区。
         std::vector<DeathEvent>& death_events() {
             return death_events_;
         }
 
+        /// @brief 清空已消费的击杀事件。
         void clear_kill_events() {
             kill_events_.clear();
         }
 
+        /// @brief 清空已消费的伤害落地事件。
         void clear_damage_applied_events() {
             damage_applied_events_.clear();
         }
 
+        /// @brief 清空已消费的待处理伤害事件。
         void clear_damage_events() {
             damage_events_.clear();
         }
 
+        /// @brief 清空已同步的攻击表现事件。
         void clear_attack_events() {
             attack_events_.clear();
         }
 
+        /// @brief 清空已同步的死亡表现事件。
         void clear_death_events() {
             death_events_.clear();
         }
@@ -258,40 +272,51 @@ namespace battle::ecs {
         /// @brief 追加击杀事件，供 BattleInstance 统计经验和结算。
         void add_kill_event(KillEvent event);
 
+        /// @brief 追加待由伤害系统处理的伤害事件。
         void add_damage_event(DamageEvent event);
 
+        /// @brief 追加供后置祝福系统消费的伤害落地事件。
         void add_damage_applied_event(DamageAppliedEvent event);
 
+        /// @brief 追加供网络快照同步的攻击表现事件。
         void add_attack_event(AttackEvent event);
 
+        /// @brief 追加供网络快照同步的死亡表现事件。
         void add_death_event(DeathEvent event);
 
         /// @brief 收集可同步给客户端的实体快照。
         [[nodiscard]] WorldSnapshot snapshot() const;
 
+        /// @brief 从空间索引与 ECS 注册表中一致地销毁实体。
         bool destroy_entity(Entity entity);
 
+        /// @brief 返回当前世界可活动边界。
         [[nodiscard]] const WorldBounds& world_bounds() const {
             return bounds_;
         }
 
 
+        /// @brief 返回 ECS 注册表的可写引用。
         [[nodiscard]] WorldRegistry& registry() noexcept {
             return registry_;
         }
 
+        /// @brief 返回 ECS 注册表的只读引用。
         [[nodiscard]] const WorldRegistry& registry() const noexcept {
             return registry_;
         }
 
+        /// @brief 返回世界中是否仍有存活玩家实体。
         [[nodiscard]] bool has_living_players() const {
             return !registry_.pool<PlayerController>().empty();
         }
 
+        /// @brief 返回指定实体是否为存活玩家。
         [[nodiscard]] bool is_living_player(Entity entity) const {
             return registry_.has<PlayerController>(entity);
         }
 
+        /// @brief 返回世界中是否仍有存活怪物实体。
         [[nodiscard]] bool has_living_monsters() const {
             return living_monster_count() != 0;
         }
@@ -307,18 +332,22 @@ namespace battle::ecs {
         /// @brief 分配一个独立的战斗效果标识。
         CombatEffectID create_combat_effect();
 
+        /// @brief 返回实体空间索引的可写引用。
         [[nodiscard]] SpatialIndex& spatial_index() noexcept {
             return spatial_index_;
         }
 
+        /// @brief 返回实体空间索引的只读引用。
         [[nodiscard]] const SpatialIndex& spatial_index() const noexcept {
             return spatial_index_;
         }
 
+        /// @brief 返回当前地图的只读寻路网格。
         [[nodiscard]] const NavigationGrid& navigation_grid() const noexcept {
             return grid_;
         }
 
+        /// @brief 校验目标位置后同步更新角色位置与空间索引。
         bool relocate_character(Entity entity, const Position& position);
 
     private:

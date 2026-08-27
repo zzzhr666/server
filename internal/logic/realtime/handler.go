@@ -95,6 +95,8 @@ func (h *Handler) serveSession(ctx context.Context, session *session) {
 		return
 	}
 
+	// 连接清理必须校验 connection ID。玩家重连后，旧 goroutine 退出不能移除新连接，
+	// 也不能把新连接刚写入的 presence 误标记为离线。
 	defer func() {
 		if !h.connManager.Remove(authSession.PlayerID, connInfo.id) {
 			return
@@ -180,6 +182,8 @@ func (h *Handler) handleAuthenticate(ctx context.Context, session *session) (*au
 }
 
 func (h *Handler) handleConnectionReady(ctx context.Context, session *session, authSession *auth.Session, requestID uint64) (connectionInfo, bool) {
+	// 先替换跨节点 presence，再注册本机连接；后续事件查询到本节点时，本机连接已经
+	// 成为唯一投递目标。旧连接通过 connection ID 隔离，异步退出不会清理新连接。
 	h.replaceExistingConnection(ctx, authSession.PlayerID)
 	if err := h.presence.MarkOnline(ctx, authSession.PlayerID, h.serverName); err != nil {
 		logging.Error("realtime online setup failed player_id=%d: %v", authSession.PlayerID, err)
@@ -216,6 +220,8 @@ func (h *Handler) handleAuthenticated(ctx context.Context, session *session, pla
 		logging.Error("realtime authenticated response failed player_id=%d: %v", playerID, err)
 		return false
 	}
+	// 认证响应先建立客户端身份，再主动补发仍由 rcenter 持有的战斗分配，避免客户端
+	// 在重连后必须额外发起一次 ResumeMatch 才能恢复 UDP 战斗连接。
 	return h.handleAutomaticMatchResume(ctx, session, playerID)
 }
 

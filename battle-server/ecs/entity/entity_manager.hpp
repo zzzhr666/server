@@ -12,8 +12,10 @@ namespace battle::ecs {
 
     class EntityManager {
     public:
+        /// @brief 创建空的实体管理器。
         EntityManager() = default;
 
+        /// @brief 校验实体索引、代际和存活状态是否仍匹配。
         [[nodiscard]] bool has(Entity entity) const {
             if (!entity || entity.index >= slots_.size()) {
                 return false;
@@ -22,10 +24,12 @@ namespace battle::ecs {
             return slot.alive && slot.generation == entity.generation;
         }
 
+        /// @brief 返回当前存活实体的紧凑列表。
         [[nodiscard]] const std::vector<Entity>& entities() const {
             return alive_entities_;
         }
 
+        /// @brief 销毁有效实体，递增代际并回收其索引。
         bool destroy(Entity entity) {
             if (!has(entity)) {
                 return false;
@@ -45,6 +49,7 @@ namespace battle::ecs {
             return true;
         }
 
+        /// @brief 分配新实体，优先复用已销毁实体的索引。
         [[nodiscard]] Entity create() {
             EntityIndex index;
             if (!free_indices_.empty()) {
@@ -65,6 +70,7 @@ namespace battle::ecs {
             return entity;
         }
 
+        /// @brief 返回当前存活实体数量。
         [[nodiscard]] std::size_t size() const {
             return alive_entities_.size();
         }

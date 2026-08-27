@@ -151,6 +151,7 @@ namespace battle::ecs {
         Burn,
         ChainLightning,
         Trap,
+        Freeze,
     };
 
     /// @brief 在伤害修正与应用系统之间传递的伤害事件。
@@ -241,6 +242,10 @@ namespace battle::ecs {
     /// @brief 冻结控制状态的剩余时间。
     struct FreezeStatus {
         DeltaTime remaining_seconds{0.0f};
+        DeltaTime tick_interval_seconds{gameplay_config::blessing::freeze_on_hit::TickInterval};
+        DeltaTime tick_timer_seconds{0.0f};
+        int damage_per_tick{};
+        Entity source{};
     };
 
     /// @brief 毒池施加的单实例持续伤害；重复进入只刷新持续时间，不重置 tick 计时。
@@ -259,12 +264,25 @@ namespace battle::ecs {
         float movement_multiplier{1.0f};
     };
 
+    struct ArmorBreakStatus {
+        DeltaTime remaining_seconds{};
+        int armor_break_number{};
+        bool armor_decreased{false};
+    };
+
+    struct SoulHarvestStatus {
+        DeltaTime remaining_seconds{};
+        float move_speed_bonus{};
+    };
+
     /// @brief 实体当前承受的持续状态集合。
     struct StatusEffects {
         std::vector<BurnStatus> burns;
         std::optional<FreezeStatus> freeze;
         std::optional<PoisonStatus> poison;
         std::optional<SwampStatus> swamp;
+        std::optional<ArmorBreakStatus> armor_break;
+        std::optional<SoulHarvestStatus> soul_harvest;
     };
 
     /// @brief 投射物的飞行距离、伤害和攻击归属。
@@ -346,26 +364,32 @@ namespace battle::ecs {
 
     using CollisionMask = std::uint32_t;
 
+    /// @brief 合并两个碰撞类别为碰撞掩码。
     constexpr CollisionMask operator|(CollisionCategory lhs, CollisionCategory rhs) {
         return static_cast<CollisionMask>(lhs) | static_cast<CollisionMask>(rhs);
     }
 
+    /// @brief 将碰撞类别加入已有碰撞掩码。
     constexpr CollisionMask operator|(CollisionMask lhs, CollisionCategory rhs) {
         return lhs | static_cast<CollisionMask>(rhs);
     }
 
+    /// @brief 将碰撞类别加入已有碰撞掩码。
     constexpr CollisionMask operator|(CollisionCategory lhs, CollisionMask rhs) {
         return static_cast<CollisionMask>(lhs) | rhs;
     }
 
+    /// @brief 返回两个碰撞类别的交集掩码。
     constexpr CollisionMask operator&(CollisionCategory lhs, CollisionCategory rhs) {
         return static_cast<CollisionMask>(lhs) & static_cast<CollisionMask>(rhs);
     }
 
+    /// @brief 返回碰撞掩码与类别的交集。
     constexpr CollisionMask operator&(CollisionMask lhs, CollisionCategory rhs) {
         return lhs & static_cast<CollisionMask>(rhs);
     }
 
+    /// @brief 返回碰撞类别与掩码的交集。
     constexpr CollisionMask operator&(CollisionCategory lhs, CollisionMask rhs) {
         return static_cast<CollisionMask>(lhs) & rhs;
     }
@@ -377,6 +401,7 @@ namespace battle::ecs {
         CollisionMask collision_mask;
     };
 
+    /// @brief 返回两个碰撞体是否分别属于玩家与怪物阵营。
     constexpr bool are_opposing_characters(const Collider& lhs, const Collider& rhs) {
         return (lhs.category == CollisionCategory::Player && rhs.category == CollisionCategory::Monster) ||
             (lhs.category == CollisionCategory::Monster && rhs.category == CollisionCategory::Player);

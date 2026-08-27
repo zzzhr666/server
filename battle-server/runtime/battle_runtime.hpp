@@ -46,11 +46,13 @@ namespace battle {
         using BattleInstanceFactory = std::function<std::unique_ptr<BattleInstance>(BattleInstanceConfig)>;
         /// @brief 战斗结束后通知 rcenter 的回调。
         using FinishMatchCallback = std::function<void(const FinishedBattle&)>;
+        /// @brief 组合房间、会话、指标与网络回调，创建多房间战斗运行时。
         BattleRuntime(RoomManager& room_manager, SessionManager& session_manager, BattleMetrics& metrics,
                       SendPacketCallback send_packet_callback, BattleInstanceFactory factory = {},
                       FinishMatchCallback finish_match_callback = {}, int tick_rate = 60,
-                      std::chrono::seconds session_idle_timeout_seconds = std::chrono::seconds{5},
+                      std::chrono::seconds session_idle_timeout_seconds = std::chrono::seconds{10},
                       std::chrono::seconds all_players_disconnected_timeout_seconds = std::chrono::seconds{90});
+        /// @brief 停止后台 tick 并释放全部战斗实例。
         ~BattleRuntime();
 
         /// @brief 在完整 roster 加入后创建并启动对应房间的战斗实例。
@@ -65,10 +67,13 @@ namespace battle {
         /// @brief 将奖励选择操作转交到其房间的战斗实例。
         bool choose_blessing(const std::string& room_name, std::int64_t player_id, int option_id);
 
+        /// @brief 将免费奖励选择转交给对应房间的战斗实例。
         bool choose_free_reward(const std::string& room_name, std::int64_t player_id, FreeRewardKind kind);
 
+        /// @brief 将商店购买请求转交给对应房间的战斗实例。
         bool purchase_shop_item(const std::string& room_name, std::int64_t player_id, std::uint32_t item_id);
 
+        /// @brief 将房间出口选择转交给对应房间的战斗实例。
         bool select_room_exit(const std::string& room_name, std::int64_t player_id, DungeonRoomID next_room_id);
 
         /// @brief 启动固定频率的后台 tick 线程。

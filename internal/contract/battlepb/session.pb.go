@@ -152,17 +152,31 @@ const (
 	BlessingId_BLESSING_ID_FREEZE_ON_HIT   BlessingId = 3
 	BlessingId_BLESSING_ID_CRITICAL_STRIKE BlessingId = 4
 	BlessingId_BLESSING_ID_CHAIN_LIGHTNING BlessingId = 5
+	BlessingId_BLESSING_ID_FRENZY          BlessingId = 6
+	BlessingId_BLESSING_ID_SWIFT           BlessingId = 7
+	BlessingId_BLESSING_ID_TOUGHNESS       BlessingId = 8
+	BlessingId_BLESSING_ID_HEAVY_STRIKE    BlessingId = 9
+	BlessingId_BLESSING_ID_ARMOR_BREAK     BlessingId = 10
+	BlessingId_BLESSING_ID_REVENGE         BlessingId = 11
+	BlessingId_BLESSING_ID_SOUL_HARVEST    BlessingId = 12
 )
 
 // Enum value maps for BlessingId.
 var (
 	BlessingId_name = map[int32]string{
-		0: "BLESSING_ID_UNSPECIFIED",
-		1: "BLESSING_ID_BURN_ON_HIT",
-		2: "BLESSING_ID_LIFE_STEAL",
-		3: "BLESSING_ID_FREEZE_ON_HIT",
-		4: "BLESSING_ID_CRITICAL_STRIKE",
-		5: "BLESSING_ID_CHAIN_LIGHTNING",
+		0:  "BLESSING_ID_UNSPECIFIED",
+		1:  "BLESSING_ID_BURN_ON_HIT",
+		2:  "BLESSING_ID_LIFE_STEAL",
+		3:  "BLESSING_ID_FREEZE_ON_HIT",
+		4:  "BLESSING_ID_CRITICAL_STRIKE",
+		5:  "BLESSING_ID_CHAIN_LIGHTNING",
+		6:  "BLESSING_ID_FRENZY",
+		7:  "BLESSING_ID_SWIFT",
+		8:  "BLESSING_ID_TOUGHNESS",
+		9:  "BLESSING_ID_HEAVY_STRIKE",
+		10: "BLESSING_ID_ARMOR_BREAK",
+		11: "BLESSING_ID_REVENGE",
+		12: "BLESSING_ID_SOUL_HARVEST",
 	}
 	BlessingId_value = map[string]int32{
 		"BLESSING_ID_UNSPECIFIED":     0,
@@ -171,6 +185,13 @@ var (
 		"BLESSING_ID_FREEZE_ON_HIT":   3,
 		"BLESSING_ID_CRITICAL_STRIKE": 4,
 		"BLESSING_ID_CHAIN_LIGHTNING": 5,
+		"BLESSING_ID_FRENZY":          6,
+		"BLESSING_ID_SWIFT":           7,
+		"BLESSING_ID_TOUGHNESS":       8,
+		"BLESSING_ID_HEAVY_STRIKE":    9,
+		"BLESSING_ID_ARMOR_BREAK":     10,
+		"BLESSING_ID_REVENGE":         11,
+		"BLESSING_ID_SOUL_HARVEST":    12,
 	}
 )
 
@@ -1179,6 +1200,74 @@ func (x *Position) GetY() float32 {
 	return 0
 }
 
+type WorldBounds struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	MinX          float32                `protobuf:"fixed32,1,opt,name=min_x,json=minX,proto3" json:"min_x,omitempty"`
+	MaxX          float32                `protobuf:"fixed32,2,opt,name=max_x,json=maxX,proto3" json:"max_x,omitempty"`
+	MinY          float32                `protobuf:"fixed32,3,opt,name=min_y,json=minY,proto3" json:"min_y,omitempty"`
+	MaxY          float32                `protobuf:"fixed32,4,opt,name=max_y,json=maxY,proto3" json:"max_y,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *WorldBounds) Reset() {
+	*x = WorldBounds{}
+	mi := &file_proto_battle_v1_session_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *WorldBounds) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*WorldBounds) ProtoMessage() {}
+
+func (x *WorldBounds) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_battle_v1_session_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use WorldBounds.ProtoReflect.Descriptor instead.
+func (*WorldBounds) Descriptor() ([]byte, []int) {
+	return file_proto_battle_v1_session_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *WorldBounds) GetMinX() float32 {
+	if x != nil {
+		return x.MinX
+	}
+	return 0
+}
+
+func (x *WorldBounds) GetMaxX() float32 {
+	if x != nil {
+		return x.MaxX
+	}
+	return 0
+}
+
+func (x *WorldBounds) GetMinY() float32 {
+	if x != nil {
+		return x.MinY
+	}
+	return 0
+}
+
+func (x *WorldBounds) GetMaxY() float32 {
+	if x != nil {
+		return x.MaxY
+	}
+	return 0
+}
+
 type Direction struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	X             float32                `protobuf:"fixed32,1,opt,name=x,proto3" json:"x,omitempty"`
@@ -1189,7 +1278,7 @@ type Direction struct {
 
 func (x *Direction) Reset() {
 	*x = Direction{}
-	mi := &file_proto_battle_v1_session_proto_msgTypes[11]
+	mi := &file_proto_battle_v1_session_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1201,7 +1290,7 @@ func (x *Direction) String() string {
 func (*Direction) ProtoMessage() {}
 
 func (x *Direction) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_battle_v1_session_proto_msgTypes[11]
+	mi := &file_proto_battle_v1_session_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1214,7 +1303,7 @@ func (x *Direction) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Direction.ProtoReflect.Descriptor instead.
 func (*Direction) Descriptor() ([]byte, []int) {
-	return file_proto_battle_v1_session_proto_rawDescGZIP(), []int{11}
+	return file_proto_battle_v1_session_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *Direction) GetX() float32 {
@@ -1255,7 +1344,7 @@ type EntitySnapshot struct {
 
 func (x *EntitySnapshot) Reset() {
 	*x = EntitySnapshot{}
-	mi := &file_proto_battle_v1_session_proto_msgTypes[12]
+	mi := &file_proto_battle_v1_session_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1267,7 +1356,7 @@ func (x *EntitySnapshot) String() string {
 func (*EntitySnapshot) ProtoMessage() {}
 
 func (x *EntitySnapshot) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_battle_v1_session_proto_msgTypes[12]
+	mi := &file_proto_battle_v1_session_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1280,7 +1369,7 @@ func (x *EntitySnapshot) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EntitySnapshot.ProtoReflect.Descriptor instead.
 func (*EntitySnapshot) Descriptor() ([]byte, []int) {
-	return file_proto_battle_v1_session_proto_rawDescGZIP(), []int{12}
+	return file_proto_battle_v1_session_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *EntitySnapshot) GetEntity() uint64 {
@@ -1408,7 +1497,7 @@ type PlayerProgressSnapshot struct {
 
 func (x *PlayerProgressSnapshot) Reset() {
 	*x = PlayerProgressSnapshot{}
-	mi := &file_proto_battle_v1_session_proto_msgTypes[13]
+	mi := &file_proto_battle_v1_session_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1420,7 +1509,7 @@ func (x *PlayerProgressSnapshot) String() string {
 func (*PlayerProgressSnapshot) ProtoMessage() {}
 
 func (x *PlayerProgressSnapshot) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_battle_v1_session_proto_msgTypes[13]
+	mi := &file_proto_battle_v1_session_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1433,7 +1522,7 @@ func (x *PlayerProgressSnapshot) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PlayerProgressSnapshot.ProtoReflect.Descriptor instead.
 func (*PlayerProgressSnapshot) Descriptor() ([]byte, []int) {
-	return file_proto_battle_v1_session_proto_rawDescGZIP(), []int{13}
+	return file_proto_battle_v1_session_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *PlayerProgressSnapshot) GetPlayerId() int64 {
@@ -1481,7 +1570,7 @@ type BlessingOptionSnapshot struct {
 
 func (x *BlessingOptionSnapshot) Reset() {
 	*x = BlessingOptionSnapshot{}
-	mi := &file_proto_battle_v1_session_proto_msgTypes[14]
+	mi := &file_proto_battle_v1_session_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1493,7 +1582,7 @@ func (x *BlessingOptionSnapshot) String() string {
 func (*BlessingOptionSnapshot) ProtoMessage() {}
 
 func (x *BlessingOptionSnapshot) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_battle_v1_session_proto_msgTypes[14]
+	mi := &file_proto_battle_v1_session_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1506,7 +1595,7 @@ func (x *BlessingOptionSnapshot) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BlessingOptionSnapshot.ProtoReflect.Descriptor instead.
 func (*BlessingOptionSnapshot) Descriptor() ([]byte, []int) {
-	return file_proto_battle_v1_session_proto_rawDescGZIP(), []int{14}
+	return file_proto_battle_v1_session_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *BlessingOptionSnapshot) GetOptionId() int32 {
@@ -1533,7 +1622,7 @@ type PlayerBlessingSnapshot struct {
 
 func (x *PlayerBlessingSnapshot) Reset() {
 	*x = PlayerBlessingSnapshot{}
-	mi := &file_proto_battle_v1_session_proto_msgTypes[15]
+	mi := &file_proto_battle_v1_session_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1545,7 +1634,7 @@ func (x *PlayerBlessingSnapshot) String() string {
 func (*PlayerBlessingSnapshot) ProtoMessage() {}
 
 func (x *PlayerBlessingSnapshot) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_battle_v1_session_proto_msgTypes[15]
+	mi := &file_proto_battle_v1_session_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1558,7 +1647,7 @@ func (x *PlayerBlessingSnapshot) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PlayerBlessingSnapshot.ProtoReflect.Descriptor instead.
 func (*PlayerBlessingSnapshot) Descriptor() ([]byte, []int) {
-	return file_proto_battle_v1_session_proto_rawDescGZIP(), []int{15}
+	return file_proto_battle_v1_session_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *PlayerBlessingSnapshot) GetBlessingId() BlessingId {
@@ -1586,7 +1675,7 @@ type PlayerBlessingStateSnapshot struct {
 
 func (x *PlayerBlessingStateSnapshot) Reset() {
 	*x = PlayerBlessingStateSnapshot{}
-	mi := &file_proto_battle_v1_session_proto_msgTypes[16]
+	mi := &file_proto_battle_v1_session_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1598,7 +1687,7 @@ func (x *PlayerBlessingStateSnapshot) String() string {
 func (*PlayerBlessingStateSnapshot) ProtoMessage() {}
 
 func (x *PlayerBlessingStateSnapshot) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_battle_v1_session_proto_msgTypes[16]
+	mi := &file_proto_battle_v1_session_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1611,7 +1700,7 @@ func (x *PlayerBlessingStateSnapshot) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PlayerBlessingStateSnapshot.ProtoReflect.Descriptor instead.
 func (*PlayerBlessingStateSnapshot) Descriptor() ([]byte, []int) {
-	return file_proto_battle_v1_session_proto_rawDescGZIP(), []int{16}
+	return file_proto_battle_v1_session_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *PlayerBlessingStateSnapshot) GetPlayerId() int64 {
@@ -1651,7 +1740,7 @@ type AttackEvent struct {
 
 func (x *AttackEvent) Reset() {
 	*x = AttackEvent{}
-	mi := &file_proto_battle_v1_session_proto_msgTypes[17]
+	mi := &file_proto_battle_v1_session_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1663,7 +1752,7 @@ func (x *AttackEvent) String() string {
 func (*AttackEvent) ProtoMessage() {}
 
 func (x *AttackEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_battle_v1_session_proto_msgTypes[17]
+	mi := &file_proto_battle_v1_session_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1676,7 +1765,7 @@ func (x *AttackEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AttackEvent.ProtoReflect.Descriptor instead.
 func (*AttackEvent) Descriptor() ([]byte, []int) {
-	return file_proto_battle_v1_session_proto_rawDescGZIP(), []int{17}
+	return file_proto_battle_v1_session_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *AttackEvent) GetAttackerEntity() uint64 {
@@ -1749,7 +1838,7 @@ type DeathEvent struct {
 
 func (x *DeathEvent) Reset() {
 	*x = DeathEvent{}
-	mi := &file_proto_battle_v1_session_proto_msgTypes[18]
+	mi := &file_proto_battle_v1_session_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1761,7 +1850,7 @@ func (x *DeathEvent) String() string {
 func (*DeathEvent) ProtoMessage() {}
 
 func (x *DeathEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_battle_v1_session_proto_msgTypes[18]
+	mi := &file_proto_battle_v1_session_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1774,7 +1863,7 @@ func (x *DeathEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeathEvent.ProtoReflect.Descriptor instead.
 func (*DeathEvent) Descriptor() ([]byte, []int) {
-	return file_proto_battle_v1_session_proto_rawDescGZIP(), []int{18}
+	return file_proto_battle_v1_session_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *DeathEvent) GetVictimEntity() uint64 {
@@ -1835,7 +1924,7 @@ type BattleEvent struct {
 
 func (x *BattleEvent) Reset() {
 	*x = BattleEvent{}
-	mi := &file_proto_battle_v1_session_proto_msgTypes[19]
+	mi := &file_proto_battle_v1_session_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1847,7 +1936,7 @@ func (x *BattleEvent) String() string {
 func (*BattleEvent) ProtoMessage() {}
 
 func (x *BattleEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_battle_v1_session_proto_msgTypes[19]
+	mi := &file_proto_battle_v1_session_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1860,7 +1949,7 @@ func (x *BattleEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BattleEvent.ProtoReflect.Descriptor instead.
 func (*BattleEvent) Descriptor() ([]byte, []int) {
-	return file_proto_battle_v1_session_proto_rawDescGZIP(), []int{19}
+	return file_proto_battle_v1_session_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *BattleEvent) GetEventId() uint64 {
@@ -1951,7 +2040,7 @@ type PlayerRoomExitChoiceSnapshot struct {
 
 func (x *PlayerRoomExitChoiceSnapshot) Reset() {
 	*x = PlayerRoomExitChoiceSnapshot{}
-	mi := &file_proto_battle_v1_session_proto_msgTypes[20]
+	mi := &file_proto_battle_v1_session_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1963,7 +2052,7 @@ func (x *PlayerRoomExitChoiceSnapshot) String() string {
 func (*PlayerRoomExitChoiceSnapshot) ProtoMessage() {}
 
 func (x *PlayerRoomExitChoiceSnapshot) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_battle_v1_session_proto_msgTypes[20]
+	mi := &file_proto_battle_v1_session_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1976,7 +2065,7 @@ func (x *PlayerRoomExitChoiceSnapshot) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PlayerRoomExitChoiceSnapshot.ProtoReflect.Descriptor instead.
 func (*PlayerRoomExitChoiceSnapshot) Descriptor() ([]byte, []int) {
-	return file_proto_battle_v1_session_proto_rawDescGZIP(), []int{20}
+	return file_proto_battle_v1_session_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *PlayerRoomExitChoiceSnapshot) GetPlayerId() int64 {
@@ -2014,13 +2103,14 @@ type WorldSnapshot struct {
 	ShopItemDefinitions             []*ShopItemDefinition               `protobuf:"bytes,19,rep,name=shop_item_definitions,json=shopItemDefinitions,proto3" json:"shop_item_definitions,omitempty"`
 	PurchasedShopItems              []*PlayerPurchasedShopItemsSnapshot `protobuf:"bytes,20,rep,name=purchased_shop_items,json=purchasedShopItems,proto3" json:"purchased_shop_items,omitempty"`
 	PlayerCombatStats               []*PlayerCombatStatsSnapshot        `protobuf:"bytes,21,rep,name=player_combat_stats,json=playerCombatStats,proto3" json:"player_combat_stats,omitempty"`
+	WorldBounds                     *WorldBounds                        `protobuf:"bytes,22,opt,name=world_bounds,json=worldBounds,proto3" json:"world_bounds,omitempty"`
 	unknownFields                   protoimpl.UnknownFields
 	sizeCache                       protoimpl.SizeCache
 }
 
 func (x *WorldSnapshot) Reset() {
 	*x = WorldSnapshot{}
-	mi := &file_proto_battle_v1_session_proto_msgTypes[21]
+	mi := &file_proto_battle_v1_session_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2032,7 +2122,7 @@ func (x *WorldSnapshot) String() string {
 func (*WorldSnapshot) ProtoMessage() {}
 
 func (x *WorldSnapshot) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_battle_v1_session_proto_msgTypes[21]
+	mi := &file_proto_battle_v1_session_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2045,7 +2135,7 @@ func (x *WorldSnapshot) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WorldSnapshot.ProtoReflect.Descriptor instead.
 func (*WorldSnapshot) Descriptor() ([]byte, []int) {
-	return file_proto_battle_v1_session_proto_rawDescGZIP(), []int{21}
+	return file_proto_battle_v1_session_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *WorldSnapshot) GetRoomName() string {
@@ -2181,6 +2271,13 @@ func (x *WorldSnapshot) GetPlayerCombatStats() []*PlayerCombatStatsSnapshot {
 	return nil
 }
 
+func (x *WorldSnapshot) GetWorldBounds() *WorldBounds {
+	if x != nil {
+		return x.WorldBounds
+	}
+	return nil
+}
+
 type ChooseBlessing struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	RoomName      string                 `protobuf:"bytes,1,opt,name=room_name,json=roomName,proto3" json:"room_name,omitempty"`
@@ -2192,7 +2289,7 @@ type ChooseBlessing struct {
 
 func (x *ChooseBlessing) Reset() {
 	*x = ChooseBlessing{}
-	mi := &file_proto_battle_v1_session_proto_msgTypes[22]
+	mi := &file_proto_battle_v1_session_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2204,7 +2301,7 @@ func (x *ChooseBlessing) String() string {
 func (*ChooseBlessing) ProtoMessage() {}
 
 func (x *ChooseBlessing) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_battle_v1_session_proto_msgTypes[22]
+	mi := &file_proto_battle_v1_session_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2217,7 +2314,7 @@ func (x *ChooseBlessing) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ChooseBlessing.ProtoReflect.Descriptor instead.
 func (*ChooseBlessing) Descriptor() ([]byte, []int) {
-	return file_proto_battle_v1_session_proto_rawDescGZIP(), []int{22}
+	return file_proto_battle_v1_session_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *ChooseBlessing) GetRoomName() string {
@@ -2251,7 +2348,7 @@ type ClientHeartbeat struct {
 
 func (x *ClientHeartbeat) Reset() {
 	*x = ClientHeartbeat{}
-	mi := &file_proto_battle_v1_session_proto_msgTypes[23]
+	mi := &file_proto_battle_v1_session_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2263,7 +2360,7 @@ func (x *ClientHeartbeat) String() string {
 func (*ClientHeartbeat) ProtoMessage() {}
 
 func (x *ClientHeartbeat) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_battle_v1_session_proto_msgTypes[23]
+	mi := &file_proto_battle_v1_session_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2276,7 +2373,7 @@ func (x *ClientHeartbeat) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ClientHeartbeat.ProtoReflect.Descriptor instead.
 func (*ClientHeartbeat) Descriptor() ([]byte, []int) {
-	return file_proto_battle_v1_session_proto_rawDescGZIP(), []int{23}
+	return file_proto_battle_v1_session_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *ClientHeartbeat) GetRoomName() string {
@@ -2304,7 +2401,7 @@ type SelectRoomExit struct {
 
 func (x *SelectRoomExit) Reset() {
 	*x = SelectRoomExit{}
-	mi := &file_proto_battle_v1_session_proto_msgTypes[24]
+	mi := &file_proto_battle_v1_session_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2316,7 +2413,7 @@ func (x *SelectRoomExit) String() string {
 func (*SelectRoomExit) ProtoMessage() {}
 
 func (x *SelectRoomExit) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_battle_v1_session_proto_msgTypes[24]
+	mi := &file_proto_battle_v1_session_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2329,7 +2426,7 @@ func (x *SelectRoomExit) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SelectRoomExit.ProtoReflect.Descriptor instead.
 func (*SelectRoomExit) Descriptor() ([]byte, []int) {
-	return file_proto_battle_v1_session_proto_rawDescGZIP(), []int{24}
+	return file_proto_battle_v1_session_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *SelectRoomExit) GetRoomName() string {
@@ -2362,7 +2459,7 @@ type RoomClearedEvent struct {
 
 func (x *RoomClearedEvent) Reset() {
 	*x = RoomClearedEvent{}
-	mi := &file_proto_battle_v1_session_proto_msgTypes[25]
+	mi := &file_proto_battle_v1_session_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2374,7 +2471,7 @@ func (x *RoomClearedEvent) String() string {
 func (*RoomClearedEvent) ProtoMessage() {}
 
 func (x *RoomClearedEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_battle_v1_session_proto_msgTypes[25]
+	mi := &file_proto_battle_v1_session_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2387,7 +2484,7 @@ func (x *RoomClearedEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RoomClearedEvent.ProtoReflect.Descriptor instead.
 func (*RoomClearedEvent) Descriptor() ([]byte, []int) {
-	return file_proto_battle_v1_session_proto_rawDescGZIP(), []int{25}
+	return file_proto_battle_v1_session_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *RoomClearedEvent) GetRoomId() uint32 {
@@ -2407,7 +2504,7 @@ type RoomEnteredEvent struct {
 
 func (x *RoomEnteredEvent) Reset() {
 	*x = RoomEnteredEvent{}
-	mi := &file_proto_battle_v1_session_proto_msgTypes[26]
+	mi := &file_proto_battle_v1_session_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2419,7 +2516,7 @@ func (x *RoomEnteredEvent) String() string {
 func (*RoomEnteredEvent) ProtoMessage() {}
 
 func (x *RoomEnteredEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_battle_v1_session_proto_msgTypes[26]
+	mi := &file_proto_battle_v1_session_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2432,7 +2529,7 @@ func (x *RoomEnteredEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RoomEnteredEvent.ProtoReflect.Descriptor instead.
 func (*RoomEnteredEvent) Descriptor() ([]byte, []int) {
-	return file_proto_battle_v1_session_proto_rawDescGZIP(), []int{26}
+	return file_proto_battle_v1_session_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *RoomEnteredEvent) GetRoomId() uint32 {
@@ -2460,7 +2557,7 @@ type PlayerFreeRewardState struct {
 
 func (x *PlayerFreeRewardState) Reset() {
 	*x = PlayerFreeRewardState{}
-	mi := &file_proto_battle_v1_session_proto_msgTypes[27]
+	mi := &file_proto_battle_v1_session_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2472,7 +2569,7 @@ func (x *PlayerFreeRewardState) String() string {
 func (*PlayerFreeRewardState) ProtoMessage() {}
 
 func (x *PlayerFreeRewardState) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_battle_v1_session_proto_msgTypes[27]
+	mi := &file_proto_battle_v1_session_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2485,7 +2582,7 @@ func (x *PlayerFreeRewardState) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PlayerFreeRewardState.ProtoReflect.Descriptor instead.
 func (*PlayerFreeRewardState) Descriptor() ([]byte, []int) {
-	return file_proto_battle_v1_session_proto_rawDescGZIP(), []int{27}
+	return file_proto_battle_v1_session_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *PlayerFreeRewardState) GetPlayerId() int64 {
@@ -2520,7 +2617,7 @@ type ChooseFreeReward struct {
 
 func (x *ChooseFreeReward) Reset() {
 	*x = ChooseFreeReward{}
-	mi := &file_proto_battle_v1_session_proto_msgTypes[28]
+	mi := &file_proto_battle_v1_session_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2532,7 +2629,7 @@ func (x *ChooseFreeReward) String() string {
 func (*ChooseFreeReward) ProtoMessage() {}
 
 func (x *ChooseFreeReward) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_battle_v1_session_proto_msgTypes[28]
+	mi := &file_proto_battle_v1_session_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2545,7 +2642,7 @@ func (x *ChooseFreeReward) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ChooseFreeReward.ProtoReflect.Descriptor instead.
 func (*ChooseFreeReward) Descriptor() ([]byte, []int) {
-	return file_proto_battle_v1_session_proto_rawDescGZIP(), []int{28}
+	return file_proto_battle_v1_session_proto_rawDescGZIP(), []int{29}
 }
 
 func (x *ChooseFreeReward) GetRoomName() string {
@@ -2580,7 +2677,7 @@ type PurchaseShopItem struct {
 
 func (x *PurchaseShopItem) Reset() {
 	*x = PurchaseShopItem{}
-	mi := &file_proto_battle_v1_session_proto_msgTypes[29]
+	mi := &file_proto_battle_v1_session_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2592,7 +2689,7 @@ func (x *PurchaseShopItem) String() string {
 func (*PurchaseShopItem) ProtoMessage() {}
 
 func (x *PurchaseShopItem) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_battle_v1_session_proto_msgTypes[29]
+	mi := &file_proto_battle_v1_session_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2605,7 +2702,7 @@ func (x *PurchaseShopItem) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PurchaseShopItem.ProtoReflect.Descriptor instead.
 func (*PurchaseShopItem) Descriptor() ([]byte, []int) {
-	return file_proto_battle_v1_session_proto_rawDescGZIP(), []int{29}
+	return file_proto_battle_v1_session_proto_rawDescGZIP(), []int{30}
 }
 
 func (x *PurchaseShopItem) GetRoomName() string {
@@ -2639,7 +2736,7 @@ type ShopOffer struct {
 
 func (x *ShopOffer) Reset() {
 	*x = ShopOffer{}
-	mi := &file_proto_battle_v1_session_proto_msgTypes[30]
+	mi := &file_proto_battle_v1_session_proto_msgTypes[31]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2651,7 +2748,7 @@ func (x *ShopOffer) String() string {
 func (*ShopOffer) ProtoMessage() {}
 
 func (x *ShopOffer) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_battle_v1_session_proto_msgTypes[30]
+	mi := &file_proto_battle_v1_session_proto_msgTypes[31]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2664,7 +2761,7 @@ func (x *ShopOffer) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ShopOffer.ProtoReflect.Descriptor instead.
 func (*ShopOffer) Descriptor() ([]byte, []int) {
-	return file_proto_battle_v1_session_proto_rawDescGZIP(), []int{30}
+	return file_proto_battle_v1_session_proto_rawDescGZIP(), []int{31}
 }
 
 func (x *ShopOffer) GetItemId() uint32 {
@@ -2691,7 +2788,7 @@ type PlayerSoulSnapshot struct {
 
 func (x *PlayerSoulSnapshot) Reset() {
 	*x = PlayerSoulSnapshot{}
-	mi := &file_proto_battle_v1_session_proto_msgTypes[31]
+	mi := &file_proto_battle_v1_session_proto_msgTypes[32]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2703,7 +2800,7 @@ func (x *PlayerSoulSnapshot) String() string {
 func (*PlayerSoulSnapshot) ProtoMessage() {}
 
 func (x *PlayerSoulSnapshot) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_battle_v1_session_proto_msgTypes[31]
+	mi := &file_proto_battle_v1_session_proto_msgTypes[32]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2716,7 +2813,7 @@ func (x *PlayerSoulSnapshot) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PlayerSoulSnapshot.ProtoReflect.Descriptor instead.
 func (*PlayerSoulSnapshot) Descriptor() ([]byte, []int) {
-	return file_proto_battle_v1_session_proto_rawDescGZIP(), []int{31}
+	return file_proto_battle_v1_session_proto_rawDescGZIP(), []int{32}
 }
 
 func (x *PlayerSoulSnapshot) GetPlayerId() int64 {
@@ -2746,7 +2843,7 @@ type PlayerCombatStatsSnapshot struct {
 
 func (x *PlayerCombatStatsSnapshot) Reset() {
 	*x = PlayerCombatStatsSnapshot{}
-	mi := &file_proto_battle_v1_session_proto_msgTypes[32]
+	mi := &file_proto_battle_v1_session_proto_msgTypes[33]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2758,7 +2855,7 @@ func (x *PlayerCombatStatsSnapshot) String() string {
 func (*PlayerCombatStatsSnapshot) ProtoMessage() {}
 
 func (x *PlayerCombatStatsSnapshot) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_battle_v1_session_proto_msgTypes[32]
+	mi := &file_proto_battle_v1_session_proto_msgTypes[33]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2771,7 +2868,7 @@ func (x *PlayerCombatStatsSnapshot) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PlayerCombatStatsSnapshot.ProtoReflect.Descriptor instead.
 func (*PlayerCombatStatsSnapshot) Descriptor() ([]byte, []int) {
-	return file_proto_battle_v1_session_proto_rawDescGZIP(), []int{32}
+	return file_proto_battle_v1_session_proto_rawDescGZIP(), []int{33}
 }
 
 func (x *PlayerCombatStatsSnapshot) GetPlayerId() int64 {
@@ -2819,7 +2916,7 @@ type ShopBuff struct {
 
 func (x *ShopBuff) Reset() {
 	*x = ShopBuff{}
-	mi := &file_proto_battle_v1_session_proto_msgTypes[33]
+	mi := &file_proto_battle_v1_session_proto_msgTypes[34]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2831,7 +2928,7 @@ func (x *ShopBuff) String() string {
 func (*ShopBuff) ProtoMessage() {}
 
 func (x *ShopBuff) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_battle_v1_session_proto_msgTypes[33]
+	mi := &file_proto_battle_v1_session_proto_msgTypes[34]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2844,7 +2941,7 @@ func (x *ShopBuff) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ShopBuff.ProtoReflect.Descriptor instead.
 func (*ShopBuff) Descriptor() ([]byte, []int) {
-	return file_proto_battle_v1_session_proto_rawDescGZIP(), []int{33}
+	return file_proto_battle_v1_session_proto_rawDescGZIP(), []int{34}
 }
 
 func (x *ShopBuff) GetKind() ShopBuffKind {
@@ -2872,7 +2969,7 @@ type ShopItemDefinition struct {
 
 func (x *ShopItemDefinition) Reset() {
 	*x = ShopItemDefinition{}
-	mi := &file_proto_battle_v1_session_proto_msgTypes[34]
+	mi := &file_proto_battle_v1_session_proto_msgTypes[35]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2884,7 +2981,7 @@ func (x *ShopItemDefinition) String() string {
 func (*ShopItemDefinition) ProtoMessage() {}
 
 func (x *ShopItemDefinition) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_battle_v1_session_proto_msgTypes[34]
+	mi := &file_proto_battle_v1_session_proto_msgTypes[35]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2897,7 +2994,7 @@ func (x *ShopItemDefinition) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ShopItemDefinition.ProtoReflect.Descriptor instead.
 func (*ShopItemDefinition) Descriptor() ([]byte, []int) {
-	return file_proto_battle_v1_session_proto_rawDescGZIP(), []int{34}
+	return file_proto_battle_v1_session_proto_rawDescGZIP(), []int{35}
 }
 
 func (x *ShopItemDefinition) GetItemId() uint32 {
@@ -2931,7 +3028,7 @@ type PlayerPurchasedShopItemsSnapshot struct {
 
 func (x *PlayerPurchasedShopItemsSnapshot) Reset() {
 	*x = PlayerPurchasedShopItemsSnapshot{}
-	mi := &file_proto_battle_v1_session_proto_msgTypes[35]
+	mi := &file_proto_battle_v1_session_proto_msgTypes[36]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2943,7 +3040,7 @@ func (x *PlayerPurchasedShopItemsSnapshot) String() string {
 func (*PlayerPurchasedShopItemsSnapshot) ProtoMessage() {}
 
 func (x *PlayerPurchasedShopItemsSnapshot) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_battle_v1_session_proto_msgTypes[35]
+	mi := &file_proto_battle_v1_session_proto_msgTypes[36]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2956,7 +3053,7 @@ func (x *PlayerPurchasedShopItemsSnapshot) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PlayerPurchasedShopItemsSnapshot.ProtoReflect.Descriptor instead.
 func (*PlayerPurchasedShopItemsSnapshot) Descriptor() ([]byte, []int) {
-	return file_proto_battle_v1_session_proto_rawDescGZIP(), []int{35}
+	return file_proto_battle_v1_session_proto_rawDescGZIP(), []int{36}
 }
 
 func (x *PlayerPurchasedShopItemsSnapshot) GetPlayerId() int64 {
@@ -3031,7 +3128,12 @@ const file_proto_battle_v1_session_proto_rawDesc = "" +
 	"\x0edash_requested\x18\x06 \x01(\bR\rdashRequestedJ\x04\b\x04\x10\x05\"&\n" +
 	"\bPosition\x12\f\n" +
 	"\x01x\x18\x01 \x01(\x02R\x01x\x12\f\n" +
-	"\x01y\x18\x02 \x01(\x02R\x01y\"'\n" +
+	"\x01y\x18\x02 \x01(\x02R\x01y\"a\n" +
+	"\vWorldBounds\x12\x13\n" +
+	"\x05min_x\x18\x01 \x01(\x02R\x04minX\x12\x13\n" +
+	"\x05max_x\x18\x02 \x01(\x02R\x04maxX\x12\x13\n" +
+	"\x05min_y\x18\x03 \x01(\x02R\x04minY\x12\x13\n" +
+	"\x05max_y\x18\x04 \x01(\x02R\x04maxY\"'\n" +
 	"\tDirection\x12\f\n" +
 	"\x01x\x18\x01 \x01(\x02R\x01x\x12\f\n" +
 	"\x01y\x18\x02 \x01(\x02R\x01y\"\x98\x05\n" +
@@ -3105,7 +3207,8 @@ const file_proto_battle_v1_session_proto_rawDesc = "" +
 	"\x1cPlayerRoomExitChoiceSnapshot\x12\x1b\n" +
 	"\tplayer_id\x18\x01 \x01(\x03R\bplayerId\x12 \n" +
 	"\froom_exit_id\x18\x02 \x01(\rR\n" +
-	"roomExitId\"\xc9\t\n" +
+	"roomExitId\"\x84\n" +
+	"\n" +
 	"\rWorldSnapshot\x12\x1b\n" +
 	"\troom_name\x18\x01 \x01(\tR\broomName\x125\n" +
 	"\bentities\x18\x02 \x03(\v2\x19.battle.v1.EntitySnapshotR\bentities\x12K\n" +
@@ -3129,7 +3232,8 @@ const file_proto_battle_v1_session_proto_rawDesc = "" +
 	"\fplayer_souls\x18\x12 \x03(\v2\x1d.battle.v1.PlayerSoulSnapshotR\vplayerSouls\x12Q\n" +
 	"\x15shop_item_definitions\x18\x13 \x03(\v2\x1d.battle.v1.ShopItemDefinitionR\x13shopItemDefinitions\x12]\n" +
 	"\x14purchased_shop_items\x18\x14 \x03(\v2+.battle.v1.PlayerPurchasedShopItemsSnapshotR\x12purchasedShopItems\x12T\n" +
-	"\x13player_combat_stats\x18\x15 \x03(\v2$.battle.v1.PlayerCombatStatsSnapshotR\x11playerCombatStatsJ\x04\b\x03\x10\x04J\x04\b\x04\x10\x05\"g\n" +
+	"\x13player_combat_stats\x18\x15 \x03(\v2$.battle.v1.PlayerCombatStatsSnapshotR\x11playerCombatStats\x129\n" +
+	"\fworld_bounds\x18\x16 \x01(\v2\x16.battle.v1.WorldBoundsR\vworldBoundsJ\x04\b\x03\x10\x04J\x04\b\x04\x10\x05\"g\n" +
 	"\x0eChooseBlessing\x12\x1b\n" +
 	"\troom_name\x18\x01 \x01(\tR\broomName\x12\x1b\n" +
 	"\tplayer_id\x18\x02 \x01(\x03R\bplayerId\x12\x1b\n" +
@@ -3198,7 +3302,7 @@ const file_proto_battle_v1_session_proto_rawDesc = "" +
 	"!ROOM_FLOW_STATE_CHOOSING_BLESSING\x10\x04\x12!\n" +
 	"\x1dROOM_FLOW_STATE_CHOOSING_EXIT\x10\x05\x12!\n" +
 	"\x1dROOM_FLOW_STATE_TRANSITIONING\x10\x06\x12\x1d\n" +
-	"\x19ROOM_FLOW_STATE_REWARDING\x10\a*\xc3\x01\n" +
+	"\x19ROOM_FLOW_STATE_REWARDING\x10\a*\xff\x02\n" +
 	"\n" +
 	"BlessingId\x12\x1b\n" +
 	"\x17BLESSING_ID_UNSPECIFIED\x10\x00\x12\x1b\n" +
@@ -3206,7 +3310,15 @@ const file_proto_battle_v1_session_proto_rawDesc = "" +
 	"\x16BLESSING_ID_LIFE_STEAL\x10\x02\x12\x1d\n" +
 	"\x19BLESSING_ID_FREEZE_ON_HIT\x10\x03\x12\x1f\n" +
 	"\x1bBLESSING_ID_CRITICAL_STRIKE\x10\x04\x12\x1f\n" +
-	"\x1bBLESSING_ID_CHAIN_LIGHTNING\x10\x05*\\\n" +
+	"\x1bBLESSING_ID_CHAIN_LIGHTNING\x10\x05\x12\x16\n" +
+	"\x12BLESSING_ID_FRENZY\x10\x06\x12\x15\n" +
+	"\x11BLESSING_ID_SWIFT\x10\a\x12\x19\n" +
+	"\x15BLESSING_ID_TOUGHNESS\x10\b\x12\x1c\n" +
+	"\x18BLESSING_ID_HEAVY_STRIKE\x10\t\x12\x1b\n" +
+	"\x17BLESSING_ID_ARMOR_BREAK\x10\n" +
+	"\x12\x17\n" +
+	"\x13BLESSING_ID_REVENGE\x10\v\x12\x1c\n" +
+	"\x18BLESSING_ID_SOUL_HARVEST\x10\f*\\\n" +
 	"\n" +
 	"AttackKind\x12\x1b\n" +
 	"\x17ATTACK_KIND_UNSPECIFIED\x10\x00\x12\x15\n" +
@@ -3239,7 +3351,7 @@ func file_proto_battle_v1_session_proto_rawDescGZIP() []byte {
 }
 
 var file_proto_battle_v1_session_proto_enumTypes = make([]protoimpl.EnumInfo, 6)
-var file_proto_battle_v1_session_proto_msgTypes = make([]protoimpl.MessageInfo, 36)
+var file_proto_battle_v1_session_proto_msgTypes = make([]protoimpl.MessageInfo, 37)
 var file_proto_battle_v1_session_proto_goTypes = []any{
 	(EntityKind)(0),                          // 0: battle.v1.EntityKind
 	(RoomFlowState)(0),                       // 1: battle.v1.RoomFlowState
@@ -3258,85 +3370,87 @@ var file_proto_battle_v1_session_proto_goTypes = []any{
 	(*MonsterKillCount)(nil),                 // 14: battle.v1.MonsterKillCount
 	(*ClientInput)(nil),                      // 15: battle.v1.ClientInput
 	(*Position)(nil),                         // 16: battle.v1.Position
-	(*Direction)(nil),                        // 17: battle.v1.Direction
-	(*EntitySnapshot)(nil),                   // 18: battle.v1.EntitySnapshot
-	(*PlayerProgressSnapshot)(nil),           // 19: battle.v1.PlayerProgressSnapshot
-	(*BlessingOptionSnapshot)(nil),           // 20: battle.v1.BlessingOptionSnapshot
-	(*PlayerBlessingSnapshot)(nil),           // 21: battle.v1.PlayerBlessingSnapshot
-	(*PlayerBlessingStateSnapshot)(nil),      // 22: battle.v1.PlayerBlessingStateSnapshot
-	(*AttackEvent)(nil),                      // 23: battle.v1.AttackEvent
-	(*DeathEvent)(nil),                       // 24: battle.v1.DeathEvent
-	(*BattleEvent)(nil),                      // 25: battle.v1.BattleEvent
-	(*PlayerRoomExitChoiceSnapshot)(nil),     // 26: battle.v1.PlayerRoomExitChoiceSnapshot
-	(*WorldSnapshot)(nil),                    // 27: battle.v1.WorldSnapshot
-	(*ChooseBlessing)(nil),                   // 28: battle.v1.ChooseBlessing
-	(*ClientHeartbeat)(nil),                  // 29: battle.v1.ClientHeartbeat
-	(*SelectRoomExit)(nil),                   // 30: battle.v1.SelectRoomExit
-	(*RoomClearedEvent)(nil),                 // 31: battle.v1.RoomClearedEvent
-	(*RoomEnteredEvent)(nil),                 // 32: battle.v1.RoomEnteredEvent
-	(*PlayerFreeRewardState)(nil),            // 33: battle.v1.PlayerFreeRewardState
-	(*ChooseFreeReward)(nil),                 // 34: battle.v1.ChooseFreeReward
-	(*PurchaseShopItem)(nil),                 // 35: battle.v1.PurchaseShopItem
-	(*ShopOffer)(nil),                        // 36: battle.v1.ShopOffer
-	(*PlayerSoulSnapshot)(nil),               // 37: battle.v1.PlayerSoulSnapshot
-	(*PlayerCombatStatsSnapshot)(nil),        // 38: battle.v1.PlayerCombatStatsSnapshot
-	(*ShopBuff)(nil),                         // 39: battle.v1.ShopBuff
-	(*ShopItemDefinition)(nil),               // 40: battle.v1.ShopItemDefinition
-	(*PlayerPurchasedShopItemsSnapshot)(nil), // 41: battle.v1.PlayerPurchasedShopItemsSnapshot
+	(*WorldBounds)(nil),                      // 17: battle.v1.WorldBounds
+	(*Direction)(nil),                        // 18: battle.v1.Direction
+	(*EntitySnapshot)(nil),                   // 19: battle.v1.EntitySnapshot
+	(*PlayerProgressSnapshot)(nil),           // 20: battle.v1.PlayerProgressSnapshot
+	(*BlessingOptionSnapshot)(nil),           // 21: battle.v1.BlessingOptionSnapshot
+	(*PlayerBlessingSnapshot)(nil),           // 22: battle.v1.PlayerBlessingSnapshot
+	(*PlayerBlessingStateSnapshot)(nil),      // 23: battle.v1.PlayerBlessingStateSnapshot
+	(*AttackEvent)(nil),                      // 24: battle.v1.AttackEvent
+	(*DeathEvent)(nil),                       // 25: battle.v1.DeathEvent
+	(*BattleEvent)(nil),                      // 26: battle.v1.BattleEvent
+	(*PlayerRoomExitChoiceSnapshot)(nil),     // 27: battle.v1.PlayerRoomExitChoiceSnapshot
+	(*WorldSnapshot)(nil),                    // 28: battle.v1.WorldSnapshot
+	(*ChooseBlessing)(nil),                   // 29: battle.v1.ChooseBlessing
+	(*ClientHeartbeat)(nil),                  // 30: battle.v1.ClientHeartbeat
+	(*SelectRoomExit)(nil),                   // 31: battle.v1.SelectRoomExit
+	(*RoomClearedEvent)(nil),                 // 32: battle.v1.RoomClearedEvent
+	(*RoomEnteredEvent)(nil),                 // 33: battle.v1.RoomEnteredEvent
+	(*PlayerFreeRewardState)(nil),            // 34: battle.v1.PlayerFreeRewardState
+	(*ChooseFreeReward)(nil),                 // 35: battle.v1.ChooseFreeReward
+	(*PurchaseShopItem)(nil),                 // 36: battle.v1.PurchaseShopItem
+	(*ShopOffer)(nil),                        // 37: battle.v1.ShopOffer
+	(*PlayerSoulSnapshot)(nil),               // 38: battle.v1.PlayerSoulSnapshot
+	(*PlayerCombatStatsSnapshot)(nil),        // 39: battle.v1.PlayerCombatStatsSnapshot
+	(*ShopBuff)(nil),                         // 40: battle.v1.ShopBuff
+	(*ShopItemDefinition)(nil),               // 41: battle.v1.ShopItemDefinition
+	(*PlayerPurchasedShopItemsSnapshot)(nil), // 42: battle.v1.PlayerPurchasedShopItemsSnapshot
 }
 var file_proto_battle_v1_session_proto_depIdxs = []int32{
 	6,  // 0: battle.v1.ClientPacket.hello:type_name -> battle.v1.ClientHello
 	15, // 1: battle.v1.ClientPacket.input:type_name -> battle.v1.ClientInput
-	28, // 2: battle.v1.ClientPacket.choose_blessing:type_name -> battle.v1.ChooseBlessing
-	29, // 3: battle.v1.ClientPacket.heartbeat:type_name -> battle.v1.ClientHeartbeat
-	30, // 4: battle.v1.ClientPacket.select_room_exit:type_name -> battle.v1.SelectRoomExit
-	34, // 5: battle.v1.ClientPacket.choose_free_reward:type_name -> battle.v1.ChooseFreeReward
-	35, // 6: battle.v1.ClientPacket.purchase_shop_item:type_name -> battle.v1.PurchaseShopItem
+	29, // 2: battle.v1.ClientPacket.choose_blessing:type_name -> battle.v1.ChooseBlessing
+	30, // 3: battle.v1.ClientPacket.heartbeat:type_name -> battle.v1.ClientHeartbeat
+	31, // 4: battle.v1.ClientPacket.select_room_exit:type_name -> battle.v1.SelectRoomExit
+	35, // 5: battle.v1.ClientPacket.choose_free_reward:type_name -> battle.v1.ChooseFreeReward
+	36, // 6: battle.v1.ClientPacket.purchase_shop_item:type_name -> battle.v1.PurchaseShopItem
 	7,  // 7: battle.v1.ServerPacket.hello:type_name -> battle.v1.ServerHello
 	8,  // 8: battle.v1.ServerPacket.game_start:type_name -> battle.v1.GameStart
 	9,  // 9: battle.v1.ServerPacket.error:type_name -> battle.v1.Error
 	12, // 10: battle.v1.ServerPacket.game_over:type_name -> battle.v1.GameOver
-	27, // 11: battle.v1.ServerPacket.snapshot:type_name -> battle.v1.WorldSnapshot
+	28, // 11: battle.v1.ServerPacket.snapshot:type_name -> battle.v1.WorldSnapshot
 	13, // 12: battle.v1.GameOver.player_stats:type_name -> battle.v1.PlayerBattleStats
 	14, // 13: battle.v1.PlayerBattleStats.kills:type_name -> battle.v1.MonsterKillCount
-	17, // 14: battle.v1.ClientInput.movement:type_name -> battle.v1.Direction
+	18, // 14: battle.v1.ClientInput.movement:type_name -> battle.v1.Direction
 	16, // 15: battle.v1.EntitySnapshot.position:type_name -> battle.v1.Position
-	17, // 16: battle.v1.EntitySnapshot.direction:type_name -> battle.v1.Direction
+	18, // 16: battle.v1.EntitySnapshot.direction:type_name -> battle.v1.Direction
 	0,  // 17: battle.v1.EntitySnapshot.kind:type_name -> battle.v1.EntityKind
 	2,  // 18: battle.v1.BlessingOptionSnapshot.blessing_id:type_name -> battle.v1.BlessingId
 	2,  // 19: battle.v1.PlayerBlessingSnapshot.blessing_id:type_name -> battle.v1.BlessingId
-	21, // 20: battle.v1.PlayerBlessingStateSnapshot.blessings:type_name -> battle.v1.PlayerBlessingSnapshot
-	20, // 21: battle.v1.PlayerBlessingStateSnapshot.current_options:type_name -> battle.v1.BlessingOptionSnapshot
+	22, // 20: battle.v1.PlayerBlessingStateSnapshot.blessings:type_name -> battle.v1.PlayerBlessingSnapshot
+	21, // 21: battle.v1.PlayerBlessingStateSnapshot.current_options:type_name -> battle.v1.BlessingOptionSnapshot
 	3,  // 22: battle.v1.AttackEvent.attack_kind:type_name -> battle.v1.AttackKind
-	17, // 23: battle.v1.AttackEvent.direction:type_name -> battle.v1.Direction
+	18, // 23: battle.v1.AttackEvent.direction:type_name -> battle.v1.Direction
 	0,  // 24: battle.v1.DeathEvent.victim_kind:type_name -> battle.v1.EntityKind
 	16, // 25: battle.v1.DeathEvent.position:type_name -> battle.v1.Position
-	17, // 26: battle.v1.DeathEvent.direction:type_name -> battle.v1.Direction
-	23, // 27: battle.v1.BattleEvent.attack:type_name -> battle.v1.AttackEvent
-	24, // 28: battle.v1.BattleEvent.death:type_name -> battle.v1.DeathEvent
-	31, // 29: battle.v1.BattleEvent.room_cleared:type_name -> battle.v1.RoomClearedEvent
-	32, // 30: battle.v1.BattleEvent.room_entered:type_name -> battle.v1.RoomEnteredEvent
-	18, // 31: battle.v1.WorldSnapshot.entities:type_name -> battle.v1.EntitySnapshot
-	19, // 32: battle.v1.WorldSnapshot.player_progress:type_name -> battle.v1.PlayerProgressSnapshot
-	22, // 33: battle.v1.WorldSnapshot.player_blessings:type_name -> battle.v1.PlayerBlessingStateSnapshot
-	25, // 34: battle.v1.WorldSnapshot.events:type_name -> battle.v1.BattleEvent
+	18, // 26: battle.v1.DeathEvent.direction:type_name -> battle.v1.Direction
+	24, // 27: battle.v1.BattleEvent.attack:type_name -> battle.v1.AttackEvent
+	25, // 28: battle.v1.BattleEvent.death:type_name -> battle.v1.DeathEvent
+	32, // 29: battle.v1.BattleEvent.room_cleared:type_name -> battle.v1.RoomClearedEvent
+	33, // 30: battle.v1.BattleEvent.room_entered:type_name -> battle.v1.RoomEnteredEvent
+	19, // 31: battle.v1.WorldSnapshot.entities:type_name -> battle.v1.EntitySnapshot
+	20, // 32: battle.v1.WorldSnapshot.player_progress:type_name -> battle.v1.PlayerProgressSnapshot
+	23, // 33: battle.v1.WorldSnapshot.player_blessings:type_name -> battle.v1.PlayerBlessingStateSnapshot
+	26, // 34: battle.v1.WorldSnapshot.events:type_name -> battle.v1.BattleEvent
 	1,  // 35: battle.v1.WorldSnapshot.room_state:type_name -> battle.v1.RoomFlowState
-	26, // 36: battle.v1.WorldSnapshot.player_room_exit_choices:type_name -> battle.v1.PlayerRoomExitChoiceSnapshot
-	33, // 37: battle.v1.WorldSnapshot.free_reward_states:type_name -> battle.v1.PlayerFreeRewardState
-	36, // 38: battle.v1.WorldSnapshot.shop_offers:type_name -> battle.v1.ShopOffer
-	37, // 39: battle.v1.WorldSnapshot.player_souls:type_name -> battle.v1.PlayerSoulSnapshot
-	40, // 40: battle.v1.WorldSnapshot.shop_item_definitions:type_name -> battle.v1.ShopItemDefinition
-	41, // 41: battle.v1.WorldSnapshot.purchased_shop_items:type_name -> battle.v1.PlayerPurchasedShopItemsSnapshot
-	38, // 42: battle.v1.WorldSnapshot.player_combat_stats:type_name -> battle.v1.PlayerCombatStatsSnapshot
-	4,  // 43: battle.v1.PlayerFreeRewardState.selected_kind:type_name -> battle.v1.FreeRewardKind
-	4,  // 44: battle.v1.ChooseFreeReward.kind:type_name -> battle.v1.FreeRewardKind
-	5,  // 45: battle.v1.ShopBuff.kind:type_name -> battle.v1.ShopBuffKind
-	39, // 46: battle.v1.ShopItemDefinition.buffs:type_name -> battle.v1.ShopBuff
-	47, // [47:47] is the sub-list for method output_type
-	47, // [47:47] is the sub-list for method input_type
-	47, // [47:47] is the sub-list for extension type_name
-	47, // [47:47] is the sub-list for extension extendee
-	0,  // [0:47] is the sub-list for field type_name
+	27, // 36: battle.v1.WorldSnapshot.player_room_exit_choices:type_name -> battle.v1.PlayerRoomExitChoiceSnapshot
+	34, // 37: battle.v1.WorldSnapshot.free_reward_states:type_name -> battle.v1.PlayerFreeRewardState
+	37, // 38: battle.v1.WorldSnapshot.shop_offers:type_name -> battle.v1.ShopOffer
+	38, // 39: battle.v1.WorldSnapshot.player_souls:type_name -> battle.v1.PlayerSoulSnapshot
+	41, // 40: battle.v1.WorldSnapshot.shop_item_definitions:type_name -> battle.v1.ShopItemDefinition
+	42, // 41: battle.v1.WorldSnapshot.purchased_shop_items:type_name -> battle.v1.PlayerPurchasedShopItemsSnapshot
+	39, // 42: battle.v1.WorldSnapshot.player_combat_stats:type_name -> battle.v1.PlayerCombatStatsSnapshot
+	17, // 43: battle.v1.WorldSnapshot.world_bounds:type_name -> battle.v1.WorldBounds
+	4,  // 44: battle.v1.PlayerFreeRewardState.selected_kind:type_name -> battle.v1.FreeRewardKind
+	4,  // 45: battle.v1.ChooseFreeReward.kind:type_name -> battle.v1.FreeRewardKind
+	5,  // 46: battle.v1.ShopBuff.kind:type_name -> battle.v1.ShopBuffKind
+	40, // 47: battle.v1.ShopItemDefinition.buffs:type_name -> battle.v1.ShopBuff
+	48, // [48:48] is the sub-list for method output_type
+	48, // [48:48] is the sub-list for method input_type
+	48, // [48:48] is the sub-list for extension type_name
+	48, // [48:48] is the sub-list for extension extendee
+	0,  // [0:48] is the sub-list for field type_name
 }
 
 func init() { file_proto_battle_v1_session_proto_init() }
@@ -3360,7 +3474,7 @@ func file_proto_battle_v1_session_proto_init() {
 		(*ServerPacket_GameOver)(nil),
 		(*ServerPacket_Snapshot)(nil),
 	}
-	file_proto_battle_v1_session_proto_msgTypes[19].OneofWrappers = []any{
+	file_proto_battle_v1_session_proto_msgTypes[20].OneofWrappers = []any{
 		(*BattleEvent_Attack)(nil),
 		(*BattleEvent_Death)(nil),
 		(*BattleEvent_RoomCleared)(nil),
@@ -3372,7 +3486,7 @@ func file_proto_battle_v1_session_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_battle_v1_session_proto_rawDesc), len(file_proto_battle_v1_session_proto_rawDesc)),
 			NumEnums:      6,
-			NumMessages:   36,
+			NumMessages:   37,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

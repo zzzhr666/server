@@ -23,9 +23,13 @@ namespace battle {
         /// @brief 创建并进入初始房间；配置无法进入初始房间时返回 nullptr。
         [[nodiscard]] static std::unique_ptr<BattleInstance> create(BattleInstanceConfig config);
 
+        /// @brief BattleInstance 独占单局状态，不允许复制。
         BattleInstance(const BattleInstance&) = delete;
+        /// @brief BattleInstance 独占单局状态，不允许复制赋值。
         BattleInstance& operator=(const BattleInstance&) = delete;
+        /// @brief BattleInstance 的内部引用保持稳定，不允许移动。
         BattleInstance(BattleInstance&&) = delete;
+        /// @brief BattleInstance 的内部引用保持稳定，不允许移动赋值。
         BattleInstance& operator=(BattleInstance&&) = delete;
 
         /// @brief 根据当前阶段推进战斗或奖励选择，并维护结束状态。
@@ -37,18 +41,22 @@ namespace battle {
         /// @brief 组合 World、房间、进度和短期战斗事件为网络快照。
         [[nodiscard]] BattleWorldSnapshot snapshot() const;
 
+        /// @brief 返回当前战斗生命周期状态。
         [[nodiscard]] BattleState state() const {
             return state_;
         }
 
+        /// @brief 返回战斗结束原因，未结束时为默认值。
         [[nodiscard]] BattleEndReason end_reason() const {
             return end_reason_;
         }
 
+        /// @brief 返回战斗是否已进入终止状态。
         [[nodiscard]] bool ended() const {
             return state_ == BattleState::Ended;
         }
 
+        /// @brief 返回按玩家 ID 聚合的实时战斗统计。
         [[nodiscard]] const std::unordered_map<std::int64_t, PlayerBattleStats>& player_battle_stats() const {
             return player_battle_stats_;
         }
@@ -66,26 +74,33 @@ namespace battle {
             return room_runtime_.current_room_id();
         }
 
+        /// @brief 返回当前奖励选择阶段的剩余时间。
         [[nodiscard]] ecs::DeltaTime reward_selection_remaining() const {
             return reward_selection_.remaining_seconds;
         }
 
+        /// @brief 返回指定玩家的等级与经验进度，玩家不存在时返回空值。
         [[nodiscard]] std::optional<ecs::PlayerProgress> player_progress(std::int64_t player_id) const;
 
+        /// @brief 返回指定玩家的祝福选择状态，玩家不存在时返回空值。
         [[nodiscard]] std::optional<PlayerBlessingState> player_blessing_state(std::int64_t player_id) const;
 
         /// @brief 在奖励选择阶段为玩家应用指定候选祝福。
         bool choose_blessing(std::int64_t player_id, int option_id);
 
+        /// @brief 校验玩家和流程状态后选择下一房间出口。
         bool select_room_exit(std::int64_t player_id, DungeonRoomID next_room_id);
 
+        /// @brief 用当前在线玩家集合更新断线相关的战斗状态。
         void update_connected_players(const std::unordered_set<std::int64_t>& player_ids) {
             connected_player_ids_ = player_ids;
         }
 
 
+        /// @brief 在免费奖励阶段为玩家应用指定奖励。
         bool choose_free_reward(std::int64_t player_id, FreeRewardKind kind);
 
+        /// @brief 在商店奖励阶段校验货币并购买指定商品。
         bool purchase_shop_item(std::int64_t player_id, std::uint32_t item_id);
 
     private:

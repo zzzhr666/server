@@ -24,10 +24,14 @@ namespace battle {
     /// @brief BattleApplication 组装并管理战斗服全部进程级资源。
     class BattleApplication {
     public:
+        /// @brief 使用完整节点配置创建 battle-server 应用。
         explicit BattleApplication(Config config);
+        /// @brief 停止服务并释放应用持有的网络与后台资源。
         ~BattleApplication();
 
+        /// @brief BattleApplication 独占服务资源，不允许复制。
         BattleApplication(const BattleApplication&) = delete;
+        /// @brief BattleApplication 独占服务资源，不允许复制赋值。
         BattleApplication& operator=(const BattleApplication&) = delete;
 
         /// @brief 启动所有服务并运行到收到停止信号。

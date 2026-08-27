@@ -22,6 +22,7 @@ type connectionManager struct {
 	connections map[int64]connectionInfo //playerId -> conn
 }
 
+// Add 注册玩家的新连接，并返回新连接及被替换的旧连接信息。
 func (m *connectionManager) Add(playerID int64, session *session) (connectionInfo, *connectionInfo) {
 	now := time.Now()
 	m.mu.Lock()
@@ -41,6 +42,7 @@ func (m *connectionManager) Add(playerID int64, session *session) (connectionInf
 	return info, nil
 }
 
+// Remove 仅在连接 ID 匹配时移除玩家连接。
 func (m *connectionManager) Remove(playerID int64, id connectionID) bool {
 	m.mu.Lock()
 	defer m.mu.Unlock()
@@ -52,6 +54,7 @@ func (m *connectionManager) Remove(playerID int64, id connectionID) bool {
 	return true
 }
 
+// Get 返回玩家当前注册的连接信息。
 func (m *connectionManager) Get(playerID int64) (connectionInfo, bool) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
@@ -59,6 +62,7 @@ func (m *connectionManager) Get(playerID int64) (connectionInfo, bool) {
 	return info, ok
 }
 
+// Touch 仅在连接 ID 匹配时刷新玩家连接的最后活跃时间。
 func (m *connectionManager) Touch(playerID int64, id connectionID, now time.Time) bool {
 	m.mu.Lock()
 	defer m.mu.Unlock()
@@ -74,6 +78,7 @@ func (m *connectionManager) Touch(playerID int64, id connectionID, now time.Time
 	return true
 }
 
+// Close 向玩家发送可选的关闭通知并关闭当前连接。
 func (m *connectionManager) Close(playerID int64, envelope *realtimepb.ServerEnvelope) bool {
 	info, ok := m.Get(playerID)
 	if !ok {
@@ -84,6 +89,7 @@ func (m *connectionManager) Close(playerID int64, envelope *realtimepb.ServerEnv
 	return writeErr == nil && closeErr == nil
 }
 
+// Send 将服务端消息写入玩家当前连接。
 func (m *connectionManager) Send(playerID int64, envelope *realtimepb.ServerEnvelope) bool {
 	info, ok := m.Get(playerID)
 	if !ok {
@@ -100,6 +106,7 @@ func (m *connectionManager) nextConnectionID() connectionID {
 	return m.nextID
 }
 
+// Broadcast 向除指定玩家外的全部当前连接发送消息，并返回成功数量。
 func (m *connectionManager) Broadcast(envelope *realtimepb.ServerEnvelope, excludedPlayerID int64) int {
 	if envelope == nil {
 		return 0

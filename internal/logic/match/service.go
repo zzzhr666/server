@@ -8,15 +8,21 @@ import (
 
 // Repository 定义局外匹配服务使用的 rcenter 操作。
 type Repository interface {
+	// StartMatch 向 rcenter 发起单人对局或双人匹配。
 	StartMatch(ctx context.Context, playerID int64, hero string, solo bool) (*rcenter.MatchResult, error)
+	// CancelMatch 从 rcenter 等待队列取消匹配。
 	CancelMatch(ctx context.Context, playerID int64) error
+	// ResumeMatch 从 rcenter 读取玩家的活跃战斗分配。
 	ResumeMatch(ctx context.Context, playerID int64) (*rcenter.MatchResult, error)
 }
 
 // Service 定义提供给逻辑服 TCP 实时处理器的匹配操作。
 type Service interface {
+	// Start 发起单人对局或双人匹配。
 	Start(ctx context.Context, playerID int64, hero string, solo bool) (*rcenter.MatchResult, error)
+	// Cancel 取消等待中的匹配。
 	Cancel(ctx context.Context, playerID int64) error
+	// Resume 返回玩家可恢复的活跃战斗分配。
 	Resume(ctx context.Context, playerID int64) (*rcenter.MatchResult, error)
 }
 

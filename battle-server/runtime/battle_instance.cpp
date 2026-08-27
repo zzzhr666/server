@@ -9,6 +9,8 @@
 #include <ranges>
 #include <utility>
 
+#include "ecs/system/blessing_config.hpp"
+#include "ecs/system/blessing_helpers.hpp"
 #include "gameplay/monster_planner.hpp"
 #include "gameplay/room_encounter_validator.hpp"
 #include "gameplay/room_graph_validator.hpp"
@@ -16,12 +18,19 @@
 #include "gameplay/room_layout_validator.hpp"
 
 namespace {
-    constexpr std::array<battle::BlessingID, 5> AllBlessingIDs{
+    constexpr std::array<battle::BlessingID, 12> AllBlessingIDs{
         battle::BlessingID::BurnOnHit,
         battle::BlessingID::LifeSteal,
         battle::BlessingID::FreezeOnHit,
         battle::BlessingID::CriticalStrike,
         battle::BlessingID::ChainLightning,
+        battle::BlessingID::Frenzy,
+        battle::BlessingID::Swift,
+        battle::BlessingID::Toughness,
+        battle::BlessingID::HeavyStrike,
+        battle::BlessingID::ArmorBreak,
+        battle::BlessingID::Revenge,
+        battle::BlessingID::SoulHarvest,
     };
 
     bool valid_room_configuration(const battle::BattleInstanceConfig& config) {
@@ -71,6 +80,39 @@ namespace {
         return kind == battle::FreeRewardKind::Heal || kind == battle::FreeRewardKind::Attack ||
             kind == battle::FreeRewardKind::DamageReduction || kind == battle::FreeRewardKind::Blessing ||
             kind == battle::FreeRewardKind::Skip;
+    }
+
+    void apply_stats_blessing(battle::ecs::World& world, battle::ecs::Entity entity, battle::BlessingID blessing_id,
+                              int previous_level, int current_level) {
+        switch (blessing_id) {
+        case battle::BlessingID::Frenzy: {
+            if (auto* definition = world.registry().try_get<battle::ecs::AttackDefinition>(entity)) {
+                const int previous_reduction = battle::ecs::frenzy_cooldown_reduction_percent(previous_level);
+                const int current_reduction = battle::ecs::frenzy_cooldown_reduction_percent(current_level);
+                if (previous_level > 0 && previous_reduction < 100) {
+                    definition->cooldown_seconds *= 100.0f / static_cast<float>(100 - previous_reduction);
+                }
+                definition->cooldown_seconds *= static_cast<float>(100 - current_reduction) / 100.0f;
+            }
+            break;
+        }
+        case battle::BlessingID::Swift: {
+            if (auto* stats = world.registry().try_get<battle::ecs::CharacterStats>(entity)) {
+                stats->move_speed += battle::ecs::swift_move_speed_increase(current_level) -
+                    battle::ecs::swift_move_speed_increase(previous_level);
+            }
+            break;
+        }
+        case battle::BlessingID::Toughness: {
+            if (auto* stats = world.registry().try_get<battle::ecs::CharacterStats>(entity)) {
+                stats->armor += battle::ecs::toughness_armor_increase(current_level) -
+                    battle::ecs::toughness_armor_increase(previous_level);
+            }
+            break;
+        }
+        default:
+            break;
+        }
     }
 }
 
@@ -276,6 +318,9 @@ battle::BattleWorldSnapshot battle::BattleInstance::snapshot() const {
         battle_world_snapshot.current_room_layout_id = current_room->layout_id;
         for (const auto next_room_id : current_room->next_room_ids) {
             battle_world_snapshot.available_room_exit_ids.emplace_back(next_room_id);
+        }
+        if (const auto* current_layout = room_layout_catalog_.find_layout(current_room->layout_id)) {
+            battle_world_snapshot.world_bounds = current_layout->bounds;
         }
     }
     if (room_state() == RoomFlowState::ChoosingExit) {
@@ -578,6 +623,41 @@ void battle::BattleInstance::consume_kill_events_() {
         // 只有玩家击杀会进入局内经验和 rcenter 结算统计；怪物或环境来源的事件
         // 没有 player 映射，因此直接忽略。
         const auto player_id = killer_it->second;
+        if (auto* blessing = ecs::find_blessing(world_, event.killer, BlessingID::SoulHarvest)) {
+            if (auto* effects = world_.registry().try_get<ecs::StatusEffects>(event.killer)) {
+                auto* stats = world_.registry().try_get<ecs::CharacterStats>(event.killer);
+                if (effects->soul_harvest.has_value()) {
+                    if (stats) {
+                        stats->move_speed -= effects->soul_harvest->move_speed_bonus;
+                    }
+                    const float bonus = stats
+                                            ? stats->move_speed *
+                                            static_cast<float>(ecs::soul_harvest_move_speed_increase_percent(
+                                                blessing->level)) /
+                                            100.0f
+                                            : 0.0f;
+                    effects->soul_harvest->move_speed_bonus = bonus;
+                    effects->soul_harvest->remaining_seconds = gameplay_config::blessing::soul_harvest::Duration;
+                    if (stats) {
+                        stats->move_speed += bonus;
+                    }
+                } else {
+                    const float bonus = stats
+                                            ? stats->move_speed *
+                                            static_cast<float>(ecs::soul_harvest_move_speed_increase_percent(
+                                                blessing->level)) /
+                                            100.0f
+                                            : 0.0f;
+                    effects->soul_harvest = ecs::SoulHarvestStatus{
+                        .remaining_seconds = gameplay_config::blessing::soul_harvest::Duration,
+                        .move_speed_bonus = bonus,
+                    };
+                    if (stats) {
+                        stats->move_speed += bonus;
+                    }
+                }
+            }
+        }
         grant_experience_(player_id, experience_for_monster_kind_(event.monster_kind));
         auto& stats = player_battle_stats_[player_id];
         stats.total_kills++;
@@ -715,8 +795,10 @@ void battle::BattleInstance::add_or_level_up_blessing_(ecs::Entity player_entity
     });
 
     auto inventory = world_.registry().try_get<ecs::BlessingInventory>(player_entity);
+    const int previous_level = blessing_it == blessing_state.blessings.end() ? 0 : blessing_it->level;
+    const int current_level = previous_level + 1;
     if (blessing_it != blessing_state.blessings.end()) {
-        blessing_it->level++;
+        blessing_it->level = current_level;
         if (inventory) {
             auto inventory_it = std::ranges::find_if(inventory->blessings,
                                                      [blessing_id](const ecs::BlessingStack& stack) {
@@ -731,18 +813,19 @@ void battle::BattleInstance::add_or_level_up_blessing_(ecs::Entity player_entity
                 });
             }
         }
-        return;
-    }
-    blessing_state.blessings.emplace_back(PlayerBlessing{
-        .blessing_id = blessing_id,
-        .level = 1,
-    });
-    if (inventory) {
-        inventory->blessings.emplace_back(ecs::BlessingStack{
+    } else {
+        blessing_state.blessings.emplace_back(PlayerBlessing{
             .blessing_id = blessing_id,
             .level = 1,
         });
+        if (inventory) {
+            inventory->blessings.emplace_back(ecs::BlessingStack{
+                .blessing_id = blessing_id,
+                .level = 1,
+            });
+        }
     }
+    apply_stats_blessing(world_, player_entity, blessing_id, previous_level, current_level);
 }
 
 bool battle::BattleInstance::all_reward_choices_completed_() const {
@@ -884,6 +967,7 @@ bool battle::BattleInstance::enter_current_room_() {
         return false;
     }
     if (room_state() == RoomFlowState::Rewarding) {
+        shop_offers_ = current_room_id() < 8 ? early_reward_shop_offers() : late_reward_shop_offers();
         free_reward_states_.clear();
         for (const auto& player_id : player_entities_ | std::views::keys) {
             free_reward_states_[player_id] =

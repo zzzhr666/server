@@ -93,6 +93,7 @@ func validateListChatMessagesInput(input state.ListChatMessagesInput) error {
 	return nil
 }
 
+// SaveChatMessage 校验并持久化聊天消息，客户端消息键重复时返回已有记录。
 func (s *Store) SaveChatMessage(ctx context.Context, input state.SaveChatMessageInput) (*state.ChatMessage, error) {
 	if err := validateSaveChatMessageInput(input); err != nil {
 		return nil, err
@@ -112,6 +113,7 @@ func (s *Store) SaveChatMessage(ctx context.Context, input state.SaveChatMessage
 
 }
 
+// ListChatMessages 按频道与游标倒序读取聊天历史。
 func (s *Store) ListChatMessages(ctx context.Context, input state.ListChatMessagesInput) ([]*state.ChatMessage, error) {
 	if err := validateListChatMessagesInput(input); err != nil {
 		return nil, err

@@ -497,6 +497,7 @@ func (s *Store) RegisterAccount(ctx context.Context, input state.RegisterAccount
 	return result, nil
 }
 
+// SendFriendRequest 原子创建好友申请及双方索引，并拒绝重复关系。
 func (s *Store) SendFriendRequest(ctx context.Context, fromPlayerID, toPlayerID int64) error {
 	if err := validateFriendPair(fromPlayerID, toPlayerID); err != nil {
 		return err
@@ -560,6 +561,7 @@ func (s *Store) SendFriendRequest(ctx context.Context, fromPlayerID, toPlayerID 
 	})
 }
 
+// ListIncomingFriendRequests 读取玩家收到的全部待处理好友申请。
 func (s *Store) ListIncomingFriendRequests(ctx context.Context, playerID int64) ([]*state.FriendRequest, error) {
 	if err := validateFriendPlayerID(playerID); err != nil {
 		return nil, err
@@ -590,6 +592,7 @@ func (s *Store) ListIncomingFriendRequests(ctx context.Context, playerID int64) 
 	return requests, nil
 }
 
+// ListOutgoingFriendRequests 读取玩家发出的全部待处理好友申请。
 func (s *Store) ListOutgoingFriendRequests(ctx context.Context, playerID int64) ([]*state.FriendRequest, error) {
 	if err := validateFriendPlayerID(playerID); err != nil {
 		return nil, err
@@ -620,6 +623,7 @@ func (s *Store) ListOutgoingFriendRequests(ctx context.Context, playerID int64) 
 	return requests, nil
 }
 
+// AcceptFriendRequest 原子删除申请并建立双向好友关系。
 func (s *Store) AcceptFriendRequest(ctx context.Context, fromPlayerID, toPlayerID int64) error {
 	if err := validateFriendPair(fromPlayerID, toPlayerID); err != nil {
 		return err
@@ -650,6 +654,7 @@ func (s *Store) AcceptFriendRequest(ctx context.Context, fromPlayerID, toPlayerI
 	})
 }
 
+// RejectFriendRequest 原子删除好友申请及双方索引。
 func (s *Store) RejectFriendRequest(ctx context.Context, fromPlayerID, toPlayerID int64) error {
 	if err := validateFriendPair(fromPlayerID, toPlayerID); err != nil {
 		return err
@@ -676,6 +681,7 @@ func (s *Store) RejectFriendRequest(ctx context.Context, fromPlayerID, toPlayerI
 	})
 }
 
+// ListFriendIDs 读取玩家的好友 ID 集合。
 func (s *Store) ListFriendIDs(ctx context.Context, playerID int64) ([]int64, error) {
 	if err := validateFriendPlayerID(playerID); err != nil {
 		return nil, err
@@ -695,6 +701,7 @@ func (s *Store) ListFriendIDs(ctx context.Context, playerID int64) ([]int64, err
 	return ids, nil
 }
 
+// DeleteFriend 原子删除双方好友关系。
 func (s *Store) DeleteFriend(ctx context.Context, playerID, friendPlayerID int64) error {
 	if err := validateFriendPair(playerID, friendPlayerID); err != nil {
 		return err
@@ -816,6 +823,7 @@ func realtimeDeliveryChannel(route state.RealtimeRoute) (string, bool) {
 	return "", false
 }
 
+// GetGrowth 从 Redis 读取玩家成长数据，不存在时返回初始值。
 func (s *Store) GetGrowth(ctx context.Context, playerID int64) (*state.Growth, error) {
 	if playerID <= 0 {
 		return nil, state.ErrInvalidGrowth
@@ -830,6 +838,7 @@ func (s *Store) GetGrowth(ctx context.Context, playerID int64) (*state.Growth, e
 	return parseGrowth(value)
 }
 
+// UpgradeGrowth 使用乐观事务原子扣除货币并更新成长等级。
 func (s *Store) UpgradeGrowth(ctx context.Context, input state.UpgradeGrowthInput) (*state.UpgradeGrowthResult, error) {
 
 	if input.PlayerID <= 0 || input.Cost < 0 || input.MaxLevel < 1 {

@@ -226,6 +226,10 @@ std::size_t battle::SessionManager::mark_stale_sessions(std::chrono::steady_cloc
     for (const auto& session : sessions) {
         if (session->mark_disconnected_if_stale(now,idle_timeout)) {
             ++disconnected_count;
+            const auto endpoint = session->endpoint();
+            SPDLOG_WARN("session marked disconnected room={} player={} conv={} endpoint={}:{} idle_timeout={}s",
+                        session->room_name(), session->player_id(), session->conv(), endpoint.ip(), endpoint.port(),
+                        std::chrono::duration_cast<std::chrono::seconds>(idle_timeout).count());
         }
     }
     return disconnected_count;

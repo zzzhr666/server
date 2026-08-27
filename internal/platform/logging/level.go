@@ -16,6 +16,7 @@ const (
 	FatalLevel
 )
 
+// String 返回日志级别的规范名称。
 func (l Level) String() string {
 	switch l {
 	case TraceLevel:
@@ -35,6 +36,7 @@ func (l Level) String() string {
 	}
 }
 
+// ParseLevel 将日志级别名称解析为 Level。
 func ParseLevel(value string) (Level, error) {
 	switch strings.ToLower(strings.TrimSpace(value)) {
 	case "trace":

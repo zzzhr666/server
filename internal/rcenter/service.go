@@ -19,7 +19,9 @@ const (
 
 // BattleNodeController 通过控制面协调已注册的战斗节点。
 type BattleNodeController interface {
+	// CreateRoom 请求指定战斗节点预留房间。
 	CreateRoom(ctx context.Context, nodeName string, input CreateBattleRoomInput) error
+	// RegisterNode 记录或刷新战斗节点信息。
 	RegisterNode(ctx context.Context, node BattleNode) error
 }
 

@@ -10,7 +10,9 @@ namespace battle::ecs {
     /// @brief SystemScheduler 按注册顺序执行 ECS 系统；顺序即玩法规则的一部分。
     class SystemScheduler {
     public:
+        /// @brief 使用权威默认顺序创建系统调度器。
         SystemScheduler();
+        /// @brief 使用指定系统顺序创建调度器。
         SystemScheduler(std::initializer_list<sysFunc> funcs);
         /// @brief 在调度链尾部注册一个系统。
         void add_system(sysFunc func);

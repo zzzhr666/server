@@ -12,6 +12,7 @@ namespace battle {
     /// @brief RoomManager 持有活跃房间并提供线程安全的房间操作。
     class RoomManager {
     public:
+        /// @brief 使用指标收集器创建房间管理器。
         explicit RoomManager(BattleMetrics& metrics);
 
         /// @brief 为已匹配玩家预留新房间。

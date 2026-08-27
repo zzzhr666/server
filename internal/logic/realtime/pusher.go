@@ -100,6 +100,7 @@ func newLocalRealtimePusher(connections *connectionManager) *localRealtimePusher
 	}
 }
 
+// Push 将实时事件转换为协议消息并投递到本机玩家连接。
 func (l *localRealtimePusher) Push(ctx context.Context, event state.RealtimeEvent) bool {
 	if ctx.Err() != nil {
 		return false

@@ -12,6 +12,7 @@ type Store struct {
 	db *mongo.Database
 }
 
+// NewStore 使用指定 MongoDB 数据库创建聊天消息存储。
 func NewStore(db *mongo.Database) *Store {
 	return &Store{db: db}
 }
@@ -20,6 +21,7 @@ func (s *Store) chatMessages() *mongo.Collection {
 	return s.db.Collection("chat_messages")
 }
 
+// EnsureIndexes 创建聊天消息查询与幂等写入所需的索引。
 func (s *Store) EnsureIndexes(ctx context.Context) error {
 	_, err := s.chatMessages().Indexes().CreateMany(ctx, []mongo.IndexModel{
 		{

@@ -17,19 +17,26 @@ const (
 )
 
 type Repository interface {
+	// SaveMessage 持久化聊天消息。
 	SaveMessage(ctx context.Context, input SaveMessageInput) (*Message, error)
+	// ListMessages 分页读取指定频道的聊天历史。
 	ListMessages(ctx context.Context, input ListMessagesInput) ([]*Message, error)
 }
 
 type FriendChecker interface {
+	// ListFriendIDs 返回玩家的好友 ID，用于私聊权限校验。
 	ListFriendIDs(ctx context.Context, playerID int64) ([]int64, error)
 }
 
 type Service interface {
+	// SendWorldMessage 发送世界频道消息。
 	SendWorldMessage(ctx context.Context, input SendWorldMessageInput) (*Message, error)
+	// SendDirectMessage 向好友发送私聊消息。
 	SendDirectMessage(ctx context.Context, input SendDirectMessageInput) (*Message, error)
 
+	// ListWorldMessages 返回世界频道历史消息。
 	ListWorldMessages(ctx context.Context, input ListWorldMessagesInput) ([]*Message, error)
+	// ListDirectMessages 返回双方私聊历史消息。
 	ListDirectMessages(ctx context.Context, input ListDirectMessagesInput) ([]*Message, error)
 }
 
@@ -40,6 +47,7 @@ type GameChatService struct {
 	metrics *Metrics
 }
 
+// SendWorldMessage 校验并持久化一条世界频道消息，再将其发布给在线玩家。
 func (g GameChatService) SendWorldMessage(ctx context.Context, input SendWorldMessageInput) (message *Message, err error) {
 	defer func() { g.observeMessage("world", err) }()
 	if ctxErr := ctx.Err(); ctxErr != nil {
@@ -74,6 +82,7 @@ func (g GameChatService) SendWorldMessage(ctx context.Context, input SendWorldMe
 	return message, nil
 }
 
+// SendDirectMessage 校验好友关系后持久化私聊消息，并将其投递给收发双方。
 func (g GameChatService) SendDirectMessage(ctx context.Context, input SendDirectMessageInput) (message *Message, err error) {
 	defer func() { g.observeMessage("direct", err) }()
 	if ctxErr := ctx.Err(); ctxErr != nil {
@@ -112,6 +121,7 @@ func (g GameChatService) SendDirectMessage(ctx context.Context, input SendDirect
 	return message, nil
 }
 
+// ListWorldMessages 返回指定游标之前的世界频道历史消息。
 func (g GameChatService) ListWorldMessages(ctx context.Context, input ListWorldMessagesInput) (messages []*Message, err error) {
 	defer func() { g.observeHistory("world", err) }()
 	if ctxErr := ctx.Err(); ctxErr != nil {
@@ -134,6 +144,7 @@ func (g GameChatService) ListWorldMessages(ctx context.Context, input ListWorldM
 	return messages, nil
 }
 
+// ListDirectMessages 校验好友关系后返回双方私聊频道的历史消息。
 func (g GameChatService) ListDirectMessages(ctx context.Context, input ListDirectMessagesInput) (messages []*Message, err error) {
 	defer func() { g.observeHistory("direct", err) }()
 	if ctxErr := ctx.Err(); ctxErr != nil {

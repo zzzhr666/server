@@ -141,12 +141,35 @@ namespace {
         return true;
     }
 
-    void enter_triple_dash_windup(battle::ecs::BossAbilityState& ability, const TripleDashConfig& config) {
+    void enter_triple_dash_windup(battle::ecs::BossAbilityState& ability, battle::ecs::Transform& transform,
+                                  const TripleDashConfig& config) {
         ability.hit_targets.clear();
         ability.action_phase = battle::ecs::AttackPhase::Windup;
         ability.kind = battle::ecs::BossAbilityKind::TripleDash;
         ability.remaining_seconds = config.windup;
         ability.travelled_distance = 0.0f;
+        const float delta_x = ability.locked_target_position.x - transform.position.x;
+        const float delta_y = ability.locked_target_position.y - transform.position.y;
+        const float distance = std::sqrt(delta_x * delta_x + delta_y * delta_y);
+        if (distance > 0.01f) {
+            transform.direction = {.x = delta_x / distance, .y = delta_y / distance};
+        }
+    }
+
+    float distance_to_boundary(battle::ecs::Position position, battle::ecs::Direction direction,
+                               const battle::ecs::WorldBounds& bounds, float radius) {
+        float distance = std::numeric_limits<float>::max();
+        if (direction.x > 0.0001f) {
+            distance = std::min(distance, (bounds.max_x - radius - position.x) / direction.x);
+        } else if (direction.x < -0.0001f) {
+            distance = std::min(distance, (bounds.min_x + radius - position.x) / direction.x);
+        }
+        if (direction.y > 0.0001f) {
+            distance = std::min(distance, (bounds.max_y - radius - position.y) / direction.y);
+        } else if (direction.y < -0.0001f) {
+            distance = std::min(distance, (bounds.min_y + radius - position.y) / direction.y);
+        }
+        return std::max(distance, 0.0f);
     }
 
     void enter_radial_projectile_windup(battle::ecs::BossAbilityState& ability,
@@ -398,7 +421,7 @@ void battle::ecs::boss_ability_system(World& world, DeltaTime delta_time) {
             ability->ability_id = world.create_combat_effect();
             switch (ability->next_kind) {
             case BossAbilityKind::TripleDash: {
-                enter_triple_dash_windup(*ability, dash_config);
+                enter_triple_dash_windup(*ability, *transform, dash_config);
                 break;
             }
             case BossAbilityKind::RadialProjectile: {
@@ -410,7 +433,7 @@ void battle::ecs::boss_ability_system(World& world, DeltaTime delta_time) {
                 break;
             }
             case BossAbilityKind::None: {
-                enter_triple_dash_windup(*ability, dash_config);
+                enter_triple_dash_windup(*ability, *transform, dash_config);
                 break;
             }
             }
@@ -426,14 +449,27 @@ void battle::ecs::boss_ability_system(World& world, DeltaTime delta_time) {
             }
         }
         if (ability->kind == BossAbilityKind::TripleDash && ability->action_phase == AttackPhase::Active) {
-            const auto delta_x = ability->locked_target_position.x - transform->position.x;
-            const auto delta_y = ability->locked_target_position.y - transform->position.y;
-            const auto distance = std::sqrt(delta_x * delta_x + delta_y * delta_y);
             const float delta_seconds = delta_time.count();
             const float remaining_distance = dash_config.distance - ability->travelled_distance;
             const float max_step_distance = dash_config.speed * delta_seconds;
-            const float step_distance = std::min({distance, max_step_distance, remaining_distance});
-            if (distance <= 0.01f || delta_seconds <= 0.0f || step_distance <= 0.0f) {
+            const auto* collider = world.registry().try_get<Collider>(entity);
+            const float direction_length = std::sqrt(transform->direction.x * transform->direction.x +
+                transform->direction.y * transform->direction.y);
+            if (!collider || direction_length <= 0.01f || delta_seconds <= 0.0f || remaining_distance <= 0.0f) {
+                velocity->x = 0.0f;
+                velocity->y = 0.0f;
+                ability->action_phase = AttackPhase::Recovery;
+                ability->remaining_seconds = dash_config.recovery;
+                continue;
+            }
+            const Direction dash_direction{
+                .x = transform->direction.x / direction_length,
+                .y = transform->direction.y / direction_length,
+            };
+            const float boundary_distance = distance_to_boundary(transform->position, dash_direction,
+                                                                 world.world_bounds(), collider->radius);
+            const float step_distance = std::min({max_step_distance, remaining_distance, boundary_distance});
+            if (step_distance <= 0.0f) {
                 velocity->x = 0.0f;
                 velocity->y = 0.0f;
                 ability->action_phase = AttackPhase::Recovery;
@@ -441,8 +477,8 @@ void battle::ecs::boss_ability_system(World& world, DeltaTime delta_time) {
                 continue;
             }
             const float step_speed = step_distance / delta_seconds;
-            velocity->x = delta_x / distance * step_speed;
-            velocity->y = delta_y / distance * step_speed;
+            velocity->x = dash_direction.x * step_speed;
+            velocity->y = dash_direction.y * step_speed;
             ability->travelled_distance += step_distance;
             Position start = transform->position;
             Position end = {
@@ -461,7 +497,7 @@ void battle::ecs::boss_ability_system(World& world, DeltaTime delta_time) {
                     continue;
                 }
                 ability->sequence_index += 1;
-                enter_triple_dash_windup(*ability, dash_config);
+                enter_triple_dash_windup(*ability, *transform, dash_config);
             } else {
                 finish_boss_ability(*ability, *velocity, dash_config.cooldown);
             }

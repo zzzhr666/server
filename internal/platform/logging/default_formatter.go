@@ -14,6 +14,7 @@ type DefaultFormatter struct {
 
 const DefaultPattern = "[%Y/%m/%d][%H:%M:%S.%e][%l][%s:%!:%#] %v"
 
+// NewDefaultFormatter 使用指定模式创建默认日志格式化器。
 func NewDefaultFormatter(pattern string) *DefaultFormatter {
 	return &DefaultFormatter{
 		pattern: pattern,
@@ -21,6 +22,7 @@ func NewDefaultFormatter(pattern string) *DefaultFormatter {
 	}
 }
 
+// Format 按配置模式将日志记录格式化为文本。
 func (d *DefaultFormatter) Format(record Record) string {
 	buffer := make([]byte, 0, len(d.pattern)+len(record.Message)+64)
 	for _, part := range d.parts {

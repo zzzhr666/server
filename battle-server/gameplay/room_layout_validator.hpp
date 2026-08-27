@@ -19,6 +19,7 @@ namespace battle {
         DuplicateTrapID,
         InvalidTrapRadius,
         TrapOutsideBounds,
+        TrapOverlapsObstacle,
     };
 
     struct RoomLayoutIssue {
@@ -28,5 +29,6 @@ namespace battle {
     };
 
 
+    /// @brief 校验房间布局的出生点、障碍物、陷阱与边界约束。
     [[nodiscard]] std::vector<RoomLayoutIssue> validate_room_layout(const RoomLayout& layout);
 }

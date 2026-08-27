@@ -14,5 +14,6 @@ namespace battle {
         float collision_radius{};
     };
 
+    /// @brief 返回指定怪物类型的权威基础属性定义。
     MonsterDefinition monster_definition(MonsterKind kind);
 }

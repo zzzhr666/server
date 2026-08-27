@@ -28,6 +28,7 @@ namespace battle {
     /// @brief RCenterClient 封装 battle-server 到 rcenter-server 的控制 RPC。
     class RCenterClient {
     public:
+        /// @brief 使用 gRPC 通道及控制面超时创建 rcenter 客户端。
         RCenterClient(std::shared_ptr<grpc::Channel> channel,
                       std::chrono::seconds register_timeout,
                       std::chrono::seconds finish_timeout);
