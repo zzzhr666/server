@@ -673,6 +673,21 @@ void battle::BattleInstance::tick_blessing_selection_(ecs::DeltaTime delta_time)
         room_runtime_.begin_exit_selection();
         return;
     }
+
+    for (const auto& entity : player_entities_ | std::views::values) {
+        const auto* progress = world_.registry().try_get<ecs::PlayerProgress>(entity);
+        if (progress != nullptr && progress->pending_upgrade_choices > 0) {
+            world_.set_player_command(entity, ecs::PlayerCommand{});
+        }
+    }
+    world_.tick(delta_time);
+    collect_combat_events_();
+    consume_kill_events_();
+    if (!world_.has_living_players()) {
+        end_battle_(BattleEndReason::Defeat);
+        return;
+    }
+
     reward_selection_.remaining_seconds -= delta_time;
     if (reward_selection_.remaining_seconds <= ecs::DeltaTime{0}) {
         apply_default_upgrade_choices_();

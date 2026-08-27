@@ -25,9 +25,9 @@ namespace battle::gameplay_config {
 
     namespace hero {
         namespace fire {
-            inline constexpr int AttackDamage = 23;
+            inline constexpr int AttackDamage = 21;
             inline constexpr float AttackRange = 3.0f;
-            inline constexpr ecs::DeltaTime AttackCooldown{0.34f};
+            inline constexpr ecs::DeltaTime AttackCooldown{0.43f};
             inline constexpr ecs::DeltaTime AttackWindup{0.12f};
             inline constexpr ecs::DeltaTime AttackActive{0.05f};
             inline constexpr ecs::DeltaTime AttackRecovery{0.17f};
@@ -35,9 +35,9 @@ namespace battle::gameplay_config {
         }
 
         namespace ice {
-            inline constexpr int AttackDamage = 13;
+            inline constexpr int AttackDamage = 12;
             inline constexpr float AttackRange = 2.4f;
-            inline constexpr ecs::DeltaTime AttackCooldown{0.20f};
+            inline constexpr ecs::DeltaTime AttackCooldown{0.28f};
             inline constexpr ecs::DeltaTime AttackWindup{0.06f};
             inline constexpr ecs::DeltaTime AttackActive{0.03f};
             inline constexpr ecs::DeltaTime AttackRecovery{0.11f};
@@ -45,9 +45,9 @@ namespace battle::gameplay_config {
         }
 
         namespace rock {
-            inline constexpr int AttackDamage = 38;
+            inline constexpr int AttackDamage = 34;
             inline constexpr float AttackRange = 3.5f;
-            inline constexpr ecs::DeltaTime AttackCooldown{0.62f};
+            inline constexpr ecs::DeltaTime AttackCooldown{0.78f};
             inline constexpr ecs::DeltaTime AttackWindup{0.24f};
             inline constexpr ecs::DeltaTime AttackActive{0.08f};
             inline constexpr ecs::DeltaTime AttackRecovery{0.30f};
@@ -55,9 +55,9 @@ namespace battle::gameplay_config {
         }
 
         namespace nature {
-            inline constexpr int AttackDamage = 32;
+            inline constexpr int AttackDamage = 29;
             inline constexpr float AttackRange = 15.0f;
-            inline constexpr ecs::DeltaTime AttackCooldown{0.30f};
+            inline constexpr ecs::DeltaTime AttackCooldown{0.38f};
             inline constexpr ecs::DeltaTime AttackWindup{0.12f};
             inline constexpr ecs::DeltaTime AttackActive{0.02f};
             inline constexpr ecs::DeltaTime AttackRecovery{0.16f};
@@ -69,7 +69,7 @@ namespace battle::gameplay_config {
 
     namespace growth {
         inline constexpr float AttackIncreasePerLevel = 0.08f;
-        inline constexpr float AttackSpeedIncreasePerLevel = 0.06f;
+        inline constexpr float AttackSpeedIncreasePerLevel = 0.04f;
         inline constexpr float HealthIncreasePerLevel = 0.1f;
         inline constexpr float MoveSpeedIncreasePerLevel = 0.03f;
     }
@@ -261,11 +261,11 @@ namespace battle::gameplay_config {
     namespace progression {
         inline constexpr int BaseExperienceToNextLevel = 100;
         inline constexpr int ExperienceToNextLevelGrowth = 50;
-        inline constexpr int MeleeMonsterExperience = 35;
-        inline constexpr int RangedMonsterExperience = 45;
-        inline constexpr int BossMonsterExperience = 300;
+        inline constexpr int MeleeMonsterExperience = 55;
+        inline constexpr int RangedMonsterExperience = 70;
+        inline constexpr int BossMonsterExperience = 450;
         inline constexpr std::size_t RewardOptionCount = 3;
-        inline constexpr ecs::DeltaTime RewardSelectionTime{15.0f};
+        inline constexpr ecs::DeltaTime RewardSelectionTime{60.0f};
     }
 
     namespace spawn {
