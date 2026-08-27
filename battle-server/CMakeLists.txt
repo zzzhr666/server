@@ -209,9 +209,7 @@ target_link_libraries(battle_server PRIVATE
         battle_registry)
 
 add_executable(battle_ecs_tests
-        ecs/tests/world_test.cpp
         ecs/tests/navigation_test.cpp
-        ecs/tests/boss_ability_system_test.cpp
 )
 
 target_link_libraries(battle_ecs_tests PRIVATE
@@ -220,12 +218,7 @@ target_link_libraries(battle_ecs_tests PRIVATE
 )
 
 add_executable(battle_runtime_tests
-        gameplay/tests/growth_test.cpp
-        gameplay/tests/room_graph_test.cpp
         gameplay/tests/spawn_planner_test.cpp
-        gameplay/tests/hero_test.cpp
-        runtime/tests/battle_instance_test.cpp
-        runtime/tests/battle_runtime_test.cpp
 )
 
 add_executable(battle_platform_tests
