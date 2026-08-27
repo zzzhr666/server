@@ -634,8 +634,14 @@ func (h *Handler) handleMatchStart(ctx context.Context, session *session, player
 		_ = writeError(session, envelope.GetRequestId(), realtimepb.ErrorCode_INTERNAL, "match service unavailable")
 		return false
 	}
+	nickname := ""
+	if h.player != nil {
+		if currentPlayer, getErr := h.player.Get(ctx, playerID); getErr == nil && currentPlayer != nil {
+			nickname = currentPlayer.Nickname
+		}
+	}
 
-	matchResult, err := h.match.Start(ctx, playerID, hero, envelope.GetMatchStart().GetSolo())
+	matchResult, err := h.match.Start(ctx, playerID, nickname, hero, envelope.GetMatchStart().GetSolo())
 	if err != nil {
 		return writeError(session, envelope.GetRequestId(), matchErrorCode(err), err.Error()) == nil
 	}

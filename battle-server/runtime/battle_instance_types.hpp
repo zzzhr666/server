@@ -64,6 +64,7 @@ namespace battle {
         std::string room_name;
         std::vector<std::int64_t> player_ids;
         std::unordered_map<std::int64_t, std::pair<HeroKind, GrowthLevels>> player_loadouts;
+        std::unordered_map<std::int64_t, std::string> player_nicknames;
         std::optional<ecs::CreatePlayerConfig> player_config_override;
         std::optional<std::uint32_t> reward_random_seed;
         std::vector<ShopOffer> shop_offers = default_shop_offers();
@@ -132,6 +133,7 @@ namespace battle {
         ecs::EntityKind kind{};
         std::int64_t player_id{};
         std::optional<HeroKind> hero;
+        std::string nickname;
         ecs::Position position{};
         ecs::Direction direction{};
         int current_health{};
@@ -158,6 +160,7 @@ namespace battle {
 
     struct PlayerSettlement {
         std::int64_t player_id = 0;
+        std::string nickname;
         int total_kills = 0;
         std::vector<MonsterKillCount> kills;
     };

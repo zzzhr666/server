@@ -120,7 +120,7 @@ namespace battle::gameplay_config {
                     inline constexpr ecs::DeltaTime Recovery{1.0f};
                     inline constexpr ecs::DeltaTime Cooldown{2.0f};
                     inline constexpr int Damage = 50;
-                    inline constexpr float HitRadius = 10.0f;
+                    inline constexpr float HitRadius = CollisionRadius;
                     inline constexpr std::uint32_t DashCount = 3;
                 }
 
@@ -131,7 +131,7 @@ namespace battle::gameplay_config {
                     inline constexpr ecs::DeltaTime Recovery{1.0f};
                     inline constexpr ecs::DeltaTime Cooldown{2.0f};
                     inline constexpr int Damage = 75;
-                    inline constexpr float HitRadius = 10.0f;
+                    inline constexpr float HitRadius = CollisionRadius;
                     inline constexpr std::uint32_t DashCount = 5;
                 }
             }

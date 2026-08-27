@@ -49,6 +49,7 @@ message StartMatchRequest {
   int64 player_id = 1;
   string hero = 2;
   bool solo = 3;
+  string nickname = 4;
 }
 
 message StartMatchResponse {
@@ -85,6 +86,7 @@ message FinishMatchResponse {}
 message PlayerLoadout {
   int64 player_id = 1;
   string hero = 2;
+  string nickname = 3;
 }
 
 message ResumeMatchRequest {

@@ -327,7 +327,7 @@ std::optional<battle::ecs::Position> battle::ecs::World::resolve_character_spawn
         return position;
     }
 
-    const float step = 2.0f * collider.radius;
+    const float step = 3.0f * collider.radius;
     const float max_span = std::max(bounds_.max_x - bounds_.min_x, bounds_.max_y - bounds_.min_y);
     const int max_ring = static_cast<int>(std::ceil(max_span / step));
     for (int ring = 1; ring <= max_ring; ring++) {

@@ -349,7 +349,6 @@ inline constexpr BlessingId BlessingId_MIN =
     static_cast<BlessingId>(0);
 inline constexpr BlessingId BlessingId_MAX =
     static_cast<BlessingId>(12);
-
 inline bool BlessingId_IsValid(int value) {
   return 0 <= value && value <= 12;
 }
@@ -495,264 +494,241 @@ inline bool ShopBuffKind_Parse(
 // -------------------------------------------------------------------
 
 class WorldBounds final : public ::google::protobuf::Message
-    /* @@protoc_insertion_point(class_definition:battle.v1.WorldBounds) */ {
+/* @@protoc_insertion_point(class_definition:battle.v1.WorldBounds) */ {
 public:
-    inline WorldBounds() : WorldBounds(nullptr) {}
-    ~WorldBounds() PROTOBUF_FINAL;
+inline WorldBounds() : WorldBounds(nullptr) {}
+~WorldBounds() PROTOBUF_FINAL;
 
 #if defined(PROTOBUF_CUSTOM_VTABLE)
-    void operator delete(WorldBounds* PROTOBUF_NONNULL msg, std::destroying_delete_t) {
-        SharedDtor(*msg);
-        ::google::protobuf::internal::SizedDelete(msg, sizeof(WorldBounds));
-    }
+  void operator delete(WorldBounds* PROTOBUF_NONNULL msg, std::destroying_delete_t) {
+    SharedDtor(*msg);
+    ::google::protobuf::internal::SizedDelete(msg, sizeof(WorldBounds));
+}
 #endif
 
-    template <typename = void>
-    explicit PROTOBUF_CONSTEXPR WorldBounds(::google::protobuf::internal::ConstantInitialized);
+  template <typename = void>
+explicit PROTOBUF_CONSTEXPR WorldBounds(::google::protobuf::internal::ConstantInitialized);
 
-    inline WorldBounds(const WorldBounds& from) : WorldBounds(nullptr, from) {}
-
-    inline WorldBounds(WorldBounds&& from) noexcept
-        : WorldBounds(nullptr, ::std::move(from)) {}
-
-    inline WorldBounds& operator=(const WorldBounds& from) {
-        CopyFrom(from);
-        return *this;
+inline WorldBounds(const WorldBounds& from) : WorldBounds(nullptr, from) {}
+  inline WorldBounds(WorldBounds&& from) noexcept
+      : WorldBounds(nullptr, ::std::move(from)) {}
+  inline WorldBounds& operator=(const WorldBounds& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline WorldBounds& operator=(WorldBounds&& from) noexcept {
+    if (this == &from) return *this;
+    if (::google::protobuf::internal::CanMoveWithInternalSwap(GetArena(), from.GetArena())) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
     }
+    return *this;
+  }
 
-    inline WorldBounds& operator=(WorldBounds&& from) noexcept {
-        if (this == &from) return *this;
-        if (::google::protobuf::internal::CanMoveWithInternalSwap(GetArena(), from.GetArena())) {
-            InternalSwap(&from);
-        } else {
-            CopyFrom(from);
-        }
-        return *this;
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const
+
+ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(
+        ::google::protobuf::UnknownFieldSet::default_instance);
+}
+
+inline ::google::protobuf::UnknownFieldSet* PROTOBUF_NONNULL mutable_unknown_fields()
+
+ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.mutable_unknown_fields<::google::protobuf::UnknownFieldSet>();
+}
+
+static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL descriptor() {
+    return GetDescriptor();
+  }
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::google::protobuf::Reflection* PROTOBUF_NONNULL GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const WorldBounds& default_instance() {
+    return *reinterpret_cast<const WorldBounds*>(
+        &_WorldBounds_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages = 11;
+  friend void swap(WorldBounds& a, WorldBounds& b) { a.Swap(&b); }
+  inline void Swap(WorldBounds* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    if (::google::protobuf::internal::CanUseInternalSwap(GetArena(), other->GetArena())) {
+      InternalSwap(other);
+    } else {
+      ::google::protobuf::internal::GenericSwap(this, other);
     }
+  }
+  void UnsafeArenaSwap(WorldBounds* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    ABSL_DCHECK(GetArena() == other->GetArena());
+    InternalSwap(other);
+  }
 
-    inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const
+  // implements Message ----------------------------------------------
 
-    ABSL_ATTRIBUTE_LIFETIME_BOUND {
-        return _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(
-            ::google::protobuf::UnknownFieldSet::default_instance);
-    }
+WorldBounds* PROTOBUF_NONNULL New(::google::protobuf::Arena* PROTOBUF_NULLABLE arena = nullptr) const {
+    return ::google::protobuf::Message::DefaultConstruct<WorldBounds>(arena);
+}
 
-    inline ::google::protobuf::UnknownFieldSet* PROTOBUF_NONNULL mutable_unknown_fields()
+using ::google::protobuf::Message::CopyFrom;
+void CopyFrom(const WorldBounds& from);
+using ::google::protobuf::Message::MergeFrom;
 
-    ABSL_ATTRIBUTE_LIFETIME_BOUND {
-        return _internal_metadata_.mutable_unknown_fields<::google::protobuf::UnknownFieldSet>();
-    }
-
-    static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL descriptor() {
-        return GetDescriptor();
-    }
-
-    static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL GetDescriptor() {
-        return default_instance().GetMetadata().descriptor;
-    }
-
-    static const ::google::protobuf::Reflection* PROTOBUF_NONNULL GetReflection() {
-        return default_instance().GetMetadata().reflection;
-    }
-
-    static const WorldBounds& default_instance() {
-        return *reinterpret_cast<const WorldBounds*>(
-            &_WorldBounds_default_instance_);
-    }
-
-    static constexpr int kIndexInFileMessages = 11;
-
-    friend void swap(WorldBounds& a, WorldBounds& b) {
-        a.Swap(&b);
-    }
-
-    inline void Swap(WorldBounds* PROTOBUF_NONNULL other) {
-        if (other == this) return;
-        if (::google::protobuf::internal::CanUseInternalSwap(GetArena(), other->GetArena())) {
-            InternalSwap(other);
-        } else {
-            ::google::protobuf::internal::GenericSwap(this, other);
-        }
-    }
-
-    void UnsafeArenaSwap(WorldBounds* PROTOBUF_NONNULL other) {
-        if (other == this) return;
-        ABSL_DCHECK(GetArena() == other->GetArena());
-        InternalSwap(other);
-    }
-
-    // implements Message ----------------------------------------------
-
-    WorldBounds* PROTOBUF_NONNULL New(::google::protobuf::Arena* PROTOBUF_NULLABLE arena = nullptr) const {
-        return ::google::protobuf::Message::DefaultConstruct<WorldBounds>(arena);
-    }
-
-    using ::google::protobuf::Message::CopyFrom;
-    void CopyFrom(const WorldBounds& from);
-    using ::google::protobuf::Message::MergeFrom;
-
-    void MergeFrom(const WorldBounds& from) {
-        WorldBounds::MergeImpl(*this, from);
-    }
+void MergeFrom(const WorldBounds& from) {
+    WorldBounds::MergeImpl(*this, from);
+}
 
 private:
-    static void MergeImpl(::google::protobuf::MessageLite& to_msg,
-                          const ::google::protobuf::MessageLite& from_msg);
+  static void MergeImpl(::google::protobuf::MessageLite& to_msg,
+                        const ::google::protobuf::MessageLite& from_msg);
 
-public:
-    bool IsInitialized() const {
-        return true;
-    }
+  public:
+bool IsInitialized() const {
+    return true;
+}
 
   ABSL_ATTRIBUTE_REINITIALIZES void Clear() PROTOBUF_FINAL;
-#if defined(PROTOBUF_CUSTOM_VTABLE)
+  #if defined(PROTOBUF_CUSTOM_VTABLE)
 private:
-    static ::size_t ByteSizeLong(const ::google::protobuf::MessageLite& msg);
-    static ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
-        const ::google::protobuf::MessageLite& msg, ::uint8_t* PROTOBUF_NONNULL target,
-        ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream);
+static ::size_t ByteSizeLong(const ::google::protobuf::MessageLite& msg);
+static ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+    const ::google::protobuf::MessageLite& msg, ::uint8_t* PROTOBUF_NONNULL target,
+    ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream);
 
 public:
-    ::size_t ByteSizeLong() const {
-        return ByteSizeLong(*this);
-    }
-    ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
-        ::uint8_t* PROTOBUF_NONNULL target,
-        ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
-        return _InternalSerialize(*this, target, stream);
-    }
-#else   // PROTOBUF_CUSTOM_VTABLE
-    ::size_t ByteSizeLong() const final;
-    ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
-        ::uint8_t* PROTOBUF_NONNULL target,
-        ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const final;
-#endif  // PROTOBUF_CUSTOM_VTABLE
-    int GetCachedSize() const {
-        return _impl_._cached_size_.Get();
-    }
+  ::size_t ByteSizeLong() const { return ByteSizeLong(*this); }
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+    return _InternalSerialize(*this, target, stream);
+  }
+  #else   // PROTOBUF_CUSTOM_VTABLE
+  ::size_t ByteSizeLong() const final;
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const final;
+  #endif  // PROTOBUF_CUSTOM_VTABLE
+  int GetCachedSize() const { return _impl_._cached_size_.Get(); }
+
+  private:
+void SharedCtor(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+static void SharedDtor(MessageLite& self);
+void InternalSwap(WorldBounds* PROTOBUF_NONNULL other);
 
 private:
-    void SharedCtor(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
-    static void SharedDtor(MessageLite& self);
-    void InternalSwap(WorldBounds* PROTOBUF_NONNULL other);
+template <typename T>
+friend ::absl::string_view (::google::protobuf::internal::GetAnyMessageName)();
 
-private:
-    template <typename T>
-    friend ::absl::string_view (::google::protobuf::internal::GetAnyMessageName)();
-
-    static ::absl::string_view FullMessageName() {
-        return "battle.v1.WorldBounds";
-    }
+static ::absl::string_view FullMessageName() {
+    return "battle.v1.WorldBounds";
+}
 
 protected:
-    explicit WorldBounds(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
-    WorldBounds(::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const WorldBounds& from);
+  explicit WorldBounds(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  WorldBounds(::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const WorldBounds& from);
+  WorldBounds(
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, WorldBounds&& from) noexcept
+      : WorldBounds(arena) {
+    *this = ::std::move(from);
+  }
+  const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL GetClassData() const PROTOBUF_FINAL;
+  static void* PROTOBUF_NONNULL PlacementNew_(
+      const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static constexpr auto InternalNewImpl_();
 
-    WorldBounds(
-        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, WorldBounds&& from) noexcept
-        : WorldBounds(arena) {
-        *this = ::std::move(from);
-    }
+ public:
+static constexpr auto InternalGenerateClassData_();
 
-    const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL GetClassData() const PROTOBUF_FINAL;
-    static void* PROTOBUF_NONNULL PlacementNew_(
-        const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+::google::protobuf::Metadata GetMetadata() const;
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+enum : int {
+    kMinXFieldNumber = 1,
+    kMaxXFieldNumber = 2,
+    kMinYFieldNumber = 3,
+    kMaxYFieldNumber = 4,
+};
+
+// float min_x = 1;
+void clear_min_x();
+float min_x() const;
+void set_min_x(float value);
+
+private:
+  float _internal_min_x() const;
+  void _internal_set_min_x(float value);
+
+  public:
+// float max_x = 2;
+void clear_max_x();
+float max_x() const;
+void set_max_x(float value);
+
+private:
+  float _internal_max_x() const;
+  void _internal_set_max_x(float value);
+
+  public:
+// float min_y = 3;
+void clear_min_y();
+float min_y() const;
+void set_min_y(float value);
+
+private:
+  float _internal_min_y() const;
+  void _internal_set_min_y(float value);
+
+  public:
+// float max_y = 4;
+void clear_max_y();
+float max_y() const;
+void set_max_y(float value);
+
+private:
+  float _internal_max_y() const;
+  void _internal_set_max_y(float value);
+
+  public:
+// @@protoc_insertion_point(class_scope:battle.v1.WorldBounds)
+private:
+class _Internal;
+friend class ::google::protobuf::internal::TcParser;
+static const ::google::protobuf::internal::TcParseTable<2, 4,
+                                                        0, 0,
+                                                        2>
+_table_;
+
+friend class ::google::protobuf::MessageLite;
+  friend class ::google::protobuf::Arena;
+  template <typename T>
+  friend class ::google::protobuf::Arena::InternalHelper;
+  using InternalArenaConstructable_ = void;
+  using DestructorSkippable_ = void;
+  struct Impl_ {
+    inline explicit constexpr Impl_(::google::protobuf::internal::ConstantInitialized) noexcept;
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
         ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
-    static constexpr auto InternalNewImpl_();
-
-public:
-    static constexpr auto InternalGenerateClassData_();
-
-    ::google::protobuf::Metadata GetMetadata() const;
-    // nested types ----------------------------------------------------
-
-    // accessors -------------------------------------------------------
-    enum : int {
-        kMinXFieldNumber = 1,
-        kMaxXFieldNumber = 2,
-        kMinYFieldNumber = 3,
-        kMaxYFieldNumber = 4,
-    };
-
-    // float min_x = 1;
-    void clear_min_x();
-    float min_x() const;
-    void set_min_x(float value);
-
-private:
-    float _internal_min_x() const;
-    void _internal_set_min_x(float value);
-
-public:
-    // float max_x = 2;
-    void clear_max_x();
-    float max_x() const;
-    void set_max_x(float value);
-
-private:
-    float _internal_max_x() const;
-    void _internal_set_max_x(float value);
-
-public:
-    // float min_y = 3;
-    void clear_min_y();
-    float min_y() const;
-    void set_min_y(float value);
-
-private:
-    float _internal_min_y() const;
-    void _internal_set_min_y(float value);
-
-public:
-    // float max_y = 4;
-    void clear_max_y();
-    float max_y() const;
-    void set_max_y(float value);
-
-private:
-    float _internal_max_y() const;
-    void _internal_set_max_y(float value);
-
-public:
-    // @@protoc_insertion_point(class_scope:battle.v1.WorldBounds)
-private:
-    class _Internal;
-    friend class ::google::protobuf::internal::TcParser;
-    static const ::google::protobuf::internal::TcParseTable<2, 4,
-                                                            0, 0,
-                                                            2>
-    _table_;
-
-    friend class ::google::protobuf::MessageLite;
-    friend class ::google::protobuf::Arena;
-    template <typename T>
-    friend class ::google::protobuf::Arena::InternalHelper;
-    using InternalArenaConstructable_ = void;
-    using DestructorSkippable_ = void;
-
-    struct Impl_ {
-        inline explicit constexpr Impl_(::google::protobuf::internal::ConstantInitialized) noexcept;
-        inline explicit Impl_(
-            ::google::protobuf::internal::InternalVisibility visibility,
-            ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
-        inline explicit Impl_(
-            ::google::protobuf::internal::InternalVisibility visibility,
-            ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
-            const WorldBounds& from_msg);
-        ::google::protobuf::internal::HasBits<1> _has_bits_;
-        ::google::protobuf::internal::CachedSize _cached_size_;
-        float min_x_;
-        float max_x_;
-        float min_y_;
-        float max_y_;
-        PROTOBUF_TSAN_DECLARE_MEMBER
-    };
-
-    union {
-        Impl_ _impl_;
-    };
-
-    friend struct ::TableStruct_proto_2fbattle_2fv1_2fsession_2eproto;
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
+        const WorldBounds& from_msg);
+    ::google::protobuf::internal::HasBits<1> _has_bits_;
+    ::google::protobuf::internal::CachedSize _cached_size_;
+    float min_x_;
+    float max_x_;
+    float min_y_;
+    float max_y_;
+    PROTOBUF_TSAN_DECLARE_MEMBER
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_proto_2fbattle_2fv1_2fsession_2eproto;
 };
 
 extern const ::google::protobuf::internal::ClassDataFull WorldBounds_class_data_;
@@ -6445,6 +6421,7 @@ class PlayerBattleStats final : public ::google::protobuf::Message
   // accessors -------------------------------------------------------
   enum : int {
     kKillsFieldNumber = 3,
+    kNicknameFieldNumber = 4,
     kPlayerIdFieldNumber = 1,
     kTotalKillsFieldNumber = 2,
   };
@@ -6465,6 +6442,21 @@ class PlayerBattleStats final : public ::google::protobuf::Message
   const ::battle::v1::MonsterKillCount& kills(int index) const;
   ::battle::v1::MonsterKillCount* PROTOBUF_NONNULL add_kills();
   const ::google::protobuf::RepeatedPtrField<::battle::v1::MonsterKillCount>& kills() const;
+  // string nickname = 4;
+  void clear_nickname();
+  const ::std::string& nickname() const;
+  template <typename Arg_ = const ::std::string&, typename... Args_>
+  void set_nickname(Arg_&& arg, Args_... args);
+  ::std::string* PROTOBUF_NONNULL mutable_nickname();
+  [[nodiscard]] ::std::string* PROTOBUF_NULLABLE release_nickname();
+  void set_allocated_nickname(::std::string* PROTOBUF_NULLABLE value);
+
+private:
+  const ::std::string& _internal_nickname() const;
+  PROTOBUF_ALWAYS_INLINE void _internal_set_nickname(const ::std::string& value);
+  ::std::string* PROTOBUF_NONNULL _internal_mutable_nickname();
+
+public:
   // int64 player_id = 1;
   void clear_player_id() ;
   ::int64_t player_id() const;
@@ -6489,9 +6481,9 @@ class PlayerBattleStats final : public ::google::protobuf::Message
  private:
   class _Internal;
   friend class ::google::protobuf::internal::TcParser;
-  static const ::google::protobuf::internal::TcParseTable<2, 3,
-                                   1, 0,
-                                   2>
+  static const ::google::protobuf::internal::TcParseTable<2, 4,
+                                                          1, 44,
+                                                          2>
       _table_;
 
   friend class ::google::protobuf::MessageLite;
@@ -6512,6 +6504,7 @@ class PlayerBattleStats final : public ::google::protobuf::Message
     ::google::protobuf::internal::HasBits<1> _has_bits_;
     ::google::protobuf::internal::CachedSize _cached_size_;
     ::google::protobuf::RepeatedPtrField< ::battle::v1::MonsterKillCount > kills_;
+    ::google::protobuf::internal::ArenaStringPtr nickname_;
     ::int64_t player_id_;
     ::int32_t total_kills_;
     PROTOBUF_TSAN_DECLARE_MEMBER
@@ -6672,6 +6665,7 @@ class EntitySnapshot final : public ::google::protobuf::Message
     kBossPhaseFieldNumber = 14,
     kBossAbilityFieldNumber = 15,
     kBossActionPhaseFieldNumber = 16,
+    kNicknameFieldNumber = 19,
     kPositionFieldNumber = 2,
     kDirectionFieldNumber = 3,
     kEntityFieldNumber = 1,
@@ -6773,6 +6767,21 @@ class EntitySnapshot final : public ::google::protobuf::Message
   ::std::string* PROTOBUF_NONNULL _internal_mutable_boss_action_phase();
 
   public:
+  // string nickname = 19;
+  void clear_nickname();
+  const ::std::string& nickname() const;
+  template <typename Arg_ = const ::std::string&, typename... Args_>
+  void set_nickname(Arg_&& arg, Args_... args);
+  ::std::string* PROTOBUF_NONNULL mutable_nickname();
+  [[nodiscard]] ::std::string* PROTOBUF_NULLABLE release_nickname();
+  void set_allocated_nickname(::std::string* PROTOBUF_NULLABLE value);
+
+private:
+  const ::std::string& _internal_nickname() const;
+  PROTOBUF_ALWAYS_INLINE void _internal_set_nickname(const ::std::string& value);
+  ::std::string* PROTOBUF_NONNULL _internal_mutable_nickname();
+
+public:
   // .battle.v1.Position position = 2;
   bool has_position() const;
   void clear_position() ;
@@ -6887,9 +6896,9 @@ class EntitySnapshot final : public ::google::protobuf::Message
  private:
   class _Internal;
   friend class ::google::protobuf::internal::TcParser;
-  static const ::google::protobuf::internal::TcParseTable<5, 16,
-                                   2, 121,
-                                   2>
+  static const ::google::protobuf::internal::TcParseTable<5, 17,
+                                                          2, 129,
+                                                          2>
       _table_;
 
   friend class ::google::protobuf::MessageLite;
@@ -6915,6 +6924,7 @@ class EntitySnapshot final : public ::google::protobuf::Message
     ::google::protobuf::internal::ArenaStringPtr boss_phase_;
     ::google::protobuf::internal::ArenaStringPtr boss_ability_;
     ::google::protobuf::internal::ArenaStringPtr boss_action_phase_;
+    ::google::protobuf::internal::ArenaStringPtr nickname_;
     ::battle::v1::Position* PROTOBUF_NULLABLE position_;
     ::battle::v1::Direction* PROTOBUF_NULLABLE direction_;
     ::uint64_t entity_;
@@ -9037,11 +9047,11 @@ class WorldSnapshot final : public ::google::protobuf::Message
   void unsafe_arena_set_allocated_world_bounds(::battle::v1::WorldBounds* PROTOBUF_NULLABLE value);
   ::battle::v1::WorldBounds* PROTOBUF_NULLABLE unsafe_arena_release_world_bounds();
 
-private:
+  private:
   const ::battle::v1::WorldBounds& _internal_world_bounds() const;
   ::battle::v1::WorldBounds* PROTOBUF_NONNULL _internal_mutable_world_bounds();
 
-public:
+  public:
   // float reward_selection_remaining_seconds = 5;
   void clear_reward_selection_remaining_seconds() ;
   float reward_selection_remaining_seconds() const;
@@ -9097,9 +9107,9 @@ public:
   class _Internal;
   friend class ::google::protobuf::internal::TcParser;
   static const ::google::protobuf::internal::TcParseTable<5, 20,
-                                                          12, 79,
-                                                          2>
-      _table_;
+                                   12, 79,
+                                   2>
+  _table_;
 
   friend class ::google::protobuf::MessageLite;
   friend class ::google::protobuf::Arena;
@@ -11200,7 +11210,7 @@ GameOver::_internal_mutable_player_stats() {
 inline void PlayerBattleStats::clear_player_id() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.player_id_ = ::int64_t{0};
-  _impl_._has_bits_[0] &= ~0x00000001u;
+  _impl_._has_bits_[0] &= ~0x00000002u;
 }
 inline ::int64_t PlayerBattleStats::player_id() const {
   // @@protoc_insertion_point(field_get:battle.v1.PlayerBattleStats.player_id)
@@ -11208,7 +11218,7 @@ inline ::int64_t PlayerBattleStats::player_id() const {
 }
 inline void PlayerBattleStats::set_player_id(::int64_t value) {
   _internal_set_player_id(value);
-  _impl_._has_bits_[0] |= 0x00000001u;
+  _impl_._has_bits_[0] |= 0x00000002u;
   // @@protoc_insertion_point(field_set:battle.v1.PlayerBattleStats.player_id)
 }
 inline ::int64_t PlayerBattleStats::_internal_player_id() const {
@@ -11224,7 +11234,7 @@ inline void PlayerBattleStats::_internal_set_player_id(::int64_t value) {
 inline void PlayerBattleStats::clear_total_kills() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.total_kills_ = 0;
-  _impl_._has_bits_[0] &= ~0x00000002u;
+  _impl_._has_bits_[0] &= ~0x00000004u;
 }
 inline ::int32_t PlayerBattleStats::total_kills() const {
   // @@protoc_insertion_point(field_get:battle.v1.PlayerBattleStats.total_kills)
@@ -11232,7 +11242,7 @@ inline ::int32_t PlayerBattleStats::total_kills() const {
 }
 inline void PlayerBattleStats::set_total_kills(::int32_t value) {
   _internal_set_total_kills(value);
-  _impl_._has_bits_[0] |= 0x00000002u;
+  _impl_._has_bits_[0] |= 0x00000004u;
   // @@protoc_insertion_point(field_set:battle.v1.PlayerBattleStats.total_kills)
 }
 inline ::int32_t PlayerBattleStats::_internal_total_kills() const {
@@ -11292,6 +11302,81 @@ inline ::google::protobuf::RepeatedPtrField<::battle::v1::MonsterKillCount>* PRO
 PlayerBattleStats::_internal_mutable_kills() {
   ::google::protobuf::internal::TSanRead(&_impl_);
   return &_impl_.kills_;
+}
+
+// string nickname = 4;
+inline void PlayerBattleStats::clear_nickname() {
+    ::google::protobuf::internal::TSanWrite(&_impl_);
+    _impl_.nickname_.ClearToEmpty();
+    _impl_._has_bits_[0] &= ~0x00000001u;
+}
+
+inline const ::std::string& PlayerBattleStats::nickname() const
+
+ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    // @@protoc_insertion_point(field_get:battle.v1.PlayerBattleStats.nickname)
+    return _internal_nickname();
+}
+
+template <typename Arg_, typename... Args_>
+PROTOBUF_ALWAYS_INLINE void PlayerBattleStats::set_nickname(Arg_&& arg, Args_... args) {
+    ::google::protobuf::internal::TSanWrite(&_impl_);
+    _impl_._has_bits_[0] |= 0x00000001u;
+    _impl_.nickname_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
+    // @@protoc_insertion_point(field_set:battle.v1.PlayerBattleStats.nickname)
+}
+
+inline ::std::string* PROTOBUF_NONNULL PlayerBattleStats::mutable_nickname()
+
+ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    ::std::string* _s = _internal_mutable_nickname();
+    // @@protoc_insertion_point(field_mutable:battle.v1.PlayerBattleStats.nickname)
+    return _s;
+}
+
+inline const ::std::string& PlayerBattleStats::_internal_nickname() const {
+    ::google::protobuf::internal::TSanRead(&_impl_);
+    return _impl_.nickname_.Get();
+}
+
+inline void PlayerBattleStats::_internal_set_nickname(const ::std::string& value) {
+    ::google::protobuf::internal::TSanWrite(&_impl_);
+    _impl_._has_bits_[0] |= 0x00000001u;
+    _impl_.nickname_.Set(value, GetArena());
+}
+
+inline ::std::string* PROTOBUF_NONNULL PlayerBattleStats::_internal_mutable_nickname() {
+    ::google::protobuf::internal::TSanWrite(&_impl_);
+    _impl_._has_bits_[0] |= 0x00000001u;
+    return _impl_.nickname_.Mutable(GetArena());
+}
+
+inline ::std::string* PROTOBUF_NULLABLE PlayerBattleStats::release_nickname() {
+    ::google::protobuf::internal::TSanWrite(&_impl_);
+    // @@protoc_insertion_point(field_release:battle.v1.PlayerBattleStats.nickname)
+    if ((_impl_._has_bits_[0] & 0x00000001u) == 0) {
+        return nullptr;
+    }
+    _impl_._has_bits_[0] &= ~0x00000001u;
+    auto* released = _impl_.nickname_.Release();
+    if (::google::protobuf::internal::DebugHardenForceCopyDefaultString()) {
+        _impl_.nickname_.Set("", GetArena());
+    }
+    return released;
+}
+
+inline void PlayerBattleStats::set_allocated_nickname(::std::string * PROTOBUF_NULLABLE value) {
+    ::google::protobuf::internal::TSanWrite(&_impl_);
+    if (value != nullptr) {
+        _impl_._has_bits_[0] |= 0x00000001u;
+    } else {
+        _impl_._has_bits_[0] &= ~0x00000001u;
+    }
+    _impl_.nickname_.SetAllocated(value, GetArena());
+    if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.nickname_.IsDefault()) {
+        _impl_.nickname_.Set("", GetArena());
+    }
+    // @@protoc_insertion_point(field_set_allocated:battle.v1.PlayerBattleStats.nickname)
 }
 
 // -------------------------------------------------------------------
@@ -11684,114 +11769,98 @@ inline void Position::_internal_set_y(float value) {
 
 // float min_x = 1;
 inline void WorldBounds::clear_min_x() {
-    ::google::protobuf::internal::TSanWrite(&_impl_);
-    _impl_.min_x_ = 0;
-    _impl_._has_bits_[0] &= ~0x00000001u;
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.min_x_ = 0;
+  _impl_._has_bits_[0] &= ~0x00000001u;
 }
-
 inline float WorldBounds::min_x() const {
-    // @@protoc_insertion_point(field_get:battle.v1.WorldBounds.min_x)
-    return _internal_min_x();
+  // @@protoc_insertion_point(field_get:battle.v1.WorldBounds.min_x)
+  return _internal_min_x();
 }
-
 inline void WorldBounds::set_min_x(float value) {
-    _internal_set_min_x(value);
-    _impl_._has_bits_[0] |= 0x00000001u;
-    // @@protoc_insertion_point(field_set:battle.v1.WorldBounds.min_x)
+  _internal_set_min_x(value);
+  _impl_._has_bits_[0] |= 0x00000001u;
+  // @@protoc_insertion_point(field_set:battle.v1.WorldBounds.min_x)
 }
-
 inline float WorldBounds::_internal_min_x() const {
-    ::google::protobuf::internal::TSanRead(&_impl_);
-    return _impl_.min_x_;
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.min_x_;
 }
-
 inline void WorldBounds::_internal_set_min_x(float value) {
-    ::google::protobuf::internal::TSanWrite(&_impl_);
-    _impl_.min_x_ = value;
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.min_x_ = value;
 }
 
 // float max_x = 2;
 inline void WorldBounds::clear_max_x() {
-    ::google::protobuf::internal::TSanWrite(&_impl_);
-    _impl_.max_x_ = 0;
-    _impl_._has_bits_[0] &= ~0x00000002u;
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.max_x_ = 0;
+  _impl_._has_bits_[0] &= ~0x00000002u;
 }
-
 inline float WorldBounds::max_x() const {
-    // @@protoc_insertion_point(field_get:battle.v1.WorldBounds.max_x)
-    return _internal_max_x();
+  // @@protoc_insertion_point(field_get:battle.v1.WorldBounds.max_x)
+  return _internal_max_x();
 }
-
 inline void WorldBounds::set_max_x(float value) {
-    _internal_set_max_x(value);
-    _impl_._has_bits_[0] |= 0x00000002u;
-    // @@protoc_insertion_point(field_set:battle.v1.WorldBounds.max_x)
+  _internal_set_max_x(value);
+  _impl_._has_bits_[0] |= 0x00000002u;
+  // @@protoc_insertion_point(field_set:battle.v1.WorldBounds.max_x)
 }
-
 inline float WorldBounds::_internal_max_x() const {
-    ::google::protobuf::internal::TSanRead(&_impl_);
-    return _impl_.max_x_;
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.max_x_;
 }
-
 inline void WorldBounds::_internal_set_max_x(float value) {
-    ::google::protobuf::internal::TSanWrite(&_impl_);
-    _impl_.max_x_ = value;
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.max_x_ = value;
 }
 
 // float min_y = 3;
 inline void WorldBounds::clear_min_y() {
-    ::google::protobuf::internal::TSanWrite(&_impl_);
-    _impl_.min_y_ = 0;
-    _impl_._has_bits_[0] &= ~0x00000004u;
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.min_y_ = 0;
+  _impl_._has_bits_[0] &= ~0x00000004u;
 }
-
 inline float WorldBounds::min_y() const {
-    // @@protoc_insertion_point(field_get:battle.v1.WorldBounds.min_y)
-    return _internal_min_y();
+  // @@protoc_insertion_point(field_get:battle.v1.WorldBounds.min_y)
+  return _internal_min_y();
 }
-
 inline void WorldBounds::set_min_y(float value) {
-    _internal_set_min_y(value);
-    _impl_._has_bits_[0] |= 0x00000004u;
-    // @@protoc_insertion_point(field_set:battle.v1.WorldBounds.min_y)
+  _internal_set_min_y(value);
+  _impl_._has_bits_[0] |= 0x00000004u;
+  // @@protoc_insertion_point(field_set:battle.v1.WorldBounds.min_y)
 }
-
 inline float WorldBounds::_internal_min_y() const {
-    ::google::protobuf::internal::TSanRead(&_impl_);
-    return _impl_.min_y_;
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.min_y_;
 }
-
 inline void WorldBounds::_internal_set_min_y(float value) {
-    ::google::protobuf::internal::TSanWrite(&_impl_);
-    _impl_.min_y_ = value;
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.min_y_ = value;
 }
 
 // float max_y = 4;
 inline void WorldBounds::clear_max_y() {
-    ::google::protobuf::internal::TSanWrite(&_impl_);
-    _impl_.max_y_ = 0;
-    _impl_._has_bits_[0] &= ~0x00000008u;
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.max_y_ = 0;
+  _impl_._has_bits_[0] &= ~0x00000008u;
 }
-
 inline float WorldBounds::max_y() const {
-    // @@protoc_insertion_point(field_get:battle.v1.WorldBounds.max_y)
-    return _internal_max_y();
+  // @@protoc_insertion_point(field_get:battle.v1.WorldBounds.max_y)
+  return _internal_max_y();
 }
-
 inline void WorldBounds::set_max_y(float value) {
-    _internal_set_max_y(value);
-    _impl_._has_bits_[0] |= 0x00000008u;
-    // @@protoc_insertion_point(field_set:battle.v1.WorldBounds.max_y)
+  _internal_set_max_y(value);
+  _impl_._has_bits_[0] |= 0x00000008u;
+  // @@protoc_insertion_point(field_set:battle.v1.WorldBounds.max_y)
 }
-
 inline float WorldBounds::_internal_max_y() const {
-    ::google::protobuf::internal::TSanRead(&_impl_);
-    return _impl_.max_y_;
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.max_y_;
 }
-
 inline void WorldBounds::_internal_set_max_y(float value) {
-    ::google::protobuf::internal::TSanWrite(&_impl_);
-    _impl_.max_y_ = value;
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.max_y_ = value;
 }
 
 // -------------------------------------------------------------------
@@ -11854,7 +11923,7 @@ inline void Direction::_internal_set_y(float value) {
 inline void EntitySnapshot::clear_entity() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.entity_ = ::uint64_t{0u};
-  _impl_._has_bits_[0] &= ~0x00000100u;
+  _impl_._has_bits_[0] &= ~0x00000200u;
 }
 inline ::uint64_t EntitySnapshot::entity() const {
   // @@protoc_insertion_point(field_get:battle.v1.EntitySnapshot.entity)
@@ -11862,7 +11931,7 @@ inline ::uint64_t EntitySnapshot::entity() const {
 }
 inline void EntitySnapshot::set_entity(::uint64_t value) {
   _internal_set_entity(value);
-  _impl_._has_bits_[0] |= 0x00000100u;
+  _impl_._has_bits_[0] |= 0x00000200u;
   // @@protoc_insertion_point(field_set:battle.v1.EntitySnapshot.entity)
 }
 inline ::uint64_t EntitySnapshot::_internal_entity() const {
@@ -11876,14 +11945,14 @@ inline void EntitySnapshot::_internal_set_entity(::uint64_t value) {
 
 // .battle.v1.Position position = 2;
 inline bool EntitySnapshot::has_position() const {
-  bool value = (_impl_._has_bits_[0] & 0x00000040u) != 0;
+  bool value = (_impl_._has_bits_[0] & 0x00000080u) != 0;
   PROTOBUF_ASSUME(!value || _impl_.position_ != nullptr);
   return value;
 }
 inline void EntitySnapshot::clear_position() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (_impl_.position_ != nullptr) _impl_.position_->Clear();
-  _impl_._has_bits_[0] &= ~0x00000040u;
+  _impl_._has_bits_[0] &= ~0x00000080u;
 }
 inline const ::battle::v1::Position& EntitySnapshot::_internal_position() const {
   ::google::protobuf::internal::TSanRead(&_impl_);
@@ -11902,16 +11971,16 @@ inline void EntitySnapshot::unsafe_arena_set_allocated_position(
   }
   _impl_.position_ = reinterpret_cast<::battle::v1::Position*>(value);
   if (value != nullptr) {
-    _impl_._has_bits_[0] |= 0x00000040u;
+    _impl_._has_bits_[0] |= 0x00000080u;
   } else {
-    _impl_._has_bits_[0] &= ~0x00000040u;
+    _impl_._has_bits_[0] &= ~0x00000080u;
   }
   // @@protoc_insertion_point(field_unsafe_arena_set_allocated:battle.v1.EntitySnapshot.position)
 }
 inline ::battle::v1::Position* PROTOBUF_NULLABLE EntitySnapshot::release_position() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
 
-  _impl_._has_bits_[0] &= ~0x00000040u;
+  _impl_._has_bits_[0] &= ~0x00000080u;
   ::battle::v1::Position* released = _impl_.position_;
   _impl_.position_ = nullptr;
   if (::google::protobuf::internal::DebugHardenForceCopyInRelease()) {
@@ -11931,7 +12000,7 @@ inline ::battle::v1::Position* PROTOBUF_NULLABLE EntitySnapshot::unsafe_arena_re
   ::google::protobuf::internal::TSanWrite(&_impl_);
   // @@protoc_insertion_point(field_release:battle.v1.EntitySnapshot.position)
 
-  _impl_._has_bits_[0] &= ~0x00000040u;
+  _impl_._has_bits_[0] &= ~0x00000080u;
   ::battle::v1::Position* temp = _impl_.position_;
   _impl_.position_ = nullptr;
   return temp;
@@ -11946,7 +12015,7 @@ inline ::battle::v1::Position* PROTOBUF_NONNULL EntitySnapshot::_internal_mutabl
 }
 inline ::battle::v1::Position* PROTOBUF_NONNULL EntitySnapshot::mutable_position()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  _impl_._has_bits_[0] |= 0x00000040u;
+  _impl_._has_bits_[0] |= 0x00000080u;
   ::battle::v1::Position* _msg = _internal_mutable_position();
   // @@protoc_insertion_point(field_mutable:battle.v1.EntitySnapshot.position)
   return _msg;
@@ -11963,9 +12032,9 @@ inline void EntitySnapshot::set_allocated_position(::battle::v1::Position* PROTO
     if (message_arena != submessage_arena) {
       value = ::google::protobuf::internal::GetOwnedMessage(message_arena, value, submessage_arena);
     }
-    _impl_._has_bits_[0] |= 0x00000040u;
+    _impl_._has_bits_[0] |= 0x00000080u;
   } else {
-    _impl_._has_bits_[0] &= ~0x00000040u;
+    _impl_._has_bits_[0] &= ~0x00000080u;
   }
 
   _impl_.position_ = reinterpret_cast<::battle::v1::Position*>(value);
@@ -11974,14 +12043,14 @@ inline void EntitySnapshot::set_allocated_position(::battle::v1::Position* PROTO
 
 // .battle.v1.Direction direction = 3;
 inline bool EntitySnapshot::has_direction() const {
-  bool value = (_impl_._has_bits_[0] & 0x00000080u) != 0;
+  bool value = (_impl_._has_bits_[0] & 0x00000100u) != 0;
   PROTOBUF_ASSUME(!value || _impl_.direction_ != nullptr);
   return value;
 }
 inline void EntitySnapshot::clear_direction() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (_impl_.direction_ != nullptr) _impl_.direction_->Clear();
-  _impl_._has_bits_[0] &= ~0x00000080u;
+  _impl_._has_bits_[0] &= ~0x00000100u;
 }
 inline const ::battle::v1::Direction& EntitySnapshot::_internal_direction() const {
   ::google::protobuf::internal::TSanRead(&_impl_);
@@ -12000,16 +12069,16 @@ inline void EntitySnapshot::unsafe_arena_set_allocated_direction(
   }
   _impl_.direction_ = reinterpret_cast<::battle::v1::Direction*>(value);
   if (value != nullptr) {
-    _impl_._has_bits_[0] |= 0x00000080u;
+    _impl_._has_bits_[0] |= 0x00000100u;
   } else {
-    _impl_._has_bits_[0] &= ~0x00000080u;
+    _impl_._has_bits_[0] &= ~0x00000100u;
   }
   // @@protoc_insertion_point(field_unsafe_arena_set_allocated:battle.v1.EntitySnapshot.direction)
 }
 inline ::battle::v1::Direction* PROTOBUF_NULLABLE EntitySnapshot::release_direction() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
 
-  _impl_._has_bits_[0] &= ~0x00000080u;
+  _impl_._has_bits_[0] &= ~0x00000100u;
   ::battle::v1::Direction* released = _impl_.direction_;
   _impl_.direction_ = nullptr;
   if (::google::protobuf::internal::DebugHardenForceCopyInRelease()) {
@@ -12029,7 +12098,7 @@ inline ::battle::v1::Direction* PROTOBUF_NULLABLE EntitySnapshot::unsafe_arena_r
   ::google::protobuf::internal::TSanWrite(&_impl_);
   // @@protoc_insertion_point(field_release:battle.v1.EntitySnapshot.direction)
 
-  _impl_._has_bits_[0] &= ~0x00000080u;
+  _impl_._has_bits_[0] &= ~0x00000100u;
   ::battle::v1::Direction* temp = _impl_.direction_;
   _impl_.direction_ = nullptr;
   return temp;
@@ -12044,7 +12113,7 @@ inline ::battle::v1::Direction* PROTOBUF_NONNULL EntitySnapshot::_internal_mutab
 }
 inline ::battle::v1::Direction* PROTOBUF_NONNULL EntitySnapshot::mutable_direction()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  _impl_._has_bits_[0] |= 0x00000080u;
+  _impl_._has_bits_[0] |= 0x00000100u;
   ::battle::v1::Direction* _msg = _internal_mutable_direction();
   // @@protoc_insertion_point(field_mutable:battle.v1.EntitySnapshot.direction)
   return _msg;
@@ -12061,9 +12130,9 @@ inline void EntitySnapshot::set_allocated_direction(::battle::v1::Direction* PRO
     if (message_arena != submessage_arena) {
       value = ::google::protobuf::internal::GetOwnedMessage(message_arena, value, submessage_arena);
     }
-    _impl_._has_bits_[0] |= 0x00000080u;
+    _impl_._has_bits_[0] |= 0x00000100u;
   } else {
-    _impl_._has_bits_[0] &= ~0x00000080u;
+    _impl_._has_bits_[0] &= ~0x00000100u;
   }
 
   _impl_.direction_ = reinterpret_cast<::battle::v1::Direction*>(value);
@@ -12074,7 +12143,7 @@ inline void EntitySnapshot::set_allocated_direction(::battle::v1::Direction* PRO
 inline void EntitySnapshot::clear_current_health() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.current_health_ = 0;
-  _impl_._has_bits_[0] &= ~0x00000200u;
+  _impl_._has_bits_[0] &= ~0x00000400u;
 }
 inline ::int32_t EntitySnapshot::current_health() const {
   // @@protoc_insertion_point(field_get:battle.v1.EntitySnapshot.current_health)
@@ -12082,7 +12151,7 @@ inline ::int32_t EntitySnapshot::current_health() const {
 }
 inline void EntitySnapshot::set_current_health(::int32_t value) {
   _internal_set_current_health(value);
-  _impl_._has_bits_[0] |= 0x00000200u;
+  _impl_._has_bits_[0] |= 0x00000400u;
   // @@protoc_insertion_point(field_set:battle.v1.EntitySnapshot.current_health)
 }
 inline ::int32_t EntitySnapshot::_internal_current_health() const {
@@ -12098,7 +12167,7 @@ inline void EntitySnapshot::_internal_set_current_health(::int32_t value) {
 inline void EntitySnapshot::clear_max_health() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.max_health_ = 0;
-  _impl_._has_bits_[0] &= ~0x00000400u;
+  _impl_._has_bits_[0] &= ~0x00000800u;
 }
 inline ::int32_t EntitySnapshot::max_health() const {
   // @@protoc_insertion_point(field_get:battle.v1.EntitySnapshot.max_health)
@@ -12106,7 +12175,7 @@ inline ::int32_t EntitySnapshot::max_health() const {
 }
 inline void EntitySnapshot::set_max_health(::int32_t value) {
   _internal_set_max_health(value);
-  _impl_._has_bits_[0] |= 0x00000400u;
+  _impl_._has_bits_[0] |= 0x00000800u;
   // @@protoc_insertion_point(field_set:battle.v1.EntitySnapshot.max_health)
 }
 inline ::int32_t EntitySnapshot::_internal_max_health() const {
@@ -12122,7 +12191,7 @@ inline void EntitySnapshot::_internal_set_max_health(::int32_t value) {
 inline void EntitySnapshot::clear_kind() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.kind_ = 0;
-  _impl_._has_bits_[0] &= ~0x00001000u;
+  _impl_._has_bits_[0] &= ~0x00002000u;
 }
 inline ::battle::v1::EntityKind EntitySnapshot::kind() const {
   // @@protoc_insertion_point(field_get:battle.v1.EntitySnapshot.kind)
@@ -12130,7 +12199,7 @@ inline ::battle::v1::EntityKind EntitySnapshot::kind() const {
 }
 inline void EntitySnapshot::set_kind(::battle::v1::EntityKind value) {
   _internal_set_kind(value);
-  _impl_._has_bits_[0] |= 0x00001000u;
+  _impl_._has_bits_[0] |= 0x00002000u;
   // @@protoc_insertion_point(field_set:battle.v1.EntitySnapshot.kind)
 }
 inline ::battle::v1::EntityKind EntitySnapshot::_internal_kind() const {
@@ -12146,7 +12215,7 @@ inline void EntitySnapshot::_internal_set_kind(::battle::v1::EntityKind value) {
 inline void EntitySnapshot::clear_player_id() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.player_id_ = ::int64_t{0};
-  _impl_._has_bits_[0] &= ~0x00000800u;
+  _impl_._has_bits_[0] &= ~0x00001000u;
 }
 inline ::int64_t EntitySnapshot::player_id() const {
   // @@protoc_insertion_point(field_get:battle.v1.EntitySnapshot.player_id)
@@ -12154,7 +12223,7 @@ inline ::int64_t EntitySnapshot::player_id() const {
 }
 inline void EntitySnapshot::set_player_id(::int64_t value) {
   _internal_set_player_id(value);
-  _impl_._has_bits_[0] |= 0x00000800u;
+  _impl_._has_bits_[0] |= 0x00001000u;
   // @@protoc_insertion_point(field_set:battle.v1.EntitySnapshot.player_id)
 }
 inline ::int64_t EntitySnapshot::_internal_player_id() const {
@@ -12300,7 +12369,7 @@ inline void EntitySnapshot::set_allocated_hero(::std::string* PROTOBUF_NULLABLE 
 inline void EntitySnapshot::clear_collision_radius() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.collision_radius_ = 0;
-  _impl_._has_bits_[0] &= ~0x00002000u;
+  _impl_._has_bits_[0] &= ~0x00004000u;
 }
 inline float EntitySnapshot::collision_radius() const {
   // @@protoc_insertion_point(field_get:battle.v1.EntitySnapshot.collision_radius)
@@ -12308,7 +12377,7 @@ inline float EntitySnapshot::collision_radius() const {
 }
 inline void EntitySnapshot::set_collision_radius(float value) {
   _internal_set_collision_radius(value);
-  _impl_._has_bits_[0] |= 0x00002000u;
+  _impl_._has_bits_[0] |= 0x00004000u;
   // @@protoc_insertion_point(field_set:battle.v1.EntitySnapshot.collision_radius)
 }
 inline float EntitySnapshot::_internal_collision_radius() const {
@@ -12584,7 +12653,7 @@ inline void EntitySnapshot::set_allocated_boss_action_phase(::std::string* PROTO
 inline void EntitySnapshot::clear_boss_ability_remaining_seconds() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.boss_ability_remaining_seconds_ = 0;
-  _impl_._has_bits_[0] &= ~0x00004000u;
+  _impl_._has_bits_[0] &= ~0x00008000u;
 }
 inline float EntitySnapshot::boss_ability_remaining_seconds() const {
   // @@protoc_insertion_point(field_get:battle.v1.EntitySnapshot.boss_ability_remaining_seconds)
@@ -12592,7 +12661,7 @@ inline float EntitySnapshot::boss_ability_remaining_seconds() const {
 }
 inline void EntitySnapshot::set_boss_ability_remaining_seconds(float value) {
   _internal_set_boss_ability_remaining_seconds(value);
-  _impl_._has_bits_[0] |= 0x00004000u;
+  _impl_._has_bits_[0] |= 0x00008000u;
   // @@protoc_insertion_point(field_set:battle.v1.EntitySnapshot.boss_ability_remaining_seconds)
 }
 inline float EntitySnapshot::_internal_boss_ability_remaining_seconds() const {
@@ -12608,7 +12677,7 @@ inline void EntitySnapshot::_internal_set_boss_ability_remaining_seconds(float v
 inline void EntitySnapshot::clear_boss_sequence_index() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.boss_sequence_index_ = 0u;
-  _impl_._has_bits_[0] &= ~0x00008000u;
+  _impl_._has_bits_[0] &= ~0x00010000u;
 }
 inline ::uint32_t EntitySnapshot::boss_sequence_index() const {
   // @@protoc_insertion_point(field_get:battle.v1.EntitySnapshot.boss_sequence_index)
@@ -12616,7 +12685,7 @@ inline ::uint32_t EntitySnapshot::boss_sequence_index() const {
 }
 inline void EntitySnapshot::set_boss_sequence_index(::uint32_t value) {
   _internal_set_boss_sequence_index(value);
-  _impl_._has_bits_[0] |= 0x00008000u;
+  _impl_._has_bits_[0] |= 0x00010000u;
   // @@protoc_insertion_point(field_set:battle.v1.EntitySnapshot.boss_sequence_index)
 }
 inline ::uint32_t EntitySnapshot::_internal_boss_sequence_index() const {
@@ -12626,6 +12695,81 @@ inline ::uint32_t EntitySnapshot::_internal_boss_sequence_index() const {
 inline void EntitySnapshot::_internal_set_boss_sequence_index(::uint32_t value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.boss_sequence_index_ = value;
+}
+
+// string nickname = 19;
+inline void EntitySnapshot::clear_nickname() {
+    ::google::protobuf::internal::TSanWrite(&_impl_);
+    _impl_.nickname_.ClearToEmpty();
+    _impl_._has_bits_[0] &= ~0x00000040u;
+}
+
+inline const ::std::string& EntitySnapshot::nickname() const
+
+ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    // @@protoc_insertion_point(field_get:battle.v1.EntitySnapshot.nickname)
+    return _internal_nickname();
+}
+
+template <typename Arg_, typename... Args_>
+PROTOBUF_ALWAYS_INLINE void EntitySnapshot::set_nickname(Arg_&& arg, Args_... args) {
+    ::google::protobuf::internal::TSanWrite(&_impl_);
+    _impl_._has_bits_[0] |= 0x00000040u;
+    _impl_.nickname_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
+    // @@protoc_insertion_point(field_set:battle.v1.EntitySnapshot.nickname)
+}
+
+inline ::std::string* PROTOBUF_NONNULL EntitySnapshot::mutable_nickname()
+
+ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    ::std::string* _s = _internal_mutable_nickname();
+    // @@protoc_insertion_point(field_mutable:battle.v1.EntitySnapshot.nickname)
+    return _s;
+}
+
+inline const ::std::string& EntitySnapshot::_internal_nickname() const {
+    ::google::protobuf::internal::TSanRead(&_impl_);
+    return _impl_.nickname_.Get();
+}
+
+inline void EntitySnapshot::_internal_set_nickname(const ::std::string& value) {
+    ::google::protobuf::internal::TSanWrite(&_impl_);
+    _impl_._has_bits_[0] |= 0x00000040u;
+    _impl_.nickname_.Set(value, GetArena());
+}
+
+inline ::std::string* PROTOBUF_NONNULL EntitySnapshot::_internal_mutable_nickname() {
+    ::google::protobuf::internal::TSanWrite(&_impl_);
+    _impl_._has_bits_[0] |= 0x00000040u;
+    return _impl_.nickname_.Mutable(GetArena());
+}
+
+inline ::std::string* PROTOBUF_NULLABLE EntitySnapshot::release_nickname() {
+    ::google::protobuf::internal::TSanWrite(&_impl_);
+    // @@protoc_insertion_point(field_release:battle.v1.EntitySnapshot.nickname)
+    if ((_impl_._has_bits_[0] & 0x00000040u) == 0) {
+        return nullptr;
+    }
+    _impl_._has_bits_[0] &= ~0x00000040u;
+    auto* released = _impl_.nickname_.Release();
+    if (::google::protobuf::internal::DebugHardenForceCopyDefaultString()) {
+        _impl_.nickname_.Set("", GetArena());
+    }
+    return released;
+}
+
+inline void EntitySnapshot::set_allocated_nickname(::std::string * PROTOBUF_NULLABLE value) {
+    ::google::protobuf::internal::TSanWrite(&_impl_);
+    if (value != nullptr) {
+        _impl_._has_bits_[0] |= 0x00000040u;
+    } else {
+        _impl_._has_bits_[0] &= ~0x00000040u;
+    }
+    _impl_.nickname_.SetAllocated(value, GetArena());
+    if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.nickname_.IsDefault()) {
+        _impl_.nickname_.Set("", GetArena());
+    }
+    // @@protoc_insertion_point(field_set_allocated:battle.v1.EntitySnapshot.nickname)
 }
 
 // -------------------------------------------------------------------
@@ -14856,112 +15000,102 @@ WorldSnapshot::_internal_mutable_player_combat_stats() {
 
 // .battle.v1.WorldBounds world_bounds = 22;
 inline bool WorldSnapshot::has_world_bounds() const {
-    bool value = (_impl_._has_bits_[0] & 0x00000004u) != 0;
-    PROTOBUF_ASSUME(!value || _impl_.world_bounds_ != nullptr);
-    return value;
+  bool value = (_impl_._has_bits_[0] & 0x00000004u) != 0;
+  PROTOBUF_ASSUME(!value || _impl_.world_bounds_ != nullptr);
+  return value;
 }
-
 inline void WorldSnapshot::clear_world_bounds() {
-    ::google::protobuf::internal::TSanWrite(&_impl_);
-    if (_impl_.world_bounds_ != nullptr) _impl_.world_bounds_->Clear();
-    _impl_._has_bits_[0] &= ~0x00000004u;
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (_impl_.world_bounds_ != nullptr) _impl_.world_bounds_->Clear();
+  _impl_._has_bits_[0] &= ~0x00000004u;
 }
-
 inline const ::battle::v1::WorldBounds& WorldSnapshot::_internal_world_bounds() const {
-    ::google::protobuf::internal::TSanRead(&_impl_);
-    const ::battle::v1::WorldBounds* p = _impl_.world_bounds_;
-    return p != nullptr
-               ? *p
-               : reinterpret_cast<const ::battle::v1::WorldBounds&>(::battle::v1::_WorldBounds_default_instance_);
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  const ::battle::v1::WorldBounds* p = _impl_.world_bounds_;
+  return p != nullptr
+             ? *p
+             : reinterpret_cast<const ::battle::v1::WorldBounds&>(::battle::v1::_WorldBounds_default_instance_);
 }
-
 inline const ::battle::v1::WorldBounds& WorldSnapshot::world_bounds() const ABSL_ATTRIBUTE_LIFETIME_BOUND {
-    // @@protoc_insertion_point(field_get:battle.v1.WorldSnapshot.world_bounds)
-    return _internal_world_bounds();
+  // @@protoc_insertion_point(field_get:battle.v1.WorldSnapshot.world_bounds)
+  return _internal_world_bounds();
 }
-
 inline void WorldSnapshot::unsafe_arena_set_allocated_world_bounds(
     ::battle::v1::WorldBounds* PROTOBUF_NULLABLE value) {
-    ::google::protobuf::internal::TSanWrite(&_impl_);
-    if (GetArena() == nullptr) {
-        delete reinterpret_cast<::google::protobuf::MessageLite*>(_impl_.world_bounds_);
-    }
-    _impl_.world_bounds_ = reinterpret_cast<::battle::v1::WorldBounds*>(value);
-    if (value != nullptr) {
-        _impl_._has_bits_[0] |= 0x00000004u;
-    } else {
-        _impl_._has_bits_[0] &= ~0x00000004u;
-    }
-    // @@protoc_insertion_point(field_unsafe_arena_set_allocated:battle.v1.WorldSnapshot.world_bounds)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (GetArena() == nullptr) {
+      delete reinterpret_cast<::google::protobuf::MessageLite*>(_impl_.world_bounds_);
+  }
+  _impl_.world_bounds_ = reinterpret_cast<::battle::v1::WorldBounds*>(value);
+  if (value != nullptr) {
+      _impl_._has_bits_[0] |= 0x00000004u;
+  } else {
+      _impl_._has_bits_[0] &= ~0x00000004u;
+  }
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:battle.v1.WorldSnapshot.world_bounds)
 }
-
 inline ::battle::v1::WorldBounds* PROTOBUF_NULLABLE WorldSnapshot::release_world_bounds() {
-    ::google::protobuf::internal::TSanWrite(&_impl_);
+  ::google::protobuf::internal::TSanWrite(&_impl_);
 
-    _impl_._has_bits_[0] &= ~0x00000004u;
-    ::battle::v1::WorldBounds* released = _impl_.world_bounds_;
-    _impl_.world_bounds_ = nullptr;
-    if (::google::protobuf::internal::DebugHardenForceCopyInRelease()) {
-        auto* old = reinterpret_cast<::google::protobuf::MessageLite*>(released);
-        released = ::google::protobuf::internal::DuplicateIfNonNull(released);
-        if (GetArena() == nullptr) {
-            delete old;
-        }
-    } else {
-        if (GetArena() != nullptr) {
-            released = ::google::protobuf::internal::DuplicateIfNonNull(released);
-        }
-    }
-    return released;
+  _impl_._has_bits_[0] &= ~0x00000004u;
+  ::battle::v1::WorldBounds* released = _impl_.world_bounds_;
+  _impl_.world_bounds_ = nullptr;
+  if (::google::protobuf::internal::DebugHardenForceCopyInRelease()) {
+      auto* old = reinterpret_cast<::google::protobuf::MessageLite*>(released);
+      released = ::google::protobuf::internal::DuplicateIfNonNull(released);
+      if (GetArena() == nullptr) {
+          delete old;
+      }
+  } else {
+      if (GetArena() != nullptr) {
+          released = ::google::protobuf::internal::DuplicateIfNonNull(released);
+      }
+  }
+  return released;
 }
-
 inline ::battle::v1::WorldBounds* PROTOBUF_NULLABLE WorldSnapshot::unsafe_arena_release_world_bounds() {
-    ::google::protobuf::internal::TSanWrite(&_impl_);
-    // @@protoc_insertion_point(field_release:battle.v1.WorldSnapshot.world_bounds)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  // @@protoc_insertion_point(field_release:battle.v1.WorldSnapshot.world_bounds)
 
-    _impl_._has_bits_[0] &= ~0x00000004u;
-    ::battle::v1::WorldBounds* temp = _impl_.world_bounds_;
-    _impl_.world_bounds_ = nullptr;
-    return temp;
+  _impl_._has_bits_[0] &= ~0x00000004u;
+  ::battle::v1::WorldBounds* temp = _impl_.world_bounds_;
+  _impl_.world_bounds_ = nullptr;
+  return temp;
 }
-
 inline ::battle::v1::WorldBounds* PROTOBUF_NONNULL WorldSnapshot::_internal_mutable_world_bounds() {
-    ::google::protobuf::internal::TSanWrite(&_impl_);
-    if (_impl_.world_bounds_ == nullptr) {
-        auto* p = ::google::protobuf::Message::DefaultConstruct<::battle::v1::WorldBounds>(GetArena());
-        _impl_.world_bounds_ = reinterpret_cast<::battle::v1::WorldBounds*>(p);
-    }
-    return _impl_.world_bounds_;
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (_impl_.world_bounds_ == nullptr) {
+      auto* p = ::google::protobuf::Message::DefaultConstruct<::battle::v1::WorldBounds>(GetArena());
+      _impl_.world_bounds_ = reinterpret_cast<::battle::v1::WorldBounds*>(p);
+  }
+  return _impl_.world_bounds_;
 }
-
 inline ::battle::v1::WorldBounds* PROTOBUF_NONNULL WorldSnapshot::mutable_world_bounds()
-
-ABSL_ATTRIBUTE_LIFETIME_BOUND {
-    _impl_._has_bits_[0] |= 0x00000004u;
-    ::battle::v1::WorldBounds* _msg = _internal_mutable_world_bounds();
-    // @@protoc_insertion_point(field_mutable:battle.v1.WorldSnapshot.world_bounds)
-    return _msg;
-}
-
-inline void WorldSnapshot::set_allocated_world_bounds(::battle::v1::WorldBounds* PROTOBUF_NULLABLE value) {
-    ::google::protobuf::Arena* message_arena = GetArena();
-    ::google::protobuf::internal::TSanWrite(&_impl_);
-    if (message_arena == nullptr) {
-        delete reinterpret_cast<::google::protobuf::MessageLite*>(_impl_.world_bounds_);
-    }
-
-    if (value != nullptr) {
-        ::google::protobuf::Arena* submessage_arena = value->GetArena();
-        if (message_arena != submessage_arena) {
-            value = ::google::protobuf::internal::GetOwnedMessage(message_arena, value, submessage_arena);
-        }
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
         _impl_._has_bits_[0] |= 0x00000004u;
-    } else {
-        _impl_._has_bits_[0] &= ~0x00000004u;
+        ::battle::v1::WorldBounds* _msg = _internal_mutable_world_bounds();
+        // @@protoc_insertion_point(field_mutable:battle.v1.WorldSnapshot.world_bounds)
+        return _msg;
     }
+inline void WorldSnapshot::set_allocated_world_bounds(::battle::v1::WorldBounds* PROTOBUF_NULLABLE value) {
+  ::google::protobuf::Arena* message_arena = GetArena();
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (message_arena == nullptr) {
+      delete reinterpret_cast<::google::protobuf::MessageLite*>(_impl_.world_bounds_);
+  }
 
-    _impl_.world_bounds_ = reinterpret_cast<::battle::v1::WorldBounds*>(value);
-    // @@protoc_insertion_point(field_set_allocated:battle.v1.WorldSnapshot.world_bounds)
+  if (value != nullptr) {
+      ::google::protobuf::Arena* submessage_arena = value->GetArena();
+      if (message_arena != submessage_arena) {
+          value = ::google::protobuf::internal::GetOwnedMessage(message_arena, value, submessage_arena);
+      }
+      _impl_._has_bits_[0] |= 0x00000004u;
+  } else {
+      _impl_._has_bits_[0] &= ~0x00000004u;
+  }
+
+  _impl_.world_bounds_ = reinterpret_cast<::battle::v1::WorldBounds*>(value);
+  // @@protoc_insertion_point(field_set_allocated:battle.v1.WorldSnapshot.world_bounds)
 }
 
 // -------------------------------------------------------------------

@@ -253,6 +253,9 @@ battle::BattleInstance::BattleInstance(BattleInstanceConfig config)
             break;
         }
         player_heroes_.emplace(config.player_ids[i], hero_kind);
+        if (auto it = config.player_nicknames.find(config.player_ids[i]); it != config.player_nicknames.end()) {
+            player_nicknames_.emplace(config.player_ids[i], it->second);
+        }
         if (auto* progress = world_.registry().try_get<ecs::PlayerProgress>(entity)) {
             progress->experience_to_next_level = experience_to_next_level_(progress->level);
         }
@@ -338,15 +341,20 @@ battle::BattleWorldSnapshot battle::BattleInstance::snapshot() const {
     for (auto& snapshot : world_snapshot.entities) {
         std::int64_t player_id = 0;
         std::optional<HeroKind> hero;
+        std::string nickname;
         if (snapshot.kind == ecs::EntityKind::Player) {
             if (auto it = entity_players_.find(snapshot.entity); it != entity_players_.end()) {
                 player_id = it->second;
                 if (auto hero_it = player_heroes_.find(player_id); hero_it != player_heroes_.end()) {
                     hero = hero_it->second;
                 }
+                if (auto nickname_it = player_nicknames_.find(player_id); nickname_it != player_nicknames_.end()) {
+                    nickname = nickname_it->second;
+                }
             }
         }
         battle_world_snapshot.entities.emplace_back(snapshot.entity, snapshot.kind, player_id, hero,
+                                                    std::move(nickname),
                                                     snapshot.position, snapshot.direction,
                                                     snapshot.current_health, snapshot.max_health,
                                                     snapshot.monster_kind, snapshot.boss_phase, snapshot.boss_ability,
@@ -415,6 +423,7 @@ battle::BattleSettlement battle::BattleInstance::settlement() const {
     for (const auto& [player_id, stats] : player_battle_stats_) {
         PlayerSettlement player{
             .player_id = player_id,
+            .nickname = player_nicknames_.contains(player_id) ? player_nicknames_.at(player_id) : std::string{},
             .total_kills = stats.total_kills,
         };
         player.kills.reserve(stats.kills_by_kind.size());
@@ -1171,8 +1180,10 @@ bool battle::BattleInstance::apply_shop_item_(ecs::Entity entity, const ShopItem
             if (next_max_health <= 0 || next_max_health > std::numeric_limits<int>::max()) {
                 return false;
             }
+            const auto next_current_health = static_cast<std::int64_t>(health.current_health) + delta.value();
             health.max_health = static_cast<int>(next_max_health);
-            health.current_health = std::min(health.current_health, health.max_health);
+            health.current_health = static_cast<int>(
+                std::clamp<std::int64_t>(next_current_health, 0, next_max_health));
             break;
         }
         case ShopBuffKind::Armor: {

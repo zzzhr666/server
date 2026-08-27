@@ -16,6 +16,7 @@ namespace battle {
 
     struct PacketPlayerBattleStats {
         std::int64_t player_id = 0;
+        std::string nickname;
         int total_kills = 0;
         std::vector<PacketMonsterKillCount> kills;
     };

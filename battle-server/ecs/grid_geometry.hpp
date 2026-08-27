@@ -5,7 +5,7 @@
 #include "component/components.hpp"
 
 namespace battle::ecs {
-    constexpr float DefaultGridCellSize = 1.0f;
+    constexpr float DefaultGridCellSize = 2.0f;
 
     /// @brief 返回两个世界坐标间的平方距离。
     [[nodiscard]] float distance_squared(Position lhs, Position rhs) noexcept;

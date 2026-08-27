@@ -59,6 +59,7 @@ message PlayerBattleStats {
   int64 player_id = 1;
   int32 total_kills = 2;
   repeated MonsterKillCount kills = 3;
+  string nickname = 4;
 }
 
 message MonsterKillCount {
@@ -119,6 +120,7 @@ message EntitySnapshot{
   string boss_action_phase = 16;
   float boss_ability_remaining_seconds = 17;
   uint32 boss_sequence_index = 18;
+  string nickname = 19;
 }
 
 enum RoomFlowState {

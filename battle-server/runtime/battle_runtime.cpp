@@ -97,6 +97,7 @@ namespace {
         for (const auto& player : settlement.players) {
             battle::PacketPlayerBattleStats player_stat{
                 .player_id = player.player_id,
+                .nickname = player.nickname,
                 .total_kills = player.total_kills,
             };
             player_stat.kills.reserve(player.kills.size());
@@ -257,6 +258,7 @@ namespace {
             entity_snapshot->set_entity(entity.entity.packed());
             entity_snapshot->set_kind(to_proto_entity_kind(entity.kind));
             entity_snapshot->set_player_id(entity.player_id);
+            entity_snapshot->set_nickname(entity.nickname);
             entity_snapshot->mutable_position()->set_x(entity.position.x);
             entity_snapshot->mutable_position()->set_y(entity.position.y);
             entity_snapshot->mutable_direction()->set_x(entity.direction.x);
@@ -463,10 +465,13 @@ void battle::BattleRuntime::start_room(const std::string& room_name) {
         player_ids.push_back(session->player_id());
     }
     std::unordered_map<std::int64_t, std::pair<HeroKind, GrowthLevels>> player_loadouts;
+    std::unordered_map<std::int64_t, std::string> player_nicknames;
     player_loadouts.reserve(configured_loadouts.size());
+    player_nicknames.reserve(configured_loadouts.size());
     // 英雄文本无效时保留 BattleInstance 的默认 Fire 配置，避免一个脏 loadout 阻止整个
     // 已匹配房间开始；局外成长在此冻结，战斗中不再读取 Redis 或 rcenter。
     for (const auto& loadout : configured_loadouts) {
+        player_nicknames.emplace(loadout.player_id, loadout.nickname);
         auto hero_kind = hero_kind_from_string(loadout.hero);
         if (!hero_kind.has_value()) {
             continue;
@@ -484,6 +489,7 @@ void battle::BattleRuntime::start_room(const std::string& room_name) {
         .room_name = room_name,
         .player_ids = player_ids,
         .player_loadouts = std::move(player_loadouts),
+        .player_nicknames = std::move(player_nicknames),
         .tick_rate = tick_rate_,
     });
 

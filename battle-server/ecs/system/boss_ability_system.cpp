@@ -231,8 +231,7 @@ namespace {
         if (!boss_collider) {
             return;
         }
-        const float broad_phase_radius = boss_collider->radius +
-            config.hit_radius;
+        const float broad_phase_radius = config.hit_radius;
         const battle::ecs::Position min_corner{
             .x = std::min(start.x, end.x) - broad_phase_radius,
             .y = std::min(start.y, end.y) - broad_phase_radius,
@@ -255,8 +254,7 @@ namespace {
                 !battle::ecs::are_opposing_characters(*boss_collider, *collider)) {
                 continue;
             }
-            const float collision_radius = boss_collider->radius + collider->radius +
-                config.hit_radius;
+            const float collision_radius = config.hit_radius + collider->radius;
             if (point_segment_distance_squared(transform->position, start, end) > collision_radius * collision_radius) {
                 continue;
             }

@@ -11,6 +11,7 @@ namespace battle {
     struct PlayerLoadout {
         /// @brief 配置所属的玩家 ID。
         std::int64_t player_id;
+        std::string nickname;
         /// @brief 初始英雄名称。
         std::string hero;
         /// @brief 攻击、攻速、生命和移速的局外等级。

@@ -282,6 +282,7 @@ class StartMatchRequest final : public ::google::protobuf::Message
   // accessors -------------------------------------------------------
   enum : int {
     kHeroFieldNumber = 2,
+    kNicknameFieldNumber = 4,
     kPlayerIdFieldNumber = 1,
     kSoloFieldNumber = 3,
   };
@@ -300,6 +301,21 @@ class StartMatchRequest final : public ::google::protobuf::Message
   ::std::string* PROTOBUF_NONNULL _internal_mutable_hero();
 
   public:
+  // string nickname = 4;
+  void clear_nickname();
+  const ::std::string& nickname() const;
+  template <typename Arg_ = const ::std::string&, typename... Args_>
+  void set_nickname(Arg_&& arg, Args_... args);
+  ::std::string* PROTOBUF_NONNULL mutable_nickname();
+  [[nodiscard]] ::std::string* PROTOBUF_NULLABLE release_nickname();
+  void set_allocated_nickname(::std::string* PROTOBUF_NULLABLE value);
+
+private:
+  const ::std::string& _internal_nickname() const;
+  PROTOBUF_ALWAYS_INLINE void _internal_set_nickname(const ::std::string& value);
+  ::std::string* PROTOBUF_NONNULL _internal_mutable_nickname();
+
+public:
   // int64 player_id = 1;
   void clear_player_id() ;
   ::int64_t player_id() const;
@@ -324,9 +340,9 @@ class StartMatchRequest final : public ::google::protobuf::Message
  private:
   class _Internal;
   friend class ::google::protobuf::internal::TcParser;
-  static const ::google::protobuf::internal::TcParseTable<2, 3,
-                                   0, 41,
-                                   2>
+  static const ::google::protobuf::internal::TcParseTable<2, 4,
+                                                          0, 49,
+                                                          2>
       _table_;
 
   friend class ::google::protobuf::MessageLite;
@@ -347,6 +363,7 @@ class StartMatchRequest final : public ::google::protobuf::Message
     ::google::protobuf::internal::HasBits<1> _has_bits_;
     ::google::protobuf::internal::CachedSize _cached_size_;
     ::google::protobuf::internal::ArenaStringPtr hero_;
+    ::google::protobuf::internal::ArenaStringPtr nickname_;
     ::int64_t player_id_;
     bool solo_;
     PROTOBUF_TSAN_DECLARE_MEMBER
@@ -839,6 +856,7 @@ class PlayerLoadout final : public ::google::protobuf::Message
   // accessors -------------------------------------------------------
   enum : int {
     kHeroFieldNumber = 2,
+    kNicknameFieldNumber = 3,
     kPlayerIdFieldNumber = 1,
   };
   // string hero = 2;
@@ -856,6 +874,21 @@ class PlayerLoadout final : public ::google::protobuf::Message
   ::std::string* PROTOBUF_NONNULL _internal_mutable_hero();
 
   public:
+  // string nickname = 3;
+  void clear_nickname();
+  const ::std::string& nickname() const;
+  template <typename Arg_ = const ::std::string&, typename... Args_>
+  void set_nickname(Arg_&& arg, Args_... args);
+  ::std::string* PROTOBUF_NONNULL mutable_nickname();
+  [[nodiscard]] ::std::string* PROTOBUF_NULLABLE release_nickname();
+  void set_allocated_nickname(::std::string* PROTOBUF_NULLABLE value);
+
+private:
+  const ::std::string& _internal_nickname() const;
+  PROTOBUF_ALWAYS_INLINE void _internal_set_nickname(const ::std::string& value);
+  ::std::string* PROTOBUF_NONNULL _internal_mutable_nickname();
+
+public:
   // int64 player_id = 1;
   void clear_player_id() ;
   ::int64_t player_id() const;
@@ -870,9 +903,9 @@ class PlayerLoadout final : public ::google::protobuf::Message
  private:
   class _Internal;
   friend class ::google::protobuf::internal::TcParser;
-  static const ::google::protobuf::internal::TcParseTable<1, 2,
-                                   0, 37,
-                                   2>
+  static const ::google::protobuf::internal::TcParseTable<2, 3,
+                                                          0, 45,
+                                                          2>
       _table_;
 
   friend class ::google::protobuf::MessageLite;
@@ -893,6 +926,7 @@ class PlayerLoadout final : public ::google::protobuf::Message
     ::google::protobuf::internal::HasBits<1> _has_bits_;
     ::google::protobuf::internal::CachedSize _cached_size_;
     ::google::protobuf::internal::ArenaStringPtr hero_;
+    ::google::protobuf::internal::ArenaStringPtr nickname_;
     ::int64_t player_id_;
     PROTOBUF_TSAN_DECLARE_MEMBER
   };
@@ -4461,7 +4495,7 @@ ListBattleNodesResponse::_internal_mutable_nodes() {
 inline void StartMatchRequest::clear_player_id() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.player_id_ = ::int64_t{0};
-  _impl_._has_bits_[0] &= ~0x00000002u;
+  _impl_._has_bits_[0] &= ~0x00000004u;
 }
 inline ::int64_t StartMatchRequest::player_id() const {
   // @@protoc_insertion_point(field_get:rcenter.v1.StartMatchRequest.player_id)
@@ -4469,7 +4503,7 @@ inline ::int64_t StartMatchRequest::player_id() const {
 }
 inline void StartMatchRequest::set_player_id(::int64_t value) {
   _internal_set_player_id(value);
-  _impl_._has_bits_[0] |= 0x00000002u;
+  _impl_._has_bits_[0] |= 0x00000004u;
   // @@protoc_insertion_point(field_set:rcenter.v1.StartMatchRequest.player_id)
 }
 inline ::int64_t StartMatchRequest::_internal_player_id() const {
@@ -4550,7 +4584,7 @@ inline void StartMatchRequest::set_allocated_hero(::std::string* PROTOBUF_NULLAB
 inline void StartMatchRequest::clear_solo() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.solo_ = false;
-  _impl_._has_bits_[0] &= ~0x00000004u;
+  _impl_._has_bits_[0] &= ~0x00000008u;
 }
 inline bool StartMatchRequest::solo() const {
   // @@protoc_insertion_point(field_get:rcenter.v1.StartMatchRequest.solo)
@@ -4558,7 +4592,7 @@ inline bool StartMatchRequest::solo() const {
 }
 inline void StartMatchRequest::set_solo(bool value) {
   _internal_set_solo(value);
-  _impl_._has_bits_[0] |= 0x00000004u;
+  _impl_._has_bits_[0] |= 0x00000008u;
   // @@protoc_insertion_point(field_set:rcenter.v1.StartMatchRequest.solo)
 }
 inline bool StartMatchRequest::_internal_solo() const {
@@ -4568,6 +4602,81 @@ inline bool StartMatchRequest::_internal_solo() const {
 inline void StartMatchRequest::_internal_set_solo(bool value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.solo_ = value;
+}
+
+// string nickname = 4;
+inline void StartMatchRequest::clear_nickname() {
+    ::google::protobuf::internal::TSanWrite(&_impl_);
+    _impl_.nickname_.ClearToEmpty();
+    _impl_._has_bits_[0] &= ~0x00000002u;
+}
+
+inline const ::std::string& StartMatchRequest::nickname() const
+
+ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    // @@protoc_insertion_point(field_get:rcenter.v1.StartMatchRequest.nickname)
+    return _internal_nickname();
+}
+
+template <typename Arg_, typename... Args_>
+PROTOBUF_ALWAYS_INLINE void StartMatchRequest::set_nickname(Arg_&& arg, Args_... args) {
+    ::google::protobuf::internal::TSanWrite(&_impl_);
+    _impl_._has_bits_[0] |= 0x00000002u;
+    _impl_.nickname_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
+    // @@protoc_insertion_point(field_set:rcenter.v1.StartMatchRequest.nickname)
+}
+
+inline ::std::string* PROTOBUF_NONNULL StartMatchRequest::mutable_nickname()
+
+ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    ::std::string* _s = _internal_mutable_nickname();
+    // @@protoc_insertion_point(field_mutable:rcenter.v1.StartMatchRequest.nickname)
+    return _s;
+}
+
+inline const ::std::string& StartMatchRequest::_internal_nickname() const {
+    ::google::protobuf::internal::TSanRead(&_impl_);
+    return _impl_.nickname_.Get();
+}
+
+inline void StartMatchRequest::_internal_set_nickname(const ::std::string& value) {
+    ::google::protobuf::internal::TSanWrite(&_impl_);
+    _impl_._has_bits_[0] |= 0x00000002u;
+    _impl_.nickname_.Set(value, GetArena());
+}
+
+inline ::std::string* PROTOBUF_NONNULL StartMatchRequest::_internal_mutable_nickname() {
+    ::google::protobuf::internal::TSanWrite(&_impl_);
+    _impl_._has_bits_[0] |= 0x00000002u;
+    return _impl_.nickname_.Mutable(GetArena());
+}
+
+inline ::std::string* PROTOBUF_NULLABLE StartMatchRequest::release_nickname() {
+    ::google::protobuf::internal::TSanWrite(&_impl_);
+    // @@protoc_insertion_point(field_release:rcenter.v1.StartMatchRequest.nickname)
+    if ((_impl_._has_bits_[0] & 0x00000002u) == 0) {
+        return nullptr;
+    }
+    _impl_._has_bits_[0] &= ~0x00000002u;
+    auto* released = _impl_.nickname_.Release();
+    if (::google::protobuf::internal::DebugHardenForceCopyDefaultString()) {
+        _impl_.nickname_.Set("", GetArena());
+    }
+    return released;
+}
+
+inline void StartMatchRequest::set_allocated_nickname(::std::string * PROTOBUF_NULLABLE value) {
+    ::google::protobuf::internal::TSanWrite(&_impl_);
+    if (value != nullptr) {
+        _impl_._has_bits_[0] |= 0x00000002u;
+    } else {
+        _impl_._has_bits_[0] &= ~0x00000002u;
+    }
+    _impl_.nickname_.SetAllocated(value, GetArena());
+    if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.nickname_.IsDefault()) {
+        _impl_.nickname_.Set("", GetArena());
+    }
+    // @@protoc_insertion_point(field_set_allocated:rcenter.v1.StartMatchRequest.nickname)
 }
 
 // -------------------------------------------------------------------
@@ -5165,7 +5274,7 @@ inline void MonsterKillCount::_internal_set_count(::int32_t value) {
 inline void PlayerLoadout::clear_player_id() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.player_id_ = ::int64_t{0};
-  _impl_._has_bits_[0] &= ~0x00000002u;
+  _impl_._has_bits_[0] &= ~0x00000004u;
 }
 inline ::int64_t PlayerLoadout::player_id() const {
   // @@protoc_insertion_point(field_get:rcenter.v1.PlayerLoadout.player_id)
@@ -5173,7 +5282,7 @@ inline ::int64_t PlayerLoadout::player_id() const {
 }
 inline void PlayerLoadout::set_player_id(::int64_t value) {
   _internal_set_player_id(value);
-  _impl_._has_bits_[0] |= 0x00000002u;
+  _impl_._has_bits_[0] |= 0x00000004u;
   // @@protoc_insertion_point(field_set:rcenter.v1.PlayerLoadout.player_id)
 }
 inline ::int64_t PlayerLoadout::_internal_player_id() const {
@@ -5248,6 +5357,81 @@ inline void PlayerLoadout::set_allocated_hero(::std::string* PROTOBUF_NULLABLE v
     _impl_.hero_.Set("", GetArena());
   }
   // @@protoc_insertion_point(field_set_allocated:rcenter.v1.PlayerLoadout.hero)
+}
+
+// string nickname = 3;
+inline void PlayerLoadout::clear_nickname() {
+    ::google::protobuf::internal::TSanWrite(&_impl_);
+    _impl_.nickname_.ClearToEmpty();
+    _impl_._has_bits_[0] &= ~0x00000002u;
+}
+
+inline const ::std::string& PlayerLoadout::nickname() const
+
+ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    // @@protoc_insertion_point(field_get:rcenter.v1.PlayerLoadout.nickname)
+    return _internal_nickname();
+}
+
+template <typename Arg_, typename... Args_>
+PROTOBUF_ALWAYS_INLINE void PlayerLoadout::set_nickname(Arg_&& arg, Args_... args) {
+    ::google::protobuf::internal::TSanWrite(&_impl_);
+    _impl_._has_bits_[0] |= 0x00000002u;
+    _impl_.nickname_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
+    // @@protoc_insertion_point(field_set:rcenter.v1.PlayerLoadout.nickname)
+}
+
+inline ::std::string* PROTOBUF_NONNULL PlayerLoadout::mutable_nickname()
+
+ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    ::std::string* _s = _internal_mutable_nickname();
+    // @@protoc_insertion_point(field_mutable:rcenter.v1.PlayerLoadout.nickname)
+    return _s;
+}
+
+inline const ::std::string& PlayerLoadout::_internal_nickname() const {
+    ::google::protobuf::internal::TSanRead(&_impl_);
+    return _impl_.nickname_.Get();
+}
+
+inline void PlayerLoadout::_internal_set_nickname(const ::std::string& value) {
+    ::google::protobuf::internal::TSanWrite(&_impl_);
+    _impl_._has_bits_[0] |= 0x00000002u;
+    _impl_.nickname_.Set(value, GetArena());
+}
+
+inline ::std::string* PROTOBUF_NONNULL PlayerLoadout::_internal_mutable_nickname() {
+    ::google::protobuf::internal::TSanWrite(&_impl_);
+    _impl_._has_bits_[0] |= 0x00000002u;
+    return _impl_.nickname_.Mutable(GetArena());
+}
+
+inline ::std::string* PROTOBUF_NULLABLE PlayerLoadout::release_nickname() {
+    ::google::protobuf::internal::TSanWrite(&_impl_);
+    // @@protoc_insertion_point(field_release:rcenter.v1.PlayerLoadout.nickname)
+    if ((_impl_._has_bits_[0] & 0x00000002u) == 0) {
+        return nullptr;
+    }
+    _impl_._has_bits_[0] &= ~0x00000002u;
+    auto* released = _impl_.nickname_.Release();
+    if (::google::protobuf::internal::DebugHardenForceCopyDefaultString()) {
+        _impl_.nickname_.Set("", GetArena());
+    }
+    return released;
+}
+
+inline void PlayerLoadout::set_allocated_nickname(::std::string * PROTOBUF_NULLABLE value) {
+    ::google::protobuf::internal::TSanWrite(&_impl_);
+    if (value != nullptr) {
+        _impl_._has_bits_[0] |= 0x00000002u;
+    } else {
+        _impl_._has_bits_[0] &= ~0x00000002u;
+    }
+    _impl_.nickname_.SetAllocated(value, GetArena());
+    if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.nickname_.IsDefault()) {
+        _impl_.nickname_.Set("", GetArena());
+    }
+    // @@protoc_insertion_point(field_set_allocated:rcenter.v1.PlayerLoadout.nickname)
 }
 
 // -------------------------------------------------------------------

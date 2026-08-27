@@ -15,6 +15,7 @@ namespace {
         for (const auto& loadout : request.player_loadouts()) {
             out.player_loadouts.push_back(battle::PlayerLoadout{
                 .player_id = loadout.player_id(),
+                .nickname = loadout.nickname(),
                 .hero = loadout.hero(),
                 .attack_level = loadout.attack_level(),
                 .attack_speed_level = loadout.attack_speed_level(),
