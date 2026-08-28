@@ -17,6 +17,8 @@ func mapRCenterError(err error) error {
 		return status.Error(codes.InvalidArgument, err.Error())
 	case errors.Is(err, rcenter.ErrInvalidPlayerID):
 		return status.Error(codes.InvalidArgument, err.Error())
+	case errors.Is(err, rcenter.ErrInvalidTeamSize):
+		return status.Error(codes.InvalidArgument, err.Error())
 	case errors.Is(err, rcenter.ErrInvalidRoomName):
 		return status.Error(codes.InvalidArgument, err.Error())
 	case errors.Is(err, rcenter.ErrInvalidBattleStats):

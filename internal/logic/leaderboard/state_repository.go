@@ -41,6 +41,10 @@ func toStateType(t Type) state.LeaderboardType {
 		return state.LeaderboardTypeSoloClearTime
 	case TypeDuoClearTime:
 		return state.LeaderboardTypeDuoClearTime
+	case TypeTrioClearTime:
+		return state.LeaderboardTypeTrioClearTime
+	case TypeQuadClearTime:
+		return state.LeaderboardTypeQuadClearTime
 	default:
 		return ""
 	}
@@ -54,6 +58,10 @@ func fromStateType(t state.LeaderboardType) Type {
 		return TypeSoloClearTime
 	case state.LeaderboardTypeDuoClearTime:
 		return TypeDuoClearTime
+	case state.LeaderboardTypeTrioClearTime:
+		return TypeTrioClearTime
+	case state.LeaderboardTypeQuadClearTime:
+		return TypeQuadClearTime
 	default:
 		return ""
 	}

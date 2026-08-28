@@ -201,6 +201,10 @@ func toLeaderboardType(value realtimepb.LeaderboardType) leaderboard.Type {
 		return leaderboard.TypeSoloClearTime
 	case realtimepb.LeaderboardType_LEADERBOARD_TYPE_DUO_CLEAR_TIME:
 		return leaderboard.TypeDuoClearTime
+	case realtimepb.LeaderboardType_LEADERBOARD_TYPE_TRIO_CLEAR_TIME:
+		return leaderboard.TypeTrioClearTime
+	case realtimepb.LeaderboardType_LEADERBOARD_TYPE_QUAD_CLEAR_TIME:
+		return leaderboard.TypeQuadClearTime
 	case realtimepb.LeaderboardType_LEADERBOARD_TYPE_TOTAL_KILLS:
 		return leaderboard.TypeTotalKills
 	default:
@@ -214,6 +218,10 @@ func toProtoLeaderboardType(value leaderboard.Type) realtimepb.LeaderboardType {
 		return realtimepb.LeaderboardType_LEADERBOARD_TYPE_SOLO_CLEAR_TIME
 	case leaderboard.TypeDuoClearTime:
 		return realtimepb.LeaderboardType_LEADERBOARD_TYPE_DUO_CLEAR_TIME
+	case leaderboard.TypeTrioClearTime:
+		return realtimepb.LeaderboardType_LEADERBOARD_TYPE_TRIO_CLEAR_TIME
+	case leaderboard.TypeQuadClearTime:
+		return realtimepb.LeaderboardType_LEADERBOARD_TYPE_QUAD_CLEAR_TIME
 	case leaderboard.TypeTotalKills:
 		return realtimepb.LeaderboardType_LEADERBOARD_TYPE_TOTAL_KILLS
 	default:

@@ -7,6 +7,7 @@ var (
 	ErrInvalidBattleNode = errors.New("invalid BattleNode")
 	// ErrInvalidPlayerID 表示玩家标识为空或非正数。
 	ErrInvalidPlayerID = errors.New("invalid PlayerID")
+	ErrInvalidTeamSize = errors.New("invalid team size")
 	// ErrInvalidRoomName 表示对局结束请求缺少稳定的房间标识。
 	ErrInvalidRoomName = errors.New("invalid room name")
 	// ErrNoAvailableBattleNode 表示没有已注册战斗节点可以承载更多玩家。

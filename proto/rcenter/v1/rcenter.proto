@@ -50,6 +50,7 @@ message StartMatchRequest {
   string hero = 2;
   bool solo = 3;
   string nickname = 4;
+  int32 team_size = 5;
 }
 
 message StartMatchResponse {

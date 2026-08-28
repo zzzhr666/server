@@ -12,7 +12,7 @@
 | --- | --- | --- |
 | `logic-server` | HTTP 健康检查与注册登录、原生 TCP 大厅协议、认证、好友、在线状态、成长、聊天、排行榜和匹配请求适配；维护本实例 TCP 连接并消费实时投递 | 无业务持久状态；连接仅在本实例内存中 |
 | `state-server` | 将局外领域操作映射到持久化存储；提供排行榜、聊天历史和实时投递的 gRPC 接口 | Redis 保存局外状态、排行榜与实时事件；MongoDB 保存聊天消息 |
-| `rcenter-server` | battle 节点注册、单人建房、双人 FIFO 匹配、活跃对局、奖励和排行榜结算 | 节点、队列、活跃对局在内存；进程重启会丢失这些状态 |
+| `rcenter-server` | battle 节点注册、1-4 人匹配、活跃对局、奖励和排行榜结算 | 节点、队列、活跃对局在内存；进程重启会丢失这些状态 |
 | `battle-server` | 房间、UDP session、tick、ECS、快照和战斗结束 | 房间和世界在内存；不负责账号和好友 |
 | Redis | 账号、玩家、session、成长、金币、好友、在线状态、排行榜、实时事件 | `game:*` 键 |
 | MongoDB | 世界频道和好友私聊的消息历史 | `chat_messages` 集合；TTL、频道分页和客户端幂等索引；`game-mongo-data` Docker volume |
@@ -38,7 +38,7 @@
 
 ![匹配流程](diagrams/match-flow.svg)
 
-`rcenter-server` 根据 `match_start.solo` 选择模式：单人请求跳过队列并立即创建仅包含当前玩家的房间；双人请求将第一名玩家放入 FIFO 队列，第二名玩家到来时与队头组成房间。节点选择会分别预留 1 个或 2 个玩家容量。成功创建房间后，为每个玩家写入同一份 `ActiveMatch`，其中包含 `room_name`、token、battle 节点、UDP 地址、玩家列表和局外 loadout。未携带 `solo` 的旧客户端按双人模式处理。
+`rcenter-server` 根据 `match_start.team_size` 选择 1-4 人模式：单人请求跳过队列并立即形成 roster；2、3、4 人请求分别进入独立 FIFO 队列，只有同一目标人数的队列凑齐后才组成房间。节点选择按完整 roster 人数预留容量。成功创建房间后，为每个玩家写入同一份 `ActiveMatch`，其中包含 `room_name`、token、battle 节点、UDP 地址、玩家列表和局外 loadout。兼容旧客户端：未携带 `team_size` 时，`solo=true` 按单人处理，否则按双人处理。
 
 客户端仅通过 HTTP 注册或登录并取得 session token。logic TCP 完成认证后承载玩家、成长、好友、在线状态、聊天、排行榜和匹配的全部大厅请求，并自动调用 `ResumeMatch`。客户端也可显式发送 `match_resume`，用于从战斗主动返回大厅后重新进入旧对局。没有活跃对局时，恢复会返回 `active match not found`；客户端应清除本地旧 match 并恢复正常匹配。
 
@@ -54,15 +54,17 @@
 
 排行榜读取链路为 `realtime Handler -> internal/logic/leaderboard -> state gRPC -> Redis store`。logic 层负责默认 `limit=20`、最大 100、地图版本必填等业务校验；state-server 解析 Redis member，并通过一次 pipeline 批量补全玩家昵称与头像。当前固定地图版本为 `wave-v1`。
 
-排行榜使用三个 Redis ZSET：
+排行榜使用五个类型的 Redis ZSET：
 
 | 键 | member | score | 排序 |
 | --- | --- | --- | --- |
 | `game:leaderboard:clear_time:solo:{map_version}` | 玩家 ID | 最短纯战斗毫秒数 | 升序 |
 | `game:leaderboard:clear_time:duo:{map_version}` | 按升序拼接的 `小ID:大ID` | 队伍最短纯战斗毫秒数 | 升序 |
+| `game:leaderboard:clear_time:trio:{map_version}` | 按升序拼接的三个玩家 ID | 队伍最短纯战斗毫秒数 | 升序 |
+| `game:leaderboard:clear_time:quad:{map_version}` | 按升序拼接的四个玩家 ID | 队伍最短纯战斗毫秒数 | 升序 |
 | `game:leaderboard:total_kills` | 玩家 ID | 跨模式累计击杀数 | 降序 |
 
-battle-server 只在 `Fighting` 阶段累加 `combat_duration_ms`，因此 `RewardSelection` 中玩家选择祝福或等待超时的时间不会影响通关排名。结束时该时长随 `FinishMatch` 上报给 rcenter。rcenter 根据一人或两人 roster 写入 `solo` 或 `duo`，胜利局标记为 cleared；当前不接受超过两人的排行榜结算。
+battle-server 只在 `Fighting` 阶段累加 `combat_duration_ms`，因此 `RewardSelection` 中玩家选择祝福或等待超时的时间不会影响通关排名。结束时该时长随 `FinishMatch` 上报给 rcenter。rcenter 根据 1-4 人 roster 写入 `solo`、`duo`、`trio` 或 `quad`，胜利局标记为 cleared。
 
 state Redis store 在金币结算的同一个乐观事务中使用 `ZADD LT` 保存更短的通关时间，并用 `ZINCRBY` 累加每名玩家的总击杀。失败局不更新通关时间，但正常胜利和失败都会累加击杀。房间名作为 `settlement_id`，幂等标记保留 7 天，保证 battle-server 重试不会重复发放金币或更新排行榜。
 
