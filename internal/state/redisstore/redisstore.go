@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"server/internal/contract/state"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -1082,6 +1083,8 @@ const (
 	totalKillsLeaderboardKey = "game:leaderboard:total_kills"
 	leaderboardModeSolo      = "solo"
 	leaderboardModeDuo       = "duo"
+	leaderboardModeTrio      = "trio"
+	leaderboardModeQuad      = "quad"
 
 	maxLeaderboardLimit int64 = 100
 )
@@ -1102,6 +1105,16 @@ func resolveLeaderboardQuery(input state.ListLeaderboardInput) (key string, desc
 		}
 		return clearTimeLeaderboardKey(leaderboardModeDuo, input.MapVersion), false, nil
 	}
+	if input.Type == state.LeaderboardTypeTrioClearTime || input.Type == state.LeaderboardTypeQuadClearTime {
+		if input.MapVersion == "" {
+			return "", false, state.ErrInvalidLeaderboardQuery
+		}
+		mode := leaderboardModeTrio
+		if input.Type == state.LeaderboardTypeQuadClearTime {
+			mode = leaderboardModeQuad
+		}
+		return clearTimeLeaderboardKey(mode, input.MapVersion), false, nil
+	}
 	if input.Type == state.LeaderboardTypeTotalKills {
 		return totalKillsLeaderboardKey, true, nil
 	}
@@ -1109,9 +1122,16 @@ func resolveLeaderboardQuery(input state.ListLeaderboardInput) (key string, desc
 }
 
 func parseLeaderboardMember(leaderboardType state.LeaderboardType, member string) ([]int64, error) {
-	if leaderboardType == state.LeaderboardTypeDuoClearTime {
+	if leaderboardType == state.LeaderboardTypeDuoClearTime || leaderboardType == state.LeaderboardTypeTrioClearTime || leaderboardType == state.LeaderboardTypeQuadClearTime {
 		playerIDsString := strings.Split(member, ":")
-		if len(playerIDsString) != 2 {
+		expected := 2
+		if leaderboardType == state.LeaderboardTypeTrioClearTime {
+			expected = 3
+		}
+		if leaderboardType == state.LeaderboardTypeQuadClearTime {
+			expected = 4
+		}
+		if len(playerIDsString) != expected {
 			return nil, fmt.Errorf("invalid leaderboard member %q", member)
 		}
 		playerIDs := make([]int64, 0, len(playerIDsString))
@@ -1125,8 +1145,10 @@ func parseLeaderboardMember(leaderboardType state.LeaderboardType, member string
 			}
 			playerIDs = append(playerIDs, playerIDInt)
 		}
-		if playerIDs[0] >= playerIDs[1] {
-			return nil, fmt.Errorf("invalid leaderboard member %q", member)
+		for i := 1; i < len(playerIDs); i++ {
+			if playerIDs[i-1] >= playerIDs[i] {
+				return nil, fmt.Errorf("invalid leaderboard member %q", member)
+			}
 		}
 		return playerIDs, nil
 	}
@@ -1156,6 +1178,16 @@ func duoLeaderboardMember(first, second int64) string {
 	return strconv.FormatInt(first, 10) + ":" + strconv.FormatInt(second, 10)
 }
 
+func partyLeaderboardMember(playerIDs []int64) string {
+	ids := append([]int64(nil), playerIDs...)
+	sort.Slice(ids, func(i, j int) bool { return ids[i] < ids[j] })
+	parts := make([]string, len(ids))
+	for i, id := range ids {
+		parts[i] = strconv.FormatInt(id, 10)
+	}
+	return strings.Join(parts, ":")
+}
+
 func validateLeaderboardRecord(record *state.MatchLeaderboardRecord, rewardPlayerIDs map[int64]struct{}) (string, error) {
 	if record == nil {
 		return "", nil
@@ -1169,6 +1201,10 @@ func validateLeaderboardRecord(record *state.MatchLeaderboardRecord, rewardPlaye
 		expectedPlayers = 1
 	case leaderboardModeDuo:
 		expectedPlayers = 2
+	case leaderboardModeTrio:
+		expectedPlayers = 3
+	case leaderboardModeQuad:
+		expectedPlayers = 4
 	default:
 		return "", state.ErrInvalidSettlement
 	}
@@ -1196,7 +1232,11 @@ func validateLeaderboardRecord(record *state.MatchLeaderboardRecord, rewardPlaye
 	if record.Mode == leaderboardModeSolo {
 		return strconv.FormatInt(record.Players[0].PlayerID, 10), nil
 	}
-	return duoLeaderboardMember(record.Players[0].PlayerID, record.Players[1].PlayerID), nil
+	ids := make([]int64, len(record.Players))
+	for i, player := range record.Players {
+		ids[i] = player.PlayerID
+	}
+	return partyLeaderboardMember(ids), nil
 }
 
 func validateFriendPair(fromPlayerID, toPlayerID int64) error {

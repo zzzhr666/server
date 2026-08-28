@@ -52,7 +52,7 @@ ServerEnvelope { request_id: 1, authenticated: { player_id: 7 } }
 | 客户端 payload | 成功响应 | 行为 |
 | --- | --- | --- |
 | `heartbeat` | `heartbeat_ack` | 刷新在线状态 |
-| `match_start { hero, solo }` | `match_result` | 开始对局；`solo=true` 立即创建单人房间，缺省或 `false` 进入双人匹配；`hero` 表示初始英雄：Fire=`fire`、Ice=`ice`、Rock=`rock`、Nature=`nature`，空值默认 Fire |
+| `match_start { hero, team_size, solo }` | `match_result` | 开始 1-4 人对局；`team_size=1` 立即创建单人房间，`team_size=2/3/4` 进入对应的独立 FIFO 队列。兼容旧客户端：未设置 `team_size` 时，`solo=true` 按 1 人处理，否则按 2 人处理；`hero` 空值默认 Fire |
 | `match_cancel` | `match_canceled` | 取消等待中的匹配 |
 | `match_resume` | `match_result` | 请求当前玩家的活跃对局 |
 | `player_get` | `player` | 返回当前玩家档案与金币 |
@@ -73,11 +73,13 @@ ServerEnvelope { request_id: 1, authenticated: { player_id: 7 } }
 | `chat_direct_list { friend_id, limit, before_message_key }` | `chat_messages` | 分页读取与好友的私聊历史 |
 | `leaderboard_list { type, map_version, limit }` | `leaderboard` | 查询单人通关、双人通关或累计击杀榜 |
 
-匹配和恢复使用 `match_result`，其中包含 `status`、`room_name`、`token`、`battle_node_name` 和 `battle_udp_addr`。单人请求直接返回 `status=matched`；双人请求可能先返回 `status=waiting`。`status=matched` 后，客户端向 `battle_udp_addr` 发送 UDP `ClientHello(room_name, player_id, token)`。
+匹配和恢复使用 `match_result`，其中包含 `status`、`room_name`、`token`、`battle_node_name` 和 `battle_udp_addr`。单人请求直接返回 `status=matched`；2-4 人请求在对应队列凑齐前返回 `status=waiting`。`status=matched` 后，客户端向 `battle_udp_addr` 发送 UDP `ClientHello(room_name, player_id, token)`。
 
 成长升级的合法 `type` 为 `attack`、`attack_speed`、`health`、`move_speed`。业务请求失败时服务端发送 `error { code, message }` 并保持连接；`code` 取值为 `UNAUTHENTICATED`、`INVALID_ARGUMENT`、`NOT_FOUND`、`CONFLICT` 或 `INTERNAL`。协议帧错误、认证失败、logout 和写入失败会关闭连接。
 
 ### 排行榜协议
+
+通关时间榜类型包括 `SOLO_CLEAR_TIME`、`DUO_CLEAR_TIME`、`TRIO_CLEAR_TIME` 和 `QUAD_CLEAR_TIME`；累计击杀使用 `TOTAL_KILLS`。
 
 `leaderboard_list.type` 使用 `LeaderboardType`，支持：
 
@@ -136,10 +138,10 @@ ServerEnvelope {
 
 ## UDP 战斗协议
 
-UDP payload 使用 `proto/battle/v1/session.proto` 的 `ClientPacket` 与 `ServerPacket`。
+UDP payload 使用 `proto/battle/v1/session.proto` 的 `ClientPacket` 与 `ServerPacket`。服务端包按频率分为 `RoomSnapshot`、`StateUpdate` 和 `WorldSnapshot`：房间包发送地图静态数据，状态包发送低频玩家/奖励状态，世界包发送高频战斗实体。
 
 1. 收到 TCP `matched` 后，向 `battle_udp_addr` 发送 `ClientHello(room_name, player_id, token)`。
-2. 收到 `ServerHello` 后保存服务器分配的 conversation，开始接收快照。
+2. 收到 `ServerHello` 后保存服务器分配的 conversation，接收 `RoomSnapshot`、`StateUpdate` 和 `WorldSnapshot`；客户端应缓存前两者并与世界快照合并。
 3. 每 5 秒发送 `ClientHeartbeat`，并按输入状态发送 `ClientInput`。
 4. 在 `BATTLE_PHASE_REWARD_SELECTION` 时，使用 snapshot 中的 `current_options` 发送 `ChooseBlessing`。
 5. 在奖励房的 `ROOM_FLOW_STATE_REWARDING` 阶段，每名玩家使用 `ChooseFreeReward` 完成一次免费奖励选择；可选回血、攻击、护甲、随机祝福或 `SKIP`。所有玩家完成后进入 `ROOM_FLOW_STATE_CHOOSING_EXIT`。

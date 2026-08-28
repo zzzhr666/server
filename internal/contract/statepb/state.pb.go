@@ -79,6 +79,8 @@ const (
 	LeaderboardType_SOLO_CLEAR_TIME LeaderboardType = 1
 	LeaderboardType_DUO_CLEAR_TIME  LeaderboardType = 2
 	LeaderboardType_TOTAL_KILLS     LeaderboardType = 3
+	LeaderboardType_TRIO_CLEAR_TIME LeaderboardType = 4
+	LeaderboardType_QUAD_CLEAR_TIME LeaderboardType = 5
 )
 
 // Enum value maps for LeaderboardType.
@@ -88,12 +90,16 @@ var (
 		1: "SOLO_CLEAR_TIME",
 		2: "DUO_CLEAR_TIME",
 		3: "TOTAL_KILLS",
+		4: "TRIO_CLEAR_TIME",
+		5: "QUAD_CLEAR_TIME",
 	}
 	LeaderboardType_value = map[string]int32{
 		"UNSPECIFIED":     0,
 		"SOLO_CLEAR_TIME": 1,
 		"DUO_CLEAR_TIME":  2,
 		"TOTAL_KILLS":     3,
+		"TRIO_CLEAR_TIME": 4,
+		"QUAD_CLEAR_TIME": 5,
 	}
 )
 
@@ -4134,12 +4140,14 @@ const file_proto_state_v1_state_proto_rawDesc = "" +
 	"\x11RealtimeRouteType\x12#\n" +
 	"\x1fREALTIME_ROUTE_TYPE_UNSPECIFIED\x10\x00\x12\x1e\n" +
 	"\x1aREALTIME_ROUTE_TYPE_SERVER\x10\x01\x12!\n" +
-	"\x1dREALTIME_ROUTE_TYPE_BROADCAST\x10\x02*\\\n" +
+	"\x1dREALTIME_ROUTE_TYPE_BROADCAST\x10\x02*\x86\x01\n" +
 	"\x0fLeaderboardType\x12\x0f\n" +
 	"\vUNSPECIFIED\x10\x00\x12\x13\n" +
 	"\x0fSOLO_CLEAR_TIME\x10\x01\x12\x12\n" +
 	"\x0eDUO_CLEAR_TIME\x10\x02\x12\x0f\n" +
-	"\vTOTAL_KILLS\x10\x032\xad\x13\n" +
+	"\vTOTAL_KILLS\x10\x03\x12\x13\n" +
+	"\x0fTRIO_CLEAR_TIME\x10\x04\x12\x13\n" +
+	"\x0fQUAD_CLEAR_TIME\x10\x052\xad\x13\n" +
 	"\fStateService\x12P\n" +
 	"\rCreateAccount\x12\x1e.state.v1.CreateAccountRequest\x1a\x1f.state.v1.CreateAccountResponse\x12G\n" +
 	"\n" +

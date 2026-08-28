@@ -641,7 +641,15 @@ func (h *Handler) handleMatchStart(ctx context.Context, session *session, player
 		}
 	}
 
-	matchResult, err := h.match.Start(ctx, playerID, nickname, hero, envelope.GetMatchStart().GetSolo())
+	teamSize := int(envelope.GetMatchStart().GetTeamSize())
+	if teamSize == 0 {
+		if envelope.GetMatchStart().GetSolo() {
+			teamSize = 1
+		} else {
+			teamSize = 2
+		}
+	}
+	matchResult, err := h.match.Start(ctx, playerID, nickname, hero, teamSize)
 	if err != nil {
 		return writeError(session, envelope.GetRequestId(), matchErrorCode(err), err.Error()) == nil
 	}
@@ -1028,7 +1036,7 @@ func newServerDelivery(serverName string, event *state.RealtimeEvent) *state.Rea
 
 func matchErrorCode(err error) realtimepb.ErrorCode {
 	switch {
-	case errors.Is(err, rcenter.ErrInvalidPlayerID):
+	case errors.Is(err, rcenter.ErrInvalidPlayerID), errors.Is(err, rcenter.ErrInvalidTeamSize):
 		return realtimepb.ErrorCode_INVALID_ARGUMENT
 	case errors.Is(err, rcenter.ErrPlayerInGame), errors.Is(err, rcenter.ErrPlayerNotWaiting):
 		return realtimepb.ErrorCode_CONFLICT

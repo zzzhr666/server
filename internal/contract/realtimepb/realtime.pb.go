@@ -87,6 +87,8 @@ const (
 	LeaderboardType_LEADERBOARD_TYPE_SOLO_CLEAR_TIME LeaderboardType = 1
 	LeaderboardType_LEADERBOARD_TYPE_DUO_CLEAR_TIME  LeaderboardType = 2
 	LeaderboardType_LEADERBOARD_TYPE_TOTAL_KILLS     LeaderboardType = 3
+	LeaderboardType_LEADERBOARD_TYPE_TRIO_CLEAR_TIME LeaderboardType = 4
+	LeaderboardType_LEADERBOARD_TYPE_QUAD_CLEAR_TIME LeaderboardType = 5
 )
 
 // Enum value maps for LeaderboardType.
@@ -96,12 +98,16 @@ var (
 		1: "LEADERBOARD_TYPE_SOLO_CLEAR_TIME",
 		2: "LEADERBOARD_TYPE_DUO_CLEAR_TIME",
 		3: "LEADERBOARD_TYPE_TOTAL_KILLS",
+		4: "LEADERBOARD_TYPE_TRIO_CLEAR_TIME",
+		5: "LEADERBOARD_TYPE_QUAD_CLEAR_TIME",
 	}
 	LeaderboardType_value = map[string]int32{
 		"LEADERBOARD_TYPE_UNSPECIFIED":     0,
 		"LEADERBOARD_TYPE_SOLO_CLEAR_TIME": 1,
 		"LEADERBOARD_TYPE_DUO_CLEAR_TIME":  2,
 		"LEADERBOARD_TYPE_TOTAL_KILLS":     3,
+		"LEADERBOARD_TYPE_TRIO_CLEAR_TIME": 4,
+		"LEADERBOARD_TYPE_QUAD_CLEAR_TIME": 5,
 	}
 )
 
@@ -1165,6 +1171,7 @@ type MatchStartRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Hero          string                 `protobuf:"bytes,1,opt,name=hero,proto3" json:"hero,omitempty"`
 	Solo          bool                   `protobuf:"varint,2,opt,name=solo,proto3" json:"solo,omitempty"`
+	TeamSize      int32                  `protobuf:"varint,3,opt,name=team_size,json=teamSize,proto3" json:"team_size,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1211,6 +1218,13 @@ func (x *MatchStartRequest) GetSolo() bool {
 		return x.Solo
 	}
 	return false
+}
+
+func (x *MatchStartRequest) GetTeamSize() int32 {
+	if x != nil {
+		return x.TeamSize
+	}
+	return 0
 }
 
 type MatchCanceled struct {
@@ -3712,10 +3726,11 @@ const file_proto_realtime_v1_realtime_proto_rawDesc = "" +
 	"\x10HeartbeatRequest\"\x0e\n" +
 	"\fHeartbeatAck\"\x14\n" +
 	"\x12MatchCancelRequest\"\x14\n" +
-	"\x12MatchResumeRequest\";\n" +
+	"\x12MatchResumeRequest\"X\n" +
 	"\x11MatchStartRequest\x12\x12\n" +
 	"\x04hero\x18\x01 \x01(\tR\x04hero\x12\x12\n" +
-	"\x04solo\x18\x02 \x01(\bR\x04solo\"\x0f\n" +
+	"\x04solo\x18\x02 \x01(\bR\x04solo\x12\x1b\n" +
+	"\tteam_size\x18\x03 \x01(\x05R\bteamSize\"\x0f\n" +
 	"\rMatchCanceled\"\xaa\x01\n" +
 	"\vMatchResult\x12\x16\n" +
 	"\x06status\x18\x01 \x01(\tR\x06status\x12\x1b\n" +
@@ -3877,12 +3892,14 @@ const file_proto_realtime_v1_realtime_proto_rawDesc = "" +
 	"\x10INVALID_ARGUMENT\x10\x02\x12\r\n" +
 	"\tNOT_FOUND\x10\x03\x12\f\n" +
 	"\bCONFLICT\x10\x04\x12\f\n" +
-	"\bINTERNAL\x10\x05*\xa0\x01\n" +
+	"\bINTERNAL\x10\x05*\xec\x01\n" +
 	"\x0fLeaderboardType\x12 \n" +
 	"\x1cLEADERBOARD_TYPE_UNSPECIFIED\x10\x00\x12$\n" +
 	" LEADERBOARD_TYPE_SOLO_CLEAR_TIME\x10\x01\x12#\n" +
 	"\x1fLEADERBOARD_TYPE_DUO_CLEAR_TIME\x10\x02\x12 \n" +
-	"\x1cLEADERBOARD_TYPE_TOTAL_KILLS\x10\x03B0Z.server/internal/contract/realtimepb;realtimepbb\x06proto3"
+	"\x1cLEADERBOARD_TYPE_TOTAL_KILLS\x10\x03\x12$\n" +
+	" LEADERBOARD_TYPE_TRIO_CLEAR_TIME\x10\x04\x12$\n" +
+	" LEADERBOARD_TYPE_QUAD_CLEAR_TIME\x10\x05B0Z.server/internal/contract/realtimepb;realtimepbb\x06proto3"
 
 var (
 	file_proto_realtime_v1_realtime_proto_rawDescOnce sync.Once

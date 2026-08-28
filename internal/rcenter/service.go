@@ -14,6 +14,8 @@ import (
 const (
 	leaderboardModeSolo     = "solo"
 	leaderboardModeDuo      = "duo"
+	leaderboardModeTrio     = "trio"
+	leaderboardModeQuad     = "quad"
 	leaderboardMapVersionV1 = "wave-v1"
 )
 
@@ -35,7 +37,7 @@ type waitingPlayer struct {
 type GameCenterService struct {
 	mu                   sync.Mutex
 	battleNodes          map[string]BattleNode
-	waitingPlayers       []waitingPlayer
+	waitingQueues        map[int][]waitingPlayer
 	battleNodeController BattleNodeController
 	inGamePlayers        map[int64]struct{}
 	coinClient           state.CoinClient
@@ -61,6 +63,7 @@ func NewService(config ServiceConfig) *GameCenterService {
 	}
 	return &GameCenterService{
 		battleNodes:          make(map[string]BattleNode),
+		waitingQueues:        make(map[int][]waitingPlayer),
 		battleNodeController: config.BattleNodeController,
 		inGamePlayers:        make(map[int64]struct{}),
 		coinClient:           config.CoinClient,
@@ -142,8 +145,8 @@ func (g *GameCenterService) ListBattleNodes() []BattleNode {
 	return nodes
 }
 
-// StartMatch 为单人模式立即创建房间，或将双人模式玩家加入 FIFO 匹配。
-func (g *GameCenterService) StartMatch(ctx context.Context, playerID int64, nickname, hero string, solo bool) (*MatchResult, error) {
+// StartMatch 按目标队伍人数匹配；1 人队伍立即创建房间。
+func (g *GameCenterService) StartMatch(ctx context.Context, playerID int64, nickname, hero string, teamSize int) (*MatchResult, error) {
 	if err := ctx.Err(); err != nil {
 		g.observeMatchOperation("start", "error")
 		return nil, err
@@ -153,6 +156,13 @@ func (g *GameCenterService) StartMatch(ctx context.Context, playerID int64, nick
 		return nil, ErrInvalidPlayerID
 	}
 
+	if teamSize == 0 {
+		teamSize = 2
+	}
+	if teamSize < 1 || teamSize > 4 {
+		g.observeMatchOperation("start", "error")
+		return nil, ErrInvalidTeamSize
+	}
 	// 锁内只处理内存匹配状态：检查已在局、选节点、FIFO 队列和预占 inGame 标记。
 	// 外部 gRPC 读取成长和创建房间必须在锁外执行，否则慢节点会阻塞所有匹配请求。
 	g.mu.Lock()
@@ -162,11 +172,7 @@ func (g *GameCenterService) StartMatch(ctx context.Context, playerID int64, nick
 		g.observeMatchOperation("start", "error")
 		return nil, ErrPlayerInGame
 	}
-	requiredPlayers := 2
-	if solo {
-		requiredPlayers = 1
-	}
-	node, ok := g.selectBattleNode(requiredPlayers)
+	node, ok := g.selectBattleNode(teamSize)
 	if !ok {
 		g.mu.Unlock()
 		g.observeMatchOperation("start", "error")
@@ -185,16 +191,17 @@ func (g *GameCenterService) StartMatch(ctx context.Context, playerID int64, nick
 		hero:     hero,
 	}
 	players := []waitingPlayer{currentPlayer}
-	if !solo {
-		if len(g.waitingPlayers) == 0 {
+	if teamSize > 1 {
+		queue := g.waitingQueues[teamSize]
+		if len(queue) < teamSize-1 {
 			// 首位玩家仅入 FIFO 队列，不创建房间也不占用 battle 节点容量。
-			g.waitingPlayers = append(g.waitingPlayers, waitingPlayer{
+			g.waitingQueues[teamSize] = append(queue, waitingPlayer{
 				playerID: playerID,
 				nickname: nickname,
 				hero:     hero,
 			})
 			if g.metrics != nil {
-				g.metrics.MatchQueue.Set(float64(len(g.waitingPlayers)))
+				g.metrics.MatchQueue.Set(float64(g.waitingQueueSize()))
 			}
 			g.mu.Unlock()
 			g.observeMatchOperation("start", "success")
@@ -202,13 +209,12 @@ func (g *GameCenterService) StartMatch(ctx context.Context, playerID int64, nick
 				Status: MatchStatusWaiting,
 			}, nil
 		}
-		teammate := g.waitingPlayers[0]
-		g.waitingPlayers = g.waitingPlayers[1:]
-		players = []waitingPlayer{teammate, currentPlayer}
+		players = append(queue[:teamSize-1], currentPlayer)
+		g.waitingQueues[teamSize] = queue[teamSize-1:]
 	}
 
 	if g.metrics != nil {
-		g.metrics.MatchQueue.Set(float64(len(g.waitingPlayers)))
+		g.metrics.MatchQueue.Set(float64(g.waitingQueueSize()))
 	}
 
 	roomName := newRandomName("room")
@@ -308,7 +314,7 @@ func (g *GameCenterService) FinishMatch(ctx context.Context, input FinishMatchIn
 		g.observeMatchOperation("finish", "error")
 		return ErrInvalidPlayerID
 	}
-	if len(input.PlayerIDs) > 2 {
+	if len(input.PlayerIDs) > 4 {
 		g.observeMatchOperation("finish", "error")
 		return ErrInvalidBattleStats
 	}
@@ -362,10 +368,7 @@ func (g *GameCenterService) FinishMatch(ctx context.Context, input FinishMatchIn
 		})
 	}
 	if len(rewards) > 0 {
-		mode := leaderboardModeDuo
-		if len(input.PlayerIDs) == 1 {
-			mode = leaderboardModeSolo
-		}
+		mode := leaderboardModeForSize(len(input.PlayerIDs))
 		leaderboardRecord := &state.MatchLeaderboardRecord{
 			Mode:             mode,
 			MapVersion:       leaderboardMapVersionV1,
@@ -405,9 +408,11 @@ func (g *GameCenterService) selectBattleNode(requiredPlayers int) (BattleNode, b
 }
 
 func (g *GameCenterService) isWaiting(playerID int64) bool {
-	for _, waitingPlayer := range g.waitingPlayers {
-		if playerID == waitingPlayer.playerID {
-			return true
+	for _, queue := range g.waitingQueues {
+		for _, waitingPlayer := range queue {
+			if playerID == waitingPlayer.playerID {
+				return true
+			}
 		}
 	}
 	return false
@@ -425,18 +430,41 @@ func (g *GameCenterService) CancelMatch(ctx context.Context, playerID int64) err
 	}
 	g.mu.Lock()
 	defer g.mu.Unlock()
-	for i, waitingPlayer := range g.waitingPlayers {
-		if waitingPlayer.playerID == playerID {
-			g.waitingPlayers = append(g.waitingPlayers[:i], g.waitingPlayers[i+1:]...)
-			if g.metrics != nil {
-				g.metrics.MatchQueue.Set(float64(len(g.waitingPlayers)))
+	for teamSize, queue := range g.waitingQueues {
+		for i, waitingPlayer := range queue {
+			if waitingPlayer.playerID == playerID {
+				g.waitingQueues[teamSize] = append(queue[:i], queue[i+1:]...)
+				if g.metrics != nil {
+					g.metrics.MatchQueue.Set(float64(g.waitingQueueSize()))
+				}
+				g.observeMatchOperation("cancel", "success")
+				return nil
 			}
-			g.observeMatchOperation("cancel", "success")
-			return nil
 		}
 	}
 	g.observeMatchOperation("cancel", "error")
 	return ErrPlayerNotWaiting
+}
+
+func (g *GameCenterService) waitingQueueSize() int {
+	total := 0
+	for _, queue := range g.waitingQueues {
+		total += len(queue)
+	}
+	return total
+}
+
+func leaderboardModeForSize(size int) string {
+	switch size {
+	case 1:
+		return leaderboardModeSolo
+	case 2:
+		return leaderboardModeDuo
+	case 3:
+		return leaderboardModeTrio
+	default:
+		return leaderboardModeQuad
+	}
 }
 
 // newRandomName 为房间名和令牌创建可读前缀加随机后缀。

@@ -32,7 +32,7 @@ func (g *GameLeaderboardService) List(ctx context.Context, input ListInput) (*Re
 	}
 
 	switch input.Type {
-	case TypeDuoClearTime, TypeSoloClearTime:
+	case TypeDuoClearTime, TypeTrioClearTime, TypeQuadClearTime, TypeSoloClearTime:
 		if input.MapVersion == "" {
 			return nil, ErrInvalidQuery
 		}

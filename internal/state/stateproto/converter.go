@@ -509,6 +509,10 @@ func ToProtoLeaderboardType(leaderboardType state.LeaderboardType) statepb.Leade
 		return statepb.LeaderboardType_SOLO_CLEAR_TIME
 	case state.LeaderboardTypeDuoClearTime:
 		return statepb.LeaderboardType_DUO_CLEAR_TIME
+	case state.LeaderboardTypeTrioClearTime:
+		return statepb.LeaderboardType_TRIO_CLEAR_TIME
+	case state.LeaderboardTypeQuadClearTime:
+		return statepb.LeaderboardType_QUAD_CLEAR_TIME
 	case state.LeaderboardTypeTotalKills:
 		return statepb.LeaderboardType_TOTAL_KILLS
 	default:
@@ -523,6 +527,10 @@ func FromProtoLeaderboardType(leaderboardType statepb.LeaderboardType) state.Lea
 		return state.LeaderboardTypeSoloClearTime
 	case statepb.LeaderboardType_DUO_CLEAR_TIME:
 		return state.LeaderboardTypeDuoClearTime
+	case statepb.LeaderboardType_TRIO_CLEAR_TIME:
+		return state.LeaderboardTypeTrioClearTime
+	case statepb.LeaderboardType_QUAD_CLEAR_TIME:
+		return state.LeaderboardTypeQuadClearTime
 	case statepb.LeaderboardType_TOTAL_KILLS:
 		return state.LeaderboardTypeTotalKills
 	default:

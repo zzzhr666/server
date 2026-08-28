@@ -390,6 +390,8 @@ enum LeaderboardType {
   SOLO_CLEAR_TIME = 1;
   DUO_CLEAR_TIME = 2;
   TOTAL_KILLS = 3;
+  TRIO_CLEAR_TIME = 4;
+  QUAD_CLEAR_TIME = 5;
 }
 
 message ListLeaderboardRequest {

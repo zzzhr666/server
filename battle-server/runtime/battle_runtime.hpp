@@ -94,6 +94,8 @@ namespace battle {
         std::mutex mutex_;
         /// @brief 以房间名索引的活跃战斗实例。
         std::unordered_map<std::string, std::unique_ptr<BattleInstance>> instances_;
+        std::unordered_map<std::string, std::string> room_layout_cache_;
+        std::unordered_map<std::string, std::unordered_set<std::int64_t>> room_connected_players_;
         /// @brief 正在启动中的房间，避免重复 hello 并发创建实例。
         std::unordered_set<std::string> starting_rooms_;
         std::atomic<bool> running_;

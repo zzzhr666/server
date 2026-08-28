@@ -69,7 +69,9 @@ const (
 	// LeaderboardTypeSoloClearTime 表示单人模式最短纯战斗时间榜。
 	LeaderboardTypeSoloClearTime LeaderboardType = "solo_clear_time"
 	// LeaderboardTypeDuoClearTime 表示双人队伍最短纯战斗时间榜。
-	LeaderboardTypeDuoClearTime LeaderboardType = "duo_clear_time"
+	LeaderboardTypeDuoClearTime  LeaderboardType = "duo_clear_time"
+	LeaderboardTypeTrioClearTime LeaderboardType = "trio_clear_time"
+	LeaderboardTypeQuadClearTime LeaderboardType = "quad_clear_time"
 	// LeaderboardTypeTotalKills 表示跨模式累计总击杀榜。
 	LeaderboardTypeTotalKills LeaderboardType = "total_kills"
 )

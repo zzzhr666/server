@@ -21,12 +21,12 @@ func NewClient(client rcenterpb.RCenterServiceClient) *Client {
 }
 
 // StartMatch 请求 rcenter 发起单人对局或双人匹配。
-func (c *Client) StartMatch(ctx context.Context, playerID int64, nickname, hero string, solo bool) (*rcenter.MatchResult, error) {
+func (c *Client) StartMatch(ctx context.Context, playerID int64, nickname, hero string, teamSize int) (*rcenter.MatchResult, error) {
 	res, err := c.client.StartMatch(ctx, &rcenterpb.StartMatchRequest{
 		PlayerId: playerID,
 		Nickname: nickname,
 		Hero:     hero,
-		Solo:     solo,
+		TeamSize: int32(teamSize),
 	})
 	if err != nil {
 		return nil, mapGRPCError(err)
@@ -101,6 +101,8 @@ func mapGRPCError(err error) error {
 			return rcenter.ErrInvalidBattleNode
 		case rcenter.ErrInvalidPlayerID.Error():
 			return rcenter.ErrInvalidPlayerID
+		case rcenter.ErrInvalidTeamSize.Error():
+			return rcenter.ErrInvalidTeamSize
 		case rcenter.ErrInvalidRoomName.Error():
 			return rcenter.ErrInvalidRoomName
 		case rcenter.ErrInvalidBattleStats.Error():

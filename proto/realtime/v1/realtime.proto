@@ -83,6 +83,7 @@ message MatchResumeRequest{}
 message MatchStartRequest{
   string hero = 1;
   bool solo = 2;
+  int32 team_size = 3;
 }
 
 message MatchCanceled {}
@@ -298,6 +299,8 @@ enum LeaderboardType {
   LEADERBOARD_TYPE_SOLO_CLEAR_TIME = 1;
   LEADERBOARD_TYPE_DUO_CLEAR_TIME = 2;
   LEADERBOARD_TYPE_TOTAL_KILLS = 3;
+  LEADERBOARD_TYPE_TRIO_CLEAR_TIME = 4;
+  LEADERBOARD_TYPE_QUAD_CLEAR_TIME = 5;
 }
 
 message ListLeaderboardRequest {

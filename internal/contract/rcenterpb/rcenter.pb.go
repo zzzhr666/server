@@ -363,6 +363,7 @@ type StartMatchRequest struct {
 	Hero          string                 `protobuf:"bytes,2,opt,name=hero,proto3" json:"hero,omitempty"`
 	Solo          bool                   `protobuf:"varint,3,opt,name=solo,proto3" json:"solo,omitempty"`
 	Nickname      string                 `protobuf:"bytes,4,opt,name=nickname,proto3" json:"nickname,omitempty"`
+	TeamSize      int32                  `protobuf:"varint,5,opt,name=team_size,json=teamSize,proto3" json:"team_size,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -423,6 +424,13 @@ func (x *StartMatchRequest) GetNickname() string {
 		return x.Nickname
 	}
 	return ""
+}
+
+func (x *StartMatchRequest) GetTeamSize() int32 {
+	if x != nil {
+		return x.TeamSize
+	}
+	return 0
 }
 
 type StartMatchResponse struct {
@@ -950,12 +958,13 @@ const file_proto_rcenter_v1_rcenter_proto_rawDesc = "" +
 	"\x1aRegisterBattleNodeResponse\"\x18\n" +
 	"\x16ListBattleNodesRequest\"G\n" +
 	"\x17ListBattleNodesResponse\x12,\n" +
-	"\x05nodes\x18\x01 \x03(\v2\x16.rcenter.v1.BattleNodeR\x05nodes\"t\n" +
+	"\x05nodes\x18\x01 \x03(\v2\x16.rcenter.v1.BattleNodeR\x05nodes\"\x91\x01\n" +
 	"\x11StartMatchRequest\x12\x1b\n" +
 	"\tplayer_id\x18\x01 \x01(\x03R\bplayerId\x12\x12\n" +
 	"\x04hero\x18\x02 \x01(\tR\x04hero\x12\x12\n" +
 	"\x04solo\x18\x03 \x01(\bR\x04solo\x12\x1a\n" +
-	"\bnickname\x18\x04 \x01(\tR\bnickname\"E\n" +
+	"\bnickname\x18\x04 \x01(\tR\bnickname\x12\x1b\n" +
+	"\tteam_size\x18\x05 \x01(\x05R\bteamSize\"E\n" +
 	"\x12StartMatchResponse\x12/\n" +
 	"\x06result\x18\x01 \x01(\v2\x17.rcenter.v1.MatchResultR\x06result\"1\n" +
 	"\x12CancelMatchRequest\x12\x1b\n" +
