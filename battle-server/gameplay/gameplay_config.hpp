@@ -75,11 +75,11 @@ namespace battle::gameplay_config {
     }
 
     namespace monster {
-        inline constexpr float PathFollowingRefindDistance = 5.0f;
+        inline constexpr float PathFollowingRefindDistance = 1.0f;
         inline constexpr float PathFollowingWaypointReachDistance = 0.1f;
 
         namespace melee {
-            inline constexpr int Health = 200;
+            inline constexpr int Health = 150;
             inline constexpr float MoveSpeed = 3.0f;
             inline constexpr int AttackDamage = 10;
             inline constexpr float AttackRange = 2.0f;
@@ -88,11 +88,11 @@ namespace battle::gameplay_config {
             inline constexpr ecs::DeltaTime AttackActive{0.1f};
             inline constexpr ecs::DeltaTime AttackRecovery{1.05f};
             inline constexpr float AttackMovementMultiplier = 0.0f;
-            inline constexpr int SoulReward = 10;
+            inline constexpr int SoulReward = 20;
         }
 
         namespace ranged {
-            inline constexpr int Health = 120;
+            inline constexpr int Health = 75;
             inline constexpr float MoveSpeed = 3.5f;
             inline constexpr int AttackDamage = 12;
             inline constexpr float AttackRange = 10.5f;
@@ -103,7 +103,7 @@ namespace battle::gameplay_config {
             inline constexpr float AttackMovementMultiplier = 0.0f;
             inline constexpr float ProjectileSpeed = 11.0f;
             inline constexpr float RetreatDistance = 7.0f;
-            inline constexpr int SoulReward = 5;
+            inline constexpr int SoulReward = 10;
         }
 
         namespace boss {
