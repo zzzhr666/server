@@ -245,15 +245,10 @@ namespace {
         send_pkg->set_tick_rate(snapshot.tick_rate);
         send_pkg->set_current_room_id(snapshot.current_room_id);
         send_pkg->set_room_state(to_proto_room_flow_state(snapshot.room_state));
-        send_pkg->set_current_room_layout_id(snapshot.current_room_layout_id);
-        send_pkg->mutable_world_bounds()->set_min_x(snapshot.world_bounds.min_x);
-        send_pkg->mutable_world_bounds()->set_max_x(snapshot.world_bounds.max_x);
-        send_pkg->mutable_world_bounds()->set_min_y(snapshot.world_bounds.min_y);
-        send_pkg->mutable_world_bounds()->set_max_y(snapshot.world_bounds.max_y);
-        for (const auto exit_id : snapshot.available_room_exit_ids) {
-            send_pkg->add_available_room_exit_ids(exit_id);
-        }
         for (const auto& entity : snapshot.entities) {
+            if (entity.kind == battle::ecs::EntityKind::Obstacle || entity.kind == battle::ecs::EntityKind::Trap) {
+                continue;
+            }
             auto entity_snapshot = send_pkg->add_entities();
             entity_snapshot->set_entity(entity.entity.packed());
             entity_snapshot->set_kind(to_proto_entity_kind(entity.kind));
@@ -400,6 +395,55 @@ namespace {
         return packet;
     }
 
+    battle::v1::ServerPacket make_room_snapshot(const std::string& room_name,
+                                                const battle::BattleWorldSnapshot& snapshot) {
+        battle::v1::ServerPacket packet;
+        auto room = packet.mutable_room_snapshot();
+        room->set_room_name(room_name);
+        room->set_current_room_id(snapshot.current_room_id);
+        room->set_room_state(to_proto_room_flow_state(snapshot.room_state));
+        room->set_current_room_layout_id(snapshot.current_room_layout_id);
+        room->mutable_world_bounds()->set_min_x(snapshot.world_bounds.min_x);
+        room->mutable_world_bounds()->set_max_x(snapshot.world_bounds.max_x);
+        room->mutable_world_bounds()->set_min_y(snapshot.world_bounds.min_y);
+        room->mutable_world_bounds()->set_max_y(snapshot.world_bounds.max_y);
+        for (const auto exit_id : snapshot.available_room_exit_ids) {
+            room->add_available_room_exit_ids(exit_id);
+        }
+        for (const auto& entity : snapshot.entities) {
+            if (entity.kind != battle::ecs::EntityKind::Obstacle && entity.kind != battle::ecs::EntityKind::Trap) {
+                continue;
+            }
+            auto out = room->add_static_entities();
+            out->set_entity(entity.entity.packed());
+            out->set_kind(to_proto_entity_kind(entity.kind));
+            out->set_collision_radius(entity.collision_radius);
+            out->set_scene_object_kind(entity.scene_object_kind);
+            out->mutable_position()->set_x(entity.position.x);
+            out->mutable_position()->set_y(entity.position.y);
+        }
+        return packet;
+    }
+
+    battle::v1::ServerPacket make_state_update(const battle::v1::WorldSnapshot& snapshot) {
+        battle::v1::ServerPacket packet;
+        auto update = packet.mutable_state_update();
+        update->set_room_name(snapshot.room_name());
+        update->set_server_tick(snapshot.server_tick());
+        update->set_reward_selection_remaining_seconds(snapshot.reward_selection_remaining_seconds());
+        update->mutable_player_progress()->CopyFrom(snapshot.player_progress());
+        update->mutable_player_blessings()->CopyFrom(snapshot.player_blessings());
+        update->mutable_events()->CopyFrom(snapshot.events());
+        update->mutable_player_room_exit_choices()->CopyFrom(snapshot.player_room_exit_choices());
+        update->mutable_free_reward_states()->CopyFrom(snapshot.free_reward_states());
+        update->mutable_shop_offers()->CopyFrom(snapshot.shop_offers());
+        update->mutable_player_souls()->CopyFrom(snapshot.player_souls());
+        update->mutable_shop_item_definitions()->CopyFrom(snapshot.shop_item_definitions());
+        update->mutable_purchased_shop_items()->CopyFrom(snapshot.purchased_shop_items());
+        update->mutable_player_combat_stats()->CopyFrom(snapshot.player_combat_stats());
+        return packet;
+    }
+
     std::chrono::steady_clock::duration tick_interval_from_rate(std::uint32_t tick_rate) {
         const auto effective_tick_rate = tick_rate > 0 ? tick_rate : battle::DefaultBattleTickRate;
         return std::chrono::duration_cast<std::chrono::steady_clock::duration>(
@@ -538,8 +582,37 @@ void battle::BattleRuntime::tick(ecs::DeltaTime delta_time) {
             instance->update_connected_players(online_players);
             instance->tick(delta_time);
             auto snapshot = instance->snapshot();
-            const auto packet = make_snapshot(room_name, snapshot);
+            const auto layout_changed = room_layout_cache_[room_name] != snapshot.current_room_layout_id;
+            const auto& previous_online_players = room_connected_players_[room_name];
+            auto room_packet = make_room_snapshot(room_name, snapshot);
             for (const auto& session : connected_sessions) {
+                if (layout_changed || snapshot.server_tick % 60 == 0 ||
+                    !previous_online_players.contains(session->player_id())) {
+                    packets.emplace_back(room_packet);
+                    endpoints.push_back(session->endpoint());
+                }
+            }
+            room_layout_cache_[room_name] = snapshot.current_room_layout_id;
+            room_connected_players_[room_name] = online_players;
+            auto packet = make_snapshot(room_name, snapshot);
+            const auto state_packet = make_state_update(packet.snapshot());
+            auto* dynamic_snapshot = packet.mutable_snapshot();
+            dynamic_snapshot->clear_reward_selection_remaining_seconds();
+            dynamic_snapshot->clear_player_progress();
+            dynamic_snapshot->clear_player_blessings();
+            dynamic_snapshot->clear_events();
+            dynamic_snapshot->clear_player_room_exit_choices();
+            dynamic_snapshot->clear_free_reward_states();
+            dynamic_snapshot->clear_shop_offers();
+            dynamic_snapshot->clear_player_souls();
+            dynamic_snapshot->clear_shop_item_definitions();
+            dynamic_snapshot->clear_purchased_shop_items();
+            dynamic_snapshot->clear_player_combat_stats();
+            for (const auto& session : connected_sessions) {
+                if (snapshot.server_tick % 6 == 0 || !previous_online_players.contains(session->player_id())) {
+                    packets.emplace_back(state_packet);
+                    endpoints.push_back(session->endpoint());
+                }
                 packets.emplace_back(packet);
                 endpoints.push_back(session->endpoint());
             }
@@ -684,6 +757,8 @@ battle::EndRoomResult battle::BattleRuntime::end_room(const std::string& room_na
         // 从实例表和无人倒计时移除后，后续输入立即查不到房间；实际 session 与 Room
         // 的清理放到锁外，避免跨管理器调用时形成锁顺序问题。
         instances_.erase(it);
+        room_layout_cache_.erase(room_name);
+        room_connected_players_.erase(room_name);
         all_disconnected_since_.erase(room_name);
     }
     for (auto& endpoint : endpoints) {

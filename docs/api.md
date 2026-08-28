@@ -138,10 +138,10 @@ ServerEnvelope {
 
 ## UDP 战斗协议
 
-UDP payload 使用 `proto/battle/v1/session.proto` 的 `ClientPacket` 与 `ServerPacket`。
+UDP payload 使用 `proto/battle/v1/session.proto` 的 `ClientPacket` 与 `ServerPacket`。服务端包按频率分为 `RoomSnapshot`、`StateUpdate` 和 `WorldSnapshot`：房间包发送地图静态数据，状态包发送低频玩家/奖励状态，世界包发送高频战斗实体。
 
 1. 收到 TCP `matched` 后，向 `battle_udp_addr` 发送 `ClientHello(room_name, player_id, token)`。
-2. 收到 `ServerHello` 后保存服务器分配的 conversation，开始接收快照。
+2. 收到 `ServerHello` 后保存服务器分配的 conversation，接收 `RoomSnapshot`、`StateUpdate` 和 `WorldSnapshot`；客户端应缓存前两者并与世界快照合并。
 3. 每 5 秒发送 `ClientHeartbeat`，并按输入状态发送 `ClientInput`。
 4. 在 `BATTLE_PHASE_REWARD_SELECTION` 时，使用 snapshot 中的 `current_options` 发送 `ChooseBlessing`。
 5. 在奖励房的 `ROOM_FLOW_STATE_REWARDING` 阶段，每名玩家使用 `ChooseFreeReward` 完成一次免费奖励选择；可选回血、攻击、护甲、随机祝福或 `SKIP`。所有玩家完成后进入 `ROOM_FLOW_STATE_CHOOSING_EXIT`。

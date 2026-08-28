@@ -76,7 +76,7 @@ state Redis store 在金币结算的同一个乐观事务中使用 `ZADD LT` 保
 
 `CreateRoom` 先在 battle-server 建立允许玩家列表和 token。客户端发送 `ClientHello` 后，`SessionManager` 绑定 player、UDP conversation 和 endpoint。房间第一次所有玩家都加入时启动 `BattleInstance`；已存在的玩家使用新的 UDP conversation 或 endpoint hello 时会重绑为同一 session，而不是创建第二个玩家。
 
-客户端的 `ClientInput` 包含移动、攻击和冲刺请求。客户端应每 5 秒发送 `ClientHeartbeat`。battle-server 默认 60 tick/s，并向所有已连接 session 广播 `WorldSnapshot`。每个玩家的 `EntitySnapshot.hero` 都携带其英雄映射值，所有客户端据此渲染对应英雄；该值在房间创建时冻结，断线重连不会改变。
+客户端的 `ClientInput` 包含移动、攻击和冲刺请求。客户端应每 5 秒发送 `ClientHeartbeat`。battle-server 默认 60 tick/s，并向所有已连接 session 广播只包含高频战斗实体的 `WorldSnapshot`；进入房间、布局切换或玩家重连时补发 `RoomSnapshot`，其中包含布局、边界、出口和静态障碍/陷阱。祝福、经验、灵魂、战斗属性、奖励房状态和短期事件通过约 10Hz 的 `StateUpdate` 发送，并在重连时补发完整状态。每个玩家的 `EntitySnapshot.hero` 都携带其英雄映射值，所有客户端据此渲染对应英雄；该值在房间创建时冻结，断线重连不会改变。
 
 ### ECS tick
 
@@ -101,7 +101,7 @@ state Redis store 在金币结算的同一个乐观事务中使用 `ZADD LT` 保
 
 尖刺只在目标进入范围时造成一次伤害，离开后重新进入可再次触发。毒池对目标维护单个持续伤害状态，持续停留只刷新有效期，不叠层也不重置下一次伤害的计时。沼泽降低玩家普通移动以及怪物追击、撤退速度，但玩家冲刺不受减速影响。
 
-快照包含实体位置、生命、权威碰撞半径、实体类型、场景对象类型、房间流程、玩家经验、已持有祝福、待选祝福以及短期保留的攻击/死亡事件。玩家灵魂和战斗属性在所有阶段发送；战斗属性包括攻击伤害、移速、攻击间隔和护甲。免费奖励完成状态只在 `Rewarding` 发送，商店报价、装备定义和个人购买记录只在奖励房的 `Rewarding`、`ChoosingExit` 发送。
+`WorldSnapshot` 只包含实体位置、生命、权威碰撞半径、实体类型、场景对象类型和房间流程等高频数据；`RoomSnapshot` 一次性承载当前房间的布局、边界、出口和静态障碍/陷阱。玩家经验、已持有祝福、待选祝福、灵魂、战斗属性、免费奖励、商店状态及短期攻击/死亡事件由 `StateUpdate` 低频发送。客户端缓存 `RoomSnapshot` 和最近的 `StateUpdate`，再与高频快照合并显示。
 
 ### 英雄选择、战斗配置与祝福
 

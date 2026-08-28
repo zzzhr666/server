@@ -45,7 +45,35 @@ message ServerPacket {
     Error error = 3;
     GameOver game_over = 4;
     WorldSnapshot snapshot = 5;
+    RoomSnapshot room_snapshot = 6;
+    StateUpdate state_update = 7;
   }
+}
+
+message RoomSnapshot {
+  string room_name = 1;
+  uint32 current_room_id = 2;
+  RoomFlowState room_state = 3;
+  string current_room_layout_id = 4;
+  WorldBounds world_bounds = 5;
+  repeated uint32 available_room_exit_ids = 6;
+  repeated EntitySnapshot static_entities = 7;
+}
+
+message StateUpdate {
+  string room_name = 1;
+  uint64 server_tick = 2;
+  float reward_selection_remaining_seconds = 3;
+  repeated PlayerProgressSnapshot player_progress = 4;
+  repeated PlayerBlessingStateSnapshot player_blessings = 5;
+  repeated BattleEvent events = 6;
+  repeated PlayerRoomExitChoiceSnapshot player_room_exit_choices = 7;
+  repeated PlayerFreeRewardState free_reward_states = 8;
+  repeated ShopOffer shop_offers = 9;
+  repeated PlayerSoulSnapshot player_souls = 10;
+  repeated ShopItemDefinition shop_item_definitions = 11;
+  repeated PlayerPurchasedShopItemsSnapshot purchased_shop_items = 12;
+  repeated PlayerCombatStatsSnapshot player_combat_stats = 13;
 }
 
 message GameOver {
